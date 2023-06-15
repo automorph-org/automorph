@@ -1,6 +1,7 @@
 // Project
 val projectRoot = "org"
 val projectName = "automorph"
+val projectDomain = s"$projectName.$projectRoot"
 val projectDescription = "RPC client and server for Scala"
 val siteUrl = s"https://$projectName.$projectRoot"
 val apiUrl = s"$siteUrl/api"
@@ -13,14 +14,15 @@ ThisBuild / organizationHomepage := Some(url(siteUrl))
 ThisBuild / developers := List(Developer(
   id = "m",
   name = "Martin Ockajak",
-  email = "automorph.org@proton.me",
-  url = url(s"https://automorph.org")
+  email = s"$projectDomain@proton.me",
+  url = url(s"https://$projectDomain")
 ))
+ThisBuild / version ~= (_.split("\\+").head)
 Global / onChangedBuildSource := ReloadOnSourceChanges
 
 
 // Repository
-val repositoryPath = s"automorph-org/$projectName"
+val repositoryPath = s"$projectName-$projectRoot/$projectName"
 val repositoryUrl = s"https://github.com/$repositoryPath"
 val repositoryShell = s"git@github.com:$repositoryPath.git"
 ThisBuild / scmInfo := Some(ScmInfo(url(repositoryUrl), s"scm:$repositoryShell"))
@@ -294,11 +296,11 @@ val compileScalac2Options = commonScalacOptions ++ Seq(
 )
 val docScalac3Options = compileScalac3Options ++ Seq(
   s"-source-links:src=github://$repositoryPath/master",
-  "-skip-by-id:automorph.client,automorph.handler,automorph.spi.codec"
+  s"-skip-by-id:$projectName.client,$projectName.handler"
 )
 val docScalac2Options = compileScalac2Options ++ Seq(
   "-skip-packages",
-  "automorph.client:automorph.handler:automorph.spi.codec"
+  s"$projectName.client:$projectName.handler"
 )
 ThisBuild / scalacOptions ++= (CrossVersion.partialVersion(scalaVersion.value) match {
   case Some((3, _)) => compileScalac3Options ++ Seq(
@@ -418,25 +420,30 @@ cleanFiles ++= Seq(
 )
 
 
-// Release
-val repositoryCredentialsPath = Path.userHome / ".sbt/sonatype_credentials"
-ThisBuild / publishTo := {
-  Some(if (isSnapshot.value) {
-    "snapshots".at("https://s01.oss.sonatype.org/content/repositories/snapshots")
-  } else {
-    "releases".at("https://s01.oss.sonatype.org/service/local/staging/deploy/maven2")
-  })
-}
-ThisBuild / pomIncludeRepository := { _ => false }
-ThisBuild / publishMavenStyle := true
-ThisBuild / versionScheme := Some("early-semver")
-ThisBuild / releaseCrossBuild := true
-ThisBuild / releaseVcsSign := true
-ThisBuild / releasePublishArtifactsAction := PgpKeys.publishSigned.value
+// Publish
+val lastVersion = "0.0.0"
+sonatypeRepository := "https://s01.oss.sonatype.org/service/local"
+sonatypeCredentialHost := "s01.oss.sonatype.org"
 credentials ++= Seq(
-  Credentials("GnuPG Key ID", "gpg", "9E5F3CBE696BE49391A5131EFEAB85EB98F65E63", "")
-) ++ (if (repositoryCredentialsPath.isFile) {
-  Seq(Credentials(repositoryCredentialsPath))
-} else {
-  Seq.empty
-})
+  Credentials(
+    "GnuPG Key ID",
+    "gpg",
+    "9E5F3CBE696BE49391A5131EFEAB85EB98F65E63",
+    ""
+  ),
+  Credentials(
+    "Sonatype Nexus Repository Manager",
+    "s01.oss.sonatype.org",
+    projectDomain,
+    Option(System.getenv("SONATYPE_PASSWORD")).getOrElse("")
+  )
+)
+mimaPreviousArtifacts := Set(
+  organization.value %% s"$projectName-meta" % lastVersion,
+  organization.value %% s"$projectName-core" % lastVersion,
+  organization.value %% s"$projectName-default" % lastVersion
+)
+tastyMiMaPreviousArtifacts := mimaPreviousArtifacts.value
+ThisBuild / publishTo := sonatypePublishToBundle.value
+ThisBuild / versionScheme := Some("early-semver")
+

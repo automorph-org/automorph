@@ -1,6 +1,4 @@
 #!/usr/bin/env bash
 
-mimaReportBinaryIssues
-sbt '+ publishLocal'
-# sbt release
+sbt '+ mimaReportBinaryIssues ; + tastyMiMaReportIssues ; + publishSigned ; sonatypeBundleRelease'
 
