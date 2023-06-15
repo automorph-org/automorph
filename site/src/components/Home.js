@@ -73,7 +73,7 @@ const features = [
   },
   {
     title: 'Compatible',
-    link: 'https://mvnrepository.com/artifact/org.automorph/automorph',
+    link: 'https://central.sonatype.com/namespace/org.automorph',
     description: (
         <>
           Supports <a href="https://www.scala-lang.org/">Scala</a> 3.3+ and 2.13+ on <a
@@ -128,8 +128,6 @@ function BannerRow() {
       <div className="row">
         <div className={'col col--12'}>
           <img src={bannerImage} alt={config.title}/>
-          <h2>This is a preview of an upcoming release without the artifacts being published.</h2>
-          <h2>Please do not use it in any way but feel free to review the documentation.</h2>
         </div>
       </div>
   )

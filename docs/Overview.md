@@ -18,12 +18,12 @@ sidebar_position: 1
 
 ## Requirements
 
-* [Scala](https://www.scala-lang.org/) 3.2+ or 2.13+
+* [Scala](https://www.scala-lang.org/) 3.3+ or 2.13+
 * [Java Runtime Environment](https://openjdk.java.net/) 11+
 * [SLF4J](http://www.slf4j.org/) logger implementation (optional)
 
 
-## [API](https://en.wikipedia.org/wiki/API)
+## [API](https://automorph.org/api/automorph.html)
 
 Entry points for the application logic to invoke or expose remote APIs:
 
@@ -32,7 +32,7 @@ Entry points for the application logic to invoke or expose remote APIs:
 * [RPC endpoint](/api/automorph/RpcEndpoint.html) - expose APIs as remote within an existing server
 
 
-## [SPI](https://en.wikipedia.org/wiki/Service_provider_interface)
+## [SPI](https://automorph.org/api/automorph/spi.html)
 
 Traits for implementation of various integration plugins:
 
@@ -49,17 +49,14 @@ Traits for implementation of various integration plugins:
 * Remote APIs must not contain [overloaded methods](https://en.wikipedia.org/wiki/Function_overloading)
 * Remote API methods must not use [type parameters](https://docs.scala-lang.org/tour/polymorphic-methods.html)
 * Remote API methods must not be [inline](https://docs.scala-lang.org/scala3/guides/macros/inline.html)
-* Remote APIs must not be used from within the [App](https://scala-lang.org/api/3.x/scala/App.html) trait nor from
-within any other [delayed initialization](https://scala-lang.org/api/3.x/scala/DelayedInit.html) scope
-* JSON-RPC protocol implementation does not support batch requests
-* Due to Scala 2 [type inference](https://docs.scala-lang.org/tour/type-inference.html) constraints it may be necessary
-to explicitly supply type parameters when creating RPC protocol plugin instances
+* Remote APIs must not be used from within the [App](https://scala-lang.org/api/3.x/scala/App.html) trait nor from within any other [delayed initialization](https://scala-lang.org/api/3.x/scala/DelayedInit.html) scope
+* JSON-RPC protocol implementation does not support [batch requests](https://www.jsonrpc.org/specification#batch)
+* RPC protocol plugin instantiation may require specifying the type parameters explicitly due to Scala 2 [type inference](https://docs.scala-lang.org/tour/type-inference.html) constraints
 
 
 ## Known issues
 
-* Mangled Scaladoc signatures for a few nonessential methods
-* Missing Monix effect system plugin in Scaladoc index
+* Mangled signatures for a few nonessential methods in Automorph API documentation caused by a Scaladoc defect
 
 
 ## Supported standards
@@ -109,4 +106,3 @@ to explicitly supply type parameters when creating RPC protocol plugin instances
 * [Tapir](https://tapir.softwaremill.com)
 * [STTP](https://sttp.softwaremill.com)
 * [ZIO](https://zio.dev)
-
