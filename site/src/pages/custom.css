@@ -1,0 +1,85 @@
+/**
+ * Any CSS included here will be global. The classic template
+ * bundles Infima by default. Infima is a CSS framework designed to
+ * work well for content-centric websites.
+
+ * Infima CSS variables: https://github.com/facebook/docusaurus/issues/3955
+ */
+
+:root {
+  --ifm-navbar-height: 3.5rem;
+  --doc-sidebar-width: 10rem !important;
+
+  --ifm-color-black: #000000;
+  --ifm-color-white: #eeeeee;
+  --ifm-background-color: #ffffff;
+  --ifm-color-primary: #1f7fbf;
+  --ifm-color-primary-dark: var(--ifm-color-primary);
+  --ifm-color-primary-darker: var(--ifm-color-primary);
+  --ifm-color-primary-darkest: var(--ifm-color-primary);
+  --ifm-color-primary-light: var(--ifm-color-primary);
+  --ifm-color-primary-lighter: var(--ifm-color-primary);
+  --ifm-color-primary-lightest: var(--ifm-color-primary);
+  --ifm-code-font-size: 90%;
+
+  --ifm-menu-color: #111111;
+  --sidebar-background-color: var(--ifm-color-white);
+  --theme-toggle-background-color: #bbbbbb;
+  --search-background-color: #cccccc;
+  --search-color: var(--ifm-color-black);
+  --placeholder-color: #222222;
+  --code-background-color: #00000011;
+}
+
+html[data-theme="dark"] {
+  --ifm-menu-color: #dddddd;
+  --sidebar-background-color: #222222;
+  --search-color: var(--ifm-color-white);
+  --search-background-color: #444444;
+  --theme-toggle-background-color: #555555;
+  --placeholder-color: #aaaaaa;
+  --code-background-color: rgba(0, 0, 0, 0.3);
+}
+
+div[class*='toggleTrack_'] {
+  background-color: var(--theme-toggle-background-color);
+}
+
+.navbar__search-input {
+  color: var(--search-color);
+  background-color: var(--search-background-color);
+}
+
+.navbar__search-input::-moz-placeholder {
+  color: var(--placeholder-color);
+}
+
+.navbar__search-input:-moz-placeholder {
+  color: var(--placeholder-color);
+}
+
+.navbar__search-input::-webkit-input-placeholder {
+  color: var(--placeholder-color);
+}
+
+.navbar__search-input:-ms-input-placeholder {
+  color: var(--placeholder-color);
+}
+
+.button {
+  background-color: #ffffff22;
+}
+
+.button:hover {
+  background-color: #00000022;
+}
+
+.menu {
+  background-color: var(--sidebar-background-color);
+}
+
+.prism-code {
+  margin: 0 calc(-1 * var(--ifm-pre-padding));
+  padding: 0 var(--ifm-pre-padding);
+}
+

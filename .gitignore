@@ -1,0 +1,17 @@
+# Build
+target
+dist
+
+# Tools
+*.swp
+.bsp
+.idea
+.vscode
+.project
+.settings
+out
+null
+
+# Misc
+.DS_Store
+

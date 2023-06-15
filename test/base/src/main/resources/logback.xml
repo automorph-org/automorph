@@ -1,0 +1,46 @@
+<configuration>
+  <!-- Disable Logback internal logging at startup -->
+  <statusListener class="ch.qos.logback.core.status.NopStatusListener" />
+
+  <!-- Release logging resources on application termination -->
+  <shutdownHook class="ch.qos.logback.core.hook.DelayingShutdownHook"/>
+
+  <!-- Simple console logging -->
+  <appender name="Console" class="ch.qos.logback.core.ConsoleAppender">
+    <filter class="ch.qos.logback.classic.filter.ThresholdFilter">
+      <level>${LOG_LEVEL:-ERROR}</level>
+    </filter>
+    <encoder>
+      <pattern>%cyan(%date{HH:mm:ss.SSS}) [%highlight(%-5level)] %message - %gray(%mdc) %n</pattern>
+    </encoder>
+  </appender>
+
+  <!-- Synchronous file logging -->
+  <appender name="FileSync" class="ch.qos.logback.core.FileAppender">
+    <filter class="ch.qos.logback.classic.filter.ThresholdFilter">
+      <level>DEBUG</level>
+    </filter>
+    <file>target/test.log</file>
+    <append>false</append>
+    <encoder>
+      <pattern>%date [%-5level] %message - %mdc%n</pattern>
+    </encoder>
+  </appender>
+
+  <!-- Asynchronous file logging -->
+  <appender name="File" class="ch.qos.logback.classic.AsyncAppender">
+    <appender-ref ref="FileSync" />
+    <queueSize>1</queueSize>
+    <discardingThreshold>0</discardingThreshold>
+  </appender>
+
+  <!-- Root log level -->
+  <root level="${LOG_LEVEL:-OFF}">
+    <appender-ref ref="Console" />
+    <appender-ref ref="File" />
+  </root>
+
+  <!-- Package-specific log level -->
+  <logger name="test" level="TRACE"/>
+</configuration>
+

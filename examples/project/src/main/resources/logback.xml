@@ -1,0 +1,23 @@
+<configuration>
+  <!-- Disable Logback internal logging at startup -->
+  <statusListener class="ch.qos.logback.core.status.NopStatusListener" />
+
+  <!-- Release logging resources on application termination -->
+  <shutdownHook class="ch.qos.logback.core.hook.DelayingShutdownHook"/>
+
+  <!-- Simple console logging -->
+  <appender name="Console" class="ch.qos.logback.core.ConsoleAppender">
+    <encoder>
+      <pattern>%cyan(%date{HH:mm:ss.SSS}) [%highlight(%-5level)] %message - %gray(%mdc) %n</pattern>
+    </encoder>
+  </appender>
+
+  <!-- Root log level -->
+  <root level="${LOG_LEVEL:-OFF}">
+    <appender-ref ref="Console" />
+  </root>
+
+  <!-- Library-specific log level -->
+  <logger name="automorph" level="${LOG_LEVEL:-INFO}"/>
+</configuration>
+
