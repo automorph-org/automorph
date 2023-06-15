@@ -34,37 +34,37 @@ https://www.jsonrpc.org/specification) and [Web-RPC](https://automorph.org/docs/
 
 ## Testing
 
-### Test using basic tests
+### Basic tests
 
 ```shell
 sbt '+ test'
 ```
 
-### Test using simple remote API tests only
+### Simple remote API tests only
 
 ```shell
 TEST_LEVEL=simple sbt '+ test'
 ```
 
-### Test using complex remote API tests including all integration tests
+### Complex remote API tests including all integration tests
 
 ```shell
 TEST_LEVEL=all sbt '+ test'
 ```
 
-### Test with specific console log level
+### Console log level
 
 ```shell
 LOG_LEVEL=DEBUG sbt '+ test'
 ```
 
-### Test with generated code logging
+### Generated code logging
 
 ```shell
 LOG_CODE=true sbt '+ test'
 ```
 
-### Review test logs
+### Test logs
 
 ```
 less target/test.log
