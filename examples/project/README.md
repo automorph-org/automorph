@@ -3,23 +3,26 @@
 * [Documentation](https://automorph.org)
 
 
-## Try
+## Download
 
-Run the application:
+Clone the repository and enter the example project directory:
 
-`sbt run`
+```shell
+git clone @REPOSITORY_URL@
+cd automorph/examples/project
+```
 
+## Test
+
+Run any of the examples:
+
+```shell
+sbt run
+```
 
 ## Customize
 
-Make changes:
+- Integrate with preferred platforms by including additional plugins
+- Configure RPC client, server or endpoint properties
+- Remove unused examples and build dependencies
 
-`edit src/main/scala/examples/Quickstart.scala`
-
-
-### Explore
-
-Review additional examples:
-```shell
-find src/test
-```
