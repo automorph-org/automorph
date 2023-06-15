@@ -75,7 +75,7 @@ const config = {
             position: 'left',
           },
           {
-            href: 'https://https://central.sonatype.com/namespace/org.automorph',
+            href: 'https://central.sonatype.com/namespace/org.automorph',
             label: 'Artifacts',
             position: 'left',
           },
