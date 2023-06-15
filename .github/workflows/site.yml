@@ -1,25 +1,23 @@
-name: Build
+name: Site
 
 on:
-  pull_request:
-    branches: [ main ]
   push:
     branches: [ main ]
-    tags: [ v* ]
 
 env:
   GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
 permissions:
   contents: read
+  pages: write
 
 concurrency:
-  group: 'build'
+  group: 'site'
   cancel-in-progress: false
 
 jobs:
   build:
-    name: Build
+    name: Site
     runs-on: ubuntu-latest
     steps:
       - name: Checkout current branch
@@ -31,6 +29,11 @@ jobs:
           java-version: 11
           distribution: 'adopt'
 
+      - name: Setup Node
+        uses: actions/setup-node@v3
+        with:
+          node-version: 19
+
       - name: Cache SBT
         uses: actions/cache@v3
         with:
@@ -41,6 +44,22 @@ jobs:
             ~/.cache/coursier
           key: sbt-${{ runner.os }}-${{ hashFiles('**/*.sbt') }}-${{ hashFiles('project/build.properties') }}
 
-      - name: Build project
-        run: sbt --client '+ compile'
+      - name: Cache Yarn
+        uses: actions/cache@v3
+        with:
+          path: |
+            **/node_modules
+          key: yarn-${{ runner.os }}-${{ hashFiles('**/package.json') }}-${{ hashFiles('**/yarn.lock') }}
+
+      - name: Build site
+        run: sbt --client 'site'
+
+      - name: Upload artifact
+        uses: actions/upload-pages-artifact@v1
+        with:
+          path: site/build
+
+      - name: Deploy to GitHub Pages
+        id: deployment
+        uses: actions/deploy-pages@v2
 
