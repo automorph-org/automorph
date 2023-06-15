@@ -5,6 +5,7 @@ val projectDomain = s"$projectName.$projectRoot"
 val projectDescription = "RPC client and server for Scala"
 val siteUrl = s"https://$projectName.$projectRoot"
 val apiUrl = s"$siteUrl/api"
+val lastVersion = "0.0.0"
 ThisBuild / homepage := Some(url(siteUrl))
 ThisBuild / licenses := Seq("Apache-2.0" -> url("https://www.apache.org/licenses/LICENSE-2.0"))
 ThisBuild / description := projectDescription
@@ -93,10 +94,14 @@ def source(project: Project, path: String, dependsOn: ClasspathDep[ProjectRefere
       publish / skip := true
     )
     case Array(directory) => subProject.settings(
-      name := s"$projectName-$directory"
+      name := s"$projectName-$directory",
+      mimaPreviousArtifacts := Set(
+	organization.value %% name.value % lastVersion
+      ),
+      tastyMiMaPreviousArtifacts := mimaPreviousArtifacts.value
     )
     case Array(_, directories @ _*) => subProject.settings(
-      name := s"$projectName-${directories.mkString("-")}"
+      name := s"$projectName-${directories.mkString("-")}",
     )
   }
 }
@@ -421,7 +426,6 @@ cleanFiles ++= Seq(
 
 
 // Publish
-val lastVersion = "0.0.0"
 sonatypeRepository := "https://s01.oss.sonatype.org/service/local"
 sonatypeCredentialHost := "s01.oss.sonatype.org"
 credentials ++= Seq(
@@ -438,12 +442,6 @@ credentials ++= Seq(
     Option(System.getenv("SONATYPE_PASSWORD")).getOrElse("")
   )
 )
-mimaPreviousArtifacts := Set(
-  organization.value %% s"$projectName-meta" % lastVersion,
-  organization.value %% s"$projectName-core" % lastVersion,
-  organization.value %% s"$projectName-default" % lastVersion
-)
-tastyMiMaPreviousArtifacts := mimaPreviousArtifacts.value
 ThisBuild / publishTo := sonatypePublishToBundle.value
 ThisBuild / versionScheme := Some("early-semver")
 

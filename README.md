@@ -5,7 +5,7 @@
 [![Documentation](https://img.shields.io/badge/Website-Documentation-purple)](https://automorph.org)
 [![API](https://img.shields.io/badge/Scaladoc-API-blue)](https://automorph.org/api/index.html)
 [![Artifacts](https://img.shields.io/badge/Releases-Artifacts-yellow)](
-https://mvnrepository.com/artifact/org.automorph/automorph)
+https://central.sonatype.com/namespace/org.automorph)
 [![Build](https://github.com/automorph-org/automorph/workflows/Build/badge.svg)](
 https://github.com/automorph-org/automorph/actions/workflows/build.yml)
 
@@ -16,7 +16,7 @@ https://www.jsonrpc.org/specification) and [Web-RPC](https://automorph.org/docs/
 * [Quick Start](https://automorph.org/docs/Quickstart)
 * [Documentation](https://automorph.org)
 * [API](https://automorph.org/api/index.html)
-* [Artifacts](https://mvnrepository.com/artifact/org.automorph/automorph)
+* [Artifacts](https://central.sonatype.com/namespace/org.automorph)
 * [Contact](mailto:automorph.org@proton.me)
 
 
