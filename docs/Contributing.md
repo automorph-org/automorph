@@ -27,13 +27,13 @@ with questions, ideas, features, improvements or fixes.
 sbt '+ test'
 ```
 
-### Simple remote API tests only
+### Simple API tests
 
 ```shell
 TEST_LEVEL=simple sbt '+ test'
 ```
 
-### Complex remote API tests including all integration tests
+### Complex API and integration tests
 
 ```shell
 TEST_LEVEL=all sbt '+ test'
