@@ -89,13 +89,13 @@ less target/test.log
 
 ## Documentation
 
-### Generate documentation
+### Generate website
 
 ```shell
 sbt site
 ```
 
-### Serve documentation
+### Serve website
 
 ```shell
 sbt serveSite
