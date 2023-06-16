@@ -10,9 +10,6 @@ https://central.sonatype.com/namespace/org.automorph)
 https://github.com/automorph-org/automorph/actions/workflows/build.yml)
 
 
-
-# Overview
-
 **Automorph** is a Scala [RPC](https://en.wikipedia.org/wiki/Remote_procedure_call) client and server library
 for effortlessly invoking and exposing remote APIs.
 
@@ -27,77 +24,11 @@ for effortlessly invoking and exposing remote APIs.
 * **Effect handling** - [Synchronous](docs/Examples#synchronous-call), [Asynchronous](docs/Examples#asynchronous-call), [Monadic](docs/Examples#effect-system).
 
 
-# Learn
+---
 
 * [Quick Start](https://automorph.org/docs/Quickstart)
 * [Documentation](https://automorph.org)
 * [API](https://automorph.org/api/index.html)
 * [Artifacts](https://central.sonatype.com/namespace/org.automorph)
 * [Contact](mailto:automorph.org@proton.me)
-
-
-# Build
-
-## Requirements
-
-* [JDK](https://openjdk.java.net/) 11+
-* [SBT](https://www.scala-sbt.org/) 1.9+
-* [NodeJS](https://nodejs.org/) 19+
-* [Yarn](https://yarnpkg.com/) 1.22+
-
-**Note**: uPickle plugin build may take a long time but it works.
-
-
-## Testing
-
-### Basic tests
-
-```shell
-sbt '+ test'
-```
-
-### Simple remote API tests only
-
-```shell
-TEST_LEVEL=simple sbt '+ test'
-```
-
-### Complex remote API tests including all integration tests
-
-```shell
-TEST_LEVEL=all sbt '+ test'
-```
-
-### Console log level
-
-```shell
-LOG_LEVEL=DEBUG sbt '+ test'
-```
-
-### Generated code logging
-
-```shell
-LOG_CODE=true sbt '+ test'
-```
-
-### Test logs
-
-```
-less target/test.log
-```
-
-
-## Documentation
-
-### Generate website
-
-```shell
-sbt site
-```
-
-### Serve website
-
-```shell
-sbt serveSite
-```
 
