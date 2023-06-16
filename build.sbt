@@ -2,7 +2,7 @@
 val projectRoot = "org"
 val projectName = "automorph"
 val projectDomain = s"$projectName.$projectRoot"
-val projectDescription = "RPC client and server for Scala"
+val projectDescription = "RPC client and server library for Scala"
 val siteUrl = s"https://$projectName.$projectRoot"
 val apiUrl = s"$siteUrl/api"
 val lastVersion = "0.0.0"
