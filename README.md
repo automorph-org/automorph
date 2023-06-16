@@ -9,9 +9,26 @@ https://central.sonatype.com/namespace/org.automorph)
 [![Build](https://github.com/automorph-org/automorph/workflows/Build/badge.svg)](
 https://github.com/automorph-org/automorph/actions/workflows/build.yml)
 
+
+
+# Overview
+
 **Automorph** is an [RPC](https://en.wikipedia.org/wiki/Remote_procedure_call) client and server library for [Scala](
-https://www.scala-lang.org/) providing an easy way to invoke and expose remote APIs using [JSON-RPC](
-https://www.jsonrpc.org/specification) and [Web-RPC](https://automorph.org/docs/Web-RPC) protocols.
+https://www.scala-lang.org/) for invoking and exposing remote APIs using [JSON-RPC](
+https://www.jsonrpc.org/specification) and [Web-RPC](https://automorph.org/docs/Web-RPC) protocols using minimal amount of code.
+
+* **Seamless** - Generate optimized [RPC](https://en.wikipedia.org/wiki/Remote_procedure_call) [client](docs/Quickstart#static-client) or [server](docs/Quickstart#server) bindings from existing public API methods at compile time.
+* **Flexible** - Customize [data serialization](docs/Examples#data-serialization), [remote API function names](docs/Examples#client-function-names), [RPC protocol errors](docs/Examples#client-exceptions) and [authentication](docs/Examples#http-authentication).
+* **Modular** - Choose plugins for [RPC protocol](docs/Plugins#rpc-protocol), [effect handling](docs/Plugins#effect-system), [transport protocol](docs/Plugins#message-transport) and [message format](docs/Plugins#message-codec).
+* **Permissive** - Manage [dynamic message payload](docs/Examples#dynamic-payload) and transparently access [transport protocol metadata](docs/Examples#metadata).
+* **Discoverable** - Consume and provide [OpenRPC](https://spec.open-rpc.org) 1.3+ or [OpenAPI](https://github.com/OAI/OpenAPI-Specification) 3.1+ schemas using standard API discovery functions.
+* **Compatible** - Supports [Scala](https://www.scala-lang.org) 3.3+ and 2.13+ on [JRE](https://openjdk.java.net/) 11+ and integrates with various popular [libraries](docs/Plugins).
+* **RPC protocols** - [JSON-RPC](https://www.jsonrpc.org/specification), [Web-RPC](docs/Web-RPC).
+* **Transport protocols** - [HTTP](docs/Examples#http-authentication), [WebSocket](docs/Examples#websocket-transport), [AMQP](docs/Examples#amqp-transport).
+* **Effect handling** - [Synchronous](docs/Examples#synchronous-call), [Asynchronous](docs/Examples#asynchronous-call), [Monadic](docs/Examples#effect-system).
+
+
+# Learn
 
 * [Quick Start](https://automorph.org/docs/Quickstart)
 * [Documentation](https://automorph.org)
