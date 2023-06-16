@@ -67,7 +67,7 @@ const features = [
         <>
           Consume and provide <a href="https://spec.open-rpc.org">OpenRPC</a> 1.3+ or <a
             href="https://github.com/OAI/OpenAPI-Specification">OpenAPI</a> 3.1+ schemas
-          using standard API discovery functions.
+          using API discovery functions.
         </>
     ),
   },
