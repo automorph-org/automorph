@@ -60,7 +60,7 @@ const config = {
         },
         items: [
           {
-            href: '/docs/Overview',
+            href: 'https://automorph.org/docs/Overview',
             label: 'Documentation',
             position: 'left',
           },
