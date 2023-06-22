@@ -432,7 +432,7 @@ sonatypeRepository := "https://s01.oss.sonatype.org/service/local"
 sonatypeCredentialHost := "s01.oss.sonatype.org"
 credentials ++= Seq(
   Credentials(
-    "GnuPG Key ID", "gpg", environment("ARTIFACT_GPG_KEY_ID"), ""
+    "GnuPG Key ID", "gpg", environment("ARTIFACT_GPG_KEY"), ""
   ),
   Credentials(
     "Sonatype Nexus Repository Manager", "s01.oss.sonatype.org", projectDomain, environment("SONATYPE_PASSWORD")
