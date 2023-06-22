@@ -3,7 +3,7 @@ val projectRoot = "org"
 val projectName = "automorph"
 val projectDomain = s"$projectName.$projectRoot"
 val projectDescription = "RPC client and server library for Scala"
-val siteUrl = s"https://$projectName.$projectRoot"
+val siteUrl = s"https://$projectDomain"
 val apiUrl = s"$siteUrl/api"
 val lastVersion = "0.0.0"
 ThisBuild / homepage := Some(url(siteUrl))
@@ -432,7 +432,7 @@ credentials ++= Seq(
   Credentials(
     "GnuPG Key ID",
     "gpg",
-    "9E5F3CBE696BE49391A5131EFEAB85EB98F65E63",
+    Option(System.getenv("ARTIFACT_GPG_KEY_ID")).getOrElse(""),
     ""
   ),
   Credentials(
