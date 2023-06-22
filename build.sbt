@@ -426,20 +426,16 @@ cleanFiles ++= Seq(
 
 
 // Publish
+def environment(name: String): String =
+  Option(System.getenv(name)).getOrElse("")
 sonatypeRepository := "https://s01.oss.sonatype.org/service/local"
 sonatypeCredentialHost := "s01.oss.sonatype.org"
 credentials ++= Seq(
   Credentials(
-    "GnuPG Key ID",
-    "gpg",
-    Option(System.getenv("ARTIFACT_GPG_KEY_ID")).getOrElse(""),
-    ""
+    "GnuPG Key ID", "gpg", environment("ARTIFACT_GPG_KEY_ID"), ""
   ),
   Credentials(
-    "Sonatype Nexus Repository Manager",
-    "s01.oss.sonatype.org",
-    projectDomain,
-    Option(System.getenv("SONATYPE_PASSWORD")).getOrElse("")
+    "Sonatype Nexus Repository Manager", "s01.oss.sonatype.org", projectDomain, environment("SONATYPE_PASSWORD")
   )
 )
 ThisBuild / publishTo := sonatypePublishToBundle.value
