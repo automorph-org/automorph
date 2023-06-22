@@ -9,7 +9,7 @@ Most of the following examples are using [default plugins](Plugins).
 
 ## Basic
 
-### [Synchronous call](../../examples/project/src/main/scala/examples/basic/SynchronousCall.scala)
+### [Synchronous call](https://github.com/automorph-org/automorph/tree/main/examples/project/src/main/scala/examples/basic/SynchronousCall.scala)
 
 **Build**
 
@@ -72,7 +72,7 @@ client.close()
 server.close()
 ```
 
-### [Asynchronous call](../../examples/project/src/main/scala/examples/basic/AsynchronousCall.scala)
+### [Asynchronous call](https://github.com/automorph-org/automorph/tree/main/examples/project/src/main/scala/examples/basic/AsynchronousCall.scala)
 
 **Build**
 
@@ -145,7 +145,7 @@ run(client.close())
 run(server.close())
 ```
 
-### [Optional parameters](../../examples/project/src/main/scala/examples/basic/OptionalParameters.scala)
+### [Optional parameters](https://github.com/automorph-org/automorph/tree/main/examples/project/src/main/scala/examples/basic/OptionalParameters.scala)
 
 **Build**
 
@@ -215,7 +215,7 @@ server.close()
 
 ## Customization
 
-### [Data serialization](../../examples/project/src/main/scala/examples/customization/DataSerialization.scala)
+### [Data serialization](https://github.com/automorph-org/automorph/tree/main/examples/project/src/main/scala/examples/customization/DataSerialization.scala)
 
 **Build**
 
@@ -311,7 +311,7 @@ run(client.close())
 run(server.close())
 ```
 
-### [Client function names](../../examples/project/src/main/scala/examples/customization/ClientFunctionNames.scala)
+### [Client function names](https://github.com/automorph-org/automorph/tree/main/examples/project/src/main/scala/examples/customization/ClientFunctionNames.scala)
 
 **Build**
 
@@ -383,7 +383,7 @@ client.close()
 server.close()
 ```
 
-### [Server function names](../../examples/project/src/main/scala/examples/customization/ServerFunctionNames.scala)
+### [Server function names](https://github.com/automorph-org/automorph/tree/main/examples/project/src/main/scala/examples/customization/ServerFunctionNames.scala)
 
 **Build**
 
@@ -477,7 +477,7 @@ server.close()
 
 ## Errors
 
-### [Client exceptions](../../examples/project/src/main/scala/examples/errors/ClientExceptions.scala)
+### [Client exceptions](https://github.com/automorph-org/automorph/tree/main/examples/project/src/main/scala/examples/errors/ClientExceptions.scala)
 
 **Build**
 
@@ -562,7 +562,7 @@ run(client.close())
 run(server.close())
 ```
 
-### [Server errors](../../examples/project/src/main/scala/examples/errors/ServerErrors.scala)
+### [Server errors](https://github.com/automorph-org/automorph/tree/main/examples/project/src/main/scala/examples/errors/ServerErrors.scala)
 
 **Build**
 
@@ -654,7 +654,7 @@ run(client.close())
 run(server.close())
 ```
 
-### [HTTP status code](../../examples/project/src/main/scala/examples/errors/HttpStatusCode.scala)
+### [HTTP status code](https://github.com/automorph-org/automorph/tree/main/examples/project/src/main/scala/examples/errors/HttpStatusCode.scala)
 
 **Build**
 
@@ -735,7 +735,7 @@ run(server.close())
 
 ## Metadata
 
-### [HTTP authentication](../../examples/project/src/main/scala/examples/metadata/HttpAuthentication.scala)
+### [HTTP authentication](https://github.com/automorph-org/automorph/tree/main/examples/project/src/main/scala/examples/metadata/HttpAuthentication.scala)
 
 **Build**
 
@@ -830,7 +830,7 @@ client.close()
 server.close()
 ```
 
-### [HTTP request](../../examples/project/src/main/scala/examples/metadata/HttpRequest.scala)
+### [HTTP request](https://github.com/automorph-org/automorph/tree/main/examples/project/src/main/scala/examples/metadata/HttpRequest.scala)
 
 **Build**
 
@@ -912,7 +912,7 @@ client.close()
 server.close()
 ```
 
-### [HTTP response](../../examples/project/src/main/scala/examples/metadata/HttpResponse.scala)
+### [HTTP response](https://github.com/automorph-org/automorph/tree/main/examples/project/src/main/scala/examples/metadata/HttpResponse.scala)
 
 **Build**
 
@@ -987,7 +987,7 @@ server.close()
 
 ## Special
 
-### [API discovery](../../examples/project/src/main/scala/examples/special/ApiSchema.scala)
+### [API discovery](https://github.com/automorph-org/automorph/tree/main/examples/project/src/main/scala/examples/special/ApiSchema.scala)
 
 **Build**
 
@@ -1057,7 +1057,7 @@ run(client.close())
 run(server.close())
 ```
 
-### [Dynamic payload](../../examples/project/src/main/scala/examples/special/DynamicPayload.scala)
+### [Dynamic payload](https://github.com/automorph-org/automorph/tree/main/examples/project/src/main/scala/examples/special/DynamicPayload.scala)
 
 **Build**
 
@@ -1127,7 +1127,7 @@ client.close()
 server.close()
 ```
 
-### [One-way message](../../examples/project/src/main/scala/examples/special/OneWayMessage.scala)
+### [One-way message](https://github.com/automorph-org/automorph/tree/main/examples/project/src/main/scala/examples/special/OneWayMessage.scala)
 
 **Build**
 
@@ -1195,7 +1195,7 @@ run(client.close())
 run(server.close())
 ```
 
-### [Positional arguments](../../examples/project/src/main/scala/examples/special/PositionalArguments.scala)
+### [Positional arguments](https://github.com/automorph-org/automorph/tree/main/examples/project/src/main/scala/examples/special/PositionalArguments.scala)
 
 **Build**
 
@@ -1273,7 +1273,7 @@ run(server.close())
 
 ## Integration
 
-### [Effect system](../../examples/project/src/main/scala/examples/integration/EffectSystem.scala)
+### [Effect system](https://github.com/automorph-org/automorph/tree/main/examples/project/src/main/scala/examples/integration/EffectSystem.scala)
 
 **Build**
 
@@ -1352,7 +1352,7 @@ run(client.close())
 run(server.close())
 ```
 
-### [Message codec](../../examples/project/src/main/scala/examples/integration/MessageCodec.scala)
+### [Message codec](https://github.com/automorph-org/automorph/tree/main/examples/project/src/main/scala/examples/integration/MessageCodec.scala)
 
 **Build**
 
@@ -1453,7 +1453,7 @@ run(client.close())
 run(server.close())
 ```
 
-### [RPC protocol](../../examples/project/src/main/scala/examples/integration/RpcProtocol.scala)
+### [RPC protocol](https://github.com/automorph-org/automorph/tree/main/examples/project/src/main/scala/examples/integration/RpcProtocol.scala)
 
 **Build**
 
@@ -1542,7 +1542,7 @@ run(server.close())
 
 ## Transport
 
-### [Client transport](../../examples/project/src/main/scala/examples/transport/ClientTransport.scala)
+### [Client transport](https://github.com/automorph-org/automorph/tree/main/examples/project/src/main/scala/examples/transport/ClientTransport.scala)
 
 **Build**
 
@@ -1605,7 +1605,7 @@ client.close()
 server.close()
 ```
 
-### [Server transport](../../examples/project/src/main/scala/examples/transport/ServerTransport.scala)
+### [Server transport](https://github.com/automorph-org/automorph/tree/main/examples/project/src/main/scala/examples/transport/ServerTransport.scala)
 
 **Build**
 
@@ -1668,7 +1668,7 @@ client.close()
 server.close()
 ```
 
-### [Endpoint transport](../../examples/project/src/main/scala/examples/transport/EndpointTransport.scala)
+### [Endpoint transport](https://github.com/automorph-org/automorph/tree/main/examples/project/src/main/scala/examples/transport/EndpointTransport.scala)
 
 **Build**
 
@@ -1747,7 +1747,7 @@ run(client.close())
 server.stop()
 ```
 
-### [WebSocket transport](../../examples/project/src/main/scala/examples/transport/WebSocketTransport.scala)
+### [WebSocket transport](https://github.com/automorph-org/automorph/tree/main/examples/project/src/main/scala/examples/transport/WebSocketTransport.scala)
 
 **Build**
 
@@ -1814,7 +1814,7 @@ run(client.close())
 run(server.close())
 ```
 
-### [AMQP transport](../../examples/project/src/main/scala/examples/transport/AmqpTransport.scala)
+### [AMQP transport](https://github.com/automorph-org/automorph/tree/main/examples/project/src/main/scala/examples/transport/AmqpTransport.scala)
 
 **Build**
 

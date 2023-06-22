@@ -26,21 +26,21 @@ for invoking and exposing remote APIs in a few lines of code.
 
 Entry points for the application logic to invoke or expose remote APIs:
 
-* [RPC client](/api/automorph/RpcClient.html) - invoke remote APIs
-* [RPC server](/api/automorph/RpcServer.html) - serve APIs as remote
-* [RPC endpoint](/api/automorph/RpcEndpoint.html) - expose APIs as remote within an existing server
+* [RPC client](https://automorph.org/api/automorph/RpcClient.html) - invoke remote APIs
+* [RPC server](https://automorph.org/api/automorph/RpcServer.html) - serve APIs as remote
+* [RPC endpoint](https://automorph.org/api/automorph/RpcEndpoint.html) - expose APIs as remote within an existing server
 
 
 ## [SPI](https://automorph.org/api/automorph/spi.html)
 
 Traits for implementation of various integration plugins:
 
-* [Effect system](/api/automorph/spi/EffectSystem.html) - accessing remote APIs using effect handling abstractions
-* [Message codec](/api/automorph/spi/MessageCodec.html) - serialization of RPC messages into structured data formats
-* [Client transport](/api/automorph/spi/ClientTransport.html) - tranmitting messages for RPC clients
-* [Server transport](/api/automorph/spi/ServerTransport.html) - transmitting messages for RPC servers
-* [Endpoint transport](/api/automorph/spi/EndpointTransport.html) - adding RPC support to existing servers
-* [RPC protocol](/api/automorph/spi/RpcProtocol.html) - specific RPC protocol implementations
+* [Effect system](https://automorph.org/api/automorph/spi/EffectSystem.html) - accessing remote APIs using effect handling abstractions
+* [Message codec](https://automorph.org/api/automorph/spi/MessageCodec.html) - serialization of RPC messages into structured data formats
+* [Client transport](https://automorph.org/api/automorph/spi/ClientTransport.html) - tranmitting messages for RPC clients
+* [Server transport](https://automorph.org/api/automorph/spi/ServerTransport.html) - transmitting messages for RPC servers
+* [Endpoint transport](https://automorph.org/api/automorph/spi/EndpointTransport.html) - adding RPC support to existing servers
+* [RPC protocol](https://automorph.org/api/automorph/spi/RpcProtocol.html) - specific RPC protocol implementations
 
 
 ## Limitations
