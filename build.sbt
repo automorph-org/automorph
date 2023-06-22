@@ -96,7 +96,7 @@ def source(project: Project, path: String, dependsOn: ClasspathDep[ProjectRefere
     case Array(directory) => subProject.settings(
       name := s"$projectName-$directory",
       mimaPreviousArtifacts := Set(
-	organization.value %% name.value % lastVersion
+        organization.value %% name.value % lastVersion
       ),
       tastyMiMaPreviousArtifacts := mimaPreviousArtifacts.value
     )
