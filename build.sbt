@@ -37,7 +37,9 @@ onLoadMessage := {
 // Structure
 lazy val root = project.in(file(".")).settings(
   name := projectName,
-  publish / skip := true
+  publish / skip := true,
+  mimaReportBinaryIssues := {},
+  tastyMiMaReportIssues := {}
 ).aggregate(
   // Core
   meta,
@@ -84,25 +86,25 @@ def source(project: Project, path: String, dependsOn: ClasspathDep[ProjectRefere
       case _ => docScalac2Options
     }),
   )
-  path.split('/') match {
-    case Array("examples") => subProject.settings(
-      name := s"$projectName-examples",
-      publish / skip := true
-    )
-    case Array("test", directory) => subProject.settings(
-      name := s"$projectName-test-$directory",
-      publish / skip := true
-    )
-    case Array(directory) => subProject.settings(
-      name := s"$projectName-$directory",
-      mimaPreviousArtifacts := Set(
-        organization.value %% name.value % lastVersion
-      ),
-      tastyMiMaPreviousArtifacts := mimaPreviousArtifacts.value
-    )
-    case Array(_, directories @ _*) => subProject.settings(
+  val directories = path.split('/').toSeq
+  directories.headOption.map(Set("examples", "test").contains) match {
+    case Some(true) => subProject.settings(
       name := s"$projectName-${directories.mkString("-")}",
+      publish / skip := true,
+      mimaReportBinaryIssues := {},
+      tastyMiMaReportIssues := {}
     )
+    case _ => {
+      val nameDirectories = directories match {
+        case Seq(_) => directories
+        case _ => directories.tail
+      }
+      subProject.settings(
+        name := s"$projectName-${nameDirectories.mkString("-")}",
+        mimaPreviousArtifacts := Set(organization.value %% name.value % lastVersion),
+        tastyMiMaPreviousArtifacts := mimaPreviousArtifacts.value
+      )
+    }
   }
 }
 
@@ -227,8 +229,7 @@ lazy val finagle = source(project, "transport/finagle", core, testTransport % Te
 )
 
 // Miscellaneous
-lazy val default = project.dependsOn(standard, circe, undertow, testTransport % Test).settings(
-  name := s"$projectName-default",
+lazy val default = source(project, "default", standard, circe, undertow, testTransport % Test).settings(
   libraryDependencies += "com.softwaremill.sttp.client3" %% "httpclient-backend" % sttpHttpClientVersion
 )
 lazy val examples = source(
@@ -310,6 +311,7 @@ val docScalac2Options = compileScalac2Options ++ Seq(
 ThisBuild / scalacOptions ++= (CrossVersion.partialVersion(scalaVersion.value) match {
   case Some((3, _)) => compileScalac3Options ++ Seq(
     "-indent",
+//    "-language:strictEquality",
 //    "-Wunused",
     "-Wvalue-discard",
     "-Xcheck-macros",
