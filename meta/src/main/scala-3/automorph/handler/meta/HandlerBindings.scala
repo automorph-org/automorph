@@ -198,9 +198,8 @@ private[automorph] case object HandlerBindings:
 
     // Create API method call function
     //   (arguments: Seq[Any], requestContext: Context) => Any
-    val resultType = MethodReflection.unwrapType[Effect](ref.q)(method.resultType).dealias
-    resultType.asType match
-      case '[resultValueType] =>
+    MethodReflection.unwrapType[Effect](ref.q)(method.resultType).dealias.asType match
+      case '[resultType] =>
         '{ (arguments, requestContext) =>
           ${
             // Create the method argument lists by type coercing supplied arguments
@@ -230,7 +229,7 @@ private[automorph] case object HandlerBindings:
               apiMethodArguments
             ).asExprOf[Any]
 //            MethodReflection.call(ref.q, api.asTerm, method.name, List.empty, apiMethodArguments)
-//              .asExprOf[Effect[resultValueType]]
+//              .asExprOf[Effect[resultType]]
           }
         }
 
