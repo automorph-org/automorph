@@ -174,10 +174,9 @@ private[automorph] case object MethodReflection:
     instance: quotes.reflect.Term,
     methodName: String,
     typeArguments: List[quotes.reflect.TypeRepr],
-    arguments: List[List[quotes.reflect.Tree]],
+    arguments: List[List[quotes.reflect.Term]],
   ): quotes.reflect.Term =
-    quotes.reflect.Select.unique(instance, methodName).appliedToTypes(typeArguments)
-      .appliedToArgss(arguments.asInstanceOf[List[List[quotes.reflect.Term]]])
+    quotes.reflect.Select.unique(instance, methodName).appliedToTypes(typeArguments).appliedToArgss(arguments)
 
   /**
    * Determines whether a method is a valid API method.

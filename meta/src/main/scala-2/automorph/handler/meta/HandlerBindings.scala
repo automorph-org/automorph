@@ -214,7 +214,7 @@ case object HandlerBindings {
                 // Use supplied request context as a last argument if the method accepts context as its last parameter
                 q"requestContext"
               } else {
-                // Coerce argument type
+                // Coerce the argument type
                 q"arguments($argumentIndex).asInstanceOf[${parameter.dataType}]"
               }
             }
@@ -222,7 +222,7 @@ case object HandlerBindings {
 
         // Call the API method and type coerce the result
         //   api.method(arguments*).asInstanceOf[Any]: Any
-        // FIXME - coerce the result to a generic effect type
+        // FIXME - coerce the result to the effect type
         //   .asInstanceOf[$effectType[Any]]"
         q"$api.${method.symbol}(...$apiMethodArguments).asInstanceOf[Any]"
       }

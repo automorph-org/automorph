@@ -101,7 +101,14 @@ private[automorph] case object ClientBindings:
         Option.when(offset + index != lastArgumentIndex || !MethodReflection.acceptsContext[Context](ref)(method)) {
           parameter.dataType.asType match
             case '[parameterType] => '{
-                ${ Expr(parameter.name) } -> ((argument: Any) => ${ MethodReflection.call(ref.q, codec.asTerm, MessageCodec.encodeMethod, List(parameter.dataType), List(List('{ argument.asInstanceOf[parameterType] }.asTerm))).asExprOf[Node] })
+                ${ Expr(parameter.name) } -> ((argument: Any) => ${
+                  MethodReflection.call(
+                    ref.q,
+                    codec.asTerm,
+                    MessageCodec.encodeMethod,
+                    List(parameter.dataType),
+                    List(List('{ argument.asInstanceOf[parameterType]}.asTerm))).asExprOf[Node]
+                })
               }
         }
       }

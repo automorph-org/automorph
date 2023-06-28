@@ -187,7 +187,7 @@ private[automorph] case object HandlerBindings:
     method: ref.RefMethod,
     api: Expr[Api]
   ): Expr[(Seq[Any], Context) => Any] =
-    import ref.q.reflect.{Term, TypeRepr, asTerm}
+    import ref.q.reflect.{Select, Term, TypeRepr, asTerm}
     given Quotes = ref.q
 
     // Map multiple parameter lists to flat argument node list offsets
@@ -205,7 +205,7 @@ private[automorph] case object HandlerBindings:
           ${
             // Create the method argument lists by type coercing supplied arguments
             // List(List(
-            //   arguments(N).asInstanceOf[Any]
+            //   arguments(N).asInstanceOf[NType]
             // )): List[List[ParameterXType]]
             val apiMethodArguments = method.parameters.toList.zip(parameterListOffsets).map((parameters, offset) =>
               parameters.toList.zipWithIndex.map { (parameter, index) =>
@@ -214,20 +214,20 @@ private[automorph] case object HandlerBindings:
                   // Use supplied request context as a last argument if the method accepts context as its last parameter
                   'requestContext.asTerm
                 else
-                  // Coerce argument type
+                  // Coerce the argument type
                   parameter.dataType.asType match
                     case '[parameterType] => '{
                       arguments(${ Expr(argumentIndex) }).asInstanceOf[parameterType]
                     }.asTerm
               }
-            ).asInstanceOf[List[List[Term]]]
+            )
 
             // Call the API method and type coerce the result
             //   api.method(arguments*).asInstanceOf[Any]: Any
-            // FIXME - coerce the result to a generic effect type
+            // FIXME - coerce the result to the effect type
             //   .asInstanceOf[Effect[Any]]
-            ref.q.reflect.Select.unique(api.asTerm, method.name).appliedToTypes(List.empty).appliedToArgss(
-              apiMethodArguments.asInstanceOf[List[List[ref.q.reflect.Term]]]
+            Select.unique(api.asTerm, method.name).appliedToTypes(List.empty).appliedToArgss(
+              apiMethodArguments
             ).asExprOf[Any]
 //            MethodReflection.call(ref.q, api.asTerm, method.name, List.empty, apiMethodArguments)
 //              .asExprOf[Effect[resultValueType]]
