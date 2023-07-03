@@ -12,7 +12,7 @@ for invoking and exposing remote APIs in a few lines of code.
 
 * Enable **remote access** to **APIs** while automatically **creating the intermediate layer**
 * Support managing **dynamic message payload** and accessing **transport protocol metadata**
-* Provide **smooth integration** with existing **applications** and related **libraries**
+* Provide smooth **integration** with existing **applications** and related **libraries**
 
 
 ## Requirements
