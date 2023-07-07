@@ -148,7 +148,7 @@ final case class VertxHttpEndpoint[Effect[_]](
   }
 }
 
-case object VertxHttpEndpoint {
+object VertxHttpEndpoint {
 
   /** Request context type. */
   type Context = HttpContext[Either[HttpServerRequest, ServerWebSocket]]

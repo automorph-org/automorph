@@ -330,7 +330,7 @@ final case class JettyClient[Effect[_]](
   }
 }
 
-case object JettyClient {
+object JettyClient {
 
   /** Request context type. */
   type Context = HttpContext[Message]
@@ -342,7 +342,7 @@ case object JettyClient {
   /** Message properties. */
   final case class Message(request: Request)
 
-  case object Message {
+  object Message {
 
     /** Implicit default context value. */
     implicit val defaultContext: HttpContext[Message] = HttpContext()

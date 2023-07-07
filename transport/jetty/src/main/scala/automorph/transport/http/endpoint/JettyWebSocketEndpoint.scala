@@ -143,7 +143,7 @@ final case class JettyWebSocketEndpoint[Effect[_]](
   }
 }
 
-case object JettyWebSocketEndpoint {
+object JettyWebSocketEndpoint {
 
   /** Request context type. */
   type Context = JettyHttpEndpoint.Context

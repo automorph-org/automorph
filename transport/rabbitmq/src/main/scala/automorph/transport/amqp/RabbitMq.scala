@@ -13,12 +13,12 @@ import scala.jdk.CollectionConverters.{MapHasAsJava, MapHasAsScala}
 import scala.util.{Try, Using}
 
 /** Common RabbitMQ functionality. */
-case object RabbitMq extends Logging {
+object RabbitMq extends Logging {
 
   /** Message properties. */
   final case class Message(properties: BasicProperties)
 
-  case object Message {
+  object Message {
 
     /** Implicit default context value. */
     implicit val defaultContext: AmqpContext[Message] = AmqpContext()

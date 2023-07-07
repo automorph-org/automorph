@@ -141,7 +141,7 @@ final case class JettyServer[Effect[_]](
   }
 }
 
-case object JettyServer {
+object JettyServer {
 
   /** Request context type. */
   type Context = JettyHttpEndpoint.Context

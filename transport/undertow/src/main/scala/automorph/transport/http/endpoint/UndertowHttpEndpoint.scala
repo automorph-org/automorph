@@ -175,7 +175,7 @@ final case class UndertowHttpEndpoint[Effect[_]](
   }
 }
 
-case object UndertowHttpEndpoint {
+object UndertowHttpEndpoint {
 
   /** Request context type. */
   type Context = HttpContext[Either[HttpServerExchange, WebSocketHttpExchange]]

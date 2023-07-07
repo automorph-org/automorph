@@ -125,7 +125,7 @@ final case class VertxServer[Effect[_]](
   }
 }
 
-case object VertxServer {
+object VertxServer {
 
   /** Request context type. */
   type Context = VertxHttpEndpoint.Context

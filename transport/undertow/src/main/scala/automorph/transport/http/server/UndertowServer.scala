@@ -120,7 +120,7 @@ final case class UndertowServer[Effect[_]](
     )
 }
 
-case object UndertowServer {
+object UndertowServer {
 
   /** Request context type. */
   type Context = UndertowHttpEndpoint.Context
