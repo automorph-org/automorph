@@ -30,7 +30,7 @@ private[automorph] final case class Response[Node](id: Id, result: Option[Node],
     )
 }
 
-private[automorph] case object Response {
+private[automorph] object Response {
 
   def apply[Node](message: Message[Node]): Response[Node] = {
     val jsonrpc = mandatory(message.jsonrpc, "version")

@@ -58,7 +58,7 @@ final case class WebRpcProtocol[Node, Codec <: MessageCodec[Node], Context <: Ht
   protected val encodeString: String => Node,
 ) extends WebRpcCore[Node, Codec, Context] with RpcProtocol[Node, Codec, Context]
 
-case object WebRpcProtocol extends ErrorMapping:
+object WebRpcProtocol extends ErrorMapping:
 
   /** Service discovery method providing API schema in OpenAPI format. */
   val openApiFunction: String = "api.discover"

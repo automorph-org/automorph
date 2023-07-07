@@ -10,7 +10,7 @@ import com.fasterxml.jackson.databind.{DeserializationContext, JsonNode, Seriali
 import scala.jdk.CollectionConverters.IteratorHasAsScala
 
 /** JSON-RPC protocol support for Jackson message codec plugin using JSON format. */
-private[automorph] case object JacksonJsonRpc {
+private[automorph] object JacksonJsonRpc {
 
   type RpcMessage = Message[JsonNode]
   type RpcError = MessageError[JsonNode]

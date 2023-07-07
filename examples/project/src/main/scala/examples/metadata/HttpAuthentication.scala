@@ -5,7 +5,7 @@ import automorph.Default.{ClientContext, ServerContext}
 import java.net.URI
 import scala.util.Try
 
-private[examples] case object HttpAuthentication {
+private[examples] object HttpAuthentication {
   @scala.annotation.nowarn
   def main(arguments: Array[String]): Unit = {
 

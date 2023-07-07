@@ -25,7 +25,7 @@ final case class RpcFunction(
     s"$name(${parameters.mkString(", ")}): $resultType"
 }
 
-case object RpcFunction {
+object RpcFunction {
 
   /**
    * Function parameter descriptor.

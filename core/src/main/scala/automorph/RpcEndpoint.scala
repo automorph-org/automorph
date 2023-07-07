@@ -67,7 +67,7 @@ final case class RpcEndpoint[Node, Codec <: MessageCodec[Node], Effect[_], Conte
   }
 }
 
-case object RpcEndpoint {
+object RpcEndpoint {
 
   /**
    * RPC endpoint builder.

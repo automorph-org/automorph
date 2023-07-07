@@ -5,7 +5,7 @@ import io.circe.generic.semiauto.{deriveDecoder, deriveEncoder}
 import io.circe.{Decoder, Encoder, Json, JsonObject}
 
 /** JSON-RPC protocol support for Circe message codec plugin using JSON format. */
-private[automorph] case object CirceJsonRpc {
+private[automorph] object CirceJsonRpc {
 
   type RpcMessage = Message[Json]
 

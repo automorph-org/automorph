@@ -4,7 +4,7 @@ import automorph.Default
 import java.net.URI
 import scala.util.Try
 
-private[examples] case object ServerFunctionNames {
+private[examples] object ServerFunctionNames {
   @scala.annotation.nowarn
   def main(arguments: Array[String]): Unit = {
 

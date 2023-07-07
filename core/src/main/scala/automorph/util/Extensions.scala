@@ -7,7 +7,7 @@ import java.nio.charset.{Charset, StandardCharsets}
 import scala.util.{Failure, Success, Try}
 
 /** Extension methods for utility types. */
-private[automorph] case object Extensions {
+private[automorph] object Extensions {
 
   /** String character set */
   private val charset: Charset = StandardCharsets.UTF_8

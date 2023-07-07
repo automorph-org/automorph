@@ -5,7 +5,7 @@ import automorph.system.ZioSystem
 import java.net.URI
 import zio.{Task, Unsafe, ZIO}
 
-private[examples] case object EffectSystem {
+private[examples] object EffectSystem {
   @scala.annotation.nowarn
   def main(arguments: Array[String]): Unit = {
 

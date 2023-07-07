@@ -8,7 +8,7 @@ sealed abstract class HttpMethod {
     toString.toUpperCase
 }
 
-case object HttpMethod {
+object HttpMethod {
 
   /** HTTP method values. */
   lazy val values: Seq[HttpMethod] = Seq(Get, Head, Post, Put, Delete, Connect, Options, Trace, Patch)

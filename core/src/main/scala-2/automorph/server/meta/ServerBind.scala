@@ -86,7 +86,7 @@ private[automorph] trait ServerBind[Node, Codec <: MessageCodec[Node], Effect[_]
     macro ServerBind.bindMapNameMacro[Node, Codec, Effect, Context, Api]
 }
 
-case object ServerBind {
+object ServerBind {
 
   def bindMacro[Node, Codec <: MessageCodec[Node], Effect[_], Context, Api <: AnyRef](c: blackbox.Context)(
     api: c.Expr[Api]

@@ -4,7 +4,7 @@ import automorph.{RpcResult, RpcFunction}
 import scala.quoted.{quotes, Expr, Quotes, ToExpr, Type}
 
 /** Method introspection. */
-private[automorph] case object MethodReflection:
+private[automorph] object MethodReflection:
 
   /**
    * Method RPC function quoted expression converter.

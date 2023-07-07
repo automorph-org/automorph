@@ -26,7 +26,7 @@ final case class OpenApi(
   externalDocs: Option[ExternalDocumentation] = None,
 )
 
-case object OpenApi {
+object OpenApi {
 
   type Paths = Map[String, PathItem]
   type Components = Map[String, Schema]

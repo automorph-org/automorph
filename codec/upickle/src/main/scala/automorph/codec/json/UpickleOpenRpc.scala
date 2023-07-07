@@ -6,7 +6,7 @@ import ujson.{Arr, Obj, Str, Value}
 import upickle.core.Abort
 
 /** JSON-RPC protocol support for Circe message codec plugin using JSON format. */
-private[automorph] case object UpickleOpenRpc {
+private[automorph] object UpickleOpenRpc {
 
   def readWriter[Custom <: UpickleJsonCustom](custom: Custom): custom.ReadWriter[OpenRpc] = {
     import custom.*

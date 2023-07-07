@@ -9,7 +9,7 @@ import scala.concurrent.duration.Duration
 import scala.concurrent.{Await, Future}
 import scala.util.Try
 
-private[examples] case object HttpStatusCode {
+private[examples] object HttpStatusCode {
   @scala.annotation.nowarn
   def main(arguments: Array[String]): Unit = {
 

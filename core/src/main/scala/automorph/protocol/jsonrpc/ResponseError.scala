@@ -22,7 +22,7 @@ private[automorph] final case class ResponseError[Node](message: String, code: I
     MessageError[Node](message = Some(message), code = Some(code), data = data)
 }
 
-private[automorph] case object ResponseError {
+private[automorph] object ResponseError {
 
   private[automorph] def apply[Node](error: MessageError[Node]): ResponseError[Node] = {
     val message = mandatory(error.message, "message")

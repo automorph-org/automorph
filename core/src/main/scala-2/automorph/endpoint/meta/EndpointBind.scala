@@ -90,7 +90,7 @@ private[automorph] trait EndpointBind[Node, Codec <: MessageCodec[Node], Effect[
     macro EndpointBind.bindMapNameMacro[Node, Codec, Effect, Context, Adapter, Api]
 }
 
-case object EndpointBind {
+object EndpointBind {
 
   def bindMacro[Node, Codec <: MessageCodec[Node], Effect[_], Context, Adapter, Api <: AnyRef](c: blackbox.Context)(
     api: c.Expr[Api]

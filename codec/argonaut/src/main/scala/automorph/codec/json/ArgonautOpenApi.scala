@@ -6,7 +6,7 @@ import automorph.schema.OpenApi
 import automorph.schema.openapi.*
 
 /** JSON-RPC protocol support for uPickle message codec plugin using JSON format. */
-private[automorph] case object ArgonautOpenApi {
+private[automorph] object ArgonautOpenApi {
 
   private val propertiesField = "properties"
   private val allOfField = "allOf"

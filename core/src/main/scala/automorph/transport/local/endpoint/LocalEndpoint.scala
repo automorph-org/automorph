@@ -33,7 +33,7 @@ final case class LocalEndpoint[Effect[_]](
     copy(handler = handler)
 }
 
-case object LocalEndpoint {
+object LocalEndpoint {
 
   /** Message context type. */
   type Context = LocalContext

@@ -9,7 +9,7 @@ package automorph
 sealed abstract class RpcException(message: String, cause: Throwable = None.orNull)
   extends RuntimeException(message, cause)
 
-case object RpcException {
+object RpcException {
 
   /** Invalid RPC request error. */
   final case class InvalidRequest(message: String, cause: Throwable = None.orNull)

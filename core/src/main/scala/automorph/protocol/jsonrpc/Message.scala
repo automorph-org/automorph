@@ -80,7 +80,7 @@ sealed abstract class MessageType {
     toString
 }
 
-case object MessageType {
+object MessageType {
 
   /** JSON-RPC method call request. */
   case object Call extends MessageType

@@ -5,7 +5,7 @@ import ujson.{Arr, Null, Num, Obj, Str, Value}
 import upickle.core.Abort
 
 /** JSON-RPC protocol support for uPickle message codec using JSON format. */
-private[automorph] case object UpickleJsonRpc {
+private[automorph] object UpickleJsonRpc {
 
   private[automorph] type RpcMessage = Message[Value]
 

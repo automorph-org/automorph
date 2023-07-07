@@ -190,7 +190,7 @@ private[automorph] final case class Logger private (private val underlying: slf4
     properties.foreach { case (key, _) => MDC.remove(key) }
 }
 
-private[automorph] case object Logger {
+private[automorph] object Logger {
 
   /**
    * Create a logger using the underlying `org.slf4j.Logger`.

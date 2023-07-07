@@ -66,7 +66,7 @@ final case class CatsEffectSystem()(implicit val runtime: IORuntime) extends Asy
   }
 }
 
-case object CatsEffectSystem {
+object CatsEffectSystem {
 
   /**
    * Effect type.

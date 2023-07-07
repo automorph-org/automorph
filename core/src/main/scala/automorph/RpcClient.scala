@@ -244,7 +244,7 @@ final case class RpcClient[Node, Codec <: MessageCodec[Node], Effect[_], Context
   }
 }
 
-case object RpcClient {
+object RpcClient {
 
   /**
    * RPC client builder.

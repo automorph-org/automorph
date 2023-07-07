@@ -18,7 +18,7 @@ trait UpickleJsonCustom extends UpickleCustom {
   implicit lazy val openApiRw: ReadWriter[OpenApi] = UpickleOpenApi.readWriter(this)
 }
 
-case object UpickleJsonCustom {
+object UpickleJsonCustom {
 
   /** Default data types support for uPickle message codec using JSON format. */
   lazy val default: UpickleJsonCustom = new UpickleJsonCustom {}

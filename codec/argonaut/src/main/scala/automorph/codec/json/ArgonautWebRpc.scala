@@ -4,7 +4,7 @@ import argonaut.{Argonaut, CodecJson, Json}
 import automorph.protocol.webrpc.{Message, MessageError}
 
 /** Web-RPC protocol support for uPickle message codec plugin using JSON format. */
-private[automorph] case object ArgonautWebRpc {
+private[automorph] object ArgonautWebRpc {
 
   type RpcMessage = Message[Json]
 

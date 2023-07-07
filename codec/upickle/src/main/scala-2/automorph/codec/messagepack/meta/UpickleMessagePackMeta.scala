@@ -21,7 +21,7 @@ trait UpickleMessagePackMeta[Custom <: UpickleMessagePackCustom] extends Message
     macro UpickleMessagePackMeta.decodeMacro[T]
 }
 
-case object UpickleMessagePackMeta {
+object UpickleMessagePackMeta {
 
   def encodeMacro[T](c: blackbox.Context)(value: c.Expr[T]): c.Expr[Msg] = {
     import c.universe.Quasiquote

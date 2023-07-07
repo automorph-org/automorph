@@ -39,7 +39,7 @@ final case class ScalazEffectSystem()(implicit val executionContext: ExecutionCo
   }
 }
 
-case object ScalazEffectSystem {
+object ScalazEffectSystem {
 
   /**
    * Effect type.

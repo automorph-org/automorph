@@ -79,7 +79,7 @@ final case class RpcServer[Node, Codec <: MessageCodec[Node], Effect[_], Context
   }
 }
 
-case object RpcServer {
+object RpcServer {
 
   /**
    * RPC server builder.

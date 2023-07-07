@@ -30,7 +30,7 @@ private[automorph] final case class RemoteTell[Node, Codec <: MessageCodec[Node]
     sendMessage(functionName, arguments.map(_._1).zip(argumentNodes), Some(requestContext))
 }
 
-private[automorph] case object RemoteTell {
+private[automorph] object RemoteTell {
 
   /**
    * Creates a new one-way remote function message with specified RPC function name.

@@ -8,7 +8,7 @@ import scala.concurrent.duration.Duration
 import scala.concurrent.{Await, Future}
 import scala.util.Try
 
-private[examples] case object ClientExceptions {
+private[examples] object ClientExceptions {
   @scala.annotation.nowarn
   def main(arguments: Array[String]): Unit = {
 

@@ -8,7 +8,7 @@ private[automorph] sealed abstract class Protocol(val name: String) {
 }
 
 /** Transport protocols. */
-private[automorph] case object Protocol {
+private[automorph] object Protocol {
 
   case object Http extends Protocol("HTTP")
 

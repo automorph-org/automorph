@@ -17,7 +17,7 @@ private[automorph] trait JacksonJsonMeta extends MessageCodec[JsonNode] {
     macro JacksonJsonMeta.decodeExpr[T]
 }
 
-private[automorph] case object JacksonJsonMeta {
+private[automorph] object JacksonJsonMeta {
 
   def decodeExpr[T: c.WeakTypeTag](c: blackbox.Context)(node: c.Expr[JsonNode]): c.Expr[T] = {
     import c.universe.{Quasiquote, weakTypeOf}

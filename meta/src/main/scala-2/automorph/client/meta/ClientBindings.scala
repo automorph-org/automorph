@@ -13,7 +13,7 @@ import scala.reflect.macros.blackbox
  *
  * Note: Consider this class to be private and do not use it. It remains public only due to Scala 2 macro limitations.
  */
-case object ClientBindings {
+object ClientBindings {
 
   /**
    * Generates client bindings for all valid public methods of an API type.

@@ -10,7 +10,7 @@ import scala.concurrent.{Await, Future}
 // Introduce custom data types
 private[examples] final case class Record(values: List[String])
 
-private[examples] case object MessageCodec {
+private[examples] object MessageCodec {
 
   @scala.annotation.nowarn
   def main(arguments: Array[String]): Unit = {

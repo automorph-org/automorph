@@ -58,7 +58,7 @@ final case class JsonRpcProtocol[Node, Codec <: MessageCodec[Node], Context](
   protected val encodeStrings: List[String] => Node,
 ) extends JsonRpcCore[Node, Codec, Context] with RpcProtocol[Node, Codec, Context]
 
-case object JsonRpcProtocol extends ErrorMapping:
+object JsonRpcProtocol extends ErrorMapping:
 
   /** Service discovery method providing API schema in OpenRPC format. */
   val openRpcFunction: String = "rpc.discover"

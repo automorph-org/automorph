@@ -25,7 +25,7 @@ import scala.util.{Failure, Try}
  * @constructor
  *   Creates a Jackson codec plugin using JSON as message format.
  * @param objectMapper
- *   Jackson case object mapper
+ *   Jackson object mapper
  */
 final case class JacksonJsonCodec(objectMapper: ObjectMapper = JacksonJsonCodec.defaultMapper) extends JacksonJsonMeta {
 
@@ -41,7 +41,7 @@ final case class JacksonJsonCodec(objectMapper: ObjectMapper = JacksonJsonCodec.
     objectMapper.writerWithDefaultPrettyPrinter.writeValueAsString(node)
 }
 
-case object JacksonJsonCodec {
+object JacksonJsonCodec {
 
   /** Message node type. */
   type Node = JsonNode

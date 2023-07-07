@@ -1,7 +1,7 @@
 package automorph.util
 
 /** Network address utilities. */
-private[automorph] case object Network {
+private[automorph] object Network {
 
   /**
    * Normalize network address.

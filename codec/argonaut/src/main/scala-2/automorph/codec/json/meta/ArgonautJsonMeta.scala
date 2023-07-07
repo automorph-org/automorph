@@ -15,7 +15,7 @@ private[automorph] trait ArgonautJsonMeta extends MessageCodec[Json] {
     macro ArgonautJsonMeta.decodeExpr[T]
 }
 
-private[automorph] case object ArgonautJsonMeta {
+private[automorph] object ArgonautJsonMeta {
 
   def encodeExpr[T: c.WeakTypeTag](c: blackbox.Context)(value: c.Expr[T]): c.Expr[Json] = {
     import c.universe.Quasiquote

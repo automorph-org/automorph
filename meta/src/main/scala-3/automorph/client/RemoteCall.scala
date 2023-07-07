@@ -36,7 +36,7 @@ final case class RemoteCall[Node, Codec <: MessageCodec[Node], Effect[_], Contex
   ): Effect[Result] =
     performCall(functionName, arguments.map(_._1).zip(argumentNodes), decodeResult, Some(requestContext))
 
-case object RemoteCall:
+object RemoteCall:
 
   /**
    * Creates a new remote function call proxy.

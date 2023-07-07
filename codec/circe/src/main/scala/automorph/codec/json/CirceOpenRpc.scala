@@ -6,7 +6,7 @@ import io.circe.generic.semiauto.{deriveDecoder, deriveEncoder}
 import io.circe.{ACursor, Decoder, DecodingFailure, Encoder, HCursor, Json}
 
 /** JSON-RPC protocol support for Circe message codec plugin using JSON format. */
-private[automorph] case object CirceOpenRpc {
+private[automorph] object CirceOpenRpc {
 
   def openRpcEncoder: Encoder[OpenRpc] = {
     implicit val schemaEncoder: Encoder[Schema] = new Encoder[Schema] {

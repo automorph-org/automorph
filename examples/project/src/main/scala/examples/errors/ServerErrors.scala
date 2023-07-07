@@ -10,7 +10,7 @@ import scala.concurrent.duration.Duration
 import scala.concurrent.{Await, Future}
 import scala.util.Try
 
-private[examples] case object ServerErrors {
+private[examples] object ServerErrors {
   @scala.annotation.nowarn
   def main(arguments: Array[String]): Unit = {
 
