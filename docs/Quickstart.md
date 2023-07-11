@@ -11,7 +11,7 @@ Expose and call a remote JSON-RPC API over HTTP.
 
 Download and run an example using [Scala CLI](https://scala-cli.virtuslab.org):
 
-```
+```shell
 scala-cli https://raw.githubusercontent.com/automorph-org/automorph/main/examples/project/src/main/scala/examples/Quickstart.scala
 ```
 
@@ -20,7 +20,7 @@ scala-cli https://raw.githubusercontent.com/automorph-org/automorph/main/example
 
 Create an [SBT](https://www.scala-sbt.org/) project from a [Giter8](http://www.foundweekends.org/giter8/) template:
 
-```
+```shell
 sbt new automorph-org/automorph.g8
 cd automorph-example
 sbt run
