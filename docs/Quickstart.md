@@ -7,7 +7,14 @@ sidebar_position: 2
 Expose and call a remote JSON-RPC API over HTTP.
 
 
-## [Project template](@REPOSITORY_URL@.g8)
+## [Script](https://scala-cli.virtuslab.org/)
+
+```
+scala-cli https://raw.githubusercontent.com/automorph-org/automorph/main/examples/project/src/main/scala/examples/Quickstart.scala
+```
+
+
+## [New project](@REPOSITORY_URL@.g8)
 
 Create an SBT project from a [Giter8](http://www.foundweekends.org/giter8/) template:
 
@@ -19,7 +26,8 @@ sbt run
 
 Application logs are saved to `target/main.log` and the log level can be adjusted by setting the `LOG_LEVEL` environment variable to a desired value (`ERROR`, `WARN`, `INFO`, `DEBUG`, `TRACE`).
 
-## [Existing project](@REPOSITORY_URL@/blob/main/examples/project/src/main/scala/examples/Quickstart.scala)
+
+## [Existing project](@REPOSITORY_URL@/blob/main/examples/project/src/main/scala/examples)
 
 ### Build
 
