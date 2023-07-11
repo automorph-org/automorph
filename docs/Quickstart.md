@@ -7,16 +7,18 @@ sidebar_position: 2
 Expose and call a remote JSON-RPC API over HTTP.
 
 
-## [Script](https://scala-cli.virtuslab.org/)
+## Script
+
+Download and run an example using [Scala CLI](https://scala-cli.virtuslab.org):
 
 ```
 scala-cli https://raw.githubusercontent.com/automorph-org/automorph/main/examples/project/src/main/scala/examples/Quickstart.scala
 ```
 
 
-## [New project](@REPOSITORY_URL@.g8)
+## New project
 
-Create an SBT project from a [Giter8](http://www.foundweekends.org/giter8/) template:
+Create an [SBT](https://www.scala-sbt.org/) project from a [Giter8](http://www.foundweekends.org/giter8/) template:
 
 ```
 sbt new automorph-org/automorph.g8
@@ -27,7 +29,24 @@ sbt run
 Application logs are saved to `target/main.log` and the log level can be adjusted by setting the `LOG_LEVEL` environment variable to a desired value (`ERROR`, `WARN`, `INFO`, `DEBUG`, `TRACE`).
 
 
-## [Existing project](@REPOSITORY_URL@/blob/main/examples/project/src/main/scala/examples)
+## Example project
+
+Clone the the [example project](@REPOSITORY_URL@/tree/main/examples/project) and run any of the examples:
+
+```shell
+git clone --depth 1 @REPOSITORY_URL@
+cd automorph/examples/project
+sbt run
+```
+
+Customize the [examples](@REPOSITORY_URL@/blob/main/examples/project/src/main/scala/examples) by:
+
+- Integrating with preferred platforms by including additional plugins
+- Configuring RPC client, server or endpoint properties
+- Removing unused examples and build dependencies
+
+
+## Existing project
 
 ### Build
 
@@ -140,30 +159,4 @@ println(run(
 // Close the RPC client
 run(client.close())
 ```
-
-
-## [Example project](@REPOSITORY_URL@/tree/main/examples/project)
-
-### Download
-
-Clone the repository and enter the example project directory:
-
-```shell
-git clone @REPOSITORY_URL@
-cd automorph/examples/project
-```
-
-### Test
-
-Run any of the examples:
-
-```shell
-sbt run
-```
-
-### Customize
-
-- Integrate with preferred platforms by including additional plugins
-- Configure RPC client, server or endpoint properties
-- Remove unused examples and build dependencies
 
