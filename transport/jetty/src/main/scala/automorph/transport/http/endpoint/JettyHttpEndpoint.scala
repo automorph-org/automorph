@@ -2,9 +2,9 @@ package automorph.transport.http.endpoint
 
 import automorph.log.{LogProperties, Logging, MessageLog}
 import automorph.spi.{EffectSystem, EndpointTransport, RequestHandler}
-import automorph.transport.http.endpoint.JettyHttpEndpoint.Context
+import automorph.transport.http.endpoint.JettyHttpEndpoint.{Context, requestProperties}
 import automorph.transport.http.{HttpContext, HttpMethod, Protocol}
-import automorph.util.Extensions.{EffectOps, StringOps, InputStreamOps, ThrowableOps, TryOps}
+import automorph.util.Extensions.{EffectOps, InputStreamOps, StringOps, ThrowableOps, TryOps}
 import automorph.util.{Network, Random}
 import jakarta.servlet.AsyncContext
 import jakarta.servlet.http.{HttpServlet, HttpServletRequest, HttpServletResponse}
@@ -138,16 +138,10 @@ final case class JettyHttpEndpoint[Effect[_]](
     ).url(request.getRequestURI)
   }
 
-  private def getRequestProperties(request: HttpServletRequest, requestId: String): Map[String, String] = {
-    val query = Option(request.getQueryString).filter(_.nonEmpty).map("?" + _).getOrElse("")
-    val url = s"${request.getRequestURI}$query"
-    ListMap(
-      LogProperties.requestId -> requestId,
-      LogProperties.client -> clientAddress(request),
-      "URL" -> url,
-      "Method" -> request.getMethod,
+  private def getRequestProperties(request: HttpServletRequest, requestId: String): Map[String, String] =
+    requestProperties(
+      request.getRequestURI, request.getQueryString, request.getMethod, clientAddress(request), requestId
     )
-  }
 
   private def clientAddress(request: HttpServletRequest): String = {
     val forwardedFor = Option(request.getHeader(HttpHeader.X_FORWARDED_FOR.name))
@@ -160,4 +154,21 @@ object JettyHttpEndpoint {
 
   /** Request context type. */
   type Context = HttpContext[HttpServletRequest]
+
+  private[automorph] def requestProperties(
+    uri: String,
+    queryString: String,
+    method: String,
+    client: String,
+    requestId: String
+  ): Map[String, String] = {
+    val query = Option(queryString).filter(_.nonEmpty).map("?" + _).getOrElse("")
+    val url = s"$uri$query"
+    ListMap(
+      LogProperties.requestId -> requestId,
+      LogProperties.client -> client,
+      "URL" -> url,
+      "Method" -> method,
+    )
+  }
 }

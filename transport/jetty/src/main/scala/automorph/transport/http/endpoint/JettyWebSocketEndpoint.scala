@@ -2,7 +2,7 @@ package automorph.transport.http.endpoint
 
 import automorph.log.{LogProperties, Logging, MessageLog}
 import automorph.spi.{EffectSystem, EndpointTransport, RequestHandler}
-import automorph.transport.http.endpoint.JettyHttpEndpoint.Context
+import automorph.transport.http.endpoint.JettyHttpEndpoint.{Context, requestProperties}
 import automorph.transport.http.endpoint.JettyWebSocketEndpoint.ResponseCallback
 import automorph.transport.http.{HttpContext, HttpMethod, Protocol}
 import automorph.util.Extensions.{ByteArrayOps, EffectOps, StringOps, ThrowableOps}
@@ -126,13 +126,8 @@ final case class JettyWebSocketEndpoint[Effect[_]](
 
   private def getRequestProperties(session: Session, requestId: String): Map[String, String] = {
     val request = session.getUpgradeRequest
-    val query = Option(request.getQueryString).filter(_.nonEmpty).map("?" + _).getOrElse("")
-    val url = s"${request.getRequestURI}$query"
-    ListMap(
-      LogProperties.requestId -> requestId,
-      LogProperties.client -> clientAddress(session),
-      "URL" -> url,
-      "Method" -> request.getMethod,
+    requestProperties(
+      request.getRequestURI.toString, request.getQueryString, request.getMethod, clientAddress(session), requestId
     )
   }
 
