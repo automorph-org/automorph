@@ -230,6 +230,17 @@ final case class HttpContext[TransportContext](
     parameters.find(_._1 == name).map(_._2)
 
   /**
+   * URL query parameter values.
+   *
+   * @param name
+   *   query parameter name
+   * @return
+   *   query parameter values
+   */
+  def parameters(name: String): Seq[String] =
+    parameters.filter(_._1 == name).map(_._2)
+
+  /**
    * Add URL query parameter.
    *
    * @param name
@@ -260,17 +271,6 @@ final case class HttpContext[TransportContext](
     } else parameters
     copy(parameters = originalParameters :+ name -> value)
   }
-
-  /**
-   * URL query parameter values.
-   *
-   * @param name
-   *   query parameter name
-   * @return
-   *   query parameter values
-   */
-  def parameters(name: String): Seq[String] =
-    parameters.filter(_._1 == name).map(_._2)
 
   /**
    * Add URL query parameters.
@@ -344,6 +344,36 @@ final case class HttpContext[TransportContext](
    */
   def headers(entries: (String, String)*): HttpContext[TransportContext] =
     headers(entries, replace = false)
+
+  /**
+   * Add message header.
+   *
+   * @param name
+   *   header name
+   * @param value
+   *   header value
+   * @return
+   *   HTTP message context
+   */
+  def header(name: String, value: String): HttpContext[TransportContext] =
+    header(name, value, replace = false)
+
+  /**
+   * Add or replace message header.
+   *
+   * @param name
+   *   header name
+   * @param value
+   *   header value
+   * @param replace
+   *   replace all existing headers with the specied name
+   * @return
+   *   HTTP message context
+   */
+  def header(name: String, value: String, replace: Boolean): HttpContext[TransportContext] = {
+    val originalHeaders = if (replace) headers.filter(_._1 != name) else headers
+    copy(headers = originalHeaders :+ name -> value)
+  }
 
   /**
    * Header values.
@@ -459,36 +489,6 @@ final case class HttpContext[TransportContext](
   def authorizationBasic(user: String, password: String): HttpContext[TransportContext] = {
     val value = Base64.getEncoder.encode(s"$user:$password".toByteArray).asString
     header(headerAuthorization, s"$headerAuthorizationBasic $value")
-  }
-
-  /**
-   * Add message header.
-   *
-   * @param name
-   *   header name
-   * @param value
-   *   header value
-   * @return
-   *   HTTP message context
-   */
-  def header(name: String, value: String): HttpContext[TransportContext] =
-    header(name, value, replace = false)
-
-  /**
-   * Add or replace message header.
-   *
-   * @param name
-   *   header name
-   * @param value
-   *   header value
-   * @param replace
-   *   replace all existing headers with the specied name
-   * @return
-   *   HTTP message context
-   */
-  def header(name: String, value: String, replace: Boolean): HttpContext[TransportContext] = {
-    val originalHeaders = if (replace) headers.filter(_._1 != name) else headers
-    copy(headers = originalHeaders :+ name -> value)
   }
 
   /**
