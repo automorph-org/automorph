@@ -2,7 +2,7 @@ package automorph.transport.websocket.endpoint
 
 import automorph.log.{LogProperties, Logging, MessageLog}
 import automorph.spi.{EffectSystem, EndpointTransport, RequestHandler}
-import automorph.transport.http.endpoint.UndertowHttpEndpoint
+import automorph.transport.http.endpoint.UndertowHttpEndpoint.requestQuery
 import automorph.transport.http.{HttpContext, Protocol}
 import automorph.transport.websocket.endpoint.UndertowWebSocketEndpoint.{ConnectionListener, Context}
 import automorph.util.Extensions.{ByteArrayOps, ByteBufferOps, EffectOps, StringOps, ThrowableOps}
@@ -165,7 +165,7 @@ object UndertowWebSocketEndpoint {
     }
 
     private def getRequestProperties(exchange: WebSocketHttpExchange, requestId: String): Map[String, String] = {
-      val query = UndertowHttpEndpoint.requestQuery(exchange.getQueryString)
+      val query = requestQuery(exchange.getQueryString)
       val url = s"${exchange.getRequestURI}$query"
       Map(LogProperties.requestId -> requestId, LogProperties.client -> clientAddress(exchange), "URL" -> url)
     }
