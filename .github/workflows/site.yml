@@ -53,7 +53,7 @@ jobs:
           key: yarn-${{ runner.os }}-${{ hashFiles('**/package.json') }}-${{ hashFiles('**/yarn.lock') }}
 
       - name: Build site
-        run: sbt --client 'version'
+        run: sbt --client 'site'
 
       - name: Upload artifact
         uses: actions/upload-pages-artifact@v1
