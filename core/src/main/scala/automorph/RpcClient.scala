@@ -4,6 +4,7 @@ import automorph.RpcException.InvalidResponse
 import automorph.client.meta.ClientBind
 import automorph.client.RemoteTell
 import automorph.log.{LogProperties, Logging}
+import automorph.spi.protocol.Request
 import automorph.spi.{ClientTransport, EffectSystem, MessageCodec, RpcProtocol}
 import automorph.util.Extensions.EffectOps
 import automorph.util.Random
@@ -130,9 +131,8 @@ final case class RpcClient[Node, Codec <: MessageCodec[Node], Effect[_], Context
       // Send request
       rpcRequest =>
         system.successful(rpcRequest).flatMap { request =>
-          lazy val requestProperties = ListMap(LogProperties.requestId -> requestId) ++ rpcRequest.message.properties
-          lazy val allProperties = requestProperties ++ rpcRequest.message.text.map(LogProperties.messageBody -> _)
-          logger.trace(s"Sending ${rpcProtocol.name} request", allProperties)
+          lazy val requestProperties = getRequestProperties(rpcRequest, requestId)
+          logger.trace(s"Sending ${rpcProtocol.name} request", requestProperties)
           transport.call(request.message.body, request.context, requestId, rpcProtocol.messageCodec.mediaType).flatMap {
             case (responseBody, responseContext) =>
               // Process response
@@ -174,12 +174,18 @@ final case class RpcClient[Node, Codec <: MessageCodec[Node], Effect[_], Context
       // Send request
       rpcRequest =>
         system.successful(rpcRequest).flatMap { request =>
-          lazy val requestProperties = rpcRequest.message.properties + (LogProperties.requestId -> requestId)
-          lazy val allProperties = requestProperties ++ rpcRequest.message.text.map(LogProperties.messageBody -> _)
-          logger.trace(s"Sending ${rpcProtocol.name} request", allProperties)
+          lazy val requestProperties = getRequestProperties(rpcRequest, requestId)
+          logger.trace(s"Sending ${rpcProtocol.name} request", requestProperties)
           transport.tell(request.message.body, request.context, requestId, rpcProtocol.messageCodec.mediaType)
         },
     )
+  }
+
+  private def getRequestProperties(
+    rpcRequest: Request[Node, rpcProtocol.Metadata, Context], requestId: String
+  ): Map[String, String] = {
+    lazy val properties = ListMap(LogProperties.requestId -> requestId) ++ rpcRequest.message.properties
+    properties ++ rpcRequest.message.text.map(LogProperties.messageBody -> _)
   }
 
   /**

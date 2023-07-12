@@ -255,9 +255,9 @@ final case class HttpContext[TransportContext](
    *   HTTP message context
    */
   def parameter(name: String, value: String, replace: Boolean): HttpContext[TransportContext] = {
-    val originalParameters =
-      if (replace) { parameters.filter(_._1 != name) }
-      else parameters
+    val originalParameters = if (replace) {
+      parameters.filter(_._1 != name)
+    } else parameters
     copy(parameters = originalParameters :+ name -> value)
   }
 
@@ -284,9 +284,9 @@ final case class HttpContext[TransportContext](
    */
   def parameters(entries: Iterable[(String, String)], replace: Boolean): HttpContext[TransportContext] = {
     val entryNames = entries.map { case (name, _) => name }.toSet
-    val originalParameters =
-      if (replace) { parameters.filter { case (name, _) => !entryNames.contains(name) } }
-      else parameters
+    val originalParameters = if (replace) {
+      parameters.filter { case (name, _) => !entryNames.contains(name) }
+    } else parameters
     copy(parameters = originalParameters ++ entries)
   }
 
@@ -335,9 +335,9 @@ final case class HttpContext[TransportContext](
    */
   def headers(entries: Iterable[(String, String)], replace: Boolean): HttpContext[TransportContext] = {
     val entryNames = entries.map { case (name, _) => name }.toSet
-    val originalHeaders =
-      if (replace) headers.filter { case (name, _) => !entryNames.contains(name) }
-      else headers
+    val originalHeaders = if (replace) {
+      headers.filter { case (name, _) => !entryNames.contains(name) }
+    } else headers
     copy(headers = originalHeaders ++ entries)
   }
 
