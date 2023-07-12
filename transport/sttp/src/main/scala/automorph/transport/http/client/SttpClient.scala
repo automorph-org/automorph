@@ -77,7 +77,7 @@ final case class SttpClient[Effect[_]] private (
           },
           response => {
             log.receivedResponse(responseProperties + ("Status" -> response.code.toString), protocol.name)
-            effectSystem.successful(response.body.toArray[Byte] -> getResponseContext(response))
+            effectSystem.successful(response.body -> getResponseContext(response))
           },
         )
       }
