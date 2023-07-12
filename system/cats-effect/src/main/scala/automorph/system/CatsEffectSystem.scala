@@ -51,17 +51,14 @@ final case class CatsEffectSystem()(implicit val runtime: IORuntime) extends Asy
       }
 
     override def succeed(value: T): IO[Unit] =
-      flatMap(queue.tryOffer(Right(value))) { success =>
-        Option.when(success)(successful {}).getOrElse {
-          failed(new IllegalStateException("Completable effect already resolved"))
-        }
-      }
+      flatMap(queue.tryOffer(Right(value)))(complete)
 
     override def fail(exception: Throwable): IO[Unit] =
-      flatMap(queue.tryOffer(Left(exception))) { success =>
-        Option.when(success)(successful {}).getOrElse {
-          failed(new IllegalStateException("Completable effect already resolved"))
-        }
+      flatMap(queue.tryOffer(Left(exception)))(complete)
+
+    private def complete(success: Boolean): IO[Unit] =
+      Option.when(success)(successful {}).getOrElse {
+        failed(new IllegalStateException("Completable effect already resolved"))
       }
   }
 }
