@@ -1,5 +1,6 @@
 package automorph.codec.json
 
+import automorph.codec.json.JacksonRpcProtocol.{field, serializer}
 import automorph.protocol.jsonrpc.{Message, MessageError}
 import com.fasterxml.jackson.core.{JsonGenerator, JsonParseException, JsonParser}
 import com.fasterxml.jackson.databind.deser.std.StdDeserializer
@@ -15,23 +16,14 @@ private[automorph] object JacksonJsonRpc {
   type RpcMessage = Message[JsonNode]
   type RpcError = MessageError[JsonNode]
 
-  def module =
-    new SimpleModule().addSerializer(classOf[JacksonJsonRpc.RpcError], JacksonJsonRpc.messageErrorSerializer)
-      .addDeserializer(classOf[JacksonJsonRpc.RpcError], JacksonJsonRpc.messageErrorDeserializer)
-      .addSerializer(classOf[JacksonJsonRpc.RpcMessage], JacksonJsonRpc.messageSerializer)
-      .addDeserializer(classOf[JacksonJsonRpc.RpcMessage], JacksonJsonRpc.messageDeserializer)
-
-  private def messageErrorSerializer =
-    new StdSerializer[RpcError](classOf[RpcError]) {
-
-      override def serialize(value: RpcError, generator: JsonGenerator, provider: SerializerProvider): Unit = {
-        val entries = value.productElementNames.zip(value.productIterator).flatMap {
-          case (name, Some(value)) => Some(name -> value)
-          case (_, None) => None
-        }.toMap
-        generator.writeObject(entries)
-      }
-    }
+  def module: SimpleModule = {
+    val rpcErrorClass = classOf[JacksonJsonRpc.RpcError]
+    val rpcMessageClass = classOf[JacksonJsonRpc.RpcMessage]
+    new SimpleModule().addSerializer(rpcErrorClass, serializer(rpcErrorClass))
+      .addDeserializer(rpcErrorClass, JacksonJsonRpc.messageErrorDeserializer)
+      .addSerializer(rpcMessageClass, JacksonJsonRpc.messageSerializer)
+      .addDeserializer(rpcMessageClass, JacksonJsonRpc.messageDeserializer)
+  }
 
   private def messageErrorDeserializer =
     new StdDeserializer[RpcError](classOf[RpcError]) {
@@ -70,7 +62,7 @@ private[automorph] object JacksonJsonRpc {
               field("jsonrpc", value => Option.when(value.isTextual)(value.asText), node, parser),
               field(
                 "id",
-                _ match {
+                {
                   case value if value.isTextual => Some(Right(value.asText))
                   case value if value.isNumber => Some(Left(BigDecimal(value.asDouble)))
                   case _ => None
@@ -81,7 +73,7 @@ private[automorph] object JacksonJsonRpc {
               field("method", value => Option.when(value.isTextual)(value.asText), node, parser),
               field(
                 "params",
-                _ match {
+                {
                   case value if value.isObject =>
                     val params = value.asInstanceOf[ObjectNode].fields().asScala
                     Some(Right(params.map(field => field.getKey -> field.getValue).toMap))
@@ -104,9 +96,4 @@ private[automorph] object JacksonJsonRpc {
           case _ => throw new JsonParseException(parser, "Invalid message", parser.getCurrentLocation)
         }
     }
-
-  private def field[T](name: String, extract: JsonNode => Option[T], node: ObjectNode, parser: JsonParser): Option[T] =
-    Option(node.get(name)).filter(!_.isNull).map(extract).map(_.getOrElse {
-      throw new JsonParseException(parser, s"Invalid $name", parser.getCurrentLocation)
-    })
 }

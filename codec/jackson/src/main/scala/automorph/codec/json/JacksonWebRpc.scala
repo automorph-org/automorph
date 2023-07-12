@@ -1,12 +1,12 @@
 package automorph.codec.json
 
+import automorph.codec.json.JacksonRpcProtocol.{field, serializer}
 import automorph.protocol.webrpc.{Message, MessageError}
-import com.fasterxml.jackson.core.{JsonGenerator, JsonParseException, JsonParser}
+import com.fasterxml.jackson.core.{JsonParseException, JsonParser}
 import com.fasterxml.jackson.databind.deser.std.StdDeserializer
 import com.fasterxml.jackson.databind.module.SimpleModule
 import com.fasterxml.jackson.databind.node.ObjectNode
-import com.fasterxml.jackson.databind.ser.std.StdSerializer
-import com.fasterxml.jackson.databind.{DeserializationContext, JsonNode, SerializerProvider}
+import com.fasterxml.jackson.databind.{DeserializationContext, JsonNode}
 
 /** Web-RPC protocol support for Jackson message codec plugin using JSON format. */
 private[automorph] object JacksonWebRpc {
@@ -14,23 +14,14 @@ private[automorph] object JacksonWebRpc {
   type RpcMessage = Message[JsonNode]
   type RpcError = MessageError
 
-  def module: SimpleModule =
-    new SimpleModule().addSerializer(classOf[JacksonWebRpc.RpcError], JacksonWebRpc.messageErrorSerializer)
-      .addDeserializer(classOf[JacksonWebRpc.RpcError], JacksonWebRpc.messageErrorDeserializer)
-      .addSerializer(classOf[JacksonWebRpc.RpcMessage], JacksonWebRpc.messageSerializer)
-      .addDeserializer(classOf[JacksonWebRpc.RpcMessage], JacksonWebRpc.messageDeserializer)
-
-  private def messageErrorSerializer =
-    new StdSerializer[RpcError](classOf[RpcError]) {
-
-      override def serialize(value: RpcError, generator: JsonGenerator, provider: SerializerProvider): Unit = {
-        val entries = value.productElementNames.zip(value.productIterator).flatMap {
-          case (name, Some(value)) => Some(name -> value)
-          case (_, None) => None
-        }.toMap
-        generator.writeObject(entries)
-      }
-    }
+  def module: SimpleModule = {
+    val rpcErrorClass = classOf[JacksonWebRpc.RpcError]
+    val rpcMessageClass = classOf[JacksonWebRpc.RpcMessage]
+    new SimpleModule().addSerializer(rpcErrorClass, serializer(rpcErrorClass))
+      .addDeserializer(rpcErrorClass, JacksonWebRpc.messageErrorDeserializer)
+      .addSerializer(rpcMessageClass, serializer(rpcMessageClass))
+      .addDeserializer(rpcMessageClass, JacksonWebRpc.messageDeserializer)
+  }
 
   private def messageErrorDeserializer =
     new StdDeserializer[RpcError](classOf[RpcError]) {
@@ -43,18 +34,6 @@ private[automorph] object JacksonWebRpc {
             )
           case _ => throw new JsonParseException(parser, "Invalid message error", parser.getCurrentLocation)
         }
-    }
-
-  private def messageSerializer =
-    new StdSerializer[RpcMessage](classOf[RpcMessage]) {
-
-      override def serialize(value: RpcMessage, generator: JsonGenerator, provider: SerializerProvider): Unit = {
-        val entries = value.productElementNames.zip(value.productIterator).flatMap {
-          case (name, Some(value)) => Some(name -> value)
-          case (_, None) => None
-        }.toMap
-        generator.writeObject(entries)
-      }
     }
 
   private def messageDeserializer =
@@ -74,9 +53,4 @@ private[automorph] object JacksonWebRpc {
           case _ => throw new JsonParseException(parser, "Invalid message", parser.getCurrentLocation)
         }
     }
-
-  private def field[T](name: String, extract: JsonNode => Option[T], node: ObjectNode, parser: JsonParser): Option[T] =
-    Option(node.get(name)).filter(!_.isNull).map(extract).map(_.getOrElse {
-      throw new JsonParseException(parser, s"Invalid $name", parser.getCurrentLocation)
-    })
 }

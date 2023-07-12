@@ -21,7 +21,7 @@ import scala.util.{Failure, Try}
  * @see
  *   [[https://github.com/FasterXML/jackson Library documentation]]
  * @see
- *   [[https://fasterxml.github.io/jackson-databind/javadoc/2.12/com/fasterxml/jackson/databind/JsonNode.html Node type]]
+ *   [[https://fasterxml.github.io/jackson-databind/javadoc/2.14/com/fasterxml/jackson/databind/JsonNode.html Node type]]
  * @constructor
  *   Creates a Jackson codec plugin using JSON as message format.
  * @param objectMapper
