@@ -6,9 +6,10 @@ import automorph.transport.http.endpoint.VertxHttpEndpoint.Context
 import automorph.transport.http.{HttpContext, HttpMethod, Protocol}
 import automorph.util.Extensions.{EffectOps, StringOps, ThrowableOps}
 import automorph.util.{Network, Random}
-import io.vertx.core.Handler
+import io.vertx.core.{Handler, MultiMap}
 import io.vertx.core.buffer.Buffer
 import io.vertx.core.http.{HttpHeaders, HttpServerRequest, HttpServerResponse, ServerWebSocket}
+import io.vertx.core.net.SocketAddress
 import scala.collection.immutable.ListMap
 import scala.jdk.CollectionConverters.ListHasAsScala
 import scala.util.Try
@@ -44,7 +45,6 @@ final case class VertxHttpEndpoint[Effect[_]](
 
   private val statusOk = 200
   private val statusInternalServerError = 500
-  private val headerXForwardedFor = "X-Forwarded-For"
   private val log = MessageLog(logger, Protocol.Http.name)
   private implicit val system: EffectSystem[Effect] = effectSystem
 
@@ -141,15 +141,20 @@ final case class VertxHttpEndpoint[Effect[_]](
       "Method" -> request.method.name,
     )
 
-  private def clientAddress(request: HttpServerRequest): String = {
-    val forwardedFor = Option(request.headers().get(headerXForwardedFor))
-    val address = Option(request.remoteAddress.hostName).orElse(Option(request.remoteAddress.hostAddress)).getOrElse("")
-    Network.address(forwardedFor, address)
-  }
+  private def clientAddress(request: HttpServerRequest): String =
+    VertxHttpEndpoint.clientAddress(request.headers(), request.remoteAddress())
 }
 
 object VertxHttpEndpoint {
 
   /** Request context type. */
   type Context = HttpContext[Either[HttpServerRequest, ServerWebSocket]]
+
+  private[automorph] val headerXForwardedFor = "X-Forwarded-For"
+
+  private[automorph] def clientAddress(headers: MultiMap, remoteAddress: SocketAddress): String = {
+    val forwardedFor = Option(headers.get(headerXForwardedFor))
+    val address = Option(remoteAddress.hostName).orElse(Option(remoteAddress.hostAddress)).getOrElse("")
+    Network.address(forwardedFor, address)
+  }
 }

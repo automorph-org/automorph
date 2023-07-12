@@ -2,10 +2,11 @@ package automorph.transport.websocket.endpoint
 
 import automorph.log.{LogProperties, Logging, MessageLog}
 import automorph.spi.{EffectSystem, EndpointTransport, RequestHandler}
+import automorph.transport.http.endpoint.VertxHttpEndpoint
 import automorph.transport.http.{HttpContext, Protocol}
 import automorph.transport.websocket.endpoint.VertxWebSocketEndpoint.Context
 import automorph.util.Extensions.{EffectOps, StringOps, ThrowableOps}
-import automorph.util.{Network, Random}
+import automorph.util.Random
 import io.vertx.core.Handler
 import io.vertx.core.buffer.Buffer
 import io.vertx.core.http.{HttpServerRequest, ServerWebSocket}
@@ -39,7 +40,6 @@ final case class VertxWebSocketEndpoint[Effect[_]](
   handler: RequestHandler[Effect, Context] = RequestHandler.dummy[Effect, Context],
 ) extends Handler[ServerWebSocket] with Logging with EndpointTransport[Effect, Context, Handler[ServerWebSocket]] {
 
-  private val headerXForwardedFor = "X-Forwarded-For"
   private val log = MessageLog(logger, Protocol.WebSocket.name)
   private implicit val system: EffectSystem[Effect] = effectSystem
 
@@ -57,7 +57,7 @@ final case class VertxWebSocketEndpoint[Effect[_]](
     session.binaryMessageHandler { buffer =>
       // Process the request
       Try {
-        val requestBody = buffer.getBytes.toArray[Byte]
+        val requestBody = buffer.getBytes
         log.receivedRequest(requestProperties)
         val handlerResult = handler.processRequest(requestBody, getRequestContext(session), requestId)
         handlerResult.either.map(
@@ -103,11 +103,8 @@ final case class VertxWebSocketEndpoint[Effect[_]](
     ()
   }
 
-  private def clientAddress(request: ServerWebSocket): String = {
-    val forwardedFor = Option(request.headers().get(headerXForwardedFor))
-    val address = Option(request.remoteAddress.hostName).orElse(Option(request.remoteAddress.hostAddress)).getOrElse("")
-    Network.address(forwardedFor, address)
-  }
+  private def clientAddress(request: ServerWebSocket): String =
+    VertxHttpEndpoint.clientAddress(request.headers(), request.remoteAddress())
 
   private def getRequestContext(request: ServerWebSocket): Context = {
     val headers = request.headers.entries.asScala.map(entry => entry.getKey -> entry.getValue).toSeq
