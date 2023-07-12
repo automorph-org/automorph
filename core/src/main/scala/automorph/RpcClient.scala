@@ -86,7 +86,8 @@ final case class RpcClient[Node, Codec <: MessageCodec[Node], Effect[_], Context
     val plugins = Map[String, Any](
       "rpcProtocol" -> rpcProtocol,
       "transport" -> transport,
-    ).map { case (name, plugin) => s"$name = ${plugin.getClass.getName}" }.mkString(", ")
+    ).map { case (name, plugin) =>
+      s"$name = ${plugin.getClass.getName}" }.mkString(", ")
     s"${this.getClass.getName}($plugins)"
   }
 
