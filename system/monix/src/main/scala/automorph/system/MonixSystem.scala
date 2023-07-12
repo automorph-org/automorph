@@ -51,17 +51,14 @@ final case class MonixSystem()(implicit val scheduler: Scheduler) extends AsyncE
       }
 
     override def succeed(value: T): Task[Unit] =
-      flatMap(mVar.tryPut(Right(value))) { success =>
-        Option.when(success)(successful {}).getOrElse {
-          failed(new IllegalStateException("Completable effect already resolved"))
-        }
-      }
+      flatMap(mVar.tryPut(Right(value)))(complete)
 
     override def fail(exception: Throwable): Task[Unit] =
-      flatMap(mVar.tryPut(Left(exception))) { success =>
-        Option.when(success)(successful {}).getOrElse {
-          failed(new IllegalStateException("Completable effect already resolved"))
-        }
+      flatMap(mVar.tryPut(Left(exception)))(complete)
+
+    private def complete(success: Boolean): Task[Unit] =
+      Option.when(success)(successful {}).getOrElse {
+        failed(new IllegalStateException("Completable effect already resolved"))
       }
   }
 }
