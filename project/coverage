@@ -1,4 +1,4 @@
 #!/bin/bash
 
-sbt ++2.13.10 clean coverage test coverageReport
+sbt '++2.13.11 clean ; ++2.13.11 coverage ; ++2.13.11 test ; ++2.13.11 coverageAggregate'
 

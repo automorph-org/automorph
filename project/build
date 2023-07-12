@@ -1,4 +1,4 @@
 #!/bin/bash
 
-sbt '+ test'
+TEST_LEVEL=all sbt '+ test'
 
