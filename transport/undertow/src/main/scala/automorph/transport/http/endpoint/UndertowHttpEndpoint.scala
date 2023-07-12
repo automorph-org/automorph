@@ -2,7 +2,7 @@ package automorph.transport.http.endpoint
 
 import automorph.log.{LogProperties, Logging, MessageLog}
 import automorph.spi.{EffectSystem, EndpointTransport, RequestHandler}
-import automorph.transport.http.endpoint.UndertowHttpEndpoint.Context
+import automorph.transport.http.endpoint.UndertowHttpEndpoint.{Context, requestQuery}
 import automorph.transport.http.{HttpContext, HttpMethod, Protocol}
 import automorph.util.Extensions.{ByteArrayOps, EffectOps, StringOps, ThrowableOps, TryOps}
 import automorph.util.{Network, Random}
@@ -67,8 +67,7 @@ final case class UndertowHttpEndpoint[Effect[_]](
           override def run(): Unit =
             // Process the request
             Try {
-              val requestBody = message.toArray[Byte]
-              val response = handler.processRequest(requestBody, getRequestContext(exchange), requestId)
+              val response = handler.processRequest(message, getRequestContext(exchange), requestId)
               response.either.map(
                 _.fold(
                   error => sendErrorResponse(error, exchange, requestId, requestProperties),
@@ -158,7 +157,7 @@ final case class UndertowHttpEndpoint[Effect[_]](
   }
 
   private def getRequestProperties(exchange: HttpServerExchange, requestId: String): Map[String, String] = {
-    val query = Option(exchange.getQueryString).filter(_.nonEmpty).map("?" + _).getOrElse("")
+    val query = requestQuery(exchange.getQueryString)
     val url = s"${exchange.getRequestURI}$query"
     ListMap(
       LogProperties.requestId -> requestId,
@@ -179,4 +178,7 @@ object UndertowHttpEndpoint {
 
   /** Request context type. */
   type Context = HttpContext[Either[HttpServerExchange, WebSocketHttpExchange]]
+
+  private[automorph] def requestQuery(query: String) =
+    Option(query).filter(_.nonEmpty).map("?" + _).getOrElse("")
 }
