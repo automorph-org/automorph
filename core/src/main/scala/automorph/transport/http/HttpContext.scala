@@ -77,21 +77,6 @@ final case class HttpContext[TransportContext](
       case _ => None
     }
 
-  /** Request URL authority. */
-  def authority: Option[String] =
-    host.map { host =>
-      val userInfoText = userInfo.map(userInfo => s"$userInfo@").getOrElse("")
-      val portText = port.map(port => s":$port").getOrElse("")
-      s"$userInfoText$host$portText"
-    }
-
-  /** Request URL query. */
-  def query: Option[String] =
-    parameters match {
-      case Seq() => None
-      case _ => Some(s"${parameters.map { case (name, value) => s"$name=$value" }.mkString("&")}")
-    }
-
   /**
    * Set request URL.
    *
@@ -124,24 +109,6 @@ final case class HttpContext[TransportContext](
   }
 
   /**
-   * Set request URL query string.
-   *
-   * @param queryString
-   *   URL query string
-   * @return
-   *   HTTP message context
-   */
-  def query(queryString: String): HttpContext[TransportContext] = {
-    val entries = queryString.replaceFirst("^\\?(.*)$", "$1")
-    val parameters = entries.split("&").flatMap(_.split("=", 2) match {
-      case Array(name, value) if name.nonEmpty => Some((name, value))
-      case Array(name) if name.nonEmpty => Some((name, ""))
-      case _ => None
-    }).toSeq
-    copy(parameters = parameters)
-  }
-
-  /**
    * Set request URL scheme.
    *
    * @param scheme
@@ -151,6 +118,14 @@ final case class HttpContext[TransportContext](
    */
   def scheme(scheme: String): HttpContext[TransportContext] =
     copy(scheme = Some(scheme))
+
+  /** Request URL authority. */
+  def authority: Option[String] =
+    host.map { host =>
+      val userInfoText = userInfo.map(userInfo => s"$userInfo@").getOrElse("")
+      val portText = port.map(port => s":$port").getOrElse("")
+      s"$userInfoText$host$portText"
+    }
 
   /**
    * Set request URL authority.
@@ -218,16 +193,41 @@ final case class HttpContext[TransportContext](
   def path(path: String): HttpContext[TransportContext] =
     copy(path = Some(path))
 
+  /** Request URL query. */
+  def query: Option[String] =
+    parameters match {
+      case Seq() => None
+      case _ => Some(s"${parameters.map { case (name, value) => s"$name=$value" }.mkString("&")}")
+    }
+
   /**
-   * Set request URL fragment.
+   * Set request URL query string.
    *
-   * @param fragment
-   *   URL fragment
+   * @param queryString
+   *   URL query string
    * @return
    *   HTTP message context
    */
-  def fragment(fragment: String): HttpContext[TransportContext] =
-    copy(fragment = Some(fragment))
+  def query(queryString: String): HttpContext[TransportContext] = {
+    val entries = queryString.replaceFirst("^\\?(.*)$", "$1")
+    val parameters = entries.split("&").flatMap(_.split("=", 2) match {
+      case Array(name, value) if name.nonEmpty => Some((name, value))
+      case Array(name) if name.nonEmpty => Some((name, ""))
+      case _ => None
+    }).toSeq
+    copy(parameters = parameters)
+  }
+
+  /**
+   * First URL query parameter value.
+   *
+   * @param name
+   *   query parameter name
+   * @return
+   *   first query parameter value
+   */
+  def parameter(name: String): Option[String] =
+    parameters.find(_._1 == name).map(_._2)
 
   /**
    * Add URL query parameter.
@@ -262,6 +262,17 @@ final case class HttpContext[TransportContext](
   }
 
   /**
+   * URL query parameter values.
+   *
+   * @param name
+   *   query parameter name
+   * @return
+   *   query parameter values
+   */
+  def parameters(name: String): Seq[String] =
+    parameters.filter(_._1 == name).map(_._2)
+
+  /**
    * Add URL query parameters.
    *
    * @param entries
@@ -291,26 +302,37 @@ final case class HttpContext[TransportContext](
   }
 
   /**
-   * First URL query parameter value.
+   * Set request URL fragment.
    *
-   * @param name
-   *   query parameter name
+   * @param fragment
+   *   URL fragment
    * @return
-   *   first query parameter value
+   *   HTTP message context
    */
-  def parameter(name: String): Option[String] =
-    parameters.find(_._1 == name).map(_._2)
+  def fragment(fragment: String): HttpContext[TransportContext] =
+    copy(fragment = Some(fragment))
 
   /**
-   * URL query parameter values.
+   * Set request method.
+   *
+   * @param method
+   *   request method
+   * @return
+   *   HTTP message context
+   */
+  def method(method: HttpMethod): HttpContext[TransportContext] =
+    copy(method = Some(method))
+
+  /**
+   * First header value.
    *
    * @param name
-   *   query parameter name
+   *   header name
    * @return
-   *   query parameter values
+   *   first header value
    */
-  def parameters(name: String): Seq[String] =
-    parameters.filter(_._1 == name).map(_._2)
+  def header(name: String): Option[String] =
+    headers.find(_._1 == name).map(_._2)
 
   /**
    * Add message headers.
@@ -322,6 +344,17 @@ final case class HttpContext[TransportContext](
    */
   def headers(entries: (String, String)*): HttpContext[TransportContext] =
     headers(entries, replace = false)
+
+  /**
+   * Header values.
+   *
+   * @param name
+   *   header name
+   * @return
+   *   header values
+   */
+  def headers(name: String): Seq[String] =
+    headers.filter(_._1 == name).map(_._2)
 
   /**
    * Add or replace message headers.
@@ -342,17 +375,6 @@ final case class HttpContext[TransportContext](
   }
 
   /**
-   * Set request method.
-   *
-   * @param method
-   *   request method
-   * @return
-   *   HTTP message context
-   */
-  def method(method: HttpMethod): HttpContext[TransportContext] =
-    copy(method = Some(method))
-
-  /**
    * Set response status code.
    *
    * @param statusCode
@@ -366,17 +388,6 @@ final case class HttpContext[TransportContext](
   /** `Content-Type` header value. */
   def contentType: Option[String] =
     header(headerContentType)
-
-  /**
-   * First header value.
-   *
-   * @param name
-   *   header name
-   * @return
-   *   first header value
-   */
-  def header(name: String): Option[String] =
-    headers.find(_._1 == name).map(_._2)
 
   /** `Content-Length` header value. */
   def contentLength: Option[String] =
@@ -408,34 +419,9 @@ final case class HttpContext[TransportContext](
   def cookies(entries: (String, String)*): HttpContext[TransportContext] =
     cookies(entries, headerCookie)
 
-  private def cookies(values: Iterable[(String, String)], headerName: String): HttpContext[TransportContext] = {
-    val headerValue = (headers(headerName) ++ values.map { case (name, value) => s"$name=$value" }).mkString("; ")
-    header(headerName, headerValue, replace = true)
-  }
-
   /** Set-Cookie names and values. */
   def setCookies: Map[String, Option[String]] =
     cookies(headerSetCookie)
-
-  private def cookies(headerName: String): Map[String, Option[String]] =
-    headers(headerName).flatMap { header =>
-      header.split("=", 2).map(_.trim) match {
-        case Array(name, value) => Some(name -> Some(value))
-        case Array(name) => Some(name -> None)
-        case _ => None
-      }
-    }.toMap
-
-  /**
-   * Header values.
-   *
-   * @param name
-   *   header name
-   * @return
-   *   header values
-   */
-  def headers(name: String): Seq[String] =
-    headers.filter(_._1 == name).map(_._2)
 
   /**
    * Set response cookies.
@@ -535,12 +521,6 @@ final case class HttpContext[TransportContext](
   def proxyAuthorizationBasic: Option[String] =
     authorization(headerProxyAuthorization, headerAuthorizationBasic)
 
-  private def authorization(header: String, method: String): Option[String] =
-    headers(header).find(_.trim.startsWith(method)).flatMap(_.split(" ") match {
-      case Array(_, value) => Some(value)
-      case _ => None
-    })
-
   /** `Proxy-Authorization: Bearer` header value. */
   def proxyAuthorizationBearer: Option[String] =
     authorization(headerProxyAuthorization, headerAuthorizationBearer)
@@ -581,6 +561,26 @@ final case class HttpContext[TransportContext](
    */
   def proxyAuthBearer(token: String): HttpContext[TransportContext] =
     header(headerProxyAuthorization, s"$headerAuthorizationBearer $token")
+
+  private def cookies(values: Iterable[(String, String)], headerName: String): HttpContext[TransportContext] = {
+    val headerValue = (headers(headerName) ++ values.map { case (name, value) => s"$name=$value" }).mkString("; ")
+    header(headerName, headerValue, replace = true)
+  }
+
+  private def cookies(headerName: String): Map[String, Option[String]] =
+    headers(headerName).flatMap { header =>
+      header.split("=", 2).map(_.trim) match {
+        case Array(name, value) => Some(name -> Some(value))
+        case Array(name) => Some(name -> None)
+        case _ => None
+      }
+    }.toMap
+
+  private def authorization(header: String, method: String): Option[String] =
+    headers(header).find(_.trim.startsWith(method)).flatMap(_.split(" ") match {
+      case Array(_, value) => Some(value)
+      case _ => None
+    })
 
   private[automorph] def overrideUrl(url: URI): URI = {
     val base = HttpContext().url(url)
