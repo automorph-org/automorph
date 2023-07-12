@@ -23,7 +23,6 @@ for invoking and exposing remote APIs in a few lines of code.
 * **Transport protocols** - [HTTP](https://automorph.org/docs/Examples#http-authentication), [WebSocket](https://automorph.org/docs/Examples#websocket-transport), [AMQP](https://automorph.org/docs/Examples#amqp-transport).
 * **Effect handling** - [Synchronous](https://automorph.org/docs/Examples#synchronous-call), [Asynchronous](https://automorph.org/docs/Examples#asynchronous-call), [Monadic](https://automorph.org/docs/Examples#effect-system).
 
-
 ---
 
 * [Quick Start](https://automorph.org/docs/Quickstart)
