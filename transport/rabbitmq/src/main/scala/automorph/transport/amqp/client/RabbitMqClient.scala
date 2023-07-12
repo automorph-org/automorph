@@ -89,12 +89,8 @@ final case class RabbitMqClient[Effect[_]](
 
   override def close(): Effect[Unit] =
     effectSystem.evaluate(this.synchronized {
-      session.fold(
-        throw new IllegalStateException(s"${getClass.getSimpleName} already closed")
-      ) { activeSession =>
-        RabbitMq.close(activeSession.connection)
-        session = None
-      }
+      RabbitMq.close(session)
+      session = None
     })
 
   private def send(
@@ -155,7 +151,7 @@ final case class RabbitMqClient[Effect[_]](
         // Complete the registered deferred response effect
         val responseContext = RabbitMq.messageContext(properties)
         responseHandlers.get(properties.getCorrelationId).foreach { response =>
-          response.succeed(responseBody.toArray[Byte] -> responseContext).runAsync
+          response.succeed(responseBody -> responseContext).runAsync
         }
       }
     }

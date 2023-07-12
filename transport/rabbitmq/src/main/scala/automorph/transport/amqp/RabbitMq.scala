@@ -84,13 +84,17 @@ object RabbitMq extends Logging {
     }.getOrElse {}
 
   /**
-   * Close AMQP broker connection.
+   * Close AMQP broker session.
    *
-   * @param connection
-   *   AMQP broker connection
+   * @param session
+   *   AMQP broker session
    */
-  private[automorph] def close(connection: Connection): Unit =
-    connection.close(AMQP.CONNECTION_FORCED, "Terminated")
+  private[automorph] def close(session: Option[Session]): Unit =
+      session.fold(
+        throw new IllegalStateException(s"${getClass.getSimpleName} already closed")
+      ) { activeSession =>
+        activeSession.connection.close(AMQP.CONNECTION_FORCED, "Terminated")
+      }
 
   /**
    * Returns application identifier combining the local host name with specified application name.

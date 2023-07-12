@@ -77,12 +77,8 @@ final case class RabbitMqServer[Effect[_]](
 
   override def close(): Effect[Unit] =
     effectSystem.evaluate(this.synchronized {
-      session.fold(
-        throw new IllegalStateException(s"${getClass.getSimpleName} already closed")
-      ) { activeSession =>
-        RabbitMq.close(activeSession.connection)
-        session = None
-      }
+      RabbitMq.close(session)
+      session = None
     })
 
   private def createConsumer(channel: Channel): DefaultConsumer = {
@@ -104,7 +100,7 @@ final case class RabbitMqServer[Effect[_]](
             // Process the request
             Try {
               val requestContext = RabbitMq.messageContext(amqpProperties)
-              val handlerResult = handler.processRequest(requestBody.toArray[Byte], requestContext, actualRequestId)
+              val handlerResult = handler.processRequest(requestBody, requestContext, actualRequestId)
               handlerResult.either.map(
                 _.fold(
                   error => sendErrorResponse(error, replyTo, requestProperties, actualRequestId),
