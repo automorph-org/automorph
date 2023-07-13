@@ -157,13 +157,13 @@ class HttpContextTest extends BaseTest {
       HttpContext().contentLength.shouldBe(empty)
       HttpContext().header("Content-Length", contentLength).contentLength.value.shouldBe(contentLength)
     }
-    "Coookies" in {
+    "Cookies" in {
       HttpContext().cookies.shouldBe(Map.empty)
       HttpContext().cookies(cookies*).cookie("a").value.shouldBe("b")
       HttpContext().cookies(cookies*).cookie("c").value.shouldBe("d")
       HttpContext().cookies(cookies*).cookies.shouldBe(cookies.toMap)
     }
-    "Set Coookies" in {
+    "Set Cookies" in {
       HttpContext().setCookies.shouldBe(Map.empty)
       HttpContext().setCookies(setCookies*).setCookie("a").value.shouldBe("b")
       HttpContext().setCookies(setCookies*).setCookie("c").value.shouldBe("d")
