@@ -24,6 +24,8 @@ class HttpContextTest extends BaseTest {
   private val contentLength = "0"
   private val cookies = Seq("a" -> "b", "c" -> "d")
   private val setCookies = Seq("a" -> SetCookie("b"), "c" -> SetCookie("d"))
+  private val authorizationScheme = "Bearer"
+  private val authorizationCredentials = "test"
 
   "" - {
     "URL" in {
@@ -169,6 +171,26 @@ class HttpContextTest extends BaseTest {
       HttpContext().setCookies(setCookies*).setCookie("a").value.shouldBe(SetCookie("b"))
       HttpContext().setCookies(setCookies*).setCookie("c").value.shouldBe(SetCookie("d"))
       HttpContext().setCookies(setCookies*).setCookies.shouldBe(setCookies.toMap)
+    }
+    "Authorization" in {
+      HttpContext().authorization(authorizationScheme).shouldBe(empty)
+      HttpContext().authorization(authorizationScheme, authorizationCredentials).authorization(
+        authorizationScheme
+      ).value.shouldBe(authorizationCredentials)
+      HttpContext().authorization(authorizationScheme, authorizationCredentials).header("Authorization").value.shouldBe(
+        s"$authorizationScheme $authorizationCredentials"
+      )
+    }
+    "Proxy Authorization" in {
+      HttpContext().proxyAuthorization(authorizationScheme).shouldBe(empty)
+      HttpContext().proxyAuthorization(authorizationScheme, authorizationCredentials).proxyAuthorization(
+        authorizationScheme
+      ).value.shouldBe(authorizationCredentials)
+      HttpContext().proxyAuthorization(authorizationScheme, authorizationCredentials).header(
+        "Proxy-Authorization"
+      ).value.shouldBe(
+        s"$authorizationScheme $authorizationCredentials"
+      )
     }
   }
 }

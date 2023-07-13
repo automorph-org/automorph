@@ -39,7 +39,7 @@ private[examples] object HttpRequest {
       .parameters("test" -> "value")
       .headers("X-Test" -> "value", "Cache-Control" -> "no-cache")
       .cookies("Example" -> "value")
-      .authorizationBearer("value")
+      .authorization("Bearer", "value")
 
     // Call the remote API function statically using implicitly given HTTP request metadata
     val remoteApi = client.bind[ClientApi]

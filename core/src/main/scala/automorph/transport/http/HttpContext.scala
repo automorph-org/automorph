@@ -2,10 +2,8 @@ package automorph.transport.http
 
 import automorph.RpcException.{FunctionNotFound, InvalidRequest, ServerError}
 import automorph.transport.http.HttpContext.SetCookie
-import automorph.util.Extensions.{ByteArrayOps, StringOps}
 import java.io.IOException
 import java.net.URI
-import java.util.Base64
 import scala.concurrent.duration.Duration
 
 /**
@@ -61,8 +59,6 @@ final case class HttpContext[TransportContext](
   transportContext: Option[TransportContext] = None,
 ) {
 
-  private val headerAuthorizationBasic = "Basic"
-  private val headerAuthorizationBearer = "Bearer"
   private val headerAuthorization = "Authorization"
   private val headerContentLength = "Content-Length"
   private val headerContentType = "Content-Type"
@@ -262,16 +258,12 @@ final case class HttpContext[TransportContext](
    * @param value
    *   query parameter value
    * @param replace
-   *   replace all existing query parameters with the specied name
+   *   replace all existing query parameters with the specified name
    * @return
    *   HTTP message context
    */
-  def parameter(name: String, value: String, replace: Boolean): HttpContext[TransportContext] = {
-    val originalParameters = if (replace) {
-      parameters.filter(_._1 != name)
-    } else parameters
-    copy(parameters = originalParameters :+ name -> value)
-  }
+  def parameter(name: String, value: String, replace: Boolean): HttpContext[TransportContext] =
+    copy(parameters = updateEntries(parameters, Seq(name -> value), replace))
 
   /**
    * Add URL query parameters.
@@ -294,13 +286,8 @@ final case class HttpContext[TransportContext](
    * @return
    *   HTTP message context
    */
-  def parameters(entries: Iterable[(String, String)], replace: Boolean): HttpContext[TransportContext] = {
-    val entryNames = entries.map { case (name, _) => name }.toSet
-    val originalParameters = if (replace) {
-      parameters.filter { case (name, _) => !entryNames.contains(name) }
-    } else parameters
-    copy(parameters = originalParameters ++ entries)
-  }
+  def parameters(entries: Iterable[(String, String)], replace: Boolean): HttpContext[TransportContext] =
+    copy(parameters = updateEntries(parameters, entries, replace))
 
   /**
    * Set request URL fragment.
@@ -367,14 +354,12 @@ final case class HttpContext[TransportContext](
    * @param value
    *   header value
    * @param replace
-   *   replace all existing headers with the specied name
+   *   replace all existing headers with the specified name
    * @return
    *   HTTP message context
    */
-  def header(name: String, value: String, replace: Boolean): HttpContext[TransportContext] = {
-    val originalHeaders = if (replace) headers.filter(_._1 != name) else headers
-    copy(headers = originalHeaders :+ name -> value)
-  }
+  def header(name: String, value: String, replace: Boolean): HttpContext[TransportContext] =
+    copy(headers = updateEntries(headers, Seq(name -> value), replace))
 
   /**
    * Header values.
@@ -397,13 +382,8 @@ final case class HttpContext[TransportContext](
    * @return
    *   HTTP message context
    */
-  def headers(entries: Iterable[(String, String)], replace: Boolean): HttpContext[TransportContext] = {
-    val entryNames = entries.map { case (name, _) => name }.toSet
-    val originalHeaders = if (replace) {
-      headers.filter { case (name, _) => !entryNames.contains(name) }
-    } else headers
-    copy(headers = originalHeaders ++ entries)
-  }
+  def headers(entries: Iterable[(String, String)], replace: Boolean): HttpContext[TransportContext] =
+    copy(headers = updateEntries(headers, entries, replace))
 
   /**
    * Set response status code.
@@ -498,109 +478,80 @@ final case class HttpContext[TransportContext](
     headers(headerValues.map((headerSetCookie, _)), replace = true)
   }
 
-  /** `Authorization` header value. */
-  def authorization: Option[String] =
-    header(headerAuthorization)
-
-  /** `Authorization: Basic` header value. */
-  def authorizationBasic: Option[String] =
-    authorizationFromHeader(headerAuthorization, headerAuthorizationBasic)
-
-  /** `Authorization: Bearer` header value. */
-  def authorizationBearer: Option[String] =
-    authorizationFromHeader(headerAuthorization, headerAuthorizationBearer)
+  /**
+   * `Authorization` header value.
+   *
+   * @param scheme
+   *   authentication scheme
+   * @return
+   *   authentication credentials
+   */
+  def authorization(scheme: String): Option[String] =
+    authorizationFromHeader(headerAuthorization, scheme)
 
   /**
-   * Set `Authorization: Basic` header value.
+   * Set `Authorization` header value.
    *
-   * @param user
-   *   user
-   * @param password
-   *   password
+   * @param scheme
+   *   authentication scheme
+   * @param credentials
+   *   authentication credentials
    * @return
    *   HTTP message context
    */
-  def authorizationBasic(user: String, password: String): HttpContext[TransportContext] = {
-    val value = Base64.getEncoder.encode(s"$user:$password".toByteArray).asString
-    header(headerAuthorization, s"$headerAuthorizationBasic $value")
+  def authorization(scheme: String, credentials: String): HttpContext[TransportContext] =
+    authorizationToHeader(headerAuthorization, scheme, credentials)
+
+  /**
+   * `Proxy-Authorization` header value.
+   *
+   * @param scheme
+   *   authentication scheme
+   * @return
+   *   authentication credentials
+   */
+  def proxyAuthorization(scheme: String): Option[String] =
+    authorizationFromHeader(headerProxyAuthorization, scheme)
+
+  /**
+   * Set `Proxy-Authorization` header value.
+   *
+   * @param scheme
+   *   authentication scheme
+   * @param credentials
+   *   authentication credentials
+   * @return
+   *   HTTP message context
+   */
+  def proxyAuthorization(scheme: String, credentials: String): HttpContext[TransportContext] =
+    authorizationToHeader(headerProxyAuthorization, scheme, credentials)
+
+  private def updateEntries(
+    originalEntries: Iterable[(String, String)],
+    entries: Iterable[(String, String)],
+    replace: Boolean,
+  ): Seq[(String, String)] = {
+    val entryNames = entries.map { case (name, _) =>
+      name
+    }.toSet
+    val retainedEntries = if (replace) {
+      originalEntries.filter { case (name, _) => !entryNames.contains(name) }
+    } else originalEntries
+    retainedEntries.toSeq ++ entries
   }
 
-  /**
-   * Set `Authorization: Basic` header value.
-   *
-   * @param token
-   *   authentication token
-   * @return
-   *   HTTP message context
-   */
-  def authorizationBasic(token: String): HttpContext[TransportContext] =
-    header(headerAuthorization, s"$headerAuthorizationBasic $token")
-
-  /**
-   * Set `Authorization: Bearer` header value.
-   *
-   * @param token
-   *   authentication token
-   * @return
-   *   HTTP message context
-   */
-  def authorizationBearer(token: String): HttpContext[TransportContext] =
-    header(headerAuthorization, s"$headerAuthorizationBearer $token")
-
-  /** `Proxy-Authorization` header value. */
-  def proxyAuthorization: Option[String] =
-    header(headerProxyAuthorization)
-
-  /** `Proxy-Authorization: Basic` header value. */
-  def proxyAuthorizationBasic: Option[String] =
-    authorizationFromHeader(headerProxyAuthorization, headerAuthorizationBasic)
-
-  /** `Proxy-Authorization: Bearer` header value. */
-  def proxyAuthorizationBearer: Option[String] =
-    authorizationFromHeader(headerProxyAuthorization, headerAuthorizationBearer)
-
-  /**
-   * Set `Proxy-Authorization: Basic` header value.
-   *
-   * @param user
-   *   user
-   * @param password
-   *   password
-   * @return
-   *   HTTP message context
-   */
-  def proxyAuthBasic(user: String, password: String): HttpContext[TransportContext] = {
-    val value = Base64.getEncoder.encode(s"$user:$password".toByteArray).asString
-    header(headerProxyAuthorization, s"$headerAuthorizationBasic $value")
-  }
-
-  /**
-   * Set `Proxy-Authorization: Basic` header value.
-   *
-   * @param token
-   *   authentication token
-   * @return
-   *   HTTP message context
-   */
-  def proxyAuthBasic(token: String): HttpContext[TransportContext] =
-    header(headerProxyAuthorization, s"$headerAuthorizationBasic $token")
-
-  /**
-   * Set `Proxy-Authorization: Bearer` header value.
-   *
-   * @param token
-   *   authentication token
-   * @return
-   *   HTTP message context
-   */
-  def proxyAuthBearer(token: String): HttpContext[TransportContext] =
-    header(headerProxyAuthorization, s"$headerAuthorizationBearer $token")
-
-  private def authorizationFromHeader(header: String, method: String): Option[String] =
-    headers(header).find(_.trim.startsWith(method)).flatMap(_.split(" ") match {
+  private def authorizationFromHeader(header: String, scheme: String): Option[String] =
+    headers(header).find(_.startsWith(s"$scheme ")).flatMap(_.trim.split("\\s+") match {
       case Array(_, value) => Some(value)
       case _ => None
     })
+
+  private def authorizationToHeader(
+    headerName: String,
+    scheme: String,
+    credentials: String,
+  ): HttpContext[TransportContext] =
+    header(headerName, s"$scheme $credentials", replace = true)
 
   private[automorph] def overrideUrl(url: URI): URI = {
     val base = HttpContext().url(url)

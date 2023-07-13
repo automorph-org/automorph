@@ -14,7 +14,7 @@ private[examples] object HttpAuthentication {
 
       // Accept HTTP request context provided by the server message transport plugin
       def hello(message: String)(implicit httpRequest: ServerContext): String =
-        httpRequest.authorizationBearer match {
+        httpRequest.authorization("Bearer") match {
           case Some("valid") => s"Hello $message!"
           case _ => throw new IllegalAccessException("Authentication failed")
         }
@@ -38,7 +38,7 @@ private[examples] object HttpAuthentication {
     {
       // Create client request context containing invalid HTTP authentication
       implicit val validAuthentication: ClientContext = client.context
-        .authorizationBearer("valid")
+        .authorization("Bearer", "valid")
 
       // Call the remote API function statically using valid authentication
       println(
