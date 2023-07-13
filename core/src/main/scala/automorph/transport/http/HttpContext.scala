@@ -1,6 +1,7 @@
 package automorph.transport.http
 
 import automorph.RpcException.{FunctionNotFound, InvalidRequest, ServerError}
+import automorph.transport.http.HttpContext.SetCookie
 import automorph.util.Extensions.{ByteArrayOps, StringOps}
 import java.io.IOException
 import java.net.URI
@@ -436,7 +437,14 @@ final case class HttpContext[TransportContext](
 
   /** Cookie names and values. */
   def cookies: Map[String, String] =
-    getCookies(headerCookie)
+    headers(headerCookie).flatMap { header =>
+      header.split(";").flatMap { cookie =>
+        cookie.split("=", 2).map(_.trim) match {
+          case Array(name, value) => Some(name -> value)
+          case _ => None
+        }
+      }
+    }.toMap
 
   /**
    * Set request cookies.
@@ -446,8 +454,10 @@ final case class HttpContext[TransportContext](
    * @return
    *   HTTP message context
    */
-  def cookies(entries: (String, String)*): HttpContext[TransportContext] =
-    cookies(entries, headerCookie)
+  def cookies(entries: (String, String)*): HttpContext[TransportContext] = {
+    val headerValue = entries.map { case (name, value) => s"$name=$value" }.mkString("; ")
+    header(headerCookie, headerValue, replace = true)
+  }
 
   /**
    * Set-Cookie value.
@@ -457,23 +467,36 @@ final case class HttpContext[TransportContext](
    * @return
    *   set cookie value
    */
-  def setCookie(name: String): Option[String] =
+  def setCookie(name: String): Option[SetCookie] =
     setCookies.get(name)
 
   /** Set-Cookie names and values. */
-  def setCookies: Map[String, String] =
-    getCookies(headerSetCookie)
+  def setCookies: Map[String, SetCookie] =
+    headers(headerSetCookie).flatMap { header =>
+      header.split(";") match {
+        case Array(cookie, attributes*) => cookie.split("=", 2).map(_.trim) match {
+          case Array(name, value) => Some(name -> SetCookie(value, attributes))
+          case _ => None
+        }
+        case _ => None
+      }
+    }.toMap
 
   /**
    * Set response cookies.
    *
    * @param entries
-   *   cookie names and values
+   *   set cookie names and values
    * @return
    *   HTTP message context
    */
-  def setCookies(entries: (String, String)*): HttpContext[TransportContext] =
-    cookies(entries, headerSetCookie)
+  def setCookies(entries: (String, SetCookie)*): HttpContext[TransportContext] = {
+    val headerValues = entries.map { case (name, value) =>
+      val attributes = value.attributes.map(attribute => s"; $attribute").mkString
+      s"$name=${value.value}$attributes"
+    }
+    headers(headerValues.map((headerSetCookie, _)), replace = true)
+  }
 
   /** `Authorization` header value. */
   def authorization: Option[String] =
@@ -481,11 +504,11 @@ final case class HttpContext[TransportContext](
 
   /** `Authorization: Basic` header value. */
   def authorizationBasic: Option[String] =
-    getAuthorization(headerAuthorization, headerAuthorizationBasic)
+    authorizationFromHeader(headerAuthorization, headerAuthorizationBasic)
 
   /** `Authorization: Bearer` header value. */
   def authorizationBearer: Option[String] =
-    getAuthorization(headerAuthorization, headerAuthorizationBearer)
+    authorizationFromHeader(headerAuthorization, headerAuthorizationBearer)
 
   /**
    * Set `Authorization: Basic` header value.
@@ -530,11 +553,11 @@ final case class HttpContext[TransportContext](
 
   /** `Proxy-Authorization: Basic` header value. */
   def proxyAuthorizationBasic: Option[String] =
-    getAuthorization(headerProxyAuthorization, headerAuthorizationBasic)
+    authorizationFromHeader(headerProxyAuthorization, headerAuthorizationBasic)
 
   /** `Proxy-Authorization: Bearer` header value. */
   def proxyAuthorizationBearer: Option[String] =
-    getAuthorization(headerProxyAuthorization, headerAuthorizationBearer)
+    authorizationFromHeader(headerProxyAuthorization, headerAuthorizationBearer)
 
   /**
    * Set `Proxy-Authorization: Basic` header value.
@@ -573,22 +596,7 @@ final case class HttpContext[TransportContext](
   def proxyAuthBearer(token: String): HttpContext[TransportContext] =
     header(headerProxyAuthorization, s"$headerAuthorizationBearer $token")
 
-  private def cookies(values: Iterable[(String, String)], headerName: String): HttpContext[TransportContext] = {
-    val headerValue = (headers(headerName) ++ values.map { case (name, value) => s"$name=$value" }).mkString("; ")
-    header(headerName, headerValue, replace = true)
-  }
-
-  private def getCookies(headerName: String): Map[String, String] =
-    headers(headerName).flatMap { header =>
-      header.split(";").flatMap { cookie =>
-        cookie.split("=", 2).map(_.trim) match {
-          case Array(name, value) => Some(name -> value)
-          case _ => None
-        }
-      }
-    }.toMap
-
-  private def getAuthorization(header: String, method: String): Option[String] =
+  private def authorizationFromHeader(header: String, method: String): Option[String] =
     headers(header).find(_.trim.startsWith(method)).flatMap(_.split(" ") match {
       case Array(_, value) => Some(value)
       case _ => None
@@ -606,6 +614,14 @@ final case class HttpContext[TransportContext](
 }
 
 object HttpContext {
+
+  /**
+   * Set-Cookie value.
+   *
+   * @param value cookie value
+   * @param attributes cookie attributes
+   */
+  final case class SetCookie(value: String, attributes: Seq[String] = Seq.empty)
 
   private val exceptionToStatusCode: Map[Class[?], Int] = Map[Class[?], Int](
     classOf[InvalidRequest] -> 400,
