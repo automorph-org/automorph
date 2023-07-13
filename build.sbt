@@ -129,7 +129,7 @@ lazy val monix = source(project, "system/monix", core, testSystem % Test).settin
   libraryDependencies += "io.monix" %% "monix-eval" % "3.4.1"
 )
 lazy val catsEffect = source(project, "system/cats-effect", core, testSystem % Test).settings(
-  libraryDependencies += "org.typelevel" %% "cats-effect" % "3.5.0"
+  libraryDependencies += "org.typelevel" %% "cats-effect" % "3.5.1"
 )
 lazy val scalazEffect = source(project, "system/scalaz-effect", core, testSystem % Test).settings(
   libraryDependencies += "org.scalaz" %% "scalaz-effect" % "7.4.0-M13"
@@ -148,14 +148,14 @@ lazy val jackson = source(project, "codec/jackson", core, testCodec % Test).sett
   libraryDependencies += "com.fasterxml.jackson.module" %% "jackson-module-scala" % jacksonVersion
 )
 lazy val upickle = source(project, "codec/upickle", core, testCodec % Test).settings(
-  libraryDependencies += "com.lihaoyi" %% "upickle" % "3.1.0"
+  libraryDependencies += "com.lihaoyi" %% "upickle" % "3.1.2"
 )
 lazy val argonaut = source(project, "codec/argonaut", core, testCodec % Test).settings(
   libraryDependencies += "io.argonaut" %% "argonaut" % "6.3.8"
 )
 
 // Client transport
-val sttpVersion = "3.8.15"
+val sttpVersion = "3.8.16"
 val sttpHttpClientVersion = "3.5.2"
 lazy val sttp =
   source(project, "transport/sttp", core, catsEffect % Test, zio % Test, testTransport % Test).settings(
@@ -179,7 +179,7 @@ lazy val rabbitmq = source(project, "transport/rabbitmq", core, testTransport % 
 )
 
 // Server transport
-val tapirVersion = "1.5.4"
+val tapirVersion = "1.6.1"
 lazy val tapir = source(project, "transport/tapir", core, catsEffect % Test, testTransport % Test).settings(
   libraryDependencies ++= Seq(
     "com.softwaremill.sttp.tapir" %% "tapir-server" % tapirVersion,
@@ -194,7 +194,7 @@ lazy val undertow = source(project, "transport/undertow", core, testTransport % 
   libraryDependencies += "io.undertow" % "undertow-core" % "2.3.7.Final"
 )
 lazy val vertx = source(project, "transport/vertx", core, testTransport % Test).settings(
-  libraryDependencies += "io.vertx" % "vertx-core" % "4.4.3"
+  libraryDependencies += "io.vertx" % "vertx-core" % "4.4.4"
 )
 val jettyVersion = "11.0.15"
 lazy val jetty = source(project, "transport/jetty", core, testTransport % Test).settings(
@@ -204,7 +204,7 @@ lazy val jetty = source(project, "transport/jetty", core, testTransport % Test).
     "org.eclipse.jetty.websocket" % "websocket-jetty-server" % jettyVersion
   )
 )
-val akkaVersion = "2.8.2"
+val akkaVersion = "2.8.3"
 lazy val akkaHttp = source(project, "transport/akka-http", core, testTransport % Test).settings(
   Test / fork := true,
   Test / testForkedParallel := true,

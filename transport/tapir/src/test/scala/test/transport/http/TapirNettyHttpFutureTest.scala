@@ -3,7 +3,6 @@ package test.transport.http
 import automorph.spi.{EffectSystem, RequestHandler, ServerTransport}
 import automorph.system.FutureSystem
 import automorph.transport.http.endpoint.TapirHttpEndpoint
-import java.net.InetSocketAddress
 import org.scalacheck.Arbitrary
 import scala.concurrent.ExecutionContext.Implicits.global
 import scala.concurrent.Future
@@ -38,7 +37,7 @@ case object TapirNettyHttpFutureTest {
 
   final case class TapirServer(effectSystem: EffectSystem[Effect], port: Int) extends ServerTransport[Effect, Context] {
     private var endpoint = TapirHttpEndpoint(effectSystem)
-    private var server = Option.empty[NettyFutureServerBinding[InetSocketAddress]]
+    private var server = Option.empty[NettyFutureServerBinding]
 
     override def withHandler(handler: RequestHandler[Effect, Context]): ServerTransport[Effect, Context] = {
       endpoint = endpoint.withHandler(handler)
