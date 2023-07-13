@@ -762,7 +762,7 @@ class ServerApi {
 
   // Accept HTTP request context provided by the server message transport plugin
   def hello(message: String)(implicit httpRequest: ServerContext): String =
-    httpRequest.authorizationBearer match {
+    httpRequest.authorization("Bearer") match {
       case Some("valid") => s"Hello $message!"
       case _ => throw new IllegalAccessException("Authentication failed")
     }
@@ -790,7 +790,7 @@ val remoteApi = client.bind[ClientApi]
 {
   // Create client request context containing invalid HTTP authentication
   implicit val validAuthentication: ClientContext = client.context
-    .authorizationBearer("valid")
+    .authorization("Bearer", "valid")
 
   // Call the remote API function statically using valid authentication
   println(
@@ -888,7 +888,7 @@ implicit val httpRequest: ClientContext = client.context
   .parameters("test" -> "value")
   .headers("X-Test" -> "value", "Cache-Control" -> "no-cache")
   .cookies("Test" -> "value")
-  .authorizationBearer("value")
+  .authorization("Bearer", "value")
 
 // Call the remote API function statically using implicitly given HTTP request metadata
 val remoteApi = client.bind[ClientApi]
