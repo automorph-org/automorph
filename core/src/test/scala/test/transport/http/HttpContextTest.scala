@@ -1,5 +1,6 @@
-package automorph.transport.http
+package test.transport.http
 
+import automorph.transport.http.{HttpContext, HttpMethod}
 import java.net.URI
 import scala.collection.immutable.Seq
 import test.base.BaseTest
@@ -20,6 +21,8 @@ class HttpContextTest extends BaseTest {
   private val statusCode = 0
   private val contentType = "test/test"
   private val contentLength = "0"
+  private val cookies = Seq("a" -> "b", "c" -> "d")
+  private val setCookies = Seq("a" -> "b", "c" -> "d")
 
   "" - {
     "URL" in {
@@ -153,6 +156,18 @@ class HttpContextTest extends BaseTest {
     "Content Length" in {
       HttpContext().contentLength.shouldBe(empty)
       HttpContext().header("Content-Length", contentLength).contentLength.value.shouldBe(contentLength)
+    }
+    "Coookies" in {
+      HttpContext().cookies.shouldBe(Map.empty)
+      HttpContext().cookies(cookies*).cookie("a").value.shouldBe("b")
+      HttpContext().cookies(cookies*).cookie("c").value.shouldBe("d")
+      HttpContext().cookies(cookies*).cookies.shouldBe(cookies.toMap)
+    }
+    "Set Coookies" in {
+      HttpContext().setCookies.shouldBe(Map.empty)
+      HttpContext().setCookies(setCookies*).setCookie("a").value.shouldBe("b")
+      HttpContext().setCookies(setCookies*).setCookie("c").value.shouldBe("d")
+      HttpContext().setCookies(setCookies*).setCookies.shouldBe(setCookies.toMap)
     }
   }
 }

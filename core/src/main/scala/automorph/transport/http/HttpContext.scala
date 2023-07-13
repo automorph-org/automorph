@@ -432,11 +432,11 @@ final case class HttpContext[TransportContext](
    *   cookie value
    */
   def cookie(name: String): Option[String] =
-    cookies.get(name).flatten
+    cookies.get(name)
 
   /** Cookie names and values. */
-  def cookies: Map[String, Option[String]] =
-    cookies(headerCookie)
+  def cookies: Map[String, String] =
+    getCookies(headerCookie)
 
   /**
    * Set request cookies.
@@ -449,9 +449,20 @@ final case class HttpContext[TransportContext](
   def cookies(entries: (String, String)*): HttpContext[TransportContext] =
     cookies(entries, headerCookie)
 
+  /**
+   * Set-Cookie value.
+   *
+   * @param name
+   *   set cookie name
+   * @return
+   *   set cookie value
+   */
+  def setCookie(name: String): Option[String] =
+    setCookies.get(name)
+
   /** Set-Cookie names and values. */
-  def setCookies: Map[String, Option[String]] =
-    cookies(headerSetCookie)
+  def setCookies: Map[String, String] =
+    getCookies(headerSetCookie)
 
   /**
    * Set response cookies.
@@ -470,11 +481,11 @@ final case class HttpContext[TransportContext](
 
   /** `Authorization: Basic` header value. */
   def authorizationBasic: Option[String] =
-    authorization(headerAuthorization, headerAuthorizationBasic)
+    getAuthorization(headerAuthorization, headerAuthorizationBasic)
 
   /** `Authorization: Bearer` header value. */
   def authorizationBearer: Option[String] =
-    authorization(headerAuthorization, headerAuthorizationBearer)
+    getAuthorization(headerAuthorization, headerAuthorizationBearer)
 
   /**
    * Set `Authorization: Basic` header value.
@@ -519,11 +530,11 @@ final case class HttpContext[TransportContext](
 
   /** `Proxy-Authorization: Basic` header value. */
   def proxyAuthorizationBasic: Option[String] =
-    authorization(headerProxyAuthorization, headerAuthorizationBasic)
+    getAuthorization(headerProxyAuthorization, headerAuthorizationBasic)
 
   /** `Proxy-Authorization: Bearer` header value. */
   def proxyAuthorizationBearer: Option[String] =
-    authorization(headerProxyAuthorization, headerAuthorizationBearer)
+    getAuthorization(headerProxyAuthorization, headerAuthorizationBearer)
 
   /**
    * Set `Proxy-Authorization: Basic` header value.
@@ -567,16 +578,17 @@ final case class HttpContext[TransportContext](
     header(headerName, headerValue, replace = true)
   }
 
-  private def cookies(headerName: String): Map[String, Option[String]] =
+  private def getCookies(headerName: String): Map[String, String] =
     headers(headerName).flatMap { header =>
-      header.split("=", 2).map(_.trim) match {
-        case Array(name, value) => Some(name -> Some(value))
-        case Array(name) => Some(name -> None)
-        case _ => None
+      header.split(";").flatMap { cookie =>
+        cookie.split("=", 2).map(_.trim) match {
+          case Array(name, value) => Some(name -> value)
+          case _ => None
+        }
       }
     }.toMap
 
-  private def authorization(header: String, method: String): Option[String] =
+  private def getAuthorization(header: String, method: String): Option[String] =
     headers(header).find(_.trim.startsWith(method)).flatMap(_.split(" ") match {
       case Array(_, value) => Some(value)
       case _ => None
