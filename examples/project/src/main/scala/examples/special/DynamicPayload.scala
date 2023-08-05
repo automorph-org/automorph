@@ -28,7 +28,7 @@ private[examples] object DynamicPayload {
       def hello(some: String, n: Json): Json
     }
 
-    // Initialize JSON-RPC HTTP & WebSocket client sending PUT requests to 'http://localhost:9000/api'
+    // Initialize JSON-RPC HTTP & WebSocket client for sending PUT requests to 'http://localhost:9000/api'
     val client = Default.rpcClientSync(new URI("http://localhost:9000/api")).init()
 
     // Call the remote API function statically

@@ -30,7 +30,7 @@ private[examples] object OneWayMessage {
       def hello(some: String, n: Int): Future[String]
     }
 
-    // Initialize JSON-RPC HTTP client sending POST requests to 'http://localhost:9000/api'
+    // Initialize JSON-RPC HTTP client for sending POST requests to 'http://localhost:9000/api'
     val client = run(
       Default.rpcClientAsync(new URI("http://localhost:9000/api")).init()
     )

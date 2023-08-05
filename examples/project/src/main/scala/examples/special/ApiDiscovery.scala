@@ -27,7 +27,7 @@ private[examples] object ApiDiscovery {
       Default.rpcServerAsync(9000, "/api").discovery(true).bind(api).init()
     )
 
-    // Initialize JSON-RPC HTTP client sending POST requests to 'http://localhost:9000/api'
+    // Initialize JSON-RPC HTTP client for sending POST requests to 'http://localhost:9000/api'
     val client = run(
       Default.rpcClientAsync(new URI("http://localhost:9000/api")).init()
     )

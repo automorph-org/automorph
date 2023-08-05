@@ -31,7 +31,7 @@ private[examples] object HttpAuthentication {
       def hello(message: String)(implicit http: ClientContext): String
     }
 
-    // Initialize JSON-RPC HTTP client sending POST requests to 'http://localhost:9000/api'
+    // Initialize JSON-RPC HTTP client for sending POST requests to 'http://localhost:9000/api'
     val client = Default.rpcClientSync(new URI("http://localhost:9000/api")).init()
     val remoteApi = client.bind[ClientApi]
 

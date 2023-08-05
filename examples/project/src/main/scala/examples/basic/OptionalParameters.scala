@@ -25,7 +25,7 @@ private[examples] object OptionalParameters {
       def hello(some: String): String
     }
 
-    // Initialize JSON-RPC HTTP client sending POST requests to 'http://localhost:9000/api'
+    // Initialize JSON-RPC HTTP client for sending POST requests to 'http://localhost:9000/api'
     val client = Default.rpcClientSync(new URI("http://localhost:9000/api")).init()
 
     // Call the remote API function statically

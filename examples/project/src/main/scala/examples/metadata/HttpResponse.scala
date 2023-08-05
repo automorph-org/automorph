@@ -30,7 +30,7 @@ private[examples] object HttpResponse {
       def hello(message: String): RpcResult[String, ClientContext]
     }
 
-    // Initialize JSON-RPC HTTP client sending POST requests to 'http://localhost:9000/api'
+    // Initialize JSON-RPC HTTP client for sending POST requests to 'http://localhost:9000/api'
     val client = Default.rpcClientSync(new URI("http://localhost:9000/api")).init()
 
     // Call the remote API function statically retrieving a result with HTTP response metadata

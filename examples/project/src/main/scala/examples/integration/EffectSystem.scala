@@ -32,7 +32,7 @@ private[examples] object EffectSystem {
       def hello(some: String, n: Int): Task[String]
     }
 
-    // Initialize JSON-RPC HTTP client sending POST requests to 'http://localhost:9000/api'
+    // Initialize JSON-RPC HTTP client for sending POST requests to 'http://localhost:9000/api'
     val client = run(
       Default.rpcClient(effectSystem, new URI("http://localhost:9000/api")).init()
     )

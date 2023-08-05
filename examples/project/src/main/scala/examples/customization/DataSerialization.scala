@@ -55,7 +55,7 @@ private[examples] object DataSerialization {
       def hello(some: String, record: Record): Future[Record]
     }
 
-    // Initialize JSON-RPC HTTP client sending POST requests to 'http://localhost:9000/api'
+    // Initialize JSON-RPC HTTP client for sending POST requests to 'http://localhost:9000/api'
     val client = run(
       Default.rpcClientAsync(new URI("http://localhost:9000/api")).init()
     )

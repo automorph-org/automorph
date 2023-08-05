@@ -31,7 +31,7 @@ private[examples] object AsynchronousCall {
       def hello(some: String, n: Int): Future[String]
     }
 
-    // Initialize JSON-RPC HTTP client sending PUT requests to 'http://localhost:9000/api'
+    // Initialize JSON-RPC HTTP client for sending PUT requests to 'http://localhost:9000/api'
     val client = run(
       Default.rpcClientAsync(new URI("http://localhost:9000/api"), HttpMethod.Put).init()
     )
