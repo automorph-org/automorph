@@ -7,26 +7,25 @@ private[examples] object SynchronousCall {
   @scala.annotation.nowarn
   def main(arguments: Array[String]): Unit = {
 
-    // Create server API instance
-    class ServerApi {
+    // Define a remote API
+    trait Api {
+      def hello(some: String, n: Int): String
+    }
+
+    // Create server implementation of the remote API
+    val api = new Api {
       def hello(some: String, n: Int): String =
         s"Hello $some $n!"
     }
-    val api = new ServerApi
 
     // Initialize JSON-RPC HTTP & WebSocket server listening on port 9000 for POST requests to '/api'
     val server = Default.rpcServerSync(9000, "/api").bind(api).init()
-
-    // Define client view of the remote API
-    trait ClientApi {
-      def hello(some: String, n: Int): String
-    }
 
     // Initialize JSON-RPC HTTP client for sending POST requests to 'http://localhost:9000/api'
     val client = Default.rpcClientSync(new URI("http://localhost:9000/api")).init()
 
     // Call the remote API function statically
-    val remoteApi = client.bind[ClientApi]
+    val remoteApi = client.bind[Api]
     println(
       remoteApi.hello("world", 1)
     )

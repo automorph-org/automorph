@@ -21,12 +21,16 @@ private[examples] case object AmqpTransport {
       // Helper function to evaluate Futures
       def run[T](effect: Future[T]): T = Await.result(effect, Duration.Inf)
 
-      // Create server API instance
-      class ServerApi {
-        def hello(some: String, n: Int): Future[String] =
+      // Define a remote API
+      trait Api {
+        def hello(some: String, n: Int): Future[String]
+      }
+
+      // Create server implementation of the remote API
+      val api = new Api {
+        override def hello(some: String, n: Int): Future[String] =
           Future(s"Hello $some $n!")
       }
-      val api = new ServerApi
 
       // Start embedded RabbitMQ broker
       val brokerConfig = new EmbeddedRabbitMqConfig.Builder().port(9000)
@@ -42,11 +46,6 @@ private[examples] case object AmqpTransport {
         RpcServer.transport(serverTransport).rpcProtocol(Default.rpcProtocol).bind(api).init()
       )
 
-      // Define client view of the remote API
-      trait ClientApi {
-        def hello(some: String, n: Int): Future[String]
-      }
-
       // Create RabbitMQ AMQP client message transport publishing requests to the 'api' queue
       val clientTransport = RabbitMqClient(new URI("amqp://localhost:9000"), "api", Default.effectSystemAsync)
 
@@ -56,7 +55,7 @@ private[examples] case object AmqpTransport {
       )
 
       // Call the remote API function
-      val remoteApi = client.bind[ClientApi]
+      val remoteApi = client.bind[Api]
       println(run(
         remoteApi.hello("world", 1)
       ))

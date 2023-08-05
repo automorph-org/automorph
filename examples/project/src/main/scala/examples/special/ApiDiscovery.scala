@@ -15,12 +15,16 @@ private[examples] object ApiDiscovery {
     // Helper function to evaluate Futures
     def run[T](effect: Future[T]): T = Await.result(effect, Duration.Inf)
 
-    // Create server API instance
-    class ServerApi {
+    // Define a remote API
+    trait Api {
+      def hello(some: String, n: Int): Future[String]
+    }
+
+    // Create server implementation of the remote API
+    val api = new Api {
       def hello(some: String, n: Int): Future[String] =
         Future(s"Hello $some $n!")
     }
-    val api = new ServerApi
 
     // Initialize JSON-RPC HTTP & WebSocket server with API discovery listening on port 9000 for POST requests to '/api'
     val server = run(

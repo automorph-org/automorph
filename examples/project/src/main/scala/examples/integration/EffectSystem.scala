@@ -14,7 +14,7 @@ private[examples] object EffectSystem {
       ZioSystem.defaultRuntime.unsafe.run(effect).toEither.swap.map(_.getCause).swap.toTry.get
     }
 
-    // Create server API instance
+    // Create server implementation of the remote API
     class ServerApi {
       def hello(some: String, n: Int): Task[String] =
         ZIO.succeed(s"Hello $some $n!")
@@ -27,8 +27,8 @@ private[examples] object EffectSystem {
     // Initialize JSON-RPC HTTP & WebSocket server listening on port 9000 for requests to '/api'
     val server = run(Default.rpcServer(effectSystem, 9000, "/api").bind(api).init())
 
-    // Define client view of the remote API
-    trait ClientApi {
+    // Define a remote API
+    trait Api {
       def hello(some: String, n: Int): Task[String]
     }
 
@@ -38,7 +38,7 @@ private[examples] object EffectSystem {
     )
 
     // Call the remote API function statically
-    val remoteApi = client.bind[ClientApi]
+    val remoteApi = client.bind[Api]
     println(run(
       remoteApi.hello("world", 1)
     ))

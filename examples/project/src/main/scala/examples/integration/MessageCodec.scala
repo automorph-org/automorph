@@ -25,7 +25,7 @@ private[examples] object MessageCodec {
     import messageCodec.custom.*
     implicit def recordRw: messageCodec.custom.ReadWriter[Record] = messageCodec.custom.macroRW
 
-    // Create server API instance
+    // Create server implementation of the remote API
     class ServerApi {
 
       def hello(some: String, n: Int): Future[Record] =
@@ -46,8 +46,8 @@ private[examples] object MessageCodec {
       RpcServer.transport(serverTransport).rpcProtocol(serverRpcProtocol).bind(api).init()
     )
 
-    // Define client view of the remote API
-    trait ClientApi {
+    // Define a remote API
+    trait Api {
       def hello(some: String, n: Int): Future[Record]
     }
 
@@ -65,7 +65,7 @@ private[examples] object MessageCodec {
     )
 
     // Call the remote API function
-    val remoteApi = client.bind[ClientApi]
+    val remoteApi = client.bind[Api]
     println(run(
       remoteApi.hello("world", 1)
     ))

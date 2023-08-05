@@ -89,7 +89,8 @@ trait Api {
 
 // Create server implementation of the remote API
 val api = new Api {
-  override def hello(some: String, n: Int): Future[String] = Future(s"Hello $some $n!")
+  def hello(some: String, n: Int): Future[String] =
+    Future(s"Hello $some $n!")
 }
 
 // Initialize JSON-RPC HTTP & WebSocket server listening on port 9000 for requests to '/api'

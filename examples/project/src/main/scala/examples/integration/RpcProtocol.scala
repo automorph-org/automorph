@@ -14,7 +14,7 @@ private[examples] object RpcProtocol {
     // Helper function to evaluate Futures
     def run[T](effect: Future[T]): T = Await.result(effect, Duration.Inf)
 
-    // Create server API instance
+    // Create server implementation of the remote API
     class ServerApi {
 
       def hello(some: String, n: Int): Future[String] =
@@ -35,8 +35,8 @@ private[examples] object RpcProtocol {
       RpcServer.transport(serverTransport).rpcProtocol(serverRpcProtocol).bind(api).init()
     )
 
-    // Define client view of the remote API
-    trait ClientApi {
+    // Define a remote API
+    trait Api {
       def hello(some: String, n: Int): Future[String]
     }
 
@@ -54,7 +54,7 @@ private[examples] object RpcProtocol {
     )
 
     // Call the remote API function
-    val remoteApi = client.bind[ClientApi]
+    val remoteApi = client.bind[Api]
     println(run(
       remoteApi.hello("world", 1)
     ))

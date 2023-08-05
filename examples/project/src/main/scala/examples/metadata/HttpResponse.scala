@@ -9,8 +9,15 @@ private[examples] object HttpResponse {
   @scala.annotation.nowarn
   def main(arguments: Array[String]): Unit = {
 
-    // Create server API instance
-    class ServerApi {
+    // Define client view of a remote API
+    trait Api {
+
+      // Return HTTP response context provided by the client message transport plugin
+      def hello(message: String): RpcResult[String, ClientContext]
+    }
+
+    // Create server implementation of the remote API
+    class ApiImpl {
 
       // Return HTTP response context consumed by the server message transport plugin
       def hello(message: String): RpcResult[String, ServerContext] = RpcResult(
@@ -18,23 +25,16 @@ private[examples] object HttpResponse {
         HttpContext().headers("X-Test" -> "value", "Cache-Control" -> "no-cache").statusCode(200)
       )
     }
-    val api = new ServerApi
+    val api = new ApiImpl
 
     // Initialize JSON-RPC HTTP & WebSocket server listening on port 9000 for requests to '/api'
     val server = Default.rpcServerSync(9000, "/api").bind(api).init()
-
-    // Define client view of the server API
-    trait ClientApi {
-
-      // Return HTTP response context provided by the client message transport plugin
-      def hello(message: String): RpcResult[String, ClientContext]
-    }
 
     // Initialize JSON-RPC HTTP client for sending POST requests to 'http://localhost:9000/api'
     val client = Default.rpcClientSync(new URI("http://localhost:9000/api")).init()
 
     // Call the remote API function statically retrieving a result with HTTP response metadata
-    val remoteApi = client.bind[ClientApi]
+    val remoteApi = client.bind[Api]
     val static = remoteApi.hello("test")
     println(static.result)
     println(static.context.header("X-Test"))

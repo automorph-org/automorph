@@ -8,8 +8,13 @@ private[examples] object DynamicPayload {
   @scala.annotation.nowarn
   def main(arguments: Array[String]): Unit = {
 
-    // Create server API instance
-    class ServerApi {
+    // Define client view of a remote API
+    trait Api {
+      def hello(some: String, n: Json): Json
+    }
+
+    // Create server implementation of the remote API
+    class ApiImpl {
       def hello(some: Json, n: Int): Json =
         if (some.isString) {
           val value = some.as[String].toTry.get
@@ -18,21 +23,16 @@ private[examples] object DynamicPayload {
           Json.fromValues(Seq(some, Json.fromInt(n)))
         }
     }
-    val api = new ServerApi
+    val api = new ApiImpl
 
     // Initialize JSON-RPC HTTP & WebSocket server listening on port 9000 for PUT requests to '/api'
     val server = Default.rpcServerSync(9000, "/api").bind(api).init()
-
-    // Define client view of the remote API
-    trait ClientApi {
-      def hello(some: String, n: Json): Json
-    }
 
     // Initialize JSON-RPC HTTP & WebSocket client for sending PUT requests to 'http://localhost:9000/api'
     val client = Default.rpcClientSync(new URI("http://localhost:9000/api")).init()
 
     // Call the remote API function statically
-    val remoteApi = client.bind[ClientApi]
+    val remoteApi = client.bind[Api]
     println(
       remoteApi.hello("world", Json.fromInt(1))
     )

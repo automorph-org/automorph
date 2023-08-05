@@ -8,9 +8,15 @@ private[examples] object HttpRequest {
   @scala.annotation.nowarn
   def main(arguments: Array[String]): Unit = {
 
-    // Create server API instance
-    class ServerApi {
+    // Define client view of a remote API
+    trait Api {
 
+      // Accept HTTP request context consumed by the client message transport plugin
+      def hello(message: String)(implicit http: ClientContext): String
+    }
+
+    // Create server implementation of the remote API
+    class ApiImpl {
       // Accept HTTP request context provided by the server message transport plugin
       def hello(message: String)(implicit httpRequest: ServerContext): String =
         Seq(
@@ -19,17 +25,10 @@ private[examples] object HttpRequest {
           httpRequest.header("X-Test")
         ).flatten.mkString(",")
     }
-    val api = new ServerApi
+    val api = new ApiImpl
 
     // Initialize JSON-RPC HTTP & WebSocket server listening on port 9000 for requests to '/api'
     val server = Default.rpcServerSync(9000, "/api").bind(api).init()
-
-    // Define client view of the remote API
-    trait ClientApi {
-
-      // Accept HTTP request context consumed by the client message transport plugin
-      def hello(message: String)(implicit http: ClientContext): String
-    }
 
     // Initialize JSON-RPC HTTP client for sending POST requests to 'http://localhost:9000/api'
     val client = Default.rpcClientSync(new URI("http://localhost:9000/api")).init()
@@ -42,7 +41,7 @@ private[examples] object HttpRequest {
       .authorization("Bearer", "value")
 
     // Call the remote API function statically using implicitly given HTTP request metadata
-    val remoteApi = client.bind[ClientApi]
+    val remoteApi = client.bind[Api]
     println(
       remoteApi.hello("test")
     )

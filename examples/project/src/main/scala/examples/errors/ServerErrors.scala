@@ -17,8 +17,13 @@ private[examples] object ServerErrors {
     // Helper function to evaluate Futures
     def run[T](effect: Future[T]): T = Await.result(effect, Duration.Inf)
 
-    // Create server API instance
-    class ServerApi {
+    // Define a remote API
+    trait Api {
+      def hello(some: String, n: Int): Future[String]
+    }
+
+    // Create server implementation of the remote API
+    val api = new Api {
       def hello(some: String, n: Int): Future[String] =
         if (n >= 0) {
           Future.failed(new SQLException("Invalid request"))
@@ -26,7 +31,6 @@ private[examples] object ServerErrors {
           Future.failed(JsonRpcException("Application error", 1))
         }
     }
-    val api = new ServerApi
 
     // Customize remote API server exception to RPC error mapping
     val rpcProtocol = Default.rpcProtocol[Default.ServerContext].mapException(_ match {
@@ -42,18 +46,13 @@ private[examples] object ServerErrors {
       RpcServer.transport(serverTransport).rpcProtocol(rpcProtocol).bind(api).init()
     )
 
-    // Define client view of the remote API
-    trait ClientApi {
-      def hello(some: String, n: Int): Future[String]
-    }
-
     // Initialize JSON-RPC HTTP client for sending POST requests to 'http://localhost:9000/api'
     val client = run(
       Default.rpcClientAsync(new URI("http://localhost:9000/api")).init()
     )
 
     // Call the remote API function and fail with InvalidRequestException
-    val remoteApi = client.bind[ClientApi]
+    val remoteApi = client.bind[Api]
     println(Try(run(
       remoteApi.hello("world", 1)
     )).failed.get)

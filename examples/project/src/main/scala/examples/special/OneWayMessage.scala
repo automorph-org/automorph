@@ -13,22 +13,21 @@ private[examples] object OneWayMessage {
     // Helper function to evaluate Futures
     def run[T](effect: Future[T]): T = Await.result(effect, Duration.Inf)
 
-    // Create server API instance
-    class ServerApi {
+    // Define a remote API
+    trait Api {
+      def hello(some: String, n: Int): Future[String]
+    }
+
+    // Create server implementation of the remote API
+    val api = new Api {
       def hello(some: String, n: Int): Future[String] =
         Future(s"Hello $some $n!")
     }
-    val api = new ServerApi
 
     // Initialize JSON-RPC HTTP & WebSocket server listening on port 9000 for requests to '/api'
     val server = run(
       Default.rpcServerAsync(9000, "/api").bind(api).init()
     )
-
-    // Define client view of the remote API
-    trait ClientApi {
-      def hello(some: String, n: Int): Future[String]
-    }
 
     // Initialize JSON-RPC HTTP client for sending POST requests to 'http://localhost:9000/api'
     val client = run(
