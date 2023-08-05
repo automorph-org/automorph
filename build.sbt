@@ -255,7 +255,7 @@ lazy val testBase = source(project, "test/base").settings(
     "org.scalatest" %% "scalatest" % "3.2.16",
     "org.scalatestplus" %% "scalacheck-1-17" % "3.2.16.0",
     "org.slf4j" % "jul-to-slf4j" % slf4jVersion,
-    "ch.qos.logback" % "logback-classic" % "1.4.8",
+    "ch.qos.logback" % "logback-classic" % "1.4.9",
     "com.lihaoyi" %% "pprint" % "0.8.1"
   )
 )

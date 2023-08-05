@@ -9,7 +9,7 @@ libraryDependencies ++= {
   Seq(
     // Default
     "org.automorph" %% "automorph-default" % automorphVersion,
-    "ch.qos.logback" % "logback-classic" % "1.4.8",
+    "ch.qos.logback" % "logback-classic" % "1.4.9",
 
     // Plugins
     "org.automorph" %% "automorph-rabbitmq" % automorphVersion,
