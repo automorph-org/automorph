@@ -22,14 +22,14 @@ private[examples] object ApiDiscovery {
     }
     val api = new ServerApi
 
-    // Initialize JSON-RPC HTTP & WebSocket server with API discovery listening on port 7000 for POST requests to '/api'
+    // Initialize JSON-RPC HTTP & WebSocket server with API discovery listening on port 9000 for POST requests to '/api'
     val server = run(
-      Default.rpcServerAsync(7000, "/api").discovery(true).bind(api).init()
+      Default.rpcServerAsync(9000, "/api").discovery(true).bind(api).init()
     )
 
-    // Initialize JSON-RPC HTTP client sending POST requests to 'http://localhost:7000/api'
+    // Initialize JSON-RPC HTTP client sending POST requests to 'http://localhost:9000/api'
     val client = run(
-      Default.rpcClientAsync(new URI("http://localhost:7000/api")).init()
+      Default.rpcClientAsync(new URI("http://localhost:9000/api")).init()
     )
 
     // Retrieve the remote API schema in OpenRPC format

@@ -21,8 +21,8 @@ private[examples] object HttpAuthentication {
     }
     val api = new ServerApi
 
-    // Initialize JSON-RPC HTTP & WebSocket server listening on port 7000 for requests to '/api'
-    val server = Default.rpcServerSync(7000, "/api").bind(api).init()
+    // Initialize JSON-RPC HTTP & WebSocket server listening on port 9000 for requests to '/api'
+    val server = Default.rpcServerSync(9000, "/api").bind(api).init()
 
     // Define client view of the remote API
     trait ClientApi {
@@ -31,8 +31,8 @@ private[examples] object HttpAuthentication {
       def hello(message: String)(implicit http: ClientContext): String
     }
 
-    // Initialize JSON-RPC HTTP client sending POST requests to 'http://localhost:7000/api'
-    val client = Default.rpcClientSync(new URI("http://localhost:7000/api")).init()
+    // Initialize JSON-RPC HTTP client sending POST requests to 'http://localhost:9000/api'
+    val client = Default.rpcClientSync(new URI("http://localhost:9000/api")).init()
     val remoteApi = client.bind[ClientApi]
 
     {

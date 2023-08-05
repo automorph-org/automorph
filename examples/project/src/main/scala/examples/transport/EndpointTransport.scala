@@ -28,9 +28,9 @@ private[examples] case object EndpointTransport {
     // Setup JSON-RPC endpoint
     val endpoint = RpcEndpoint.transport(endpointTransport).rpcProtocol(Default.rpcProtocol).bind(api)
 
-    // Start Undertow HTTP server listening on port 7000 for requests to '/api'
+    // Start Undertow HTTP server listening on port 9000 for requests to '/api'
     val server = Undertow.builder()
-      .addHttpListener(7000, "0.0.0.0")
+      .addHttpListener(9000, "0.0.0.0")
       .setHandler(Handlers.path().addPrefixPath("/api", endpoint.adapter))
       .build()
     server.start()
@@ -40,9 +40,9 @@ private[examples] case object EndpointTransport {
       def hello(some: String, n: Int): Future[String]
     }
 
-    // Initialize JSON-RPC HTTP client sending POST requests to 'http://localhost:7000/api'
+    // Initialize JSON-RPC HTTP client sending POST requests to 'http://localhost:9000/api'
     val client = run(
-      Default.rpcClientAsync(new URI("http://localhost:7000/api")).init()
+      Default.rpcClientAsync(new URI("http://localhost:9000/api")).init()
     )
 
     // Call the remote API function via proxy

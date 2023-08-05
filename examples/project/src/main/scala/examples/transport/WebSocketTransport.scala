@@ -20,9 +20,9 @@ private[examples] case object WebSocketTransport {
     }
     val api = new ServerApi
 
-    // Initialize JSON-RPC HTTP & WebSocket server listening on port 7000 for requests to '/api'
+    // Initialize JSON-RPC HTTP & WebSocket server listening on port 9000 for requests to '/api'
     val server = run(
-      Default.rpcServerAsync(7000, "/api").bind(api).init()
+      Default.rpcServerAsync(9000, "/api").bind(api).init()
     )
 
     // Define client view of the remote API
@@ -30,8 +30,8 @@ private[examples] case object WebSocketTransport {
       def hello(some: String, n: Int): Future[String]
     }
 
-    // Initialize JSON-RPC WebSocket client sending requests to 'ws://localhost:7000/api'
-    val client = Default.rpcClientAsync(new URI("ws://localhost:7000/api"))
+    // Initialize JSON-RPC WebSocket client sending requests to 'ws://localhost:9000/api'
+    val client = Default.rpcClientAsync(new URI("ws://localhost:9000/api"))
 
     // Call the remote API function via proxy
     val remoteApi = client.bind[ClientApi]

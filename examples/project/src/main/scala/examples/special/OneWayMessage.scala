@@ -20,9 +20,9 @@ private[examples] object OneWayMessage {
     }
     val api = new ServerApi
 
-    // Initialize JSON-RPC HTTP & WebSocket server listening on port 7000 for requests to '/api'
+    // Initialize JSON-RPC HTTP & WebSocket server listening on port 9000 for requests to '/api'
     val server = run(
-      Default.rpcServerAsync(7000, "/api").bind(api).init()
+      Default.rpcServerAsync(9000, "/api").bind(api).init()
     )
 
     // Define client view of the remote API
@@ -30,9 +30,9 @@ private[examples] object OneWayMessage {
       def hello(some: String, n: Int): Future[String]
     }
 
-    // Initialize JSON-RPC HTTP client sending POST requests to 'http://localhost:7000/api'
+    // Initialize JSON-RPC HTTP client sending POST requests to 'http://localhost:9000/api'
     val client = run(
-      Default.rpcClientAsync(new URI("http://localhost:7000/api")).init()
+      Default.rpcClientAsync(new URI("http://localhost:9000/api")).init()
     )
 
     // Call the remote API function dynamically without expecting a response

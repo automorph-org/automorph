@@ -31,8 +31,8 @@ private[examples] object ServerFunctionNames {
       case other => Seq(s"test.$other")
     }
 
-    // Initialize JSON-RPC HTTP & WebSocket server listening on port 7000 for requests to '/api'
-    val server = Default.rpcServerSync(7000, "/api").bind(api, mapName).init()
+    // Initialize JSON-RPC HTTP & WebSocket server listening on port 9000 for requests to '/api'
+    val server = Default.rpcServerSync(9000, "/api").bind(api, mapName).init()
 
     // Define client view of the remote API
     trait ClientApi {
@@ -41,8 +41,8 @@ private[examples] object ServerFunctionNames {
       def hi(some: String, n: Int): String
     }
 
-    // Initialize JSON-RPC HTTP client sending POST requests to 'http://localhost:7000/api'
-    val client = Default.rpcClientSync(new URI("http://localhost:7000/api")).init()
+    // Initialize JSON-RPC HTTP client sending POST requests to 'http://localhost:9000/api'
+    val client = Default.rpcClientSync(new URI("http://localhost:9000/api")).init()
 
     // Call the remote API function statically
     val remoteApi = client.bind[ClientApi]

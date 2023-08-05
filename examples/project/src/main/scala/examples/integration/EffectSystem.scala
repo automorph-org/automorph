@@ -24,17 +24,17 @@ private[examples] object EffectSystem {
     // Create ZIO effect system plugin
     val effectSystem = ZioSystem.default
 
-    // Initialize JSON-RPC HTTP & WebSocket server listening on port 7000 for requests to '/api'
-    val server = run(Default.rpcServer(effectSystem, 7000, "/api").bind(api).init())
+    // Initialize JSON-RPC HTTP & WebSocket server listening on port 9000 for requests to '/api'
+    val server = run(Default.rpcServer(effectSystem, 9000, "/api").bind(api).init())
 
     // Define client view of the remote API
     trait ClientApi {
       def hello(some: String, n: Int): Task[String]
     }
 
-    // Initialize JSON-RPC HTTP client sending POST requests to 'http://localhost:7000/api'
+    // Initialize JSON-RPC HTTP client sending POST requests to 'http://localhost:9000/api'
     val client = run(
-      Default.rpcClient(effectSystem, new URI("http://localhost:7000/api")).init()
+      Default.rpcClient(effectSystem, new URI("http://localhost:9000/api")).init()
     )
 
     // Call the remote API function statically

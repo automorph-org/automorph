@@ -29,9 +29,9 @@ private[examples] object HttpStatusCode {
       case e => HttpContext.defaultExceptionToStatusCode(e)
     }
 
-    // Start custom JSON-RPC HTTP & WebSocket server listening on port 7000 for requests to '/api'
+    // Start custom JSON-RPC HTTP & WebSocket server listening on port 9000 for requests to '/api'
     val server = run(
-      Default.rpcServerAsync(7000, "/api", mapException = mapException).bind(api).init()
+      Default.rpcServerAsync(9000, "/api", mapException = mapException).bind(api).init()
     )
 
     // Define client view of the remote API
@@ -39,9 +39,9 @@ private[examples] object HttpStatusCode {
       def hello(some: String, n: Int): Future[String]
     }
 
-    // Initialize JSON-RPC HTTP client sending POST requests to 'http://localhost:7000/api'
+    // Initialize JSON-RPC HTTP client sending POST requests to 'http://localhost:9000/api'
     val client = run(
-      Default.rpcClientAsync(new URI("http://localhost:7000/api")).init()
+      Default.rpcClientAsync(new URI("http://localhost:9000/api")).init()
     )
 
     // Call the remote API function and fail with InvalidRequestException

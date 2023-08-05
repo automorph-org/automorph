@@ -29,13 +29,13 @@ private[examples] case object AmqpTransport {
       val api = new ServerApi
 
       // Start embedded RabbitMQ broker
-      val brokerConfig = new EmbeddedRabbitMqConfig.Builder().port(7000)
+      val brokerConfig = new EmbeddedRabbitMqConfig.Builder().port(9000)
         .rabbitMqServerInitializationTimeoutInMillis(30000).build()
       val broker = new EmbeddedRabbitMq(brokerConfig)
       broker.start()
 
       // Create RabbitMQ AMQP server transport consuming requests from the 'api' queue
-      val serverTransport = RabbitMqServer(Default.effectSystemAsync, new URI("amqp://localhost:7000"), Seq("api"))
+      val serverTransport = RabbitMqServer(Default.effectSystemAsync, new URI("amqp://localhost:9000"), Seq("api"))
 
       // Start JSON-RPC AMQP server
       val server = run(
@@ -48,7 +48,7 @@ private[examples] case object AmqpTransport {
       }
 
       // Create RabbitMQ AMQP client message transport publishing requests to the 'api' queue
-      val clientTransport = RabbitMqClient(new URI("amqp://localhost:7000"), "api", Default.effectSystemAsync)
+      val clientTransport = RabbitMqClient(new URI("amqp://localhost:9000"), "api", Default.effectSystemAsync)
 
       // Setup JSON-RPC AMQP client
       val client = run(
