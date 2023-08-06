@@ -229,9 +229,7 @@ lazy val finagle = source(project, "transport/finagle", core, testTransport % Te
 )
 
 // Miscellaneous
-lazy val default = source(project, "default", standard, circe, undertow, testTransport % Test).settings(
-  libraryDependencies += "com.softwaremill.sttp.client3" %% "httpclient-backend" % sttpHttpClientVersion
-)
+lazy val default = source(project, "default", standard, circe, undertow, testTransport % Test)
 lazy val examples = source(
   project, "examples", default, upickle, zio, sttp, rabbitmq, testBase % Test
 ).settings(
