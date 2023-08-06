@@ -173,13 +173,13 @@ lazy val rabbitmq = source(project, "transport/rabbitmq", core, testTransport % 
   Test / testForkedParallel := true,
   Test / javaOptions += s"-Dproject.target=${System.getProperty("project.target")}",
   libraryDependencies ++= Seq(
-    "com.rabbitmq" % "amqp-client" % "5.17.0",
+    "com.rabbitmq" % "amqp-client" % "5.18.0",
     "io.arivera.oss" % "embedded-rabbitmq" % embeddedRabbitMqVersion % Test
   )
 )
 
 // Server transport
-val tapirVersion = "1.6.1"
+val tapirVersion = "1.6.4"
 lazy val tapir = source(project, "transport/tapir", core, catsEffect % Test, testTransport % Test).settings(
   libraryDependencies ++= Seq(
     "com.softwaremill.sttp.tapir" %% "tapir-server" % tapirVersion,
