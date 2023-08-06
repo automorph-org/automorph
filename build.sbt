@@ -340,7 +340,7 @@ lazy val allDependencyClasspath = Def.taskDyn(flattenTasks(root.uses.map(_ / Com
 lazy val docs = project.in(file("site")).settings(
   name := projectName,
   mdocVariables := Map(
-    "PROJECT_VERSION" -> version.value.split("\\+").head,
+    "PROJECT_VERSION" -> "0.1.2",
     "SCALADOC_VERSION" -> scalaVersion.value,
     "REPOSITORY_URL" -> repositoryUrl
   ),
