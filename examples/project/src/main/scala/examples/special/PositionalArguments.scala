@@ -33,7 +33,7 @@ private[examples] object PositionalArguments {
     val rpcProtocol = Default.rpcProtocol[Default.ClientContext].namedArguments(false)
 
     // Create HTTP client transport sending POST requests to 'http://localhost:9000/api'
-    val clientTransport = Default.clientTransport(Default.effectSystem, new URI("http://localhost:9000/api"))
+    val clientTransport = Default.clientTransport(new URI("http://localhost:9000/api"))
 
     // Initialize JSON-RPC HTTP client
     val client = run(

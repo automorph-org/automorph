@@ -54,7 +54,7 @@ object Default extends DefaultRpcProtocol {
     url: URI,
     method: HttpMethod = HttpMethod.Post,
   ): RpcClient[Node, Codec, EffectType, ClientContext] =
-    RpcClient(clientTransport(effectSystem, url, method), rpcProtocol)
+    RpcClient(clientTransportCustom(effectSystem, url, method), rpcProtocol)
 
   /**
    * Creates a standard JRE JSON-RPC over HTTP & WebSocket client using default RPC protocol with
@@ -82,7 +82,7 @@ object Default extends DefaultRpcProtocol {
   def rpcClient(url: URI, method: HttpMethod = HttpMethod.Post)(implicit
     executionContext: ExecutionContext
   ): RpcClient[Node, Codec, Effect, ClientContext] =
-    RpcClient(clientTransport(effectSystem, url, method), rpcProtocol)
+    RpcClient(clientTransportCustom(effectSystem, url, method), rpcProtocol)
 
   /**
    * Creates a standard JRE HTTP & WebSocket client transport protocol plugin with
@@ -107,12 +107,38 @@ object Default extends DefaultRpcProtocol {
    * @return
    *   client transport protocol plugin
    */
-  def clientTransport[EffectType[_]](
+  def clientTransportCustom[EffectType[_]](
     effectSystem: EffectSystem[EffectType],
     url: URI,
     method: HttpMethod = HttpMethod.Post,
   ): HttpClient[EffectType] =
     HttpClient(effectSystem, url, method)
+
+  /**
+   * Creates a standard JRE HTTP & WebSocket client transport protocol plugin with
+   * 'Future' as an effect type.
+   *
+   * @see
+   *   [[https://en.wikipedia.org/wiki/HTTP Transport protocol]]
+   * @see
+   *   [[https://en.wikipedia.org/wiki/WebSocket Alternative transport protocol]]
+   * @see
+   *   [[https://openjdk.org/groups/net/httpclient/intro.html documentation]]
+   * @see
+   *   [[https://docs.oracle.com/en/java/javase/19/docs/api/java.net.http/java/net/http/HttpClient.html API]]
+   * @param url
+   *   HTTP endpoint URL
+   * @param method
+   *   HTTP request method
+   * @param executionContext
+   *   execution context
+   * @return
+   *   client transport protocol plugin
+   */
+  def clientTransport(url: URI, method: HttpMethod = HttpMethod.Post)(implicit
+    executionContext: ExecutionContext
+  ): HttpClient[Effect] =
+    clientTransportCustom(Default.effectSystem, url, method)
 
   /**
    * Creates an Undertow RPC over HTTP & WebSocket server using default RPC protocol with
@@ -156,7 +182,9 @@ object Default extends DefaultRpcProtocol {
     mapException: Throwable => Int = HttpContext.defaultExceptionToStatusCode,
     builder: Undertow.Builder = defaultBuilder,
   ): RpcServer[Node, Codec, EffectType, ServerContext] =
-    RpcServer(serverTransport(effectSystem, port, path, methods, webSocket, mapException, builder), rpcProtocol)
+    RpcServer(
+      serverTransportCustom(effectSystem, port, path, methods, webSocket, mapException, builder), rpcProtocol
+    )
 
   /**
    * Creates an Undertow JSON-RPC server over HTTP & WebSocket using default RPC protocol with
@@ -195,7 +223,9 @@ object Default extends DefaultRpcProtocol {
     mapException: Throwable => Int = HttpContext.defaultExceptionToStatusCode,
     builder: Undertow.Builder = defaultBuilder,
   )(implicit executionContext: ExecutionContext): RpcServer[Node, Codec, Effect, ServerContext] =
-    RpcServer(serverTransport(effectSystem, port, path, methods, webSocket, mapException, builder), rpcProtocol)
+    RpcServer(
+      serverTransportCustom(effectSystem, port, path, methods, webSocket, mapException, builder), rpcProtocol
+    )
 
   /**
    * Creates an Undertow RPC over HTTP & WebSocket server transport protocol plugin with
@@ -228,7 +258,7 @@ object Default extends DefaultRpcProtocol {
    * @return
    *   server transport protocol plugin
    */
-  def serverTransport[EffectType[_]](
+  def serverTransportCustom[EffectType[_]](
     effectSystem: EffectSystem[EffectType],
     port: Int,
     path: String = "/",
@@ -238,6 +268,47 @@ object Default extends DefaultRpcProtocol {
     builder: Undertow.Builder = defaultBuilder,
   ): UndertowServer[EffectType] =
     UndertowServer(effectSystem, port, path, methods, webSocket, mapException, builder)
+
+  /**
+   * Creates an Undertow RPC over HTTP & WebSocket server transport protocol plugin with
+   * 'Future' as an effect type.
+   *
+   * @see
+   *   [[https://en.wikipedia.org/wiki/HTTP Transport protocol]]
+   * @see
+   *   [[https://en.wikipedia.org/wiki/WebSocket Alternative transport protocol]]
+   * @see
+   *   [[https://undertow.io Library documentation]]
+   * @see
+   *   [[https://www.javadoc.io/doc/io.undertow/undertow-core/latest/index.html API]]
+   * @param port
+   *   port to listen on for HTTP connections
+   * @param path
+   *   HTTP URL path (default: /)
+   * @param methods
+   *   allowed HTTP request methods (default: any)
+   * @param webSocket
+   *   both HTTP and WebSocket protocols enabled if true, HTTP only if false
+   * @param mapException
+   *   maps an exception to a corresponding HTTP status code
+   * @param builder
+   *   Undertow web server builder
+   * @param executionContext
+   *   execution context
+   * @return
+   *   server transport protocol plugin
+   */
+  def serverTransport(
+    port: Int,
+    path: String = "/",
+    methods: Iterable[HttpMethod] = HttpMethod.values,
+    webSocket: Boolean = true,
+    mapException: Throwable => Int = HttpContext.defaultExceptionToStatusCode,
+    builder: Undertow.Builder = defaultBuilder,
+  )(implicit
+    executionContext: ExecutionContext
+  ): UndertowServer[Effect] =
+    serverTransportCustom(effectSystem, port, path, methods, webSocket, mapException, builder)
 
   /**
    * Creates an asynchronous effect system plugin.

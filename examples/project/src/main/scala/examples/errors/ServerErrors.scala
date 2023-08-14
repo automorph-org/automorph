@@ -39,7 +39,7 @@ private[examples] object ServerErrors {
     })
 
     // Create HTTP & WebSocket server transport listening on port 9000 for requests to '/api'
-    val serverTransport = Default.serverTransport(Default.effectSystem, 9000, "/api")
+    val serverTransport = Default.serverTransport(9000, "/api")
 
     // Initialize JSON-RPC HTTP & WebSocket server
     val server = run(

@@ -41,7 +41,7 @@ private[examples] object ClientExceptions {
     )
 
     // Create HTTP client transport sending POST requests to 'http://localhost:9000/api'
-    val clientTransport = Default.clientTransport(Default.effectSystem, new URI("http://localhost:9000/api"))
+    val clientTransport = Default.clientTransport(new URI("http://localhost:9000/api"))
 
     // Setup custom JSON-RPC HTTP client
     val client = run(

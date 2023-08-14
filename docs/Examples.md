@@ -539,7 +539,7 @@ val rpcProtocol = Default.rpcProtocol[Default.ClientContext].mapError((message, 
 )
 
 // Create HTTP client transport sending POST requests to 'http://localhost:9000/api'
-val clientTransport = Default.clientTransport(Default.effectSystem, new URI("http://localhost:9000/api"))
+val clientTransport = Default.clientTransport(new URI("http://localhost:9000/api"))
 
 // Setup custom JSON-RPC HTTP client
 val client = run(
@@ -615,7 +615,7 @@ val rpcProtocol = Default.rpcProtocol[Default.ServerContext].mapException(_ matc
 })
 
 // Create HTTP & WebSocket server transport listening on port 9000 for requests to '/api'
-val serverTransport = Default.serverTransport(Default.effectSystem, 9000, "/api")
+val serverTransport = Default.serverTransport(9000, "/api")
 
 // Initialize JSON-RPC HTTP & WebSocket server
 val server = run(
@@ -1248,7 +1248,7 @@ val server = run(
 val rpcProtocol = Default.rpcProtocol[Default.ClientContext].namedArguments(false)
 
 // Create HTTP client transport sending POST requests to 'http://localhost:9000/api'
-val clientTransport = Default.clientTransport(Default.effectSystem, new URI("http://localhost:9000/api"))
+val clientTransport = Default.clientTransport(new URI("http://localhost:9000/api"))
 
 // Setup  JSON-RPC HTTP client
 val client = run(
@@ -1409,7 +1409,7 @@ val serverRpcProtocol = Default.rpcProtocol[UpickleMessagePackCodec.Node, messag
 )
 
 // Create HTTP & WebSocket server transport listening on port 9000 for requests to '/api'
-val serverTransport = Default.serverTransport(Default.effectSystem, 9000, "/api")
+val serverTransport = Default.serverTransport(9000, "/api")
 
 // Initialize JSON-RPC HTTP & WebSocket server
 val server = run(
@@ -1426,7 +1426,7 @@ val clientRpcProtocol = Default.rpcProtocol[UpickleMessagePackCodec.Node, messag
 )
 
 // Create HTTP client transport sending POST requests to 'http://localhost:9000/api'
-val clientTransport = Default.clientTransport(Default.effectSystem, new URI("http://localhost:9000/api"))
+val clientTransport = Default.clientTransport(new URI("http://localhost:9000/api"))
 
 // Setup JSON-RPC HTTP & WebSocket client
 val client = run(
@@ -1494,7 +1494,7 @@ val serverRpcProtocol = WebRpcProtocol[Default.Node, Default.Codec, Default.Serv
 )
 
 // Create HTTP & WebSocket server transport listening on port 9000 for requests to '/api'
-val serverTransport = Default.serverTransport(Default.effectSystem, 9000, "/api")
+val serverTransport = Default.serverTransport(9000, "/api")
 
 // Start Web-RPC HTTP & WebSocket server
 val server = run(
@@ -1511,7 +1511,7 @@ val clientRpcProtocol = WebRpcProtocol[Default.Node, Default.Codec, Default.Clie
 )
 
 // Create HTTP & WebSocket client transport sending POST requests to 'http://localhost:9000/api'
-val clientTransport = Default.clientTransport(Default.effectSystem, new URI("http://localhost:9000/api"))
+val clientTransport = Default.clientTransport(new URI("http://localhost:9000/api"))
 
 // Setup Web-RPC HTTP client
 val client = run(
