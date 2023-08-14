@@ -1,6 +1,7 @@
 package examples.special
 
 import automorph.Default
+import automorph.system.IdentitySystem
 import io.circe.Json
 import java.net.URI
 
@@ -26,10 +27,10 @@ private[examples] object DynamicPayload {
     val api = new ApiImpl
 
     // Initialize JSON-RPC HTTP & WebSocket server listening on port 9000 for PUT requests to '/api'
-    val server = Default.rpcServerSync(9000, "/api").bind(api).init()
+    val server = Default.rpcServerCustom(IdentitySystem(), 9000, "/api").bind(api).init()
 
     // Initialize JSON-RPC HTTP & WebSocket client for sending PUT requests to 'http://localhost:9000/api'
-    val client = Default.rpcClientSync(new URI("http://localhost:9000/api")).init()
+    val client = Default.rpcClientCustom(IdentitySystem(), new URI("http://localhost:9000/api")).init()
 
     // Call the remote API function statically
     val remoteApi = client.bind[Api]

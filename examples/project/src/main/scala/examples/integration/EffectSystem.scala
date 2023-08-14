@@ -25,7 +25,7 @@ private[examples] object EffectSystem {
     val effectSystem = ZioSystem.default
 
     // Initialize JSON-RPC HTTP & WebSocket server listening on port 9000 for requests to '/api'
-    val server = run(Default.rpcServer(effectSystem, 9000, "/api").bind(api).init())
+    val server = run(Default.rpcServerCustom(effectSystem, 9000, "/api").bind(api).init())
 
     // Define a remote API
     trait Api {
@@ -34,7 +34,7 @@ private[examples] object EffectSystem {
 
     // Initialize JSON-RPC HTTP client for sending POST requests to 'http://localhost:9000/api'
     val client = run(
-      Default.rpcClient(effectSystem, new URI("http://localhost:9000/api")).init()
+      Default.rpcClientCustom(effectSystem, new URI("http://localhost:9000/api")).init()
     )
 
     // Call the remote API function statically

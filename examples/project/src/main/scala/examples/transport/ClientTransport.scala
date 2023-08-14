@@ -1,6 +1,7 @@
 package examples.transport
 
 import automorph.{RpcClient, Default}
+import automorph.system.IdentitySystem
 import automorph.transport.http.client.UrlClient
 import java.net.URI
 
@@ -19,10 +20,10 @@ private[examples] case object ClientTransport {
     }
 
     // Initialize JSON-RPC HTTP & WebSocket server listening on port 80 for requests to '/api'
-    val server = Default.rpcServerSync(9000, "/api").bind(api).init()
+    val server = Default.rpcServerCustom(IdentitySystem(), 9000, "/api").bind(api).init()
 
     // Create standard JRE HTTP client message transport sending POST requests to 'http://localhost:9000/api'
-    val clientTransport = UrlClient(Default.effectSystemSync, new URI("http://localhost:9000/api"))
+    val clientTransport = UrlClient(IdentitySystem(), new URI("http://localhost:9000/api"))
 
     // Setup JSON-RPC HTTP client
     val client = RpcClient.transport(clientTransport).rpcProtocol(Default.rpcProtocol).init()

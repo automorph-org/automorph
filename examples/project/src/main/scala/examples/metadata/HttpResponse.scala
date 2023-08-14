@@ -1,6 +1,7 @@
 package examples.metadata
 
 import automorph.Default.{ClientContext, ServerContext}
+import automorph.system.IdentitySystem
 import automorph.transport.http.HttpContext
 import automorph.{RpcResult, Default}
 import java.net.URI
@@ -28,10 +29,10 @@ private[examples] object HttpResponse {
     val api = new ApiImpl
 
     // Initialize JSON-RPC HTTP & WebSocket server listening on port 9000 for requests to '/api'
-    val server = Default.rpcServerSync(9000, "/api").bind(api).init()
+    val server = Default.rpcServerCustom(IdentitySystem(), 9000, "/api").bind(api).init()
 
     // Initialize JSON-RPC HTTP client for sending POST requests to 'http://localhost:9000/api'
-    val client = Default.rpcClientSync(new URI("http://localhost:9000/api")).init()
+    val client = Default.rpcClientCustom(IdentitySystem(), new URI("http://localhost:9000/api")).init()
 
     // Call the remote API function statically retrieving a result with HTTP response metadata
     val remoteApi = client.bind[Api]

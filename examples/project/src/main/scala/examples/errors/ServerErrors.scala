@@ -39,7 +39,7 @@ private[examples] object ServerErrors {
     })
 
     // Create HTTP & WebSocket server transport listening on port 9000 for requests to '/api'
-    val serverTransport = Default.serverTransport(Default.effectSystemAsync, 9000, "/api")
+    val serverTransport = Default.serverTransport(Default.effectSystem, 9000, "/api")
 
     // Initialize JSON-RPC HTTP & WebSocket server
     val server = run(
@@ -48,7 +48,7 @@ private[examples] object ServerErrors {
 
     // Initialize JSON-RPC HTTP client for sending POST requests to 'http://localhost:9000/api'
     val client = run(
-      Default.rpcClientAsync(new URI("http://localhost:9000/api")).init()
+      Default.rpcClient(new URI("http://localhost:9000/api")).init()
     )
 
     // Call the remote API function and fail with InvalidRequestException

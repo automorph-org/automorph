@@ -1,6 +1,7 @@
 package examples.customization
 
 import automorph.Default
+import automorph.system.IdentitySystem
 import java.net.URI
 
 private[examples] object ClientFunctionNames {
@@ -24,10 +25,10 @@ private[examples] object ClientFunctionNames {
     val api = new ApiImpl
 
     // Initialize JSON-RPC HTTP & WebSocket server listening on port 9000 for requests to '/api'
-    val server = Default.rpcServerSync(9000, "/api").bind(api).init()
+    val server = Default.rpcServerCustom(IdentitySystem(), 9000, "/api").bind(api).init()
 
     // Initialize JSON-RPC HTTP client for sending POST requests to 'http://localhost:9000/api'
-    val client = Default.rpcClientSync(new URI("http://localhost:9000/api")).init()
+    val client = Default.rpcClientCustom(IdentitySystem(), new URI("http://localhost:9000/api")).init()
 
     // Customize invoked API to RPC function name mapping
     val mapName = (name: String) => name match {

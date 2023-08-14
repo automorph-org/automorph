@@ -27,12 +27,12 @@ private[examples] object AsynchronousCall {
 
     // Initialize JSON-RPC HTTP & WebSocket server listening on port 9000 for POST or PUT requests to '/api'
     val server = run(
-      Default.rpcServerAsync(9000, "/api", Seq(HttpMethod.Post, HttpMethod.Put)).bind(api).init()
+      Default.rpcServer(9000, "/api", Seq(HttpMethod.Post, HttpMethod.Put)).bind(api).init()
     )
 
     // Initialize JSON-RPC HTTP client for sending PUT requests to 'http://localhost:9000/api'
     val client = run(
-      Default.rpcClientAsync(new URI("http://localhost:9000/api"), HttpMethod.Put).init()
+      Default.rpcClient(new URI("http://localhost:9000/api"), HttpMethod.Put).init()
     )
 
     // Call the remote API function statically

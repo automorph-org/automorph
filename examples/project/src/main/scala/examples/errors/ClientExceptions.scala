@@ -28,7 +28,7 @@ private[examples] object ClientExceptions {
 
     // Initialize JSON-RPC HTTP & WebSocket server listening on port 9000 for requests to '/api'
     val server = run(
-      Default.rpcServerAsync(9000, "/api").bind(api).init()
+      Default.rpcServer(9000, "/api").bind(api).init()
     )
 
     // Customize remote API client RPC error to exception mapping
@@ -41,7 +41,7 @@ private[examples] object ClientExceptions {
     )
 
     // Create HTTP client transport sending POST requests to 'http://localhost:9000/api'
-    val clientTransport = Default.clientTransport(Default.effectSystemAsync, new URI("http://localhost:9000/api"))
+    val clientTransport = Default.clientTransport(Default.effectSystem, new URI("http://localhost:9000/api"))
 
     // Setup custom JSON-RPC HTTP client
     val client = run(

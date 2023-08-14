@@ -1,7 +1,9 @@
 package examples.transport
 
 import automorph.{Default, RpcServer}
+import automorph.system.IdentitySystem
 import automorph.transport.http.server.NanoServer
+
 import java.net.URI
 
 private[examples] case object ServerTransport {
@@ -19,13 +21,13 @@ private[examples] case object ServerTransport {
     }
 
     // Create NanoHTTPD HTTP & WebSocket server transport listening on port 9000 for requests to '/api'
-    val serverTransport = NanoServer(Default.effectSystemSync, 9000, "/api")
+    val serverTransport = NanoServer(IdentitySystem(), 9000, "/api")
 
     // Initialize JSON-RPC HTTP & WebSocket server
     val server = RpcServer.transport(serverTransport).rpcProtocol(Default.rpcProtocol).bind(api).init()
 
     // Initialize JSON-RPC HTTP client for sending POST requests to 'http://localhost:9000/api'
-    val client = Default.rpcClientSync(new URI("http://localhost:9000/api"))
+    val client = Default.rpcClientCustom(IdentitySystem(), new URI("http://localhost:9000/api"))
 
     // Call the remote API function
     val remoteApi = client.bind[Api]

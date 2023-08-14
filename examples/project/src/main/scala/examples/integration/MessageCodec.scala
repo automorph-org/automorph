@@ -39,7 +39,7 @@ private[examples] object MessageCodec {
     )
 
     // Create HTTP & WebSocket server transport listening on port 9000 for requests to '/api'
-    val serverTransport = Default.serverTransport(Default.effectSystemAsync, 9000, "/api")
+    val serverTransport = Default.serverTransport(Default.effectSystem, 9000, "/api")
 
     // Initialize JSON-RPC HTTP & WebSocket server
     val server = run(
@@ -57,7 +57,7 @@ private[examples] object MessageCodec {
     )
 
     // Create HTTP client transport sending POST requests to 'http://localhost:9000/api'
-    val clientTransport = Default.clientTransport(Default.effectSystemAsync, new URI("http://localhost:9000/api"))
+    val clientTransport = Default.clientTransport(Default.effectSystem, new URI("http://localhost:9000/api"))
 
     // Initialize JSON-RPC HTTP client
     val client = run(
