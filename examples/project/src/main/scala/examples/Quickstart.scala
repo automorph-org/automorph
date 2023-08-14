@@ -34,10 +34,12 @@ private[examples] object Quickstart {
       remoteApi = client.bind[Api]
 
       // Call the remote API function statically
-      _ <- remoteApi.hello("world", 1).map(println)
+      staticResult <- remoteApi.hello("world", 1)
+      _ = println(staticResult)
 
       // Call the remote API function dynamically
-      _ <- client.call[String]("hello")("some" -> "world", "n" -> 1).map(println)
+      dynamicResult <- client.call[String]("hello")("some" -> "world", "n" -> 1)
+      _ = println(dynamicResult)
 
       // Close the RPC client
       _ <- client.close()
