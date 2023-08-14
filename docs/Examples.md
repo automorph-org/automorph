@@ -83,7 +83,7 @@ libraryDependencies ++= Seq(
 )
 ```
 
-**Imports & Helpers**
+**Imports**
 
 ```scala
 import automorph.Default
@@ -228,7 +228,7 @@ libraryDependencies ++= Seq(
 )
 ```
 
-**Imports & Helpers**
+**Imports**
 
 ```scala
 import automorph.Default
@@ -491,7 +491,7 @@ libraryDependencies ++= Seq(
 )
 ```
 
-**Imports & Helpers**
+**Imports**
 
 ```scala
 import automorph.{Default, RpcClient}
@@ -573,7 +573,7 @@ libraryDependencies ++= Seq(
 )
 ```
 
-**Imports & Helpers**
+**Imports**
 
 ```scala
 import automorph.protocol.jsonrpc.ErrorType.InvalidRequest
@@ -663,7 +663,7 @@ libraryDependencies ++= Seq(
 )
 ```
 
-**Imports & Helpers**
+**Imports**
 
 ```scala
 import automorph.Default
@@ -996,7 +996,7 @@ libraryDependencies ++= Seq(
 )
 ```
 
-**Imports & Helpers**
+**Imports**
 
 ```scala
 import automorph.Default
@@ -1141,7 +1141,7 @@ libraryDependencies ++= Seq(
 )
 ```
 
-**Imports & Helpers**
+**Imports**
 
 ```scala
 import automorph.Default
@@ -1208,7 +1208,7 @@ libraryDependencies ++= Seq(
 )
 ```
 
-**Imports & Helpers**
+**Imports**
 
 ```scala
 import automorph.{Default, RpcClient}
@@ -1287,7 +1287,7 @@ libraryDependencies ++= Seq(
 )
 ```
 
-**Imports & Helpers**
+**Imports**
 
 ```scala
 import automorph.Default
@@ -1362,7 +1362,7 @@ libraryDependencies ++= Seq(
 )
 ```
 
-**Imports & Helpers**
+**Imports**
 
 ```scala
 import automorph.codec.messagepack.{UpickleMessagePackCodec, UpickleMessagePackCustom}
@@ -1460,7 +1460,7 @@ libraryDependencies ++= Seq(
 )
 ```
 
-**Imports & Helpers**
+**Imports**
 
 ```scala
 import automorph.protocol.WebRpcProtocol
@@ -1674,7 +1674,7 @@ libraryDependencies ++= Seq(
 )
 ```
 
-**Imports & Helpers**
+**Imports**
 
 ```scala
 import automorph.{Default, Endpoint}
@@ -1820,7 +1820,7 @@ libraryDependencies ++= Seq(
 )
 ```
 
-**Imports & Helpers**
+**Imports**
 
 ```scala
 import automorph.{Default, RpcClient, RpcServer}
