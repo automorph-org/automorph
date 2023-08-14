@@ -23,7 +23,6 @@ object Default extends DefaultRpcProtocol {
   /** Default effect type. */
   type Effect[T] = Future[T]
 
-
   /**
    * Creates a standard JRE JSON-RPC over HTTP & WebSocket client using default RPC protocol with
    * specified effect system plugin.
