@@ -1119,7 +1119,7 @@ libraryDependencies ++= Seq(
 import automorph.Default
 import automorph.system.ZioSystem
 import java.net.URI
-import zio.{Task, Unsafe, ZIO}
+import zio.{Console, Task, Unsafe, ZIO}
 
 // Define a remote API
 trait Api {
@@ -1147,7 +1147,7 @@ Unsafe.unsafe { implicit unsafe =>
 
       // Call the remote API function
       result <- remoteApi.hello("world", 1)
-      _ = println(result)
+      _ <- Console.printLine(result)
 
       // Close the RPC client
       _ <- client.close()

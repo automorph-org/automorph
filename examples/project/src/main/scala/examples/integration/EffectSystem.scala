@@ -3,7 +3,7 @@ package examples.integration
 import automorph.Default
 import automorph.system.ZioSystem
 import java.net.URI
-import zio.{Task, Unsafe, ZIO}
+import zio.{Console, Task, Unsafe, ZIO}
 
 private[examples] object EffectSystem {
   @scala.annotation.nowarn
@@ -35,7 +35,7 @@ private[examples] object EffectSystem {
 
           // Call the remote API function
           result <- remoteApi.hello("world", 1)
-          _ = println(result)
+          _ <- Console.printLine(result)
 
           // Close the RPC client
           _ <- client.close()
