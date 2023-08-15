@@ -1,5 +1,5 @@
 //> using scala 3.3.0
-//> using dep org.automorph::automorph-default:0.1.2
+//> using dep org.automorph::automorph-default:0.2.0
 //> using dep ch.qos.logback:logback-classic:1.4.9
 package examples
 
