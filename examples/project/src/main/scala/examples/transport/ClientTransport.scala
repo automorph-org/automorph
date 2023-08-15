@@ -1,9 +1,12 @@
 package examples.transport
 
-import automorph.{RpcClient, Default}
-import automorph.system.IdentitySystem
+import automorph.{Default, RpcClient}
+import automorph.system.FutureSystem
 import automorph.transport.http.client.UrlClient
 import java.net.URI
+import scala.concurrent.ExecutionContext.Implicits.global
+import scala.concurrent.duration.Duration
+import scala.concurrent.{Await, Future}
 
 private[examples] case object ClientTransport {
   @scala.annotation.nowarn
@@ -11,33 +14,35 @@ private[examples] case object ClientTransport {
 
     // Define a remote API
     trait Api {
-      def hello(some: String, n: Int): String
+      def hello(some: String, n: Int): Future[String]
     }
 
     // Create server implementation of the remote API
     val api = new Api {
-      override def hello(some: String, n: Int): String = s"Hello $some $n!"
+      override def hello(some: String, n: Int): Future[String] =
+        Future(s"Hello $some $n!")
     }
 
-    // Initialize JSON-RPC HTTP & WebSocket server listening on port 80 for requests to '/api'
-    val server = Default.rpcServerCustom(IdentitySystem(), 9000, "/api").bind(api).init()
-
     // Create standard JRE HTTP client message transport sending POST requests to 'http://localhost:9000/api'
-    val clientTransport = UrlClient(IdentitySystem(), new URI("http://localhost:9000/api"))
+    val clientTransport = UrlClient(FutureSystem(), new URI("http://localhost:9000/api"))
 
-    // Setup JSON-RPC HTTP client
-    val client = RpcClient.transport(clientTransport).rpcProtocol(Default.rpcProtocol).init()
+    Await.ready(for {
+      // Initialize JSON-RPC HTTP & WebSocket server listening on port 80 for requests to '/api'
+      server <- Default.rpcServer(9000, "/api").bind(api).init()
 
-    // Call the remote API function via proxy
-    val remoteApi = client.bind[Api]
-    println(
-      remoteApi.hello("world", 1)
-    )
+      // Initialize custom JSON-RPC HTTP client
+      client <- RpcClient.transport(clientTransport).rpcProtocol(Default.rpcProtocol).init()
+      remoteApi = client.bind[Api]
 
-    // Close the RPC client
-    client.close()
+      // Call the remote API function
+      result <- remoteApi.hello("world", 1)
+      _ = println(result)
 
-    // Close the RPC server
-    server.close()
+      // Close the RPC client
+      _ <- client.close()
+
+      // Close the RPC server
+      _ <- server.close()
+    } yield (), Duration.Inf)
   }
 }

@@ -11,9 +11,6 @@ private[examples] object AsynchronousCall {
   @scala.annotation.nowarn
   def main(arguments: Array[String]): Unit = {
 
-    // Helper function to evaluate Futures
-    def run[T](effect: Future[T]): T = Await.result(effect, Duration.Inf)
-
     // Define a remote API
     trait Api {
       def hello(some: String, n: Int): Future[String]
@@ -38,8 +35,8 @@ private[examples] object AsynchronousCall {
       _ = println(result)
 
       // Call the remote API function dynamically
-      dynamicResult <- client.call[String]("hello")("some" -> "world", "n" -> 1)
-      _ = println(dynamicResult)
+      result <- client.call[String]("hello")("some" -> "world", "n" -> 1)
+      _ = println(result)
 
       // Close the RPC client
       _ <- client.close()

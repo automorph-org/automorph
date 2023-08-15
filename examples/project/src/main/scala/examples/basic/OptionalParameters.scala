@@ -1,9 +1,10 @@
 package examples.basic
 
 import automorph.Default
-import automorph.system.IdentitySystem
-
 import java.net.URI
+import scala.concurrent.ExecutionContext.Implicits.global
+import scala.concurrent.duration.Duration
+import scala.concurrent.{Await, Future}
 
 private[examples] object OptionalParameters {
   @scala.annotation.nowarn
@@ -11,40 +12,40 @@ private[examples] object OptionalParameters {
 
     // Define client view of a remote API
     trait Api {
-      def hello(some: String): String
+      def hello(some: String): Future[String]
     }
 
     // Create server implementation of the remote API
     class ApiImpl {
-      def hello(some: String, n: Option[Int]): String =
-        s"Hello $some ${n.getOrElse(0)}!"
+      def hello(some: String, n: Option[Int]): Future[String] =
+        Future(s"Hello $some ${n.getOrElse(0)}!")
 
-      def hi(some: Option[String])(n: Int): String =
-        s"Hi ${some.getOrElse("all")} $n!"
+      def hi(some: Option[String])(n: Int): Future[String] =
+        Future(s"Hi ${some.getOrElse("all")} $n!")
     }
     val api = new ApiImpl
 
-    // Initialize JSON-RPC HTTP & WebSocket server listening on port 9000 for POST requests to '/api'
-    val server = Default.rpcServerCustom(IdentitySystem(), 9000, "/api").bind(api).init()
+    Await.ready(for {
+      // Initialize JSON-RPC HTTP client for sending POST requests to 'http://localhost:9000/api'
+      server <- Default.rpcServer(9000, "/api").bind(api).init()
 
-    // Initialize JSON-RPC HTTP client for sending POST requests to 'http://localhost:9000/api'
-    val client = Default.rpcClientCustom(IdentitySystem(), new URI("http://localhost:9000/api")).init()
+      // Initialize JSON-RPC HTTP client for sending POST requests to 'http://localhost:9000/api'
+      client <- Default.rpcClient(new URI("http://localhost:9000/api")).init()
+      remoteApi = client.bind[Api]
 
-    // Call the remote API function statically
-    val remoteApi = client.bind[Api]
-    println(
-      remoteApi.hello("world")
-    )
+      // Call the remote API function statically
+      result <- remoteApi.hello("world")
+      _ = println(result)
 
-    // Call the remote API function dynamically
-    println(
-      client.call[String]("hi")("n" -> 1) // String
-    )
+      // Call the remote API function dynamically
+      result <- client.call[String]("hi")("n" -> 1)
+      _ = println(result)
 
-    // Close the RPC client
-    client.close()
+      // Close the RPC client
+      _ <- client.close()
 
-    // Close the RPC server
-    server.close()
+      // Close the RPC server
+      _ <- server.close()
+    } yield (), Duration.Inf)
   }
 }
