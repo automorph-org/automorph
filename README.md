@@ -9,7 +9,6 @@ https://central.sonatype.com/namespace/org.automorph)
 [![Build](https://github.com/automorph-org/automorph/workflows/Build/badge.svg)](
 https://github.com/automorph-org/automorph/actions/workflows/build.yml)
 
-
 **Automorph** is a Scala [RPC](https://en.wikipedia.org/wiki/Remote_procedure_call) client and server library
 for invoking and exposing remote APIs in a few lines of code.
 
