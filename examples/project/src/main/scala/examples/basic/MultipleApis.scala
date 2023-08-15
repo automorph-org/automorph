@@ -1,8 +1,6 @@
 package examples.basic
 
 import automorph.Default
-import automorph.transport.http.HttpMethod
-
 import java.net.URI
 import scala.concurrent.ExecutionContext.Implicits.global
 import scala.concurrent.duration.Duration

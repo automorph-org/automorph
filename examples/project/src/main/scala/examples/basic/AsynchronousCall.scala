@@ -1,7 +1,7 @@
 package examples.basic
 
 import automorph.Default
-import automorph.transport.http.HttpMethod
+import automorph.transport.http.HttpMethod.{Post, Put}
 import java.net.URI
 import scala.concurrent.ExecutionContext.Implicits.global
 import scala.concurrent.duration.Duration
@@ -24,7 +24,7 @@ private[examples] object AsynchronousCall {
 
     Await.ready(for {
       // Initialize JSON-RPC HTTP & WebSocket server listening on port 9000 for POST or PUT requests to '/api'
-      server <- Default.rpcServer(9000, "/api", Seq(HttpMethod.Post, HttpMethod.Put)).bind(api).init()
+      server <- Default.rpcServer(9000, "/api", Seq(Post, Put)).bind(api).init()
 
       // Initialize JSON-RPC HTTP client for sending POST requests to 'http://localhost:9000/api'
       client <- Default.rpcClient(new URI("http://localhost:9000/api")).init()
