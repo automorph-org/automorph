@@ -116,7 +116,7 @@ Await.ready(for {
 } yield (), Duration.Inf)
 ```
 
-### [MultipleApis](https://github.com/automorph-org/automorph/tree/main/examples/project/src/main/scala/examples/basic/MultipleApis.scala)
+### [Multiple APIs](https://github.com/automorph-org/automorph/tree/main/examples/project/src/main/scala/examples/basic/MultipleApis.scala)
 
 **Build**
 
