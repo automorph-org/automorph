@@ -1033,11 +1033,6 @@ import automorph.system.ZioSystem
 import java.net.URI
 import zio.{Task, Unsafe, ZIO}
 
-// Helper function to evaluate ZIO tasks
-def run[T](effect: Task[T]): T = Unsafe.unsafe { implicit unsafe =>
-  ZioSystem.defaultRuntime.unsafe.run(effect).toEither.swap.map(_.getCause).swap.toTry.get
-}
-
 // Define a remote API
 trait Api {
   def hello(some: String, n: Int): Task[String]
@@ -1052,30 +1047,28 @@ val api = new Api {
 // Create ZIO effect system plugin
 val effectSystem = ZioSystem.default
 
-// Initialize JSON-RPC HTTP & WebSocket server listening on port 9000 for requests to '/api'
-val server = run(
-  Default.rpcServerCustom(effectSystem, 9000, "/api").bind(api).init()
-)
+Unsafe.unsafe { implicit unsafe =>
+  ZioSystem.defaultRuntime.unsafe.run(
+    for {
+      // Initialize JSON-RPC HTTP & WebSocket server listening on port 9000 for requests to '/api'
+      server <- Default.rpcServerCustom(effectSystem, 9000, "/api").bind(api).init()
 
-// Create ZIO effect system plugin
-val effectSystem = ZioSystem.default
+      // Initialize JSON-RPC HTTP client for sending POST requests to 'http://localhost:9000/api'
+      client <- Default.rpcClientCustom(effectSystem, new URI("http://localhost:9000/api")).init()
+      remoteApi = client.bind[Api]
 
-// Initialize JSON-RPC HTTP client sending POST requests to 'http://localhost:9000/api'
-val client = run(
-  Default.rpcClientCustom(effectSystem, new URI("http://localhost:9000/api")).init()
-)
+      // Call the remote API function
+      result <- remoteApi.hello("world", 1)
+      _ = println(result)
 
-// Call the remote API function via proxy
-val remoteApi = client.bind[Api]
-println(run(
-  remoteApi.hello("world", 1)
-))
+      // Close the RPC client
+      _ <- client.close()
 
-// Close the RPC client
-run(client.close())
-
-// Close the RPC server
-run(server.close())
+      // Close the RPC server
+      _ <- server.close()
+    } yield ()
+  )
+}
 ```
 
 ### [Message codec](https://github.com/automorph-org/automorph/tree/main/examples/project/src/main/scala/examples/integration/MessageCodec.scala)
