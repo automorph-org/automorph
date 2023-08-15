@@ -1,7 +1,7 @@
 package examples
 
 import examples.metadata.{HttpAuthentication, HttpRequest, HttpResponse}
-import examples.basic.{AsynchronousCall, OptionalParameters, SynchronousCall}
+import examples.basic.{AsynchronousCall, MultipleApis, OptionalParameters, SynchronousCall}
 import examples.special.{ApiDiscovery, DynamicPayload, OneWayMessage, PositionalArguments}
 import examples.customization.{ClientFunctionNames, DataSerialization, ServerFunctionNames}
 import examples.errors.{ClientExceptions, HttpStatusCode, ServerErrors}
@@ -19,6 +19,7 @@ class ExamplesTest extends BaseTest with Mutex {
       Seq[Any](
         SynchronousCall,
         AsynchronousCall,
+        MultipleApis,
         OptionalParameters,
       ).foreach { instance =>
         testName(instance) in {
