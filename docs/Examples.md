@@ -19,17 +19,13 @@ libraryDependencies ++= Seq(
 )
 ```
 
-**Imports**
+**Source**
 
 ```scala
 import automorph.Default
 import automorph.system.IdentitySystem
 import java.net.URI
-```
 
-**Server**
-
-```scala
 // Define a remote API
 trait Api {
   def hello(some: String, n: Int): String
@@ -43,11 +39,7 @@ val api = new Api {
 
 // Initialize JSON-RPC HTTP & WebSocket server listening on port 9000 for POST requests to '/api'
 val server = Default.rpcServerCustom(IdentitySystem(), 9000, "/api").bind(api).init()
-```
 
-**Client**
-
-```scala
 // Initialize JSON-RPC HTTP client sending POST requests to 'http://localhost:9000/api'
 val client = Default.rpcClientCustom(IdentitySystem(), new URI("http://localhost:9000/api")).init()
 
@@ -61,11 +53,7 @@ println(
 println(
   client.call[String]("hello")("some" -> "world", "n" -> 1)
 )
-```
 
-**Cleanup**
-
-```scala
 // Close the RPC client
 client.close()
 
@@ -83,7 +71,7 @@ libraryDependencies ++= Seq(
 )
 ```
 
-**Imports**
+**Source**
 
 ```scala
 import automorph.Default
@@ -93,13 +81,6 @@ import scala.concurrent.ExecutionContext.Implicits.global
 import scala.concurrent.duration.Duration
 import scala.concurrent.{Await, Future}
 
-// Helper function to evaluate Futures
-def run[T](effect: Future[T]): T = Await.result(effect, Duration.Inf)
-```
-
-**Server**
-
-```scala
 // Define a remote API
 trait Api {
   def hello(some: String, n: Int): Future[String]
@@ -111,40 +92,28 @@ val api = new Api {
     Future(s"Hello $some $n!")
 }
 
-// Initialize JSON-RPC HTTP & WebSocket server listening on port 9000 for POST or PUT requests to '/api'
-val server = run(
-  Default.rpcServer(9000, "/api", Seq(HttpMethod.Post, HttpMethod.Put)).bind(api).init()
-)
-```
+Await.ready(for {
+  // Initialize JSON-RPC HTTP & WebSocket server listening on port 9000 for POST or PUT requests to '/api'
+  server <- Default.rpcServer(9000, "/api", Seq(HttpMethod.Post, HttpMethod.Put)).bind(api).init()
 
-**Client**
+  // Initialize JSON-RPC HTTP client for sending POST requests to 'http://localhost:9000/api'
+  client <- Default.rpcClient(new URI("http://localhost:9000/api")).init()
+  remoteApi = client.bind[Api]
 
-```scala
-// Initialize JSON-RPC HTTP client sending PUT requests to 'http://localhost:9000/api'
-val client = run(
-  Default.rpcClient(new URI("http://localhost:9000/api"), HttpMethod.Put).init()
-)
+  // Call the remote API function statically
+  result <- remoteApi.hello("world", 1)
+  _ = println(result)
 
-// Call the remote API function statically
-val remoteApi = client.bind[Api]
-println(run(
-  remoteApi.hello("world", 1)
-))
+  // Call the remote API function dynamically
+  dynamicResult <- client.call[String]("hello")("some" -> "world", "n" -> 1)
+  _ = println(dynamicResult)
 
-// Call the remote API function dynamically
-println(run(
-  client.call[String]("hello")("some" -> "world", "n" -> 1)
-))
-```
+  // Close the RPC client
+  _ <- client.close()
 
-**Cleanup**
-
-```scala
-// Close the RPC client
-run(client.close())
-
-// Close the RPC server
-run(server.close())
+  // Close the RPC server
+  _ <- server.close()
+} yield (), Duration.Inf)
 ```
 
 ### [Optional parameters](https://github.com/automorph-org/automorph/tree/main/examples/project/src/main/scala/examples/basic/OptionalParameters.scala)
@@ -157,17 +126,13 @@ libraryDependencies ++= Seq(
 )
 ```
 
-**Imports**
+**Source**
 
 ```scala
 import automorph.Default
 import automorph.system.IdentitySystem
 import java.net.URI
-```
 
-**Server**
-
-```scala
 // Define client view of a remote API
 trait Api {
   def hello(some: String): String
@@ -185,11 +150,7 @@ val api = new ApiImpl
 
 // Initialize JSON-RPC HTTP & WebSocket server listening on port 9000 for POST requests to '/api'
 val server = Default.rpcServerCustom(IdentitySystem(), 9000, "/api").bind(api).init()
-```
 
-**Client**
-
-```scala
 // Initialize JSON-RPC HTTP client sending POST requests to 'http://localhost:9000/api'
 val client = Default.rpcClientCustom(IdentitySystem(), new URI("http://localhost:9000/api")).init()
 
@@ -203,11 +164,7 @@ println(
 println(
   client.call[String]("hi")("n" -> 1)
 )
-```
 
-**Cleanup**
-
-```scala
 // Close the RPC client
 client.close()
 
@@ -228,7 +185,7 @@ libraryDependencies ++= Seq(
 )
 ```
 
-**Imports**
+**Source**
 
 ```scala
 import automorph.Default
@@ -239,12 +196,7 @@ import scala.concurrent.ExecutionContext.Implicits.global
 import scala.concurrent.duration.Duration
 import scala.concurrent.{Await, Future}
 
-// Helper function to evaluate Futures
-def run[T](effect: Future[T]): T = Await.result(effect, Duration.Inf)
-```
-
-**Custom data types**
-```scala
+// Introduce custom data types
 sealed abstract class State
 
 object State {
@@ -266,11 +218,7 @@ implicit val enumDecoder: Decoder[State] = Decoder.decodeInt.map(Map(
   0 -> State.Off,
   1 -> State.On
 ))
-```
 
-**Server**
-
-```scala
 // Define a remote API
 trait Api {
   def hello(some: String, record: Record): Future[Record]
@@ -282,35 +230,24 @@ val api = new Api {
     Future(record.copy(value = s"Hello $some!"))
 }
 
-// Initialize JSON-RPC HTTP & WebSocket server listening on port 9000 for requests to '/api'
-val server = run(
-  Default.rpcServer(9000, "/api").bind(api).init()
-)
-```
+Await.ready(for {
+  // Initialize JSON-RPC HTTP & WebSocket server listening on port 9000 for requests to '/api'
+  server <- Default.rpcServer(9000, "/api").bind(api).init()
 
-**Client**
+  // Initialize JSON-RPC HTTP client for sending POST requests to 'http://localhost:9000/api'
+  client <- Default.rpcClient(new URI("http://localhost:9000/api")).init()
+  remoteApi = client.bind[Api]
 
-```scala
-// Initialize JSON-RPC HTTP client sending POST requests to 'http://localhost:9000/api'
-val client = run(
-  Default.rpcClient(new URI("http://localhost:9000/api")).init()
-)
+  // Call the remote API function
+  result <- remoteApi.hello("world", Record("test", State.On))
+  _ = println(result)
 
-// Call the remote API function
-val remoteApi = client.bind[Api]
-println(run(
-  remoteApi.hello("world", Record("test", State.On))
-))
-```
+  // Close the RPC client
+  _ <- client.close()
 
-**Cleanup**
-
-```scala
-// Close the RPC client
-run(client.close())
-
-// Close the RPC server
-run(server.close())
+  // Close the RPC server
+  _ <- server.close()
+} yield (), Duration.Inf)
 ```
 
 ### [Client function names](https://github.com/automorph-org/automorph/tree/main/examples/project/src/main/scala/examples/customization/ClientFunctionNames.scala)
@@ -323,17 +260,13 @@ libraryDependencies ++= Seq(
 )
 ```
 
-**Imports**
+**Source**
 
 ```scala
 import automorph.Default
 import automorph.system.IdentitySystem
 import java.net.URI
-```
 
-**Server**
-
-```scala
 // Define client view of a remote API
 trait Api {
   def hello(some: String, n: Int): String
@@ -352,11 +285,7 @@ val api = new ApiImpl
 
 // Initialize JSON-RPC HTTP & WebSocket server listening on port 9000 for requests to '/api'
 val server = Default.rpcServerCustom(IdentitySystem(), 9000, "/api").bind(api).init()
-```
 
-**Client**
-
-```scala
 // Initialize JSON-RPC HTTP client sending POST requests to 'http://localhost:9000/api'
 val client = Default.rpcClientCustom(IdentitySystem(), new URI("http://localhost:9000/api")).init()
 
@@ -374,11 +303,7 @@ println(
 println(
   remoteApi.hi("world", 1)
 )
-```
 
-**Cleanup**
-
-```scala
 // Close the RPC client
 client.close()
 
@@ -396,18 +321,14 @@ libraryDependencies ++= Seq(
 )
 ```
 
-**Imports**
+**Source**
 
 ```scala
 import automorph.Default
 import automorph.system.IdentitySystem
 import java.net.URI
 import scala.util.Try
-```
 
-**Server**
-
-```scala
 // Define client view of a remote API
 trait Api {
   def hello(some: String, n: Int): String
@@ -440,11 +361,7 @@ val mapName = (name: String) => name match {
 
 // Initialize JSON-RPC HTTP & WebSocket server listening on port 9000 for requests to '/api'
 val server = Default.rpcServerCustom(IdentitySystem(), 9000, "/api").bind(api, mapName).init()
-```
 
-**Client**
-
-```scala
 // Initialize JSON-RPC HTTP client sending POST requests to 'http://localhost:9000/api'
 val client = Default.rpcClientCustom(IdentitySystem(), new URI("http://localhost:9000/api")).init()
 
@@ -466,11 +383,7 @@ println(
 println(Try(
   client.call[String]("hidden")()
 ).failed.get)
-```
 
-**Cleanup**
-
-```scala
 // Close the RPC client
 client.close()
 
@@ -491,7 +404,7 @@ libraryDependencies ++= Seq(
 )
 ```
 
-**Imports**
+**Source**
 
 ```scala
 import automorph.{Default, RpcClient}
@@ -500,15 +413,7 @@ import java.sql.SQLException
 import scala.concurrent.ExecutionContext.Implicits.global
 import scala.concurrent.duration.Duration
 import scala.concurrent.{Await, Future}
-import scala.util.Try
 
-// Helper function to evaluate Futures
-def run[T](effect: Future[T]): T = Await.result(effect, Duration.Inf)
-```
-
-**Server**
-
-```scala
 // Define a remote API
 trait Api {
   def hello(some: String, n: Int): Future[String]
@@ -520,15 +425,6 @@ val api = new Api {
     Future.failed(new IllegalArgumentException("SQL error"))
 }
 
-// Initialize JSON-RPC HTTP & WebSocket server listening on port 9000 for requests to '/api'
-val server = run(
-  Default.rpcServer(9000, "/api").bind(api).init()
-)
-```
-
-**Client**
-
-```scala
 // Customize remote API client RPC error to exception mapping
 val rpcProtocol = Default.rpcProtocol[Default.ClientContext].mapError((message, code) =>
   if (message.contains("SQL")) {
@@ -541,26 +437,25 @@ val rpcProtocol = Default.rpcProtocol[Default.ClientContext].mapError((message, 
 // Create HTTP client transport sending POST requests to 'http://localhost:9000/api'
 val clientTransport = Default.clientTransport(new URI("http://localhost:9000/api"))
 
-// Setup custom JSON-RPC HTTP client
-val client = run(
-  RpcClient.transport(clientTransport).rpcProtocol(rpcProtocol).init()
-)
+Await.ready(for {
+  // Initialize JSON-RPC HTTP & WebSocket server listening on port 9000 for requests to '/api'
+  server <- Default.rpcServer(9000, "/api").bind(api).init()
 
-// Call the remote API function and fail with SQLException
-val remoteApi = client.bind[Api]
-println(Try(run(
-  remoteApi.hello("world", 1)
-)).failed.get)
-```
+  
+  // Initialize custom JSON-RPC HTTP client
+  client <- RpcClient.transport(clientTransport).rpcProtocol(rpcProtocol).init()
+  remoteApi = client.bind[Api]
 
-**Cleanup**
+  // Call the remote API function and fail with SQLException
+  error <- remoteApi.hello("world", 1).failed
+  _ = println(error)
 
-```scala
-// Close the RPC client
-run(client.close())
+  // Close the RPC client
+  _ <- client.close()
 
-// Close the RPC server
-run(server.close())
+  // Close the RPC server
+  _ <- server.close()
+} yield (), Duration.Inf)
 ```
 
 ### [Server errors](https://github.com/automorph-org/automorph/tree/main/examples/project/src/main/scala/examples/errors/ServerErrors.scala)
@@ -573,7 +468,7 @@ libraryDependencies ++= Seq(
 )
 ```
 
-**Imports**
+**Source**
 
 ```scala
 import automorph.protocol.jsonrpc.ErrorType.InvalidRequest
@@ -584,15 +479,7 @@ import java.sql.SQLException
 import scala.concurrent.ExecutionContext.Implicits.global
 import scala.concurrent.duration.Duration
 import scala.concurrent.{Await, Future}
-import scala.util.Try
 
-// Helper function to evaluate Futures
-def run[T](effect: Future[T]): T = Await.result(effect, Duration.Inf)
-```
-
-**Server**
-
-```scala
 // Define a remote API
 trait Api {
   def hello(some: String, n: Int): Future[String]
@@ -617,40 +504,28 @@ val rpcProtocol = Default.rpcProtocol[Default.ServerContext].mapException(_ matc
 // Create HTTP & WebSocket server transport listening on port 9000 for requests to '/api'
 val serverTransport = Default.serverTransport(9000, "/api")
 
-// Initialize JSON-RPC HTTP & WebSocket server
-val server = run(
-  RpcServer.transport(serverTransport).rpcProtocol(rpcProtocol).bind(api).init()
-)
-```
+Await.ready(for {
+  // Initialize custom JSON-RPC HTTP & WebSocket server
+  server <- RpcServer.transport(serverTransport).rpcProtocol(rpcProtocol).bind(api).init()
 
-**Client**
+  // Initialize JSON-RPC HTTP client for sending POST requests to 'http://localhost:9000/api'
+  client <- Default.rpcClient(new URI("http://localhost:9000/api")).init()
+  remoteApi = client.bind[Api]
 
-```scala
-// Initialize JSON-RPC HTTP client sending POST requests to 'http://localhost:9000/api'
-val client = run(
-  Default.rpcClient(new URI("http://localhost:9000/api")).init()
-)
+  // Call the remote API function and fail with InvalidRequestException
+  error <- remoteApi.hello("world", 1).failed
+  _ = println(error)
 
-// Call the remote API function and fail with InvalidRequestException
-val remoteApi = client.bind[Api]
-println(Try(run(
-  remoteApi.hello("world", 1)
-)).failed.get)
+  // Call the remote API function and fail with RuntimeException
+  error <- remoteApi.hello("world", -1).failed
+  _ = println(error)
 
-// Call the remote API function and fail with RuntimeException
-println(Try(run(
-  remoteApi.hello("world", -1)
-)).failed.get)
-```
+  // Close the RPC client
+  _ <- client.close()
 
-**Cleanup**
-
-```scala
-// Close the RPC client
-run(client.close())
-
-// Close the RPC server
-run(server.close())
+  // Close the RPC server
+  _ <- server.close()
+} yield (), Duration.Inf)
 ```
 
 ### [HTTP status code](https://github.com/automorph-org/automorph/tree/main/examples/project/src/main/scala/examples/errors/HttpStatusCode.scala)
@@ -663,7 +538,7 @@ libraryDependencies ++= Seq(
 )
 ```
 
-**Imports**
+**Source**
 
 ```scala
 import automorph.Default
@@ -673,15 +548,7 @@ import java.sql.SQLException
 import scala.concurrent.ExecutionContext.Implicits.global
 import scala.concurrent.duration.Duration
 import scala.concurrent.{Await, Future}
-import scala.util.Try
 
-// Helper function to evaluate Futures
-def run[T](effect: Future[T]): T = Await.result(effect, Duration.Inf)
-```
-
-**Server**
-
-```scala
 // Define a remote API
 trait Api {
   def hello(some: String, n: Int): Future[String]
@@ -699,35 +566,24 @@ val mapException = (error: Throwable) => error match {
   case e => HttpContext.defaultExceptionToStatusCode(e)
 }
 
-// Start custom JSON-RPC HTTP & WebSocket server listening on port 9000 for requests to '/api'
-val server = run(
-  Default.rpcServer(9000, "/api", mapException = mapException).bind(api).init()
-)
-```
+Await.ready(for {
+  // Initialize custom JSON-RPC HTTP & WebSocket server listening on port 9000 for requests to '/api'
+  server <- Default.rpcServer(9000, "/api", mapException = mapException).bind(api).init()
 
-**Client**
+  // Initialize JSON-RPC HTTP client for sending POST requests to 'http://localhost:9000/api'
+  client <- Default.rpcClient(new URI("http://localhost:9000/api")).init()
+  remoteApi = client.bind[Api]
 
-```scala
-// Initialize JSON-RPC HTTP client sending POST requests to 'http://localhost:9000/api'
-val client = run(
-  Default.rpcClient(new URI("http://localhost:9000/api")).init()
-)
+  // Call the remote API function and fail with InvalidRequestException
+  error <- remoteApi.hello("world", 1).failed
+  _ = println(error)
 
-// Call the remote API function and fail with InvalidRequestException
-val remoteApi = client.bind[Api]
-println(Try(run(
-  remoteApi.hello("world", 1)
-)).failed.get)
-```
+  // Close the RPC client
+  _ <- client.close()
 
-**Cleanup**
-
-```scala
-// Close the RPC client
-run(client.close())
-
-// Close the RPC server
-run(server.close())
+  // Close the RPC server
+  _ <- server.close()
+} yield (), Duration.Inf)
 ```
 
 
@@ -743,7 +599,7 @@ libraryDependencies ++= Seq(
 )
 ```
 
-**Imports**
+**Source**
 
 ```scala
 import automorph.Default
@@ -751,21 +607,15 @@ import automorph.Default.{ClientContext, ServerContext}
 import automorph.system.IdentitySystem
 import java.net.URI
 import scala.util.Try
-```
 
-**Server**
-
-```scala
 // Define client view of a remote API
 trait Api {
-
   // Accept HTTP request context consumed by the client message transport plugin
   def hello(message: String)(implicit http: ClientContext): String
 }
 
 // Create server implementation of the remote API
 class ApiImpl {
-
   // Accept HTTP request context provided by the server message transport plugin
   def hello(message: String)(implicit httpRequest: ServerContext): String =
     httpRequest.authorization("Bearer") match {
@@ -777,11 +627,7 @@ val api = new ApiImpl
 
 // Initialize JSON-RPC HTTP & WebSocket server listening on port 9000 for requests to '/api'
 val server = Default.rpcServerCustom(IdentitySystem(), 9000, "/api").bind(api).init()
-```
 
-**Client**
-
-```scala
 // Initialize JSON-RPC HTTP client sending POST requests to 'http://localhost:9000/api'
 val client = Default.rpcClientCustom(IdentitySystem(), new URI("http://localhost:9000/api")).init()
 val remoteApi = client.bind[Api]
@@ -817,11 +663,7 @@ val remoteApi = client.bind[Api]
     client.call[String]("hello")("message" -> "test")
   ).failed.get)
 }
-```
 
-**Cleanup**
-
-```scala
 // Close the RPC client
 client.close()
 
@@ -839,7 +681,7 @@ libraryDependencies ++= Seq(
 )
 ```
 
-**Imports**
+**Source**
 
 ```scala
 import automorph.Default
@@ -847,14 +689,9 @@ import automorph.Default.{ClientContext, ServerContext}
 import automorph.system.IdentitySystem
 import java.net.URI
 
-```
 
-**Server**
-
-```scala
 // Define client view of a remote API
 trait Api {
-
   // Accept HTTP request context consumed by the client message transport plugin
   def hello(message: String)(implicit http: ClientContext): String
 }
@@ -873,11 +710,7 @@ val api = new ApiImpl
 
 // Initialize JSON-RPC HTTP & WebSocket server listening on port 9000 for requests to '/api'
 val server = Default.rpcServerCustom(IdentitySystem(), 9000, "/api").bind(api).init()
-```
 
-**Client**
-
-```scala
 // Initialize JSON-RPC HTTP client sending POST requests to 'http://localhost:9000/api'
 val client = Default.rpcClientCustom(IdentitySystem(), new URI("http://localhost:9000/api")).init()
 
@@ -898,11 +731,7 @@ println(
 println(
   client.call[String]("hello")("message" -> "test")
 )
-```
 
-**Cleanup**
-
-```scala
 // Close the RPC client
 client.close()
 
@@ -920,7 +749,7 @@ libraryDependencies ++= Seq(
 )
 ```
 
-**Imports**
+**Source**
 
 ```scala
 import automorph.Default.{ClientContext, ServerContext}
@@ -928,21 +757,15 @@ import automorph.system.IdentitySystem
 import automorph.transport.http.HttpContext
 import automorph.{Default, RpcResult}
 import java.net.URI
-```
 
-**Server**
-
-```scala
 // Define client view of a remote API
 trait Api {
-
   // Return HTTP response context provided by the client message transport plugin
   def hello(message: String): RpcResult[String, ClientContext]
 }
 
 // Create server implementation of the remote API
 class ApiImpl {
-
   // Return HTTP response context consumed by the server message transport plugin
   def hello(message: String): RpcResult[String, ServerContext] = RpcResult(
     message,
@@ -953,11 +776,7 @@ val api = new ApiImpl
 
 // Initialize JSON-RPC HTTP & WebSocket server listening on port 9000 for requests to '/api'
 val server = Default.rpcServerCustom(IdentitySystem(), 9000, "/api").bind(api).init()
-```
 
-**Client**
-
-```scala
 // Initialize JSON-RPC HTTP client sending POST requests to 'http://localhost:9000/api'
 val client = Default.rpcClientCustom(IdentitySystem(), new URI("http://localhost:9000/api")).init()
 
@@ -971,11 +790,7 @@ println(static.context.header("X-Test"))
 val dynamic = client.call[RpcResult[String, ClientContext]]("hello")("message" -> "test")
 println(dynamic.result)
 println(dynamic.context.header("X-Test"))
-```
 
-**Cleanup**
-
-```scala
 // Close the RPC client
 client.close()
 
@@ -996,7 +811,7 @@ libraryDependencies ++= Seq(
 )
 ```
 
-**Imports**
+**Source**
 
 ```scala
 import automorph.Default
@@ -1007,57 +822,28 @@ import scala.concurrent.ExecutionContext.Implicits.global
 import scala.concurrent.duration.Duration
 import scala.concurrent.{Await, Future}
 
-// Helper function to evaluate Futures
-def run[T](effect: Future[T]): T = Await.result(effect, Duration.Inf)
-```
+Await.ready(for {
+  // Initialize JSON-RPC HTTP & WebSocket server with API discovery listening on port 9000 for POST requests to '/api'
+  server <- Default.rpcServer(9000, "/api").discovery(true).bind(api).init()
 
-**Server**
+  // Initialize JSON-RPC HTTP client for sending POST requests to 'http://localhost:9000/api'
+  client <- Default.rpcClient(new URI("http://localhost:9000/api")).init()
+  remoteApi = client.bind[Api]
 
-```scala
-// Define a remote API
-trait Api {
-  def hello(some: String, n: Int): Future[String]
-}
+  // Retrieve the remote API schema in OpenRPC format
+  result <- client.call[OpenRpc](JsonRpcProtocol.openRpcFunction)()
+  _ = println(result.methods.map(_.name))
 
-// Create server implementation of the remote API
-val api = new Api {
-  def hello(some: String, n: Int): Future[String] =
-    Future(s"Hello $some $n!")
-}
+  // Retrieve the remote API schema in OpenAPI format
+  result <- client.call[OpenApi](JsonRpcProtocol.openApiFunction)()
+  _ = println(result.paths.get.keys.toList)
 
-// Initialize JSON-RPC HTTP & WebSocket server with API discovery listening on port 9000 for POST requests to '/api'
-val server = run(
-  Default.rpcServer(9000, "/api").discovery(true).bind(api).init()
-)
-```
+  // Close the RPC client
+  _ <- client.close()
 
-**Client**
-
-```scala
-// Initialize JSON-RPC HTTP client sending POST requests to 'http://localhost:9000/api'
-val client = run(
-  Default.rpcClient(new URI("http://localhost:9000/api")).init()
-)
-
-// Retrieve the remote API schema in OpenRPC format
-println(run(
-  client.call[OpenRpc](JsonRpcProtocol.openRpcFunction)()
-).methods.map(_.name))
-
-// Retrieve the remote API schema in OpenAPI format
-println(run(
-  client.call[OpenApi](JsonRpcProtocol.openApiFunction)(),
-).paths.get.keys.toList)
-```
-
-**Cleanup**
-
-```scala
-// Close the RPC client
-run(client.close())
-
-// Close the RPC server
-run(server.close())
+  // Close the RPC server
+  _ <- server.close()
+} yield (), Duration.Inf)
 ```
 
 ### [Dynamic payload](https://github.com/automorph-org/automorph/tree/main/examples/project/src/main/scala/examples/special/DynamicPayload.scala)
@@ -1070,18 +856,14 @@ libraryDependencies ++= Seq(
 )
 ```
 
-**Imports**
+**Source**
 
 ```scala
 import automorph.Default
 import automorph.system.IdentitySystem
 import io.circe.Json
 import java.net.URI
-```
 
-**Server**
-
-```scala
 // Define client view of a remote API
 trait Api {
   def hello(some: String, n: Json): Json
@@ -1101,11 +883,7 @@ val api = new ApiImpl
 
 // Initialize JSON-RPC HTTP & WebSocket server listening on port 9000 for PUT requests to '/api'
 val server = Default.rpcServerCustom(IdentitySystem(), 9000, "/api").bind(api).init()
-```
 
-**Client**
-
-```scala
 // Initialize JSON-RPC HTTP client sending PUT requests to 'http://localhost:9000/api'
 val client = Default.rpcClientCustom(IdentitySystem(), new URI("http://localhost:9000/api")).init()
 
@@ -1119,11 +897,7 @@ println(
 println(
   client.call[Seq[Int]]("hello")("some" -> Json.fromInt(0), "n" -> 1)
 )
-```
 
-**Cleanup**
-
-```scala
 // Close the RPC client
 client.close()
 
@@ -1141,7 +915,7 @@ libraryDependencies ++= Seq(
 )
 ```
 
-**Imports**
+**Source**
 
 ```scala
 import automorph.Default
@@ -1150,13 +924,6 @@ import scala.concurrent.ExecutionContext.Implicits.global
 import scala.concurrent.duration.Duration
 import scala.concurrent.{Await, Future}
 
-// Helper function to evaluate Futures
-def run[T](effect: Future[T]): T = Await.result(effect, Duration.Inf)
-```
-
-**Server**
-
-```scala
 // Define a remote API
 trait Api {
   def hello(some: String, n: Int): Future[String]
@@ -1168,34 +935,23 @@ val api = new Api {
     Future(s"Hello $some $n!")
 }
 
-// Initialize JSON-RPC HTTP & WebSocket server listening on port 9000 for requests to '/api'
-val server = run(
-  Default.rpcServer(9000, "/api").bind(api).init()
-)
-```
+Await.ready(for {
+  // Initialize JSON-RPC HTTP & WebSocket server listening on port 9000 for requests to '/api'
+  server <- Default.rpcServer(9000, "/api").bind(api).init()
 
-**Client**
+  // Initialize JSON-RPC HTTP client for sending POST requests to 'http://localhost:9000/api'
+  client <- Default.rpcClient(new URI("http://localhost:9000/api")).init()
+  remoteApi = client.bind[Api]
 
-```scala
-// Initialize JSON-RPC HTTP client sending POST requests to 'http://localhost:9000/api'
-val client = run(
-  Default.rpcClient(new URI("http://localhost:9000/api")).init()
-)
+  // Call the remote API function dynamically without expecting a response
+  _ <- client.tell("hello")("some" -> "world", "n" -> 1)
 
-// Call the remote API function dynamically without expecting a response
-run(
-  client.tell("hello")("some" -> "world", "n" -> 1)
-)
-```
+  // Close the RPC client
+  _ <- client.close()
 
-**Cleanup**
-
-```scala
-// Close the RPC client
-run(client.close())
-
-// Close the RPC server
-run(server.close())
+  // Close the RPC server
+  _ <- server.close()
+} yield (), Duration.Inf)
 ```
 
 ### [Positional arguments](https://github.com/automorph-org/automorph/tree/main/examples/project/src/main/scala/examples/special/PositionalArguments.scala)
@@ -1208,7 +964,7 @@ libraryDependencies ++= Seq(
 )
 ```
 
-**Imports**
+**Source**
 
 ```scala
 import automorph.{Default, RpcClient}
@@ -1217,13 +973,6 @@ import scala.concurrent.ExecutionContext.Implicits.global
 import scala.concurrent.duration.Duration
 import scala.concurrent.{Await, Future}
 
-// Helper function to evaluate Futures
-def run[T](effect: Future[T]): T = Await.result(effect, Duration.Inf)
-```
-
-**Server**
-
-```scala
 // Define a remote API
 trait Api {
   def hello(some: String, n: Int): Future[String]
@@ -1235,41 +984,30 @@ val api = new Api {
     Future(s"Hello $some $n!")
 }
 
-// Initialize JSON-RPC HTTP & WebSocket server listening on port 9000 for POST requests to '/api'
-val server = run(
-  Default.rpcServer(9000, "/api").bind(api).init(),
-)
-```
-
-**Client**
-
-```scala
 // Configure JSON-RPC to pass arguments by position instead of by name
 val rpcProtocol = Default.rpcProtocol[Default.ClientContext].namedArguments(false)
 
 // Create HTTP client transport sending POST requests to 'http://localhost:9000/api'
 val clientTransport = Default.clientTransport(new URI("http://localhost:9000/api"))
 
-// Setup  JSON-RPC HTTP client
-val client = run(
-  RpcClient.transport(clientTransport).rpcProtocol(rpcProtocol).init()
-)
+Await.ready(for {
+  // Initialize JSON-RPC HTTP & WebSocket server with API discovery listening on port 9000 for POST requests to '/api'
+  server <- Default.rpcServer(9000, "/api").discovery(true).bind(api).init()
 
-// Call the remote API function
-val remoteApi = client.bind[Api]
-println(run(
-  remoteApi.hello("world", 1),
-))
-```
+  // Initialize custom JSON-RPC HTTP client
+  client <- RpcClient.transport(clientTransport).rpcProtocol(rpcProtocol).init()
+  remoteApi = client.bind[Api]
 
-**Cleanup**
+  // Call the remote API function
+  result <- remoteApi.hello("world", 1)
+  _ = println(result)
 
-```scala
-// Close the RPC client
-run(client.close())
+  // Close the RPC client
+  _ <- client.close()
 
-// Close the RPC server
-run(server.close())
+  // Close the RPC server
+  _ <- server.close()
+} yield (), Duration.Inf)
 ```
 
 
@@ -1287,7 +1025,7 @@ libraryDependencies ++= Seq(
 )
 ```
 
-**Imports**
+**Source**
 
 ```scala
 import automorph.Default
@@ -1299,10 +1037,7 @@ import zio.{Task, Unsafe, ZIO}
 def run[T](effect: Task[T]): T = Unsafe.unsafe { implicit unsafe =>
   ZioSystem.defaultRuntime.unsafe.run(effect).toEither.swap.map(_.getCause).swap.toTry.get
 }
-```
 
-**Server**
-```scala
 // Define a remote API
 trait Api {
   def hello(some: String, n: Int): Task[String]
@@ -1321,11 +1056,7 @@ val effectSystem = ZioSystem.default
 val server = run(
   Default.rpcServerCustom(effectSystem, 9000, "/api").bind(api).init()
 )
-```
 
-**Client**
-
-```scala
 // Create ZIO effect system plugin
 val effectSystem = ZioSystem.default
 
@@ -1339,11 +1070,7 @@ val remoteApi = client.bind[Api]
 println(run(
   remoteApi.hello("world", 1)
 ))
-```
 
-**Cleanup**
-
-```scala
 // Close the RPC client
 run(client.close())
 
@@ -1362,7 +1089,7 @@ libraryDependencies ++= Seq(
 )
 ```
 
-**Imports**
+**Source**
 
 ```scala
 import automorph.codec.messagepack.{UpickleMessagePackCodec, UpickleMessagePackCustom}
@@ -1372,12 +1099,6 @@ import scala.concurrent.ExecutionContext.Implicits.global
 import scala.concurrent.duration.Duration
 import scala.concurrent.{Await, Future}
 
-// Helper function to evaluate Futures
-def run[T](effect: Future[T]): T = Await.result(effect, Duration.Inf)
-```
-
-**Data types**
-```scala
 // Introduce custom data types
 case class Record(values: List[String])
 
@@ -1387,11 +1108,7 @@ val messageCodec = UpickleMessagePackCodec[UpickleMessagePackCustom]()
 // Provide custom data type serialization and deserialization logic
 import messageCodec.custom.*
 implicit def recordRw: messageCodec.custom.ReadWriter[Record] = messageCodec.custom.macroRW
-```
 
-**Server**
-
-```scala
 // Define a remote API
 trait Api {
   def hello(some: String, n: Int): Future[Record]
@@ -1411,15 +1128,6 @@ val serverRpcProtocol = Default.rpcProtocol[UpickleMessagePackCodec.Node, messag
 // Create HTTP & WebSocket server transport listening on port 9000 for requests to '/api'
 val serverTransport = Default.serverTransport(9000, "/api")
 
-// Initialize JSON-RPC HTTP & WebSocket server
-val server = run(
-  RpcServer.transport(serverTransport).rpcProtocol(serverRpcProtocol).bind(api).init()
-)
-```
-
-**Client**
-
-```scala
 // Create a client RPC protocol plugin
 val clientRpcProtocol = Default.rpcProtocol[UpickleMessagePackCodec.Node, messageCodec.type, Default.ClientContext](
   messageCodec
@@ -1428,26 +1136,24 @@ val clientRpcProtocol = Default.rpcProtocol[UpickleMessagePackCodec.Node, messag
 // Create HTTP client transport sending POST requests to 'http://localhost:9000/api'
 val clientTransport = Default.clientTransport(new URI("http://localhost:9000/api"))
 
-// Setup JSON-RPC HTTP & WebSocket client
-val client = run(
-  RpcClient.transport(clientTransport).rpcProtocol(clientRpcProtocol).init()
-)
+Await.ready(for {
+  // Initialize custom JSON-RPC HTTP & WebSocket server
+  server <- RpcServer.transport(serverTransport).rpcProtocol(serverRpcProtocol).bind(api).init()
 
-// Call the remote API function
-val remoteApi = client.bind[Api]
-println(run(
-  remoteApi.hello("world", 1)
-))
-```
+  // Initialize custom JSON-RPC HTTP client
+  client <- RpcClient.transport(clientTransport).rpcProtocol(clientRpcProtocol).init()
+  remoteApi = client.bind[Api]
 
-**Cleanup**
+  // Call the remote API function
+  result <- remoteApi.hello("world", 1)
+  _ = println(result)
 
-```scala
-// Close the RPC client
-run(client.close())
+  // Close the RPC client
+  _ <- client.close()
 
-// Close the RPC server
-run(server.close())
+  // Close the RPC server
+  _ <- server.close()
+} yield (), Duration.Inf)
 ```
 
 ### [RPC protocol](https://github.com/automorph-org/automorph/tree/main/examples/project/src/main/scala/examples/integration/RpcProtocol.scala)
@@ -1460,7 +1166,7 @@ libraryDependencies ++= Seq(
 )
 ```
 
-**Imports**
+**Source**
 
 ```scala
 import automorph.protocol.WebRpcProtocol
@@ -1470,13 +1176,6 @@ import scala.concurrent.ExecutionContext.Implicits.global
 import scala.concurrent.duration.Duration
 import scala.concurrent.{Await, Future}
 
-// Helper function to evaluate Futures
-def run[T](effect: Future[T]): T = Await.result(effect, Duration.Inf)
-```
-
-**Server**
-
-```scala
 // Define a remote API
 trait Api {
   def hello(some: String, n: Int): Future[String]
@@ -1496,15 +1195,6 @@ val serverRpcProtocol = WebRpcProtocol[Default.Node, Default.Codec, Default.Serv
 // Create HTTP & WebSocket server transport listening on port 9000 for requests to '/api'
 val serverTransport = Default.serverTransport(9000, "/api")
 
-// Start Web-RPC HTTP & WebSocket server
-val server = run(
-  RpcServer.transport(serverTransport).rpcProtocol(serverRpcProtocol).bind(api).init()
-)
-```
-
-**Client**
-
-```scala
 // Create a client Web-RPC protocol plugin with '/api' path prefix
 val clientRpcProtocol = WebRpcProtocol[Default.Node, Default.Codec, Default.ClientContext](
   Default.messageCodec, "/api"
@@ -1513,26 +1203,24 @@ val clientRpcProtocol = WebRpcProtocol[Default.Node, Default.Codec, Default.Clie
 // Create HTTP & WebSocket client transport sending POST requests to 'http://localhost:9000/api'
 val clientTransport = Default.clientTransport(new URI("http://localhost:9000/api"))
 
-// Setup Web-RPC HTTP client
-val client = run(
-  RpcClient.transport(clientTransport).rpcProtocol(clientRpcProtocol).init()
-)
+Await.ready(for {
+  // Initialize custom JSON-RPC HTTP & WebSocket server
+  server <- RpcServer.transport(serverTransport).rpcProtocol(serverRpcProtocol).bind(api).init()
 
-// Call the remote API function
-val remoteApi = client.bind[Api]
-println(run(
-  remoteApi.hello("world", 1)
-))
-```
+  // Initialize custom JSON-RPC HTTP client
+  client <- RpcClient.transport(clientTransport).rpcProtocol(clientRpcProtocol).init()
+  remoteApi = client.bind[Api]
 
-**Cleanup**
+  // Call the remote API function
+  result <- remoteApi.hello("world", 1)
+  _ = println(result)
 
-```scala
-// Close the RPC client
-run(client.close())
+  // Close the RPC client
+  _ <- client.close()
 
-// Close the RPC server
-run(server.close())
+  // Close the RPC server
+  _ <- server.close()
+} yield (), Duration.Inf)
 ```
 
 
@@ -1548,18 +1236,14 @@ libraryDependencies ++= Seq(
 )
 ```
 
-**Imports**
+**Source**
 
 ```scala
 import automorph.{Default, RpcClient}
 import automorph.system.IdentitySystem
 import automorph.transport.http.client.UrlClient
 import java.net.URI
-```
 
-**Server**
-
-```scala
 // Define a remote API
 trait Api {
   def hello(some: String, n: Int): String
@@ -1573,11 +1257,7 @@ val api = new Api {
 
 // Initialize JSON-RPC HTTP & WebSocket server listening on port 80 for requests to '/api'
 val server = Default.rpcServerCustom(IdentitySystem(), 9000, "/api").bind(api).init()
-```
 
-**Client**
-
-```scala
 // Create standard JRE HTTP & WebSocket client message transport sending POST requests to 'http://localhost:9000/api'
 val clientTransport = UrlClient(IdentitySystem(), new URI("http://localhost:9000/api"))
 
@@ -1589,11 +1269,7 @@ val remoteApi = client.bind[Api]
 println(
   remoteApi.hello("world", 1)
 )
-```
 
-**Cleanup**
-
-```scala
 // Close the RPC client
 client.close()
 
@@ -1611,18 +1287,14 @@ libraryDependencies ++= Seq(
 )
 ```
 
-**Imports**
+**Source**
 
 ```scala
 import automorph.{Default, RpcServer}
 import automorph.system.IdentitySystem
 import automorph.transport.http.server.NanoServer
 import java.net.URI
-```
 
-**Server**
-
-```scala
 // Define a remote API
 trait Api {
   def hello(some: String, n: Int): String
@@ -1639,11 +1311,7 @@ val serverTransport = NanoServer(IdentitySystem(), 9000, "/api")
 
 // Initialize JSON-RPC HTTP & WebSocket server
 val server = RpcServer.transport(serverTransport).rpcProtocol(Default.rpcProtocol).bind(api).init()
-```
 
-**Client**
-
-```scala
 // Initialize JSON-RPC HTTP client sending POST requests to 'http://localhost:9000/api'
 val client = Default.rpcClientCustom(IdentitySystem(), new URI("http://localhost:9000/api"))
 
@@ -1652,11 +1320,7 @@ val remoteApi = client.bind[Api]
 println(
   remoteApi.hello("world", 1)
 )
-```
 
-**Cleanup**
-
-```scala
 // Close the RPC client
 client.close()
 
@@ -1674,7 +1338,7 @@ libraryDependencies ++= Seq(
 )
 ```
 
-**Imports**
+**Source**
 
 ```scala
 import automorph.{Default, Endpoint}
@@ -1685,13 +1349,6 @@ import scala.concurrent.ExecutionContext.Implicits.global
 import scala.concurrent.duration.Duration
 import scala.concurrent.{Await, Future}
 
-// Helper function to evaluate Futures
-def run[T](effect: Future[T]): T = Await.result(effect, Duration.Inf)
-```
-
-**Server**
-
-```scala
 // Define a remote API
 trait Api {
   def hello(some: String, n: Int): Future[String]
@@ -1715,30 +1372,25 @@ val server = Undertow.builder()
   .setHandler(Handlers.path().addPrefixPath("/api", endpoint.adapter))
   .build()
 server.start()
-```
 
-**Client**
+Await.ready(for {
+  // Initialize JSON-RPC HTTP client for sending POST requests to 'http://localhost:9000/api'
+  client <- Default.rpcClient(new URI("http://localhost:9000/api")).init()
+  remoteApi = client.bind[Api]
 
-```scala
-// Initialize JSON-RPC HTTP client sending POST requests to 'http://localhost:9000/api'
-val client = run(
-  Default.rpcClient(new URI("http://localhost:9000/api")).init()
-)
+  // Call the remote API function
+  result <- remoteApi.hello("world", 1)
+  _ = println(result)
 
-// Call the remote API function via proxy
-val remoteApi = client.bind[Api]
-println(run(
-  remoteApi.hello("world", 1)
-))
-```
-
-**Cleanup**
-
-```scala
-// Close the RPC client
-run(client.close())
+  // Close the RPC client
+  _ <- client.close()
+} yield (), Duration.Inf)
 
 // Close the RPC server
+server.stop()
+}
+
+// Stop the Undertow server
 server.stop()
 ```
 
@@ -1752,7 +1404,7 @@ libraryDependencies ++= Seq(
 )
 ```
 
-**Imports**
+**Source**
 
 ```scala
 import automorph.Default
@@ -1761,13 +1413,6 @@ import scala.concurrent.ExecutionContext.Implicits.global
 import scala.concurrent.duration.Duration
 import scala.concurrent.{Await, Future}
 
-// Helper function to evaluate Futures
-def run[T](effect: Future[T]): T = Await.result(effect, Duration.Inf)
-```
-
-**Server**
-
-```scala
 // Define a remote API
 trait Api {
   def hello(some: String, n: Int): Future[String]
@@ -1779,33 +1424,24 @@ val api = new Api {
     Future(s"Hello $some $n!")
 }
 
-// Initialize JSON-RPC HTTP & WebSocket server listening on port 9000 for requests to '/api'
-val server = run(
-  Default.rpcServer(9000, "/api").bind(api).init()
-)
-```
+Await.ready(for {
+  // Initialize JSON-RPC HTTP & WebSocket server listening on port 9000 for requests to '/api'
+  server <- Default.rpcServer(9000, "/api").bind(api).init()
 
-**Client**
+  // Initialize JSON-RPC WebSocket client for sending requests to 'ws://localhost:9000/api'
+  client <- Default.rpcClient(new URI("ws://localhost:9000/api")).init()
+  remoteApi = client.bind[Api]
 
-```scala
-// Initialize JSON-RPC WebSocket client sending requests to 'ws://localhost:9000/api'
-val client = Default.rpcClient(new URI("ws://localhost:9000/api"))
+  // Call the remote API function
+  result <- remoteApi.hello("world", 1)
+  _ = println(result)
 
-// Call the remote API function via proxy
-val remoteApi = client.bind[Api]
-println(run(
-  remoteApi.hello("world", 1),
-))
-```
+  // Close the RPC client
+  _ <- client.close()
 
-**Cleanup**
-
-```scala
-// Close the RPC client
-run(client.close())
-
-// Close the RPC server
-run(server.close())
+  // Close the RPC server
+  _ <- server.close()
+} yield (), Duration.Inf)
 ```
 
 ### [AMQP transport](https://github.com/automorph-org/automorph/tree/main/examples/project/src/main/scala/examples/transport/AmqpTransport.scala)
@@ -1820,7 +1456,7 @@ libraryDependencies ++= Seq(
 )
 ```
 
-**Imports**
+**Source**
 
 ```scala
 import automorph.{Default, RpcClient, RpcServer}
@@ -1836,13 +1472,6 @@ import scala.jdk.CollectionConverters.IteratorHasAsScala
 import scala.sys.process.Process
 import scala.util.Try
 
-// Helper function to evaluate Futures
-def run[T](effect: Future[T]): T = Await.result(effect, Duration.Inf)
-```
-
-**Server**
-
-```scala
 // Define a remote API
 trait Api {
   def hello(some: String, n: Int): Future[String]
@@ -1863,38 +1492,32 @@ broker.start()
 // Create RabbitMQ AMQP server transport consuming requests from the 'api' queue
 val serverTransport = RabbitMqServer(Default.effectSystem, new URI("amqp://localhost:9000"), Seq("api"))
 
-// Start RabbitMQ AMQP JSON-RPC server
+// Initialize RabbitMQ AMQP JSON-RPC server
 val server = run(
   RpcServer.transport(serverTransport).rpcProtocol(Default.rpcProtocol).bind(api).init()
 )
-```
 
-**Client**
-
-```scala
 // Create RabbitMQ AMQP client message transport publishing requests to the 'api' queue
 val clientTransport = RabbitMqClient(new URI("amqp://localhost:9000"), "api", Default.effectSystem)
 
-// Setup JSON-RPC HTTP & WebSocket client
-val client = run(
-  RpcClient.transport(clientTransport).rpcProtocol(Default.rpcProtocol).init()
-)
+Await.ready(for {
+  // Initialize custom JSON-RPC AMQP server
+  server <- RpcServer.transport(serverTransport).rpcProtocol(Default.rpcProtocol).bind(api).init()
 
-// Call the remote API function
-val remoteApi = client.bind[Api]
-println(run(
-  remoteApi.hello("world", 1)
-))
-```
+  // Initialize custom JSON-RPC AMQP client
+  client <- RpcClient.transport(clientTransport).rpcProtocol(Default.rpcProtocol).init()
+  remoteApi = client.bind[Api]
 
-**Cleanup**
+  // Call the remote API function
+  result <- remoteApi.hello("world", 1)
+  _ = println(result)
 
-```scala
-// Close the RPC client
-run(client.close())
+  // Close the RPC client
+  _ <- client.close()
 
-// Close the RPC server
-run(server.close())
+  // Close the RPC server
+  _ <- server.close()
+} yield (), Duration.Inf)
 
 // Stop embedded RabbitMQ broker
 broker.stop()

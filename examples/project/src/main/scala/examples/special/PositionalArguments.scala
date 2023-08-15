@@ -10,9 +10,6 @@ private[examples] object PositionalArguments {
   @scala.annotation.nowarn
   def main(arguments: Array[String]): Unit = {
 
-    // Helper function to evaluate Futures
-    def run[T](effect: Future[T]): T = Await.result(effect, Duration.Inf)
-
     // Define a remote API
     trait Api {
       def hello(some: String, n: Int): Future[String]
@@ -24,32 +21,29 @@ private[examples] object PositionalArguments {
         Future(s"Hello $some $n!")
     }
 
-    // Initialize JSON-RPC HTTP & WebSocket server listening on port 9000 for POST requests to '/api'
-    val server = run(
-      Default.rpcServer(9000, "/api").bind(api).init(),
-    )
-
     // Configure JSON-RPC to pass arguments by position instead of by name
     val rpcProtocol = Default.rpcProtocol[Default.ClientContext].namedArguments(false)
 
     // Create HTTP client transport sending POST requests to 'http://localhost:9000/api'
     val clientTransport = Default.clientTransport(new URI("http://localhost:9000/api"))
 
-    // Initialize JSON-RPC HTTP client
-    val client = run(
-      RpcClient.transport(clientTransport).rpcProtocol(rpcProtocol).init()
-    )
+    Await.ready(for {
+      // Initialize JSON-RPC HTTP & WebSocket server listening on port 9000 for requests to '/api'
+      server <- Default.rpcServer(9000, "/api").bind(api).init()
 
-    // Call the remote API function
-    val remoteApi = client.bind[Api]
-    println(run(
-      remoteApi.hello("world", 1),
-    ))
+      // Initialize custom JSON-RPC HTTP client
+      client <- RpcClient.transport(clientTransport).rpcProtocol(rpcProtocol).init()
+      remoteApi = client.bind[Api]
 
-    // Close the RPC client
-    run(client.close())
+      // Call the remote API function
+      result <- remoteApi.hello("world", 1)
+      _ = println(result)
 
-    // Close the RPC server
-    run(server.close())
+      // Close the RPC client
+      _ <- client.close()
+
+      // Close the RPC server
+      _ <- server.close()
+    } yield (), Duration.Inf)
   }
 }

@@ -7,7 +7,6 @@ import java.sql.SQLException
 import scala.concurrent.ExecutionContext.Implicits.global
 import scala.concurrent.duration.Duration
 import scala.concurrent.{Await, Future}
-import scala.util.Try
 
 private[examples] object HttpStatusCode {
   @scala.annotation.nowarn
@@ -33,26 +32,23 @@ private[examples] object HttpStatusCode {
       case e => HttpContext.defaultExceptionToStatusCode(e)
     }
 
-    // Start custom JSON-RPC HTTP & WebSocket server listening on port 9000 for requests to '/api'
-    val server = run(
-      Default.rpcServer(9000, "/api", mapException = mapException).bind(api).init()
-    )
+    Await.ready(for {
+      // Initialize custom JSON-RPC HTTP & WebSocket server listening on port 9000 for requests to '/api'
+      server <- Default.rpcServer(9000, "/api", mapException = mapException).bind(api).init()
 
-    // Initialize JSON-RPC HTTP client for sending POST requests to 'http://localhost:9000/api'
-    val client = run(
-      Default.rpcClient(new URI("http://localhost:9000/api")).init()
-    )
+      // Initialize JSON-RPC HTTP client for sending POST requests to 'http://localhost:9000/api'
+      client <- Default.rpcClient(new URI("http://localhost:9000/api")).init()
+      remoteApi = client.bind[Api]
 
-    // Call the remote API function and fail with InvalidRequestException
-    val remoteApi = client.bind[Api]
-    println(Try(run(
-      remoteApi.hello("world", 1)
-    )).failed.get)
+      // Call the remote API function and fail with InvalidRequestException
+      error <- remoteApi.hello("world", 1).failed
+      _ = println(error)
 
-    // Close the RPC client
-    run(client.close())
+      // Close the RPC client
+      _ <- client.close()
 
-    // Close the RPC server
-    run(server.close())
+      // Close the RPC server
+      _ <- server.close()
+    } yield (), Duration.Inf)
   }
 }

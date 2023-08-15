@@ -18,9 +18,6 @@ private[examples] case object AmqpTransport {
   def main(arguments: Array[String]): Unit = {
     if (Try(Process("erl -eval 'halt()' -noshell").! == 0).getOrElse(false)) {
 
-      // Helper function to evaluate Futures
-      def run[T](effect: Future[T]): T = Await.result(effect, Duration.Inf)
-
       // Define a remote API
       trait Api {
         def hello(some: String, n: Int): Future[String]
@@ -41,30 +38,27 @@ private[examples] case object AmqpTransport {
       // Create RabbitMQ AMQP server transport consuming requests from the 'api' queue
       val serverTransport = RabbitMqServer(Default.effectSystem, new URI("amqp://localhost:9000"), Seq("api"))
 
-      // Start JSON-RPC AMQP server
-      val server = run(
-        RpcServer.transport(serverTransport).rpcProtocol(Default.rpcProtocol).bind(api).init()
-      )
-
       // Create RabbitMQ AMQP client message transport publishing requests to the 'api' queue
       val clientTransport = RabbitMqClient(new URI("amqp://localhost:9000"), "api", Default.effectSystem)
 
-      // Setup JSON-RPC AMQP client
-      val client = run(
-        RpcClient.transport(clientTransport).rpcProtocol(Default.rpcProtocol).init()
-      )
+      Await.ready(for {
+        // Initialize custom JSON-RPC AMQP server
+        server <- RpcServer.transport(serverTransport).rpcProtocol(Default.rpcProtocol).bind(api).init()
 
-      // Call the remote API function
-      val remoteApi = client.bind[Api]
-      println(run(
-        remoteApi.hello("world", 1)
-      ))
+        // Initialize custom JSON-RPC AMQP client
+        client <- RpcClient.transport(clientTransport).rpcProtocol(Default.rpcProtocol).init()
+        remoteApi = client.bind[Api]
 
-      // Close the RPC client
-      run(client.close())
+        // Call the remote API function
+        result <- remoteApi.hello("world", 1)
+        _ = println(result)
 
-      // Close the RPC server
-      run(server.close())
+        // Close the RPC client
+        _ <- client.close()
+
+        // Close the RPC server
+        _ <- server.close()
+      } yield (), Duration.Inf)
 
       // Stop embedded RabbitMQ broker
       broker.stop()

@@ -11,7 +11,6 @@ private[examples] object HttpRequest {
 
     // Define client view of a remote API
     trait Api {
-
       // Accept HTTP request context consumed by the client message transport plugin
       def hello(message: String)(implicit http: ClientContext): String
     }

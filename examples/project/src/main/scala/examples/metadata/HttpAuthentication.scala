@@ -12,14 +12,12 @@ private[examples] object HttpAuthentication {
 
     // Define client view of a remote API
     trait Api {
-
       // Accept HTTP request context consumed by the client message transport plugin
       def hello(message: String)(implicit http: ClientContext): String
     }
 
     // Create server implementation of the remote API
     class ApiImpl {
-
       // Accept HTTP request context provided by the server message transport plugin
       def hello(message: String)(implicit httpRequest: ServerContext): String =
         httpRequest.authorization("Bearer") match {

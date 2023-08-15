@@ -10,9 +10,6 @@ private[examples] object OneWayMessage {
   @scala.annotation.nowarn
   def main(arguments: Array[String]): Unit = {
 
-    // Helper function to evaluate Futures
-    def run[T](effect: Future[T]): T = Await.result(effect, Duration.Inf)
-
     // Define a remote API
     trait Api {
       def hello(some: String, n: Int): Future[String]
@@ -24,25 +21,22 @@ private[examples] object OneWayMessage {
         Future(s"Hello $some $n!")
     }
 
-    // Initialize JSON-RPC HTTP & WebSocket server listening on port 9000 for requests to '/api'
-    val server = run(
-      Default.rpcServer(9000, "/api").bind(api).init()
-    )
+    Await.ready(for {
+      // Initialize JSON-RPC HTTP & WebSocket server listening on port 9000 for requests to '/api'
+      server <- Default.rpcServer(9000, "/api").bind(api).init()
 
-    // Initialize JSON-RPC HTTP client for sending POST requests to 'http://localhost:9000/api'
-    val client = run(
-      Default.rpcClient(new URI("http://localhost:9000/api")).init()
-    )
+      // Initialize JSON-RPC HTTP client for sending POST requests to 'http://localhost:9000/api'
+      client <- Default.rpcClient(new URI("http://localhost:9000/api")).init()
+      remoteApi = client.bind[Api]
 
-    // Call the remote API function dynamically without expecting a response
-    run(
-      client.tell("hello")("some" -> "world", "n" -> 1)
-    )
+      // Call the remote API function dynamically without expecting a response
+      _ <- client.tell("hello")("some" -> "world", "n" -> 1)
 
-    // Close the RPC client
-    run(client.close())
+      // Close the RPC client
+      _ <- client.close()
 
-    // Close the RPC server
-    run(server.close())
+      // Close the RPC server
+      _ <- server.close()
+    } yield (), Duration.Inf)
   }
 }

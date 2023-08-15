@@ -12,9 +12,6 @@ private[examples] object DataSerialization {
   @scala.annotation.nowarn
   def main(arguments: Array[String]): Unit = {
 
-    // Helper function to evaluate Futures
-    def run[T](effect: Future[T]): T = Await.result(effect, Duration.Inf)
-
     // Introduce custom data types
     sealed abstract class State
 
@@ -49,26 +46,23 @@ private[examples] object DataSerialization {
         Future(record.copy(value = s"Hello $some!"))
     }
 
-    // Initialize JSON-RPC HTTP & WebSocket server listening on port 9000 for requests to '/api'
-    val server = run(
-      Default.rpcServer(9000, "/api").bind(api).init()
-    )
+    Await.ready(for {
+      // Initialize JSON-RPC HTTP & WebSocket server listening on port 9000 for requests to '/api'
+      server <- Default.rpcServer(9000, "/api").bind(api).init()
 
-    // Initialize JSON-RPC HTTP client for sending POST requests to 'http://localhost:9000/api'
-    val client = run(
-      Default.rpcClient(new URI("http://localhost:9000/api")).init()
-    )
+      // Initialize JSON-RPC HTTP client for sending POST requests to 'http://localhost:9000/api'
+      client <- Default.rpcClient(new URI("http://localhost:9000/api")).init()
+      remoteApi = client.bind[Api]
 
-    // Call the remote API function
-    val remoteApi = client.bind[Api]
-    println(run(
-      remoteApi.hello("world", Record("test", State.On))
-    ))
+      // Call the remote API function
+      result <- remoteApi.hello("world", Record("test", State.On))
+      _ = println(result)
 
-    // Close the RPC client
-    run(client.close())
+      // Close the RPC client
+      _ <- client.close()
 
-    // Close the RPC server
-    run(server.close())
+      // Close the RPC server
+      _ <- server.close()
+    } yield (), Duration.Inf)
   }
 }

@@ -25,31 +25,27 @@ private[examples] object AsynchronousCall {
         Future(s"Hello $some $n!")
     }
 
-    // Initialize JSON-RPC HTTP & WebSocket server listening on port 9000 for POST or PUT requests to '/api'
-    val server = run(
-      Default.rpcServer(9000, "/api", Seq(HttpMethod.Post, HttpMethod.Put)).bind(api).init()
-    )
+    Await.ready(for {
+      // Initialize JSON-RPC HTTP & WebSocket server listening on port 9000 for POST or PUT requests to '/api'
+      server <- Default.rpcServer(9000, "/api", Seq(HttpMethod.Post, HttpMethod.Put)).bind(api).init()
 
-    // Initialize JSON-RPC HTTP client for sending PUT requests to 'http://localhost:9000/api'
-    val client = run(
-      Default.rpcClient(new URI("http://localhost:9000/api"), HttpMethod.Put).init()
-    )
+      // Initialize JSON-RPC HTTP client for sending POST requests to 'http://localhost:9000/api'
+      client <- Default.rpcClient(new URI("http://localhost:9000/api")).init()
+      remoteApi = client.bind[Api]
 
-    // Call the remote API function statically
-    val remoteApi = client.bind[Api]
-    println(run(
-      remoteApi.hello("world", 1)
-    ))
+      // Call the remote API function statically
+      result <- remoteApi.hello("world", 1)
+      _ = println(result)
 
-    // Call the remote API function dynamically
-    println(run(
-      client.call[String]("hello")("some" -> "world", "n" -> 1)
-    ))
+      // Call the remote API function dynamically
+      dynamicResult <- client.call[String]("hello")("some" -> "world", "n" -> 1)
+      _ = println(dynamicResult)
 
-    // Close the RPC client
-    run(client.close())
+      // Close the RPC client
+      _ <- client.close()
 
-    // Close the RPC server
-    run(server.close())
+      // Close the RPC server
+      _ <- server.close()
+    } yield (), Duration.Inf)
   }
 }

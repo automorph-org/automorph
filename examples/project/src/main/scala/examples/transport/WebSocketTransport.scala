@@ -10,9 +10,6 @@ private[examples] case object WebSocketTransport {
   @scala.annotation.nowarn
   def main(arguments: Array[String]): Unit = {
 
-    // Helper function to evaluate Futures
-    def run[T](effect: Future[T]): T = Await.result(effect, Duration.Inf)
-
     // Define a remote API
     trait Api {
       def hello(some: String, n: Int): Future[String]
@@ -24,24 +21,23 @@ private[examples] case object WebSocketTransport {
         Future(s"Hello $some $n!")
     }
 
-    // Initialize JSON-RPC HTTP & WebSocket server listening on port 9000 for requests to '/api'
-    val server = run(
-      Default.rpcServer(9000, "/api").bind(api).init()
-    )
+    Await.ready(for {
+      // Initialize JSON-RPC HTTP & WebSocket server listening on port 9000 for requests to '/api'
+      server <- Default.rpcServer(9000, "/api").bind(api).init()
 
-    // Initialize JSON-RPC WebSocket client for sending requests to 'ws://localhost:9000/api'
-    val client = Default.rpcClient(new URI("ws://localhost:9000/api"))
+      // Initialize JSON-RPC HTTP & WebSocket client for sending requests to 'ws://localhost:9000/api'
+      client <- Default.rpcClient(new URI("ws://localhost:9000/api")).init()
+      remoteApi = client.bind[Api]
 
-    // Call the remote API function via proxy
-    val remoteApi = client.bind[Api]
-    println(run(
-      remoteApi.hello("world", 1),
-    ))
+      // Call the remote API function
+      result <- remoteApi.hello("world", 1)
+      _ = println(result)
 
-    // Close the RPC client
-    run(client.close())
+      // Close the RPC client
+      _ <- client.close()
 
-    // Close the RPC server
-    run(server.close())
+      // Close the RPC server
+      _ <- server.close()
+    } yield (), Duration.Inf)
   }
 }

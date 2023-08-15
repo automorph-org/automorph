@@ -122,8 +122,8 @@ Await.ready(for {
   remoteApi = client.bind[Api]
 
   // Call the remote API function statically
-  staticResult <- remoteApi.hello("world", 1)
-  _ = println(staticResult)
+  result <- remoteApi.hello("world", 1)
+  _ = println(result)
 
   // Close the RPC client
   _ <- client.close()
@@ -147,8 +147,8 @@ Await.ready(for {
   remoteApi = client.bind[Api]
 
   // Call the remote API function dynamically
-  dynamicResult <- client.call[String]("hello")("some" -> "world", "n" -> 1)
-  _ = println(dynamicResult)
+  result <- client.call[String]("hello")("some" -> "world", "n" -> 1)
+  _ = println(result)
 
   // Close the RPC client
   _ <- client.close()
