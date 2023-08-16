@@ -7,7 +7,7 @@ import automorph.transport.local.endpoint.LocalEndpoint.Context
 /**
  * Local endpoint transport plugin.
  *
- * Processes RPC API requests directly locally to its RPC request handler.
+ * Passes RPC API requests directly to the specified RPC request handler.
  *
  * @constructor
  *   Creates a local endpoint transport plugin
