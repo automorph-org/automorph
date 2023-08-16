@@ -5,7 +5,8 @@ import automorph.spi.codec.MessageCodecMeta
 /**
  * Structured message format codec plugin.
  *
- * The underlying data format must support storing arbitrarily nested structures of basic data types.
+ * The underlying data format must support arbitrarily nested structures of basic data types.
+ * Given library must provide intermediate representation of structured data (i.e. document object model).
  *
  * @tparam Node
  *   message format node type
