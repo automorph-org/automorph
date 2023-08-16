@@ -4,7 +4,7 @@ sidebar_position: 7
 
 # Examples
 
-Most of the following examples are using [default plugins](Plugins).
+The following examples typically use [default plugins](Plugins) but will work equally well with other plugins.
 
 
 ## Basic
