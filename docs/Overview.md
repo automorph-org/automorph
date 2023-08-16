@@ -8,14 +8,16 @@ sidebar_position: 1
 for invoking and exposing remote APIs in a few lines of code.
 
 
-## Goals
+## Design goals
 
-* Enable **remote access** to **APIs** while automatically **creating the intermediate layer**
-* Support use of **dynamic message payload** and access to **transport protocol metadata**
-* Provide smooth **integration** with existing **applications** and related **libraries**
+* Enable **remote API calls** with **no boilerplate** and **minimal limitations**
+* Ensure **no technical changes** are required for **existing projects**
+* Facilitate **customization** and **extension** of library features
+* Allow use of **dynamic message payload** in remote API calls
+* Allow access to **transport protocol metadata** for remote API calls
 
 
-## Requirements
+## Platform requirements
 
 * [Scala](https://www.scala-lang.org/) 3.3+ or 2.13+
 * [Java Runtime Environment](https://openjdk.java.net/) 11+

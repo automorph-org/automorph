@@ -300,11 +300,11 @@ val compileScalac2Options = commonScalacOptions ++ Seq(
 )
 val docScalac3Options = compileScalac3Options ++ Seq(
   s"-source-links:src=github://$repositoryPath/master",
-  s"-skip-by-id:$projectName.client,$projectName.handler"
+  s"-skip-by-id:$projectName.client.meta,$projectName.handler.meta"
 )
 val docScalac2Options = compileScalac2Options ++ Seq(
   "-skip-packages",
-  s"$projectName.client:$projectName.handler"
+  s"$projectName.client.meta:$projectName.handler.meta"
 )
 ThisBuild / scalacOptions ++= (CrossVersion.partialVersion(scalaVersion.value) match {
   case Some((3, _)) => compileScalac3Options ++ Seq(

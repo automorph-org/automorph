@@ -47,32 +47,6 @@ Web-RPC can be understood to be any of the following:
 * Meta-data in HTTP headers
 
 
-## Fairly anticipated questions (FAQ)
-
-### When to use Web-RPC ?
-
-In case any of the following remote API concerns need to be addressed with minimal effort:
-* Caching GET requests
-* Using URLs to pass arguments
-* External constraints requiring a simple REST-style API with RPC semantics
- 
-In other situations it is [probably](https://youtu.be/XyJh3qKjSMk?t=53) better to use an established remote call
-protocol such as:
-* [JSON-RPC](https://en.wikipedia.org/wiki/JSON-RPC)
-* [Avro](https://en.wikipedia.org/wiki/Apache_Avro)
-* [GraphQL](https://en.wikipedia.org/wiki/GraphQL)
-
-### Can Web-RPC be used in without a specific Web-RPC library ?
-
-Yes. Any REST client or server library will suffice. However, using a specific Web-RPC library minimizes the
-implementation effort.
-
-### Why call it a REST-style protocol when it is conceptually unrelated to REST ?
-
-To illustrate that it provides remote API authors with a solution with capabilities equivalent to and compatible with
-typical REST API protocols but does so by openly embracing RPC principles.
-
-
 ## Request
 
 ### HTTP method
