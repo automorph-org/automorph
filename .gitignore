@@ -1,6 +1,7 @@
 # Build
 target
 dist
+.scala-build
 
 # Tools
 *.swp
