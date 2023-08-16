@@ -60,7 +60,7 @@ LOG_LEVEL=DEBUG sbt '+ test'
 LOG_CODE=true sbt '+ test'
 ```
 
-### Test logs
+### Test log file
 
 ```
 less target/test.log
