@@ -113,8 +113,8 @@ const features = [
     description: (
         <>
           <ul style={style.list}>
-            <li><a href="docs/Examples#synchronous-call">Synchronous</a></li>
             <li><a href="docs/Examples#asynchronous-call">Asynchronous</a></li>
+            <li><a href="docs/Examples#synchronous-call">Synchronous</a></li>
             <li><a href="docs/Examples#effect-system">Monadic</a></li>
           </ul>
         </>

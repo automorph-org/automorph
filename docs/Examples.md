@@ -9,58 +9,6 @@ The following examples typically use [default plugins](Plugins) but will work eq
 
 ## Basic
 
-### [Synchronous call](https://github.com/automorph-org/automorph/tree/main/examples/project/src/main/scala/examples/basic/SynchronousCall.scala)
-
-**Build**
-
-```scala
-libraryDependencies ++= Seq(
-  "org.automorph" %% "automorph-default" % "@PROJECT_VERSION@"
-)
-```
-
-**Source**
-
-```scala
-import automorph.Default
-import automorph.system.IdentitySystem
-import java.net.URI
-
-// Define a remote API
-trait Api {
-  def hello(some: String, n: Int): String
-}
-
-// Create server implementation of the remote API
-val api = new Api {
-  def hello(some: String, n: Int): String =
-    s"Hello $some $n!"
-}
-
-// Initialize JSON-RPC HTTP & WebSocket server listening on port 9000 for POST requests to '/api'
-val server = Default.rpcServerCustom(IdentitySystem(), 9000, "/api").bind(api).init()
-
-// Initialize JSON-RPC HTTP client sending POST requests to 'http://localhost:9000/api'
-val client = Default.rpcClientCustom(IdentitySystem(), new URI("http://localhost:9000/api")).init()
-
-// Call the remote API function statically
-val remoteApi = client.bind[Api]
-println(
-  remoteApi.hello("world", 1)
-)
-
-// Call the remote API function dynamically
-println(
-  client.call[String]("hello")("some" -> "world", "n" -> 1)
-)
-
-// Close the RPC client
-client.close()
-
-// Close the RPC server
-server.close()
-```
-
 ### [Asynchronous call](https://github.com/automorph-org/automorph/tree/main/examples/project/src/main/scala/examples/basic/AsynchronousCall.scala)
 
 **Build**
@@ -114,6 +62,58 @@ Await.ready(for {
   // Close the RPC server
   _ <- server.close()
 } yield (), Duration.Inf)
+```
+
+### [Synchronous call](https://github.com/automorph-org/automorph/tree/main/examples/project/src/main/scala/examples/basic/SynchronousCall.scala)
+
+**Build**
+
+```scala
+libraryDependencies ++= Seq(
+  "org.automorph" %% "automorph-default" % "@PROJECT_VERSION@"
+)
+```
+
+**Source**
+
+```scala
+import automorph.Default
+import automorph.system.IdentitySystem
+import java.net.URI
+
+// Define a remote API
+trait Api {
+  def hello(some: String, n: Int): String
+}
+
+// Create server implementation of the remote API
+val api = new Api {
+  def hello(some: String, n: Int): String =
+    s"Hello $some $n!"
+}
+
+// Initialize JSON-RPC HTTP & WebSocket server listening on port 9000 for POST requests to '/api'
+val server = Default.rpcServerCustom(IdentitySystem(), 9000, "/api").bind(api).init()
+
+// Initialize JSON-RPC HTTP client sending POST requests to 'http://localhost:9000/api'
+val client = Default.rpcClientCustom(IdentitySystem(), new URI("http://localhost:9000/api")).init()
+
+// Call the remote API function statically
+val remoteApi = client.bind[Api]
+println(
+  remoteApi.hello("world", 1)
+)
+
+// Call the remote API function dynamically
+println(
+  client.call[String]("hello")("some" -> "world", "n" -> 1)
+)
+
+// Close the RPC client
+client.close()
+
+// Close the RPC server
+server.close()
 ```
 
 ### [Multiple APIs](https://github.com/automorph-org/automorph/tree/main/examples/project/src/main/scala/examples/basic/MultipleApis.scala)
