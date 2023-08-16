@@ -6,6 +6,8 @@ sidebar_position: 2
 
 Expose and call a remote JSON-RPC API over HTTP.
 
+Please also review additional [examples](Examples) and [API](https://automorph.org/api/automorph.html) documentation.
+
 
 ## Script
 
@@ -33,7 +35,7 @@ Application logs are saved to `target/main.log` using the `LOG_LEVEL` environmen
 
 ## Example project
 
-Clone the the [example project](@REPOSITORY_URL@/tree/main/examples/project) and run any of the examples:
+Clone the [example project](@REPOSITORY_URL@/tree/main/examples/project) and run any of the examples:
 
 ```shell
 git clone --depth 1 @REPOSITORY_URL@
