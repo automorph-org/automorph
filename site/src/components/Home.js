@@ -54,7 +54,7 @@ const features = [
     link: 'docs/Examples#metadata',
     description: (
         <>
-          Manage <a
+          Use <a
             href="docs/Examples#dynamic-payload">dynamic message payload</a> and transparently access <a
             href="docs/Examples#metadata">transport protocol metadata</a>.
         </>
