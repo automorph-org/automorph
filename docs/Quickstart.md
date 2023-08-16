@@ -85,17 +85,24 @@ trait Api {
 }
 
 // Create server implementation of the remote API
-val api = new Api {
+class ApiImpl {
   def hello(some: String, n: Int): Future[String] =
     Future(s"Hello $some $n!")
 }
+val api = new ApiImpl
+
+// Configure JSON-RPC HTTP & WebSocket server to listen on port 9000 for requests to '/api'
+val server = Default.rpcServer(9000, "/api")
+
+// Expose the server API implementation to be accessible remotely
+val boundServer = server.bind(api)
 
 Await.ready(for {
-  // Initialize JSON-RPC HTTP & WebSocket server listening on port 9000 for requests to '/api'
-  server <- Default.rpcServer(9000, "/api").bind(api).init()
+  // Start the JSON-RPC server
+  activeServer <- boundServer.init()
 
-  // Close the RPC server
-  _ <- server.close()
+  // Stop the JSON-RPC server
+  _ <- activeServer.close()
 } yield (), Duration.Inf)
 ```
 
@@ -116,17 +123,22 @@ trait Api {
   def hello(some: String, n: Int): Future[String]
 }
 
+// Configure JSON-RPC HTTP client to send POST requests to 'http://localhost:9000/api'
+val client = Default.rpcClient(new URI("http://localhost:9000/api"))
+
+// Create proxy for the remote API to be accessible locally
+val remoteApi = client.bind[Api]
+
 Await.ready(for {
-  // Initialize JSON-RPC HTTP client for sending POST requests to 'http://localhost:9000/api'
-  client <- Default.rpcClient(new URI("http://localhost:9000/api")).init()
-  remoteApi = client.bind[Api]
+  // Initialize the JSON-RPC client
+  activeClient <- client.init()
 
   // Call the remote API function statically
   result <- remoteApi.hello("world", 1)
   _ = println(result)
 
-  // Close the RPC client
-  _ <- client.close()
+  // Close the JSON-RPC client
+  _ <- activeClient.close()
 } yield (), Duration.Inf)
 ```
 
@@ -141,17 +153,19 @@ import scala.concurrent.ExecutionContext.Implicits.global
 import scala.concurrent.duration.Duration
 import scala.concurrent.{Await, Future}
 
+// Configure JSON-RPC HTTP client to send POST requests to 'http://localhost:9000/api'
+val client = Default.rpcClient(new URI("http://localhost:9000/api"))
+
 Await.ready(for {
-  // Initialize JSON-RPC HTTP client for sending POST requests to 'http://localhost:9000/api'
-  client <- Default.rpcClient(new URI("http://localhost:9000/api")).init()
-  remoteApi = client.bind[Api]
+  // Initialize the JSON-RPC client
+  activeClient <- client.init()
 
   // Call the remote API function dynamically
   result <- client.call[String]("hello")("some" -> "world", "n" -> 1)
   _ = println(result)
 
-  // Close the RPC client
-  _ <- client.close()
+  // Close the JSON-RPC client
+  _ <- activeClient.close()
 } yield (), Duration.Inf)
 ```
 
