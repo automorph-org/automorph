@@ -4,7 +4,10 @@ sidebar_position: 7
 
 # Examples
 
-The following examples typically use [default plugins](Plugins) but will work equally well with other plugins.
+The following examples illustrate how to address various remote call use-cases. 
+
+The examples typically use [default plugins](Plugins) and focus on demonstrating specific features
+but will work with any other plugins or feature combinations.
 
 
 ## Basic
