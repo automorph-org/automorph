@@ -8,7 +8,9 @@ Web-RPC is a very simple RPC protocol which enables all the flexibility typicall
 boilerplate while allowing reuse of the existing REST API tools.
 
 
-## Motivation
+## Overview
+
+### Motivation
 
 [REST](https://en.wikipedia.org/wiki/Representational_state_transfer) as a theoretical concept is deemed to be
 independent of specific data formats, transport protocols or even calling conventions. However, the vast majority of
@@ -25,7 +27,7 @@ messaging protocols need to solve. Consequently, creation of a typical REST API 
 equivalent to designing and implementing an unique custom RPC protocol.
 
 
-## Goals
+### Goals
 
 Web-RPC is an attempt to demonstrate that the REST-compatible remote API functionality required by web applications
 and online services can be achieved without effectivelly ending up designing a RPC protocol for each API.
@@ -36,7 +38,7 @@ Web-RPC can be understood to be any of the following:
 * REST-style protocol prescribing a standard way to represent data and meta-data in REST API requests and responses
 
 
-## Features
+### Features
 
 * HTTP as transport protocol
 * Structured messages in JSON format
