@@ -1,4 +1,4 @@
-package examples.errors
+package examples.errorhandling
 
 import automorph.Default
 import automorph.transport.http.HttpContext

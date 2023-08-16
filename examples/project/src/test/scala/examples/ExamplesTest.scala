@@ -4,7 +4,7 @@ import examples.metadata.{HttpAuthentication, HttpRequest, HttpResponse}
 import examples.basic.{AsynchronousCall, MultipleApis, OptionalParameters, SynchronousCall}
 import examples.special.{ApiDiscovery, DynamicPayload, OneWayMessage, PositionalArguments}
 import examples.customization.{ClientFunctionNames, DataSerialization, ServerFunctionNames}
-import examples.errors.{ClientExceptions, HttpStatusCode, ServerErrors}
+import examples.errorhandling.{ClientErrors, HttpStatusCode, ServerErrors}
 import examples.integration.{EffectSystem, MessageCodec, RpcProtocol}
 import examples.transport.{AmqpTransport, ClientTransport, EndpointTransport, ServerTransport, WebSocketTransport}
 import test.base.{BaseTest, Mutex}
@@ -40,7 +40,7 @@ class ExamplesTest extends BaseTest with Mutex {
     }
     "Errors" - {
       Seq[Any](
-        ClientExceptions,
+        ClientErrors,
         ServerErrors,
         HttpStatusCode,
       ).foreach { instance =>

@@ -1,4 +1,4 @@
-package examples.errors
+package examples.errorhandling
 
 import automorph.protocol.jsonrpc.ErrorType.InvalidRequest
 import automorph.protocol.jsonrpc.JsonRpcException

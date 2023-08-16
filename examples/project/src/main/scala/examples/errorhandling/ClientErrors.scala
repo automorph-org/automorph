@@ -1,4 +1,4 @@
-package examples.errors
+package examples.errorhandling
 
 import automorph.{RpcClient, Default}
 import java.net.URI
@@ -7,7 +7,7 @@ import scala.concurrent.ExecutionContext.Implicits.global
 import scala.concurrent.duration.Duration
 import scala.concurrent.{Await, Future}
 
-private[examples] object ClientExceptions {
+private[examples] object ClientErrors {
   @scala.annotation.nowarn
   def main(arguments: Array[String]): Unit = {
 
