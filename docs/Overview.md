@@ -11,7 +11,7 @@ for invoking and exposing remote APIs in a few lines of code.
 ## Goals
 
 * Enable **remote access** to **APIs** while automatically **creating the intermediate layer**
-* Support managing **dynamic message payload** and accessing **transport protocol metadata**
+* Support use of **dynamic message payload** and access to **transport protocol metadata**
 * Provide smooth **integration** with existing **applications** and related **libraries**
 
 
