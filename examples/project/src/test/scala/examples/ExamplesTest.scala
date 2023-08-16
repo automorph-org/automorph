@@ -1,10 +1,10 @@
 package examples
 
-import examples.metadata.{HttpAuthentication, HttpRequest, HttpResponse}
+import examples.metadata.{HttpAuthentication, HttpRequestProperties, HttpResponseProperties}
 import examples.basic.{AsynchronousCall, MultipleApis, OptionalParameters, SynchronousCall}
 import examples.special.{ApiDiscovery, DynamicPayload, OneWayMessage, PositionalArguments}
-import examples.customization.{ClientFunctionNames, DataSerialization, ServerFunctionNames}
-import examples.errorhandling.{ClientErrors, HttpStatusCode, ServerErrors}
+import examples.customization.{ClientFunctionNames, DataStructureSerialization, ServerFunctionNames}
+import examples.errorhandling.{ClientErrorMapping, HttpStatusCode, ServerErrorMapping}
 import examples.integration.{EffectSystem, MessageCodec, RpcProtocol}
 import examples.transport.{AmqpTransport, ClientTransport, EndpointTransport, ServerTransport, WebSocketTransport}
 import test.base.{BaseTest, Mutex}
@@ -17,10 +17,10 @@ class ExamplesTest extends BaseTest with Mutex {
     }
     "Basic" - {
       Seq[Any](
-        SynchronousCall,
         AsynchronousCall,
-        MultipleApis,
+        SynchronousCall,
         OptionalParameters,
+        MultipleApis,
       ).foreach { instance =>
         testName(instance) in {
           runTest(instance)
@@ -29,7 +29,7 @@ class ExamplesTest extends BaseTest with Mutex {
     }
     "Customization" - {
       Seq[Any](
-        DataSerialization,
+        DataStructureSerialization,
         ClientFunctionNames,
         ServerFunctionNames,
       ).foreach { instance =>
@@ -38,10 +38,10 @@ class ExamplesTest extends BaseTest with Mutex {
         }
       }
     }
-    "Errors" - {
+    "Error handling" - {
       Seq[Any](
-        ClientErrors,
-        ServerErrors,
+        ClientErrorMapping,
+        ServerErrorMapping,
         HttpStatusCode,
       ).foreach { instance =>
         testName(instance) in {
@@ -52,8 +52,8 @@ class ExamplesTest extends BaseTest with Mutex {
     "Metadata" - {
       Seq[Any](
         HttpAuthentication,
-        HttpRequest,
-        HttpResponse,
+        HttpRequestProperties,
+        HttpResponseProperties,
       ).foreach { instance =>
         testName(instance) in {
           runTest(instance)

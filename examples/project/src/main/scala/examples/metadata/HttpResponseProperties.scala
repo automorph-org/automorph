@@ -6,7 +6,7 @@ import automorph.transport.http.HttpContext
 import automorph.{RpcResult, Default}
 import java.net.URI
 
-private[examples] object HttpResponse {
+private[examples] object HttpResponseProperties {
   @scala.annotation.nowarn
   def main(arguments: Array[String]): Unit = {
 

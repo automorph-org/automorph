@@ -243,7 +243,7 @@ Await.ready(for {
 
 ## Customization
 
-### [Data serialization](https://github.com/automorph-org/automorph/tree/main/examples/project/src/main/scala/examples/customization/DataSerialization.scala)
+### [Data structure serialization](https://github.com/automorph-org/automorph/tree/main/examples/project/src/main/scala/examples/customization/DataStructureSerialization.scala)
 
 **Build**
 
@@ -462,7 +462,7 @@ server.close()
 
 ## Error handling
 
-### [Client errors](https://github.com/automorph-org/automorph/tree/main/examples/project/src/main/scala/examples/errorhandling/ClientErrors.scala)
+### [Client error mapping](https://github.com/automorph-org/automorph/tree/main/examples/project/src/main/scala/examples/errorhandling/ClientErrorMapping.scala)
 
 **Build**
 
@@ -526,7 +526,7 @@ Await.ready(for {
 } yield (), Duration.Inf)
 ```
 
-### [Server errors](https://github.com/automorph-org/automorph/tree/main/examples/project/src/main/scala/examples/errorhandling/ServerErrors.scala)
+### [Server error mapping](https://github.com/automorph-org/automorph/tree/main/examples/project/src/main/scala/examples/errorhandling/ServerErrorMapping.scala)
 
 **Build**
 
@@ -739,7 +739,7 @@ client.close()
 server.close()
 ```
 
-### [HTTP request](https://github.com/automorph-org/automorph/tree/main/examples/project/src/main/scala/examples/metadata/HttpRequest.scala)
+### [HTTP request properties](https://github.com/automorph-org/automorph/tree/main/examples/project/src/main/scala/examples/metadata/HttpRequestProperties.scala)
 
 **Build**
 
@@ -807,7 +807,7 @@ client.close()
 server.close()
 ```
 
-### [HTTP response](https://github.com/automorph-org/automorph/tree/main/examples/project/src/main/scala/examples/metadata/HttpResponse.scala)
+### [HTTP response properties](https://github.com/automorph-org/automorph/tree/main/examples/project/src/main/scala/examples/metadata/HttpResponseProperties.scala)
 
 **Build**
 

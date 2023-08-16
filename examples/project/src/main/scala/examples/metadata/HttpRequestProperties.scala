@@ -5,7 +5,7 @@ import automorph.Default.{ClientContext, ServerContext}
 import automorph.system.IdentitySystem
 import java.net.URI
 
-private[examples] object HttpRequest {
+private[examples] object HttpRequestProperties {
   @scala.annotation.nowarn
   def main(arguments: Array[String]): Unit = {
 
