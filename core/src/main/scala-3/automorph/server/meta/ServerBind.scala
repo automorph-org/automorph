@@ -35,7 +35,7 @@ private[automorph] trait ServerBind[Node, Codec <: MessageCodec[Node], Effect[_]
    *   - has type parameters
    *   - is inline
    *
-   * Bindings API methods using the names identical to already existing bindings replaces * the existing bindings
+   * Bindings API methods using the names identical to already existing bindings replaces the existing bindings
    * with the new bindings.
    *
    * If the last parameter of bound method is of `Context` type or returns a context function accepting
