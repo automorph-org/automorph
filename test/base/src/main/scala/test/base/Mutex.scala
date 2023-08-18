@@ -17,6 +17,6 @@ trait Mutex {
     semaphore.release()
 }
 
-case object Mutex {
+object Mutex {
   private val semaphore: Semaphore = new Semaphore(1)
 }

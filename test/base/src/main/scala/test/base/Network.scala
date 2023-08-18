@@ -28,7 +28,7 @@ trait Network {
     Try(new ServerSocket(port)).map(_.close()).isSuccess
 }
 
-case object Network {
+object Network {
   private val targetDirectoryProperty = "project.target"
   private val targetDirectoryDefault = "target"
   private val ports = mutable.HashMap[String, Int]()

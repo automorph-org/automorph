@@ -2,7 +2,7 @@ package test.api
 
 import test.api.Enum.Enum
 
-case object Enum:
+object Enum:
 
   enum Enum:
 

@@ -5,7 +5,7 @@ import java.net.URLEncoder
 import java.nio.charset.StandardCharsets
 import org.scalacheck.{Arbitrary, Gen}
 
-case object HttpContextGenerator {
+object HttpContextGenerator {
 
   private val charset = StandardCharsets.UTF_8
   private val methods = Seq(HttpMethod.Post)

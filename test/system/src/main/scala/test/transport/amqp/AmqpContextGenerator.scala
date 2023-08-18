@@ -4,7 +4,7 @@ import automorph.transport.amqp.AmqpContext
 import java.time.Instant
 import org.scalacheck.{Arbitrary, Gen}
 
-case object AmqpContextGenerator {
+object AmqpContextGenerator {
 
   private val maxItems = 16
   private val maxNameSize = 16
