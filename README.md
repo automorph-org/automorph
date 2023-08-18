@@ -30,3 +30,4 @@ for invoking and exposing remote APIs in a few lines of code.
 * [Artifacts](https://central.sonatype.com/namespace/org.automorph)
 * [Contact](mailto:automorph.org@proton.me)
 
+
