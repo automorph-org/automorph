@@ -32,7 +32,7 @@ class TapirHttp4sHttpCatsEffectTest extends HttpServerTest {
     true
 }
 
-case object TapirHttp4sHttpCatsEffectTest {
+object TapirHttp4sHttpCatsEffectTest {
 
   type Effect[T] = IO[T]
   type Context = TapirHttpEndpoint.Context

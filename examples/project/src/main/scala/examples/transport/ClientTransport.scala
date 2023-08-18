@@ -8,7 +8,7 @@ import scala.concurrent.ExecutionContext.Implicits.global
 import scala.concurrent.duration.Duration
 import scala.concurrent.{Await, Future}
 
-private[examples] case object ClientTransport {
+private[examples] object ClientTransport {
   @scala.annotation.nowarn
   def main(arguments: Array[String]): Unit = {
 

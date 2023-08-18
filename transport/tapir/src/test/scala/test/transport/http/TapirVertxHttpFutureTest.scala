@@ -33,7 +33,7 @@ class TapirVertxHttpFutureTest extends HttpServerTest {
     true
 }
 
-case object TapirVertxHttpFutureTest {
+object TapirVertxHttpFutureTest {
 
   type Effect[T] = Future[T]
   type Context = TapirHttpEndpoint.Context
