@@ -5,7 +5,7 @@ import argonaut.{Argonaut, CodecJson, DecodeJson, DecodeResult, HCursor, Json}
 import automorph.schema.OpenRpc
 import automorph.schema.openrpc.*
 
-/** JSON-RPC protocol support for uPickle message codec plugin using JSON format. */
+/** OpenRPC schema support for uPickle message codec plugin using JSON format. */
 private[automorph] object ArgonautOpenRpc {
 
   private val propertiesField = "properties"

@@ -1,7 +1,7 @@
 package automorph.codec.json.meta
 
-import io.circe.Json
 import automorph.spi.MessageCodec
+import io.circe.Json
 import scala.language.experimental.macros
 import scala.reflect.macros.blackbox
 
@@ -9,15 +9,15 @@ import scala.reflect.macros.blackbox
 private[automorph] trait CirceJsonMeta extends MessageCodec[Json] {
 
   override def encode[T](value: T): Json =
-    macro CirceJsonMeta.encodeExpr[T]
+    macro CirceJsonMeta.encodeMacro[T]
 
   override def decode[T](node: Json): T =
-    macro CirceJsonMeta.decodeExpr[T]
+    macro CirceJsonMeta.decodeMacro[T]
 }
 
 private[automorph] object CirceJsonMeta {
 
-  def encodeExpr[T: c.WeakTypeTag](c: blackbox.Context)(value: c.Expr[T]): c.Expr[Json] = {
+  def encodeMacro[T: c.WeakTypeTag](c: blackbox.Context)(value: c.Expr[T]): c.Expr[Json] = {
     import c.universe.Quasiquote
 
     c.Expr[Json](q"""
@@ -27,8 +27,8 @@ private[automorph] object CirceJsonMeta {
     """)
   }
 
-  def decodeExpr[T: c.WeakTypeTag](c: blackbox.Context)(node: c.Expr[Json]): c.Expr[T] = {
-    import c.universe.{weakTypeOf, Quasiquote}
+  def decodeMacro[T: c.WeakTypeTag](c: blackbox.Context)(node: c.Expr[Json]): c.Expr[T] = {
+    import c.universe.{Quasiquote, weakTypeOf}
 
     c.Expr[T](q"""
       import automorph.codec.json.CirceJsonCodec.*

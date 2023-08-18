@@ -40,11 +40,11 @@ private[automorph] object ArgonautJsonRpc {
     implicit val messageErrorCodecJson: CodecJson[MessageError[Json]] = Argonaut.codec3(
       MessageError.apply[Json],
       (v: MessageError[Json]) => (v.message, v.code, v.data),
-    )("message", "code", "data")
+    )(Message.message, Message.code, Message.data)
 
     Argonaut.codec6(
       Message.apply[Json],
       (v: Message[Json]) => (v.jsonrpc, v.id, v.method, v.params, v.result, v.error),
-    )("jsonrpc", "id", "method", "params", "result", "error")
+    )(Message.jsonrpc, Message.id, Message.method, Message.params, Message.result, Message.error)
   }
 }

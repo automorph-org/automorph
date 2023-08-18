@@ -30,6 +30,11 @@ object Message {
 
   /** Request parameters type. */
   type Request[Node] = Map[String, Node]
+
+  private[automorph] val result = "result"
+  private[automorph] val error = "error"
+  private[automorph] val message = "message"
+  private[automorph] val code = "code"
 }
 
 /**

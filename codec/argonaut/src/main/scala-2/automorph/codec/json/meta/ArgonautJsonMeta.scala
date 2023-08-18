@@ -9,15 +9,15 @@ import scala.reflect.macros.blackbox
 private[automorph] trait ArgonautJsonMeta extends MessageCodec[Json] {
 
   override def encode[T](value: T): Json =
-    macro ArgonautJsonMeta.encodeExpr[T]
+    macro ArgonautJsonMeta.encodeMacro[T]
 
   override def decode[T](node: Json): T =
-    macro ArgonautJsonMeta.decodeExpr[T]
+    macro ArgonautJsonMeta.decodeMacro[T]
 }
 
 private[automorph] object ArgonautJsonMeta {
 
-  def encodeExpr[T: c.WeakTypeTag](c: blackbox.Context)(value: c.Expr[T]): c.Expr[Json] = {
+  def encodeMacro[T: c.WeakTypeTag](c: blackbox.Context)(value: c.Expr[T]): c.Expr[Json] = {
     import c.universe.Quasiquote
 
     c.Expr[Json](q"""
@@ -27,7 +27,7 @@ private[automorph] object ArgonautJsonMeta {
     """)
   }
 
-  def decodeExpr[T: c.WeakTypeTag](c: blackbox.Context)(node: c.Expr[Json]): c.Expr[T] = {
+  def decodeMacro[T: c.WeakTypeTag](c: blackbox.Context)(node: c.Expr[Json]): c.Expr[T] = {
     import c.universe.{weakTypeOf, Quasiquote}
 
     c.Expr[T](q"""

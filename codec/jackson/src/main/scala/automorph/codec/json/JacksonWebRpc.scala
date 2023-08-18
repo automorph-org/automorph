@@ -29,9 +29,9 @@ private[automorph] object JacksonWebRpc {
       override def deserialize(parser: JsonParser, context: DeserializationContext): RpcError =
         context.readTree(parser) match {
           case node: ObjectNode => MessageError(
-              field("message", value => Option.when(value.isTextual)(value.asText), node, parser),
-              field("code", value => Option.when(value.isInt)(value.asInt), node, parser),
-            )
+            field(Message.message, value => Option.when(value.isTextual)(value.asText), node, parser),
+            field(Message.code, value => Option.when(value.isInt)(value.asInt), node, parser),
+          )
           case _ => throw new JsonParseException(parser, "Invalid message error", parser.getCurrentLocation)
         }
     }
@@ -42,14 +42,14 @@ private[automorph] object JacksonWebRpc {
       override def deserialize(parser: JsonParser, context: DeserializationContext): RpcMessage =
         context.readTree(parser) match {
           case node: ObjectNode => Message[JsonNode](
-              field("result", Some(_), node, parser),
-              field(
-                "error",
-                value => Some(context.readValue[RpcError](value.traverse(), classOf[RpcError])),
-                node,
-                parser,
-              ),
-            )
+            field(Message.result, Some(_), node, parser),
+            field(
+              Message.error,
+              value => Some(context.readValue[RpcError](value.traverse(), classOf[RpcError])),
+              node,
+              parser,
+            ),
+          )
           case _ => throw new JsonParseException(parser, "Invalid message", parser.getCurrentLocation)
         }
     }

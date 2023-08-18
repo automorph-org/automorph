@@ -5,7 +5,7 @@ import automorph.schema.openrpc.*
 import io.circe.generic.semiauto.{deriveDecoder, deriveEncoder}
 import io.circe.{ACursor, Decoder, DecodingFailure, Encoder, HCursor, Json}
 
-/** JSON-RPC protocol support for Circe message codec plugin using JSON format. */
+/** OpenRPC schema support for Circe message codec plugin using JSON format. */
 private[automorph] object CirceOpenRpc {
 
   def openRpcEncoder: Encoder[OpenRpc] = {

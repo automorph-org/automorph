@@ -31,10 +31,10 @@ private[automorph] object JacksonJsonRpc {
       override def deserialize(parser: JsonParser, context: DeserializationContext): RpcError =
         context.readTree(parser) match {
           case node: ObjectNode => MessageError[JsonNode](
-              field("message", value => Option.when(value.isTextual)(value.asText), node, parser),
-              field("code", value => Option.when(value.isInt)(value.asInt), node, parser),
-              field("data", Some(_), node, parser),
-            )
+            field(Message.message, value => Option.when(value.isTextual)(value.asText), node, parser),
+            field(Message.code, value => Option.when(value.isInt)(value.asInt), node, parser),
+            field(Message.data, Some(_), node, parser),
+          )
           case _ => throw new JsonParseException(parser, "Invalid message error", parser.getCurrentLocation)
         }
     }
@@ -59,40 +59,30 @@ private[automorph] object JacksonJsonRpc {
       override def deserialize(parser: JsonParser, context: DeserializationContext): RpcMessage =
         context.readTree(parser) match {
           case node: ObjectNode => Message[JsonNode](
-              field("jsonrpc", value => Option.when(value.isTextual)(value.asText), node, parser),
-              field(
-                "id",
-                {
-                  case value if value.isTextual => Some(Right(value.asText))
-                  case value if value.isNumber => Some(Left(BigDecimal(value.asDouble)))
-                  case _ => None
-                },
-                node,
-                parser,
-              ),
-              field("method", value => Option.when(value.isTextual)(value.asText), node, parser),
-              field(
-                "params",
-                {
-                  case value if value.isObject =>
-                    val params = value.asInstanceOf[ObjectNode].fields().asScala
-                    Some(Right(params.map(field => field.getKey -> field.getValue).toMap))
-                  case value if value.isArray =>
-                    val params = value.asInstanceOf[ArrayNode].elements().asScala
-                    Some(Left(params.toList))
-                  case _ => None
-                },
-                node,
-                parser,
-              ),
-              field("result", Some(_), node, parser),
-              field(
-                "error",
-                value => Some(context.readValue[RpcError](value.traverse(), classOf[RpcError])),
-                node,
-                parser,
-              ),
-            )
+            field(Message.jsonrpc, value => Option.when(value.isTextual)(value.asText), node, parser),
+            field(Message.id, {
+              case value if value.isTextual => Some(Right(value.asText))
+              case value if value.isNumber => Some(Left(BigDecimal(value.asDouble)))
+              case _ => None
+            }, node, parser),
+            field(Message.method, value => Option.when(value.isTextual)(value.asText), node, parser),
+            field(Message.params, {
+              case value if value.isObject =>
+                val params = value.asInstanceOf[ObjectNode].fields().asScala
+                Some(Right(params.map(field => field.getKey -> field.getValue).toMap))
+              case value if value.isArray =>
+                val params = value.asInstanceOf[ArrayNode].elements().asScala
+                Some(Left(params.toList))
+              case _ => None
+            }, node, parser),
+            field(Message.result, Some(_), node, parser),
+            field(
+              Message.error,
+              value => Some(context.readValue[RpcError](value.traverse(), classOf[RpcError])),
+              node,
+              parser
+            ),
+          )
           case _ => throw new JsonParseException(parser, "Invalid message", parser.getCurrentLocation)
         }
     }

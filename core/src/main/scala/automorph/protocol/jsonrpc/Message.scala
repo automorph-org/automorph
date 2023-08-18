@@ -44,7 +44,7 @@ final case class Message[Node](
     } ++ id.map(value => "Identifier" -> value.fold(_.toString, identity))
 }
 
-case object Message {
+object Message {
 
   /** Message identifier type. */
   type Id = Either[BigDecimal, String]
@@ -54,6 +54,16 @@ case object Message {
 
   /** Supported JSON-RPC protocol version. */
   val version = "2.0"
+
+  private[automorph] val jsonrpc = "jsonrpc"
+  private[automorph] val id = "id"
+  private[automorph] val method = "method"
+  private[automorph] val params = "params"
+  private[automorph] val result = "result"
+  private[automorph] val error = "error"
+  private[automorph] val message = "message"
+  private[automorph] val code = "code"
+  private[automorph] val data = "data"
 }
 
 /**

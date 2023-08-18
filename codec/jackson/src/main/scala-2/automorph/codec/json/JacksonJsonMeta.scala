@@ -14,12 +14,12 @@ private[automorph] trait JacksonJsonMeta extends MessageCodec[JsonNode] {
     objectMapper.valueToTree(value)
 
   override def decode[T](node: JsonNode): T =
-    macro JacksonJsonMeta.decodeExpr[T]
+    macro JacksonJsonMeta.decodeMacro[T]
 }
 
 private[automorph] object JacksonJsonMeta {
 
-  def decodeExpr[T: c.WeakTypeTag](c: blackbox.Context)(node: c.Expr[JsonNode]): c.Expr[T] = {
+  def decodeMacro[T: c.WeakTypeTag](c: blackbox.Context)(node: c.Expr[JsonNode]): c.Expr[T] = {
     import c.universe.{Quasiquote, weakTypeOf}
 
     c.Expr[T](q"""

@@ -33,13 +33,13 @@ private[automorph] final case class Response[Node](id: Id, result: Option[Node],
 private[automorph] object Response {
 
   def apply[Node](message: Message[Node]): Response[Node] = {
-    val jsonrpc = mandatory(message.jsonrpc, "version")
+    val jsonrpc = mandatory(message.jsonrpc, Message.jsonrpc)
     if (jsonrpc != version) {
       throw InvalidResponse(s"Invalid JSON-RPC protocol version: $jsonrpc", None.orNull)
     }
-    val id = mandatory(message.id, "id")
+    val id = mandatory(message.id, Message.id)
     message.result.map(result => Response(id, Some(result), None)).getOrElse {
-      val error = mandatory(message.error, "error")
+      val error = mandatory(message.error, Message.error)
       Response(id, None, Some(ResponseError(error)))
     }
   }

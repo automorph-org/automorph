@@ -16,6 +16,7 @@ class JacksonJsonTest extends JsonMessageCodecTest {
 
   type Node = JsonNode
   type ActualCodec = JacksonJsonCodec
+
   override lazy val codec: ActualCodec = JacksonJsonCodec(JacksonJsonCodec.defaultMapper.registerModule(enumModule))
 
   override lazy val arbitraryNode: Arbitrary[Node] = Arbitrary(Gen.recursive[Node] { recurse =>
