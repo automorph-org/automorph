@@ -8,7 +8,7 @@ package automorph.transport.local
  */
 final case class LocalContext(value: Any)
 
-case object LocalContext {
+object LocalContext {
 
   /** Implicit default context value. */
   implicit val defaultContext: LocalContext = LocalContext {}
