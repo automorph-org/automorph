@@ -18,7 +18,7 @@ trait UpickleMessagePackCustom extends UpickleCustom {
   implicit lazy val openApiRw: ReadWriter[OpenApi] = UpickleOpenApi.readWriter(this)
 }
 
-case object UpickleMessagePackCustom {
+object UpickleMessagePackCustom {
 
   /** Default data types support for uPickle message codec using MessagePack format. */
   lazy val default: UpickleMessagePackCustom = new UpickleMessagePackCustom {}
