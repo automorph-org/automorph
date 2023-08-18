@@ -51,6 +51,7 @@ Traits for implementation of various integration plugins:
 * Remote API methods must not use [type parameters](https://docs.scala-lang.org/tour/polymorphic-methods.html)
 * Remote API methods must not be [inline](https://docs.scala-lang.org/scala3/guides/macros/inline.html)
 * Remote APIs must not be used from within the [App](https://scala-lang.org/api/3.x/scala/App.html) trait nor from within any other [delayed initialization](https://scala-lang.org/api/3.x/scala/DelayedInit.html) scope
+* Maximum number of supplied arguments when invoking remote API functions dynamically from the client is 7
 * JSON-RPC protocol implementation does not support [batch requests](https://www.jsonrpc.org/specification#batch)
 * RPC protocol plugin instantiation may require specifying the type parameters explicitly due to Scala 2 [type inference](https://docs.scala-lang.org/tour/type-inference.html) constraints
 
