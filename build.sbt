@@ -3,7 +3,7 @@ val projectRoot = "org"
 val projectName = "automorph"
 val projectDomain = s"$projectName.$projectRoot"
 val projectDescription = "RPC client and server library for Scala"
-val siteVersion = "0.2.0"
+val siteVersion = "0.2.1"
 val siteUrl = s"https://$projectDomain"
 val apiUrl = s"$siteUrl/api"
 ThisBuild / homepage := Some(url(siteUrl))
@@ -155,7 +155,7 @@ lazy val argonaut = source(project, "codec/argonaut", core, testCodec % Test).se
 )
 
 // Client transport
-val sttpVersion = "3.8.16"
+val sttpVersion = "3.9.0"
 val sttpHttpClientVersion = "3.5.2"
 lazy val sttp =
   source(project, "transport/sttp", core, catsEffect % Test, zio % Test, testTransport % Test).settings(
@@ -179,7 +179,7 @@ lazy val rabbitmq = source(project, "transport/rabbitmq", core, testTransport % 
 )
 
 // Server transport
-val tapirVersion = "1.6.4"
+val tapirVersion = "1.7.2"
 lazy val tapir = source(project, "transport/tapir", core, catsEffect % Test, testTransport % Test).settings(
   libraryDependencies ++= Seq(
     "com.softwaremill.sttp.tapir" %% "tapir-server" % tapirVersion,
@@ -191,7 +191,7 @@ lazy val tapir = source(project, "transport/tapir", core, catsEffect % Test, tes
   )
 )
 lazy val undertow = source(project, "transport/undertow", core, testTransport % Test).settings(
-  libraryDependencies += "io.undertow" % "undertow-core" % "2.3.7.Final"
+  libraryDependencies += "io.undertow" % "undertow-core" % "2.3.8.Final"
 )
 lazy val vertx = source(project, "transport/vertx", core, testTransport % Test).settings(
   libraryDependencies += "io.vertx" % "vertx-core" % "4.4.4"
@@ -204,7 +204,7 @@ lazy val jetty = source(project, "transport/jetty", core, testTransport % Test).
     "org.eclipse.jetty.websocket" % "websocket-jetty-server" % jettyVersion
   )
 )
-val akkaVersion = "2.8.3"
+val akkaVersion = "2.8.4"
 lazy val akkaHttp = source(project, "transport/akka-http", core, testTransport % Test).settings(
   Test / fork := true,
   Test / testForkedParallel := true,
@@ -253,7 +253,7 @@ lazy val testBase = source(project, "test/base").settings(
     "org.scalatest" %% "scalatest" % "3.2.16",
     "org.scalatestplus" %% "scalacheck-1-17" % "3.2.16.0",
     "org.slf4j" % "jul-to-slf4j" % slf4jVersion,
-    "ch.qos.logback" % "logback-classic" % "1.4.9",
+    "ch.qos.logback" % "logback-classic" % "1.4.11",
     "com.lihaoyi" %% "pprint" % "0.8.1"
   )
 )
