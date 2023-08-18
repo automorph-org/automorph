@@ -164,6 +164,48 @@ private[automorph] trait RemoteInvoke[Node, Codec <: MessageCodec[Node], Effect[
   )(implicit requestContext: Context): Effect[Result] =
     macro RemoteInvoke.apply7Macro[Effect[Result], T1, T2, T3, T4, T5, T6, T7, Context]
 
+  /**
+   * Invokes the remote function using specified argument names and values.
+   *
+   * Parameters 'p1', 'p2' ... 'pN' represent function argument values. Effect[R] parameters 'T1', 'T2' ... 'TN'
+   * represent function parameter types.
+   *
+   * @return
+   *   remote function invocation result
+   */
+  def apply[T1, T2, T3, T4, T5, T6, T7, T8](
+    p1: (String, T1),
+    p2: (String, T2),
+    p3: (String, T3),
+    p4: (String, T4),
+    p5: (String, T5),
+    p6: (String, T6),
+    p7: (String, T7),
+    p8: (String, T8),
+  )(implicit requestContext: Context): Effect[Result] =
+    macro RemoteInvoke.apply8Macro[Effect[Result], T1, T2, T3, T4, T5, T6, T7, T8, Context]
+
+  /**
+   * Invokes the remote function using specified argument names and values.
+   *
+   * Parameters 'p1', 'p2' ... 'pN' represent function argument values. Effect[R] parameters 'T1', 'T2' ... 'TN'
+   * represent function parameter types.
+   *
+   * @return
+   *   remote function invocation result
+   */
+  def apply[T1, T2, T3, T4, T5, T6, T7, T8, T9](
+    p1: (String, T1),
+    p2: (String, T2),
+    p3: (String, T3),
+    p4: (String, T4),
+    p5: (String, T5),
+    p6: (String, T6),
+    p7: (String, T7),
+    p8: (String, T8),
+    p9: (String, T9),
+  )(implicit requestContext: Context): Effect[Result] =
+    macro RemoteInvoke.apply9Macro[Effect[Result], T1, T2, T3, T4, T5, T6, T7, T8, T9, Context]
 }
 
 object RemoteInvoke {
@@ -355,6 +397,95 @@ object RemoteInvoke {
           remoteInvoke.codec.encode[${weakTypeOf[T5]}]($p5._2),
           remoteInvoke.codec.encode[${weakTypeOf[T6]}]($p6._2),
           remoteInvoke.codec.encode[${weakTypeOf[T7]}]($p7._2)
+        ),
+        $requestContext
+      )
+    """)
+  }
+
+  def apply8Macro[
+    Result,
+    T1: c.WeakTypeTag,
+    T2: c.WeakTypeTag,
+    T3: c.WeakTypeTag,
+    T4: c.WeakTypeTag,
+    T5: c.WeakTypeTag,
+    T6: c.WeakTypeTag,
+    T7: c.WeakTypeTag,
+    T8: c.WeakTypeTag,
+    Context,
+  ](c: blackbox.Context)(
+    p1: c.Expr[(String, T1)],
+    p2: c.Expr[(String, T2)],
+    p3: c.Expr[(String, T3)],
+    p4: c.Expr[(String, T4)],
+    p5: c.Expr[(String, T5)],
+    p6: c.Expr[(String, T6)],
+    p7: c.Expr[(String, T7)],
+    p8: c.Expr[(String, T8)],
+  )(requestContext: c.Expr[Context]): c.Expr[Result] = {
+    import c.universe.{Quasiquote, weakTypeOf}
+
+    // This remote invoke needs to be assigned to a stable identifier due to macro expansion limitations
+    c.Expr[Result](q"""
+      val remoteInvoke = ${c.prefix}
+      remoteInvoke.invoke(
+        Seq($p1, $p2, $p3, $p4, $p5, $p6, $p7, $p8),
+        Seq(
+          remoteInvoke.codec.encode[${weakTypeOf[T1]}]($p1._2),
+          remoteInvoke.codec.encode[${weakTypeOf[T2]}]($p2._2),
+          remoteInvoke.codec.encode[${weakTypeOf[T3]}]($p3._2),
+          remoteInvoke.codec.encode[${weakTypeOf[T4]}]($p4._2),
+          remoteInvoke.codec.encode[${weakTypeOf[T5]}]($p5._2),
+          remoteInvoke.codec.encode[${weakTypeOf[T6]}]($p6._2),
+          remoteInvoke.codec.encode[${weakTypeOf[T7]}]($p7._2),
+          remoteInvoke.codec.encode[${weakTypeOf[T8]}]($p8._2)
+        ),
+        $requestContext
+      )
+    """)
+  }
+
+  def apply9Macro[
+    Result,
+    T1: c.WeakTypeTag,
+    T2: c.WeakTypeTag,
+    T3: c.WeakTypeTag,
+    T4: c.WeakTypeTag,
+    T5: c.WeakTypeTag,
+    T6: c.WeakTypeTag,
+    T7: c.WeakTypeTag,
+    T8: c.WeakTypeTag,
+    T9: c.WeakTypeTag,
+    Context,
+  ](c: blackbox.Context)(
+    p1: c.Expr[(String, T1)],
+    p2: c.Expr[(String, T2)],
+    p3: c.Expr[(String, T3)],
+    p4: c.Expr[(String, T4)],
+    p5: c.Expr[(String, T5)],
+    p6: c.Expr[(String, T6)],
+    p7: c.Expr[(String, T7)],
+    p8: c.Expr[(String, T8)],
+    p9: c.Expr[(String, T9)],
+  )(requestContext: c.Expr[Context]): c.Expr[Result] = {
+    import c.universe.{Quasiquote, weakTypeOf}
+
+    // This remote invoke needs to be assigned to a stable identifier due to macro expansion limitations
+    c.Expr[Result](q"""
+      val remoteInvoke = ${c.prefix}
+      remoteInvoke.invoke(
+        Seq($p1, $p2, $p3, $p4, $p5, $p6, $p7, $p8, $p9),
+        Seq(
+          remoteInvoke.codec.encode[${weakTypeOf[T1]}]($p1._2),
+          remoteInvoke.codec.encode[${weakTypeOf[T2]}]($p2._2),
+          remoteInvoke.codec.encode[${weakTypeOf[T3]}]($p3._2),
+          remoteInvoke.codec.encode[${weakTypeOf[T4]}]($p4._2),
+          remoteInvoke.codec.encode[${weakTypeOf[T5]}]($p5._2),
+          remoteInvoke.codec.encode[${weakTypeOf[T6]}]($p6._2),
+          remoteInvoke.codec.encode[${weakTypeOf[T7]}]($p7._2),
+          remoteInvoke.codec.encode[${weakTypeOf[T8]}]($p8._2),
+          remoteInvoke.codec.encode[${weakTypeOf[T9]}]($p9._2)
         ),
         $requestContext
       )

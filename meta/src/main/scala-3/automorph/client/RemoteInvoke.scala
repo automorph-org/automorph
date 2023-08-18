@@ -193,6 +193,76 @@ private[automorph] trait RemoteInvoke[Node, Codec <: MessageCodec[Node], Effect[
       requestContext,
     )
 
+  /**
+   * Invokes the remote function using specified argument names and values.
+   *
+   * Parameters 'p1', 'p2' ... 'pN' represent function argument values. Effect[R] parameters 'T1', 'T2' ... 'TN'
+   * represent function parameter types.
+   *
+   * @return
+   *   remote function invocation result
+   */
+  inline def apply[T1, T2, T3, T4, T5, T6, T7, T8](
+    p1: (String, T1),
+    p2: (String, T2),
+    p3: (String, T3),
+    p4: (String, T4),
+    p5: (String, T5),
+    p6: (String, T6),
+    p7: (String, T7),
+    p8: (String, T8),
+  )(using requestContext: Context): Effect[Result] =
+    invoke(
+      Seq(p1, p2, p3, p4, p5, p6, p7, p8),
+      Seq(
+        codec.encode(p1._2),
+        codec.encode(p2._2),
+        codec.encode(p3._2),
+        codec.encode(p4._2),
+        codec.encode(p5._2),
+        codec.encode(p6._2),
+        codec.encode(p7._2),
+        codec.encode(p8._2),
+      ),
+      requestContext,
+    )
+
+  /**
+   * Invokes the remote function using specified argument names and values.
+   *
+   * Parameters 'p1', 'p2' ... 'pN' represent function argument values. Effect[R] parameters 'T1', 'T2' ... 'TN'
+   * represent function parameter types.
+   *
+   * @return
+   *   remote function invocation result
+   */
+  inline def apply[T1, T2, T3, T4, T5, T6, T7, T8, T9](
+    p1: (String, T1),
+    p2: (String, T2),
+    p3: (String, T3),
+    p4: (String, T4),
+    p5: (String, T5),
+    p6: (String, T6),
+    p7: (String, T7),
+    p8: (String, T8),
+    p9: (String, T9),
+  )(using requestContext: Context): Effect[Result] =
+    invoke(
+      Seq(p1, p2, p3, p4, p5, p6, p7, p8, p9),
+      Seq(
+        codec.encode(p1._2),
+        codec.encode(p2._2),
+        codec.encode(p3._2),
+        codec.encode(p4._2),
+        codec.encode(p5._2),
+        codec.encode(p6._2),
+        codec.encode(p7._2),
+        codec.encode(p8._2),
+        codec.encode(p9._2),
+      ),
+      requestContext,
+    )
+
 object RemoteInvoke:
 
   inline def decodeResult[Node, Codec <: MessageCodec[Node], Context, R](codec: Codec): (Node, Context) => R =
