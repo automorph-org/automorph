@@ -25,7 +25,7 @@ trait BaseTest
   with Checkers
   with ScalaCheckPropertyChecks
 
-case object BaseTest {
+object BaseTest {
 
   /** Test level environment variable. */
   private val testLevelEnvironment = "TEST_LEVEL"
