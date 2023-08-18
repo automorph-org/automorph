@@ -15,7 +15,7 @@ private[examples] object DataStructureSerialization {
     // Introduce custom data types
     sealed abstract class State
 
-    case object State {
+    object State {
       case object On extends State
       case object Off extends State
     }
