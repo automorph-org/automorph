@@ -25,7 +25,7 @@ with questions, ideas, features, improvements or fixes.
 * [NodeJS](https://nodejs.org/) 19+
 * [Yarn](https://yarnpkg.com/) 1.22+
 
-**Note**: uPickle plugin build might take a long time.
+**Note**: uPickle plugin might take a long time to build but it works.
 
 
 ## Testing
