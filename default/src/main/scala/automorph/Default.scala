@@ -4,11 +4,11 @@ import automorph.meta.DefaultRpcProtocol
 import automorph.spi.AsyncEffectSystem
 import automorph.system.FutureSystem
 import automorph.transport.http.client.HttpClient
+import automorph.transport.http.endpoint.UndertowHttpEndpoint
 import automorph.transport.http.server.UndertowServer
 import automorph.transport.http.server.UndertowServer.defaultBuilder
 import automorph.transport.http.{HttpContext, HttpMethod}
 import io.undertow.Undertow
-
 import java.net.URI
 import scala.concurrent.{ExecutionContext, Future}
 
@@ -44,10 +44,10 @@ object Default extends DefaultRpcProtocol with DefaultTransport {
   def rpcClient(url: URI, method: HttpMethod = HttpMethod.Post)(implicit
     executionContext: ExecutionContext
   ): RpcClient[Node, Codec, Effect, ClientContext] =
-    RpcClient(clientTransportCustom(effectSystem, url, method), rpcProtocol)
+    rpcClientCustom(effectSystem, url, method)
 
   /**
-   * Creates a standard JRE HTTP & WebSocket client transport protocol plugin with
+   * Creates a standard JRE HTTP & WebSocket client transport plugin with
    * 'Future' as an effect type.
    *
    * @see
@@ -65,7 +65,7 @@ object Default extends DefaultRpcProtocol with DefaultTransport {
    * @param executionContext
    *   execution context
    * @return
-   *   client transport protocol plugin
+   *   client transport plugin
    */
   def clientTransport(url: URI, method: HttpMethod = HttpMethod.Post)(implicit
     executionContext: ExecutionContext
@@ -109,12 +109,10 @@ object Default extends DefaultRpcProtocol with DefaultTransport {
     mapException: Throwable => Int = HttpContext.defaultExceptionToStatusCode,
     builder: Undertow.Builder = defaultBuilder,
   )(implicit executionContext: ExecutionContext): RpcServer[Node, Codec, Effect, ServerContext] =
-    RpcServer(
-      serverTransportCustom(effectSystem, port, path, methods, webSocket, mapException, builder), rpcProtocol
-    )
+    rpcServerCustom(effectSystem, port, path, methods, webSocket, mapException, builder)
 
   /**
-   * Creates an Undertow RPC over HTTP & WebSocket server transport protocol plugin with
+   * Creates an Undertow RPC over HTTP & WebSocket server transport plugin with
    * 'Future' as an effect type.
    *
    * @see
@@ -140,7 +138,7 @@ object Default extends DefaultRpcProtocol with DefaultTransport {
    * @param executionContext
    *   execution context
    * @return
-   *   server transport protocol plugin
+   *   server transport plugin
    */
   def serverTransport(
     port: Int,
@@ -153,6 +151,55 @@ object Default extends DefaultRpcProtocol with DefaultTransport {
     executionContext: ExecutionContext
   ): UndertowServer[Effect] =
     serverTransportCustom(effectSystem, port, path, methods, webSocket, mapException, builder)
+
+  /**
+   * Creates an Undertow RPC over HTTP endpoint using default RPC protocol with
+   * 'Future' as an effect type.
+   *
+   * The endpoint can be integrated into an existing server to receive remote API requests using
+   * specific transport protocol and invoke bound API methods to process them.
+   *
+   * @see
+   *   [[https://en.wikipedia.org/wiki/HTTP Transport protocol]]
+   * @see
+   *   [[https://undertow.io Library documentation]]
+   * @see
+   *   [[https://www.javadoc.io/doc/io.undertow/undertow-core/latest/index.html API]]
+   * @param mapException
+   *   maps an exception to a corresponding HTTP status code
+   * @param executionContext
+   *   execution context
+   * @return
+   *   RPC endpoint
+   */
+  def rpcEndpoint(mapException: Throwable => Int = HttpContext.defaultExceptionToStatusCode)(implicit
+    executionContext: ExecutionContext
+  ): RpcEndpoint[Node, Codec, Effect, ServerContext, Adapter] =
+    rpcEndpointCustom(effectSystem, mapException)
+
+  /**
+   * Creates an Undertow RPC over HTTP & WebSocket endpoint transport plugin with
+   * 'Future' as an effect type.
+   *
+   * @see
+   *   [[https://en.wikipedia.org/wiki/HTTP Transport protocol]]
+   * @see
+   *   [[https://en.wikipedia.org/wiki/WebSocket Alternative transport protocol]]
+   * @see
+   *   [[https://undertow.io Library documentation]]
+   * @see
+   *   [[https://www.javadoc.io/doc/io.undertow/undertow-core/latest/index.html API]]
+   * @param mapException
+   *   maps an exception to a corresponding HTTP status code
+   * @param executionContext
+   *   execution context
+   * @return
+   *   endpoint transport plugin
+   */
+  def endpointTransport(mapException: Throwable => Int = HttpContext.defaultExceptionToStatusCode)(implicit
+    executionContext: ExecutionContext
+  ): UndertowHttpEndpoint[Effect] =
+    endpointTransportCustom(effectSystem, mapException)
 
   /**
    * Creates an asynchronous effect system plugin with
