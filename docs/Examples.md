@@ -449,19 +449,6 @@ Await.ready(for {
 } yield (), Duration.Inf)
 ```
 
-
-## Transport
-
-### [Client transport](https://github.com/automorph-org/automorph/tree/main/examples/project/src/main/scala/examples/transport/ClientTransport.scala)
-
-**Build**
-
-```scala
-libraryDependencies ++= Seq(
-  "org.automorph" %% "automorph-default" % "@PROJECT_VERSION@"
-)
-```
-
 ### [Custom server](https://github.com/automorph-org/automorph/tree/main/examples/project/src/main/scala/examples/integration/CustomServer.scala)
 
 **Build**
@@ -537,6 +524,19 @@ Await.ready(for {
   // Close the RPC client
   _ <- client.close()
 } yield (), Duration.Inf)
+```
+
+
+## Transport
+
+### [Client transport](https://github.com/automorph-org/automorph/tree/main/examples/project/src/main/scala/examples/transport/ClientTransport.scala)
+
+**Build**
+
+```scala
+libraryDependencies ++= Seq(
+  "org.automorph" %% "automorph-default" % "@PROJECT_VERSION@"
+)
 ```
 
 **Source**
