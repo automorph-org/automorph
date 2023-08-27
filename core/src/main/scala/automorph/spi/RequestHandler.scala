@@ -23,7 +23,7 @@ trait RequestHandler[Effect[_], Context] {
    * @param context
    *   request context
    * @param id
-   *   request correlation identifier
+   *   request correlation identifier included in all logs related to the request
    * @return
    *   request processing result
    */
@@ -64,6 +64,25 @@ object RequestHandler {
     context: Option[Context],
   )
 
+  private final case class DummyRequestHandler[Effect[_], Context]() extends RequestHandler[Effect, Context] {
+    def processRequest(requestBody: Array[Byte], context: Context, id: String): Effect[Option[Result[Context]]] =
+      error
+
+    override def discovery(enabled: Boolean): RequestHandler[Effect, Context] =
+      error
+
+    /** Automatic provision of service discovery via RPC functions returning bound API schema. */
+    override def discovery: Boolean =
+      error
+
+    /** Message format media (MIME) type. */
+    override def mediaType: String =
+      error
+
+    private def error[T]: T =
+      throw new IllegalStateException("RPC request handler not initialized")
+  }
+
   /**
    * Dummy RPC request handler.
    *
@@ -75,19 +94,5 @@ object RequestHandler {
    *   dummy RPC request handler
    */
   private[automorph] def dummy[Effect[_], Context]: RequestHandler[Effect, Context] =
-    new RequestHandler[Effect, Context] {
-      def processRequest(requestBody: Array[Byte], context: Context, id: String): Effect[Option[Result[Context]]] =
-        throw new IllegalStateException("RPC request handler not initialized")
-
-      override def discovery(enabled: Boolean): RequestHandler[Effect, Context] =
-        this
-
-      /** * Automatic provision of service discovery via RPC functions returning bound API schema. */
-      override def discovery: Boolean =
-        false
-
-      /** Message format media (MIME) type. */
-      override def mediaType: String =
-        ""
-    }
+    DummyRequestHandler()
 }

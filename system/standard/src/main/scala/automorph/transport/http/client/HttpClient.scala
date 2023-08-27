@@ -108,9 +108,8 @@ final case class HttpClient[Effect[_]](
   override def close(): Effect[Unit] =
     effectSystem.successful{}
 
-  private def getResponseContext(response: Response): Context = {
+  private def getResponseContext(response: Response): Context =
     response.statusCode.map(context.statusCode).getOrElse(context).headers(response.headers*)
-  }
 
   private def send(
     request: Either[HttpRequest, (Effect[WebSocket], Effect[Response], Array[Byte])],

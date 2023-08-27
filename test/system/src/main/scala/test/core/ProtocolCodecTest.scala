@@ -49,7 +49,7 @@ trait ProtocolCodecTest extends CoreTest {
   def serverTransport(fixtureId: Int): ServerTransport[Effect, Context]
 
   def endpointTransport: EndpointTransport[Effect, Context, ?] =
-    LocalEndpoint(system).asInstanceOf[EndpointTransport[Effect, Context, ?]]
+    LocalEndpoint(system, arbitraryContext.arbitrary.sample.get).asInstanceOf[EndpointTransport[Effect, Context, ?]]
 
   def typedClientTransport(fixtureId: Int): ClientTransport[Effect, Context] =
     clientTransport(fixtureId).asInstanceOf[ClientTransport[Effect, Context]]

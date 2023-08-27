@@ -1,9 +1,9 @@
 package automorph.spi
 
 /**
- * Existing transport protocol server integration plugin.
+ * Existing server transport protocol integration plugin.
  *
- * Passively parses requests to be processed by the RPC handler and creates responses for specific server.
+ * Passively parses requests to be processed by the RPC handler and creates responses usable by specific server.
  *
  * @tparam Effect
  *   effect type

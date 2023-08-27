@@ -4,14 +4,13 @@ import automorph.spi.{ClientTransport, ServerTransport}
 import automorph.system.FutureSystem
 import automorph.transport.amqp.client.RabbitMqClient
 import automorph.transport.amqp.server.RabbitMqServer
-import automorph.transport.local.LocalContext
 import automorph.transport.local.client.LocalClient
 import io.arivera.oss.embedded.rabbitmq.apache.commons.lang3.SystemUtils
 import io.arivera.oss.embedded.rabbitmq.{EmbeddedRabbitMq, EmbeddedRabbitMqConfig}
 import java.net.URI
 import java.nio.file.{Files, Paths}
 import scala.jdk.CollectionConverters.IteratorHasAsScala
-import org.scalacheck.{Arbitrary, Gen}
+import org.scalacheck.Arbitrary
 import scala.concurrent.ExecutionContext.Implicits.global
 import scala.concurrent.Future
 import scala.sys.process.Process
@@ -28,7 +27,7 @@ class RabbitMqFutureTest extends ClientServerTest with Mutex {
   private lazy val setupTimeout = 30000
   private lazy val erlangAvailable = Try(Process("erl -eval 'halt()' -noshell").! == 0).getOrElse(false)
   private lazy val embeddedBroker = createBroker()
-  private lazy val server = LocalServer(system, LocalContext(arbitraryContext.arbitrary.sample.get))
+  private lazy val serverTransport = LocalServer(system, arbitraryContext.arbitrary.sample.get)
 
   override lazy val system: FutureSystem = FutureSystem()
 
@@ -36,17 +35,13 @@ class RabbitMqFutureTest extends ClientServerTest with Mutex {
     await(effect)
 
   override def arbitraryContext: Arbitrary[Context] =
-    if (erlangAvailable) {
-      AmqpContextGenerator.arbitrary
-    } else {
-      Arbitrary(Gen.asciiPrintableStr.map(LocalContext.apply)).asInstanceOf[Arbitrary[Context]]
-    }
+    AmqpContextGenerator.arbitrary
 
   override def clientTransport(fixtureId: Int): ClientTransport[Effect, Context] =
     embeddedBroker.map { case (_, config) =>
       RabbitMqClient[Effect](url(config), fixtureId.toString, system)
     }.getOrElse(
-      LocalClient(system, LocalContext(arbitraryContext.arbitrary.sample.get), server.handler)
+      LocalClient(system, arbitraryContext.arbitrary.sample.get, serverTransport.handler)
         .asInstanceOf[ClientTransport[Effect, Context]]
     )
 
@@ -54,7 +49,7 @@ class RabbitMqFutureTest extends ClientServerTest with Mutex {
     embeddedBroker.map { case (_, config) =>
       RabbitMqServer[Effect](system, url(config), Seq(fixtureId.toString))
     }.getOrElse(
-      server.asInstanceOf[ServerTransport[Effect, Context]]
+      serverTransport.asInstanceOf[ServerTransport[Effect, Context]]
     )
 
   override def integration: Boolean =
