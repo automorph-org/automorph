@@ -50,6 +50,8 @@ private[examples] object CustomServer {
         (),
         Random.nextString(8)
       )
+
+      // Extract the response body from the request handler result
       responseBody = result.map(_.responseBody).getOrElse(Array.emptyByteArray)
       _ = println(new String(responseBody, StandardCharsets.UTF_8))
 
