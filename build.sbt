@@ -179,13 +179,13 @@ lazy val rabbitmq = source(project, "transport/rabbitmq", core, testTransport % 
 )
 
 // Server transport
-val tapirVersion = "1.7.2"
+val tapirVersion = "1.7.3"
 lazy val tapir = source(project, "transport/tapir", core, catsEffect % Test, testTransport % Test).settings(
   libraryDependencies ++= Seq(
     "com.softwaremill.sttp.tapir" %% "tapir-server" % tapirVersion,
     "com.softwaremill.sttp.tapir" %% "tapir-armeria-server" % tapirVersion % Test,
     "com.softwaremill.sttp.tapir" %% "tapir-http4s-server" % tapirVersion % Test,
-    "org.http4s" %% "http4s-ember-server" % "0.23.18" % Test,
+    "org.http4s" %% "http4s-ember-server" % "0.23.23" % Test,
     "com.softwaremill.sttp.tapir" %% "tapir-netty-server" % tapirVersion % Test,
     "com.softwaremill.sttp.tapir" %% "tapir-vertx-server" % tapirVersion % Test
   )
