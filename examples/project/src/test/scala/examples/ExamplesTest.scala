@@ -5,7 +5,7 @@ import examples.basic.{AsynchronousCall, MultipleApis, OptionalParameters, Synch
 import examples.special.{ApiDiscovery, DynamicPayload, OneWayMessage, PositionalArguments}
 import examples.customization.{ClientFunctionNames, DataStructureSerialization, ServerFunctionNames}
 import examples.errorhandling.{ClientErrorMapping, HttpStatusCode, ServerErrorMapping}
-import examples.integration.{EffectSystem, MessageCodec, RpcProtocol}
+import examples.integration.{CustomServer, EffectSystem, MessageCodec, RpcProtocol}
 import examples.transport.{AmqpTransport, ClientTransport, EndpointTransport, ServerTransport, WebSocketTransport}
 import test.base.{BaseTest, Mutex}
 
@@ -77,6 +77,7 @@ class ExamplesTest extends BaseTest with Mutex {
         EffectSystem,
         MessageCodec,
         RpcProtocol,
+        CustomServer,
       ).foreach { instance =>
         testName(instance) in {
           runTest(instance)

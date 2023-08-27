@@ -1,7 +1,6 @@
 package examples.transport
 
-import automorph.{Default, RpcEndpoint}
-import automorph.transport.http.endpoint.UndertowHttpEndpoint
+import automorph.Default
 import io.undertow.{Handlers, Undertow}
 import java.net.URI
 import scala.concurrent.ExecutionContext.Implicits.global
@@ -23,11 +22,8 @@ private[examples] object EndpointTransport {
         Future(s"Hello $some $n!")
     }
 
-    // Create Undertow JSON-RPC endpoint transport
-    val endpointTransport = UndertowHttpEndpoint(Default.effectSystem)
-
-    // Setup JSON-RPC endpoint
-    val endpoint = RpcEndpoint.transport(endpointTransport).rpcProtocol(Default.rpcProtocol).bind(api)
+    // Setup Undertow JSON-RPC HTTP endpoint
+    val endpoint = Default.rpcEndpoint().bind(api)
 
     // Start Undertow HTTP server listening on port 9000 for requests to '/api'
     val server = Undertow.builder()
