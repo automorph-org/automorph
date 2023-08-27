@@ -1,4 +1,5 @@
 addDependencyTreePlugin
+addSbtPlugin("com.timushev.sbt" % "sbt-updates" % "0.6.3")
 addSbtPlugin("com.github.sbt" % "sbt-dynver" % "5.0.1")
 
 addSbtPlugin("org.scalastyle" %% "scalastyle-sbt-plugin" % "1.0.0")
