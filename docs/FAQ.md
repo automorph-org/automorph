@@ -14,7 +14,7 @@ All Scala effect systems are supported. Please see the relevant [examples](Examp
 
 ### Can I use Automorph with my existing JSON parser ?
 
-Probably.
+Quite likely.
 
 Several Scala and Java JSON parsers are supported. Please see the relevant [examples](Examples#message-codec).
 
@@ -32,7 +32,7 @@ Many Scala and Java HTTP server libraries are supported. Please see the relevant
 Integrating with unsupported HTTP server involves the following steps:
 - Create an instance of [ApiRequestHandler](https://automorph.org/api/automorph/handler/ApiRequestHandler.html)
   - Supply the desired [effect system](Plugins#effect-system) and [RPC protocol](Plugins#rpc-protocol).
-  - Define a message context type parameter or just set it to `Unit` if no context is needed
+  - Define a message context type parameter or simply use `Unit` if no context is needed
 - In the HTTP server request handling code
   - Pass the request body to `processRequest()` method of the `ApiRequstHandler` instance
   - Send the response body or an error returned by `processRequest()` to the client
