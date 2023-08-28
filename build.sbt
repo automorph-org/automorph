@@ -342,7 +342,7 @@ lazy val docs = project.in(file("site")).settings(
   mdocVariables := Map(
     "PROJECT_VERSION" -> {
       IO.readLines((examples / baseDirectory).value / "project/src/main/scala/examples/Quickstart.scala")
-        .filter(_.startsWith("//> using dep org.automorph::"))
+        .filter(_.startsWith(s"//> using dep $projectRoot.$projectName::"))
         .flatMap(_.split(":").lastOption)
         .lastOption.getOrElse("")
     },
