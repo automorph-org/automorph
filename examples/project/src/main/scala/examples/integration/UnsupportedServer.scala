@@ -47,7 +47,7 @@ private[examples] object UnsupportedServer {
       val handlerResult = endpoint.handler.processRequest(
         // Incoming request body
         requestBody,
-        // Request context of String type as defined by the generic endpoint transport plugin
+        // Request context of type String as defined by the generic endpoint transport plugin
         "127.0.0.1",
         // Request correlation identifier included in logs associated with the request
         "5678"
