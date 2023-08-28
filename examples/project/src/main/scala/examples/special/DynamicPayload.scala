@@ -44,10 +44,8 @@ private[examples] object DynamicPayload {
       result <- client.call[Seq[Int]]("hello")("some" -> Json.fromInt(0), "n" -> 1)
       _ = println(result)
 
-      // Close the RPC client
+      // Close the RPC client and server
       _ <- client.close()
-
-      // Close the RPC server
       _ <- server.close()
     } yield (), Duration.Inf)
   }

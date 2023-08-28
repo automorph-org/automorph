@@ -66,10 +66,8 @@ private[examples] object HttpAuthentication {
       ).failed.get)
     }
 
-    // Close the RPC client
+    // Close the RPC client and server
     client.close()
-
-    // Close the RPC server
     server.close()
   }
 }

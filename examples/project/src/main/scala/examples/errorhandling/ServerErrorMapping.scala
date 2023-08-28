@@ -53,10 +53,8 @@ private[examples] object ServerErrorMapping {
       error <- remoteApi.hello("world", -1).failed
       _ = println(error)
 
-      // Close the RPC client
+      // Close the RPC client and server
       _ <- client.close()
-
-      // Close the RPC server
       _ <- server.close()
     } yield (), Duration.Inf)
   }

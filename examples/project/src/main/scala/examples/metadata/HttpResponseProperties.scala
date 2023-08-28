@@ -44,10 +44,8 @@ private[examples] object HttpResponseProperties {
     println(dynamic.result)
     println(dynamic.context.header("X-Test"))
 
-    // Close the RPC client
+    // Close the RPC client and server
     client.close()
-
-    // Close the RPC server
     server.close()
   }
 }

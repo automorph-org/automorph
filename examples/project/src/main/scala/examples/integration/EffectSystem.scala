@@ -37,10 +37,8 @@ private[examples] object EffectSystem {
           result <- remoteApi.hello("world", 1)
           _ <- Console.printLine(result)
 
-          // Close the RPC client
+          // Close the RPC client and server
           _ <- client.close()
-
-          // Close the RPC server
           _ <- server.close()
         } yield ()
       )

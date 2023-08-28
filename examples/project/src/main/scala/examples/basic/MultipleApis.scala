@@ -49,10 +49,8 @@ private[examples] object MultipleApis {
       result <- remoteApi2.hi()
       _ = println(result)
 
-      // Close the RPC client
+      // Close the RPC client and server
       _ <- client.close()
-
-      // Close the RPC server
       _ <- server.close()
     } yield (), Duration.Inf)
   }

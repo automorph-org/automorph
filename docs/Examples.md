@@ -59,10 +59,8 @@ Await.ready(for {
   result <- client.call[String]("hello")("some" -> "world", "n" -> 1)
   _ = println(result)
 
-  // Close the RPC client
+  // Close the RPC client and server
   _ <- client.close()
-
-  // Close the RPC server
   _ <- server.close()
 } yield (), Duration.Inf)
 ```
@@ -113,10 +111,8 @@ println(
   client.call[String]("hello")("some" -> "world", "n" -> 1)
 )
 
-// Close the RPC client
+// Close the RPC client and server
 client.close()
-
-// Close the RPC server
 server.close()
 ```
 
@@ -171,10 +167,8 @@ Await.ready(for {
   result <- client.call[String]("hi")("n" -> 1)
   _ = println(result)
 
-  // Close the RPC client
+  // Close the RPC client and server
   _ <- client.close()
-
-  // Close the RPC server
   _ <- server.close()
 } yield (), Duration.Inf)
 ```
@@ -238,10 +232,8 @@ Await.ready(for {
   result <- remoteApi2.hi()
   _ = println(result)
 
-  // Close the RPC client
+  // Close the RPC client and server
   _ <- client.close()
-
-  // Close the RPC server
   _ <- server.close()
 } yield (), Duration.Inf)
 ```
@@ -297,10 +289,8 @@ Unsafe.unsafe { implicit unsafe =>
       result <- remoteApi.hello("world", 1)
       _ <- Console.printLine(result)
 
-      // Close the RPC client
+      // Close the RPC client and server
       _ <- client.close()
-
-      // Close the RPC server
       _ <- server.close()
     } yield ()
   )
@@ -378,10 +368,8 @@ Await.ready(for {
   result <- remoteApi.hello("world", 1)
   _ = println(result)
 
-  // Close the RPC client
+  // Close the RPC client and server
   _ <- client.close()
-
-  // Close the RPC server
   _ <- server.close()
 } yield (), Duration.Inf)
 ```
@@ -446,10 +434,8 @@ Await.ready(for {
   result <- remoteApi.hello("world", 1)
   _ = println(result)
 
-  // Close the RPC client
+  // Close the RPC client and server
   _ <- client.close()
-
-  // Close the RPC server
   _ <- server.close()
 } yield (), Duration.Inf)
 ```
@@ -577,10 +563,8 @@ Await.ready(for {
   result <- remoteApi.hello("world", 1)
   _ = println(result)
 
-  // Close the RPC client
+  // Close the RPC client and server
   _ <- client.close()
-
-  // Close the RPC server
   _ <- server.close()
 } yield (), Duration.Inf)
 ```
@@ -633,10 +617,8 @@ Await.ready(for {
   result <- remoteApi.hello("world", 1)
   _ = println(result)
 
-  // Close the RPC client
+  // Close the RPC client and server
   _ <- client.close()
-
-  // Close the RPC server
   _ <- server.close()
 } yield (), Duration.Inf)
 ```
@@ -700,10 +682,6 @@ Await.ready(for {
   _ <- client.close()
 } yield (), Duration.Inf)
 
-// Close the RPC server
-server.stop()
-}
-
 // Stop the Undertow server
 server.stop()
 ```
@@ -751,10 +729,8 @@ Await.ready(for {
   result <- remoteApi.hello("world", 1)
   _ = println(result)
 
-  // Close the RPC client
+  // Close the RPC client and server
   _ <- client.close()
-
-  // Close the RPC server
   _ <- server.close()
 } yield (), Duration.Inf)
 ```
@@ -828,10 +804,8 @@ Await.ready(for {
   result <- remoteApi.hello("world", 1)
   _ = println(result)
 
-  // Close the RPC client
+  // Close the RPC client and server
   _ <- client.close()
-
-  // Close the RPC server
   _ <- server.close()
 } yield (), Duration.Inf)
 
@@ -911,10 +885,8 @@ Await.ready(for {
   result <- remoteApi.hello("world", Record("test", State.On))
   _ = println(result)
 
-  // Close the RPC client
+  // Close the RPC client and server
   _ <- client.close()
-
-  // Close the RPC server
   _ <- server.close()
 } yield (), Duration.Inf)
 ```
@@ -974,10 +946,8 @@ println(
   remoteApi.hi("world", 1)
 )
 
-// Close the RPC client
+// Close the RPC client and server
 client.close()
-
-// Close the RPC server
 server.close()
 ```
 
@@ -1055,10 +1025,8 @@ println(Try(
   client.call[String]("hidden")()
 ).failed.get)
 
-// Close the RPC client
+// Close the RPC client and server
 client.close()
-
-// Close the RPC server
 server.close()
 ```
 
@@ -1140,10 +1108,8 @@ val remoteApi = client.bind[Api]
   ).failed.get)
 }
 
-// Close the RPC client
+// Close the RPC client and server
 client.close()
-
-// Close the RPC server
 server.close()
 ```
 
@@ -1209,10 +1175,8 @@ println(
   client.call[String]("hello")("message" -> "test")
 )
 
-// Close the RPC client
+// Close the RPC client and server
 client.close()
-
-// Close the RPC server
 server.close()
 ```
 
@@ -1269,10 +1233,8 @@ val dynamic = client.call[RpcResult[String, ClientContext]]("hello")("message" -
 println(dynamic.result)
 println(dynamic.context.header("X-Test"))
 
-// Close the RPC client
+// Close the RPC client and server
 client.close()
-
-// Close the RPC server
 server.close()
 ```
 
@@ -1335,10 +1297,8 @@ Await.ready(for {
   error <- remoteApi.hello("world", 1).failed
   _ = println(error)
 
-  // Close the RPC client
+  // Close the RPC client and server
   _ <- client.close()
-
-  // Close the RPC server
   _ <- server.close()
 } yield (), Duration.Inf)
 ```
@@ -1406,10 +1366,8 @@ Await.ready(for {
   error <- remoteApi.hello("world", -1).failed
   _ = println(error)
 
-  // Close the RPC client
+  // Close the RPC client and server
   _ <- client.close()
-
-  // Close the RPC server
   _ <- server.close()
 } yield (), Duration.Inf)
 ```
@@ -1465,10 +1423,8 @@ Await.ready(for {
   error <- remoteApi.hello("world", 1).failed
   _ = println(error)
 
-  // Close the RPC client
+  // Close the RPC client and server
   _ <- client.close()
-
-  // Close the RPC server
   _ <- server.close()
 } yield (), Duration.Inf)
 ```
@@ -1512,10 +1468,8 @@ Await.ready(for {
   result <- client.call[OpenApi](JsonRpcProtocol.openApiFunction)()
   _ = println(result.paths.get.keys.toList)
 
-  // Close the RPC client
+  // Close the RPC client and server
   _ <- client.close()
-
-  // Close the RPC server
   _ <- server.close()
 } yield (), Duration.Inf)
 ```
@@ -1592,10 +1546,8 @@ Await.ready(for {
   result <- client.call[Seq[Int]]("hello")("some" -> Json.fromInt(0), "n" -> 1)
   _ = println(result)
 
-  // Close the RPC client
+  // Close the RPC client and server
   _ <- client.close()
-
-  // Close the RPC server
   _ <- server.close()
 } yield (), Duration.Inf)
 ```
@@ -1642,10 +1594,8 @@ Await.ready(for {
   // Call the remote API function dynamically without expecting a response
   _ <- client.tell("hello")("some" -> "world", "n" -> 1)
 
-  // Close the RPC client
+  // Close the RPC client and server
   _ <- client.close()
-
-  // Close the RPC server
   _ <- server.close()
 } yield (), Duration.Inf)
 ```
@@ -1699,10 +1649,8 @@ Await.ready(for {
   result <- remoteApi.hello("world", 1)
   _ = println(result)
 
-  // Close the RPC client
+  // Close the RPC client and server
   _ <- client.close()
-
-  // Close the RPC server
   _ <- server.close()
 } yield (), Duration.Inf)
 ```

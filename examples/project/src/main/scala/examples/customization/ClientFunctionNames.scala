@@ -45,10 +45,8 @@ private[examples] object ClientFunctionNames {
       remoteApi.hi("world", 1)
     )
 
-    // Close the RPC client
+    // Close the RPC client and server
     client.close()
-
-    // Close the RPC server
     server.close()
   }
 }

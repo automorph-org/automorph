@@ -38,10 +38,8 @@ private[examples] object ApiDiscovery {
       result <- client.call[OpenApi](JsonRpcProtocol.openApiFunction)()
       _ = println(result.paths.get.keys.toList)
 
-      // Close the RPC client
+      // Close the RPC client and server
       _ <- client.close()
-
-      // Close the RPC server
       _ <- server.close()
     } yield (), Duration.Inf)
   }

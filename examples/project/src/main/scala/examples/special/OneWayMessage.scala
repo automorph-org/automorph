@@ -32,10 +32,8 @@ private[examples] object OneWayMessage {
       // Call the remote API function dynamically without expecting a response
       _ <- client.tell("hello")("some" -> "world", "n" -> 1)
 
-      // Close the RPC client
+      // Close the RPC client and server
       _ <- client.close()
-
-      // Close the RPC server
       _ <- server.close()
     } yield (), Duration.Inf)
   }

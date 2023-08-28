@@ -51,10 +51,8 @@ private[examples] object HttpRequestProperties {
       client.call[String]("hello")("message" -> "test")
     )
 
-    // Close the RPC client
+    // Close the RPC client and server
     client.close()
-
-    // Close the RPC server
     server.close()
   }
 }
