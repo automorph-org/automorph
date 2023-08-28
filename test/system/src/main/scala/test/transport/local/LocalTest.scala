@@ -9,7 +9,7 @@ trait LocalTest extends ClientServerTest {
 
   type Context = String
 
-  private lazy val serverTransport = LocalServer(system, arbitraryContext.arbitrary.sample.get)
+  private lazy val serverTransport = LocalServer[Effect, Context](system)
 
   override def arbitraryContext: Arbitrary[Context] =
     Arbitrary(Gen.asciiPrintableStr)

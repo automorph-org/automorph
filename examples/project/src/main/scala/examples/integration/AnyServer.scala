@@ -48,7 +48,7 @@ private[examples] object AnyServer {
       val handlerResult = endpoint.handler.processRequest(
         // Incoming request body
         requestBody,
-        // Request context of the type defined by the local endpoint transport plugin
+        // Request context of String type as defined by the local endpoint transport plugin
         "127.0.0.1",
         // Request correlation identifier included in all logs related to the request
         Random.nextString(8)
