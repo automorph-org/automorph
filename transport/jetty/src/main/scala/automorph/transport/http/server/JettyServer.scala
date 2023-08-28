@@ -90,7 +90,7 @@ final case class JettyServer[Effect[_]](
 
   override def init(): Effect[Unit] =
     effectSystem.evaluate(this.synchronized {
-      if (server.getState == AbstractLifeCycle.STARTED) {
+      if (server.isStarted || server.isStarting) {
         throw new IllegalStateException(s"${getClass.getSimpleName} already initialized")
       }
       server.start()
@@ -103,7 +103,7 @@ final case class JettyServer[Effect[_]](
 
   override def close(): Effect[Unit] =
     effectSystem.evaluate(this.synchronized {
-      if (server.getState == AbstractLifeCycle.STOPPED) {
+      if (server.isStopped || server.isStopping) {
         throw new IllegalStateException(s"${getClass.getSimpleName} already closed")
       }
       server.stop()
