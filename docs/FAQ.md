@@ -32,14 +32,14 @@ Many Scala and Java HTTP server libraries are supported. Please see the relevant
 [server examples](Examples#server-transport) and [endpoint examples](Examples#endpoint-transport).
 
 Integrating with unsupported server of any kind involves the following steps as demonstrated in the
-[custom server example](https://github.com/automorph-org/automorph/tree/main/examples/project/src/main/scala/examples/integration/CustomEndpoint.scala):
+[any server example](https://github.com/automorph-org/automorph/tree/main/examples/project/src/main/scala/examples/integration/AnyServer.scala):
 - Create an instance of [LocalEndpoint](https://automorph.org/api/automorph/transport/local/endpoint/LocalEndpoint.html)
   - Supply the desired [effect system](Plugins#effect-system) and default request context value (use `()` if no request context is needed).
 - Create an [RPC endpoint](https://automorph.org/api/automorph/RpcEndpoint.html)
   - Supply the local endpoint instance and [RPC protocol](Plugins#rpc-protocol).
 - In the HTTP server request handling code
   - Pass the request body to `processRequest()` method of the RPC endpoint `handler`
-  - Send the response body or an error returned by `processRequest()` to the client
+  - Send the response body returned by `processRequest()` to the client
 
 
 ### Can I use Automorph with my existing HTTP client ?

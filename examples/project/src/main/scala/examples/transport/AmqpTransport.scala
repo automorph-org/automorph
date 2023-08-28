@@ -38,7 +38,7 @@ private[examples] object AmqpTransport {
       // Create RabbitMQ AMQP server transport consuming requests from the 'api' queue
       val serverTransport = RabbitMqServer(Default.effectSystem, new URI("amqp://localhost:9000"), Seq("api"))
 
-      // Create RabbitMQ AMQP client message transport publishing requests to the 'api' queue
+      // Create RabbitMQ AMQP client transport publishing requests to the 'api' queue
       val clientTransport = RabbitMqClient(new URI("amqp://localhost:9000"), "api", Default.effectSystem)
 
       Await.ready(for {

@@ -23,7 +23,7 @@ private[examples] object ServerTransport {
         Future(s"Hello $some $n!")
     }
 
-    // Create NanoHTTPD HTTP & WebSocket server transport listening on port 9000 for requests to '/api'
+    // Create NanoHTTPD HTTP & WebSocket server transport plugin listening on port 9000 for requests to '/api'
     val serverTransport = NanoServer(FutureSystem(), 9000, "/api")
 
     Await.ready(for {

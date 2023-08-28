@@ -12,7 +12,7 @@ private[examples] object HttpResponseProperties {
 
     // Define client view of a remote API
     trait Api {
-      // Return HTTP response context provided by the client message transport plugin
+      // Return HTTP response context provided by the client transport plugin
       def hello(message: String): RpcResult[String, ClientContext]
     }
 

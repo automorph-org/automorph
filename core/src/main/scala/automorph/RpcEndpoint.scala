@@ -109,7 +109,7 @@ object RpcEndpoint {
    * Creates a RPC server with specified protocol and transport plugins supporting corresponding message context type.
    *
    * @param transport
-   *   endpoint transport later transport
+   *   endpoint transport layer plugin
    * @param rpcProtocol
    *   RPC protocol plugin
    * @tparam Node

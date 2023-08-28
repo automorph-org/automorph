@@ -23,7 +23,7 @@ private[examples] object ClientTransport {
         Future(s"Hello $some $n!")
     }
 
-    // Create standard JRE HTTP client message transport sending POST requests to 'http://localhost:9000/api'
+    // Create standard JRE HTTP client transport sending POST requests to 'http://localhost:9000/api'
     val clientTransport = UrlClient(FutureSystem(), new URI("http://localhost:9000/api"))
 
     Await.ready(for {

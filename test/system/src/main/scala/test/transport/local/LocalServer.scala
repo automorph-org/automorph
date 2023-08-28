@@ -5,9 +5,8 @@ import automorph.transport.local.endpoint.LocalEndpoint
 
 final case class LocalServer[Effect[_], Context](
   effectSystem: EffectSystem[Effect],
-  defaultContext: Context,
 ) extends ServerTransport[Effect, Context] {
-  private var endpoint: LocalEndpoint[Effect, Context] = LocalEndpoint(effectSystem, defaultContext)
+  private var endpoint: LocalEndpoint[Effect, Context] = LocalEndpoint(effectSystem)
 
   def handler: RequestHandler[Effect, Context] =
     endpoint.handler

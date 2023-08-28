@@ -29,7 +29,6 @@ private[examples] object ApiDiscovery {
 
       // Initialize JSON-RPC HTTP client for sending POST requests to 'http://localhost:9000/api'
       client <- Default.rpcClient(new URI("http://localhost:9000/api")).init()
-      remoteApi = client.bind[Api]
 
       // Retrieve the remote API schema in OpenRPC format
       result <- client.call[OpenRpc](JsonRpcProtocol.openRpcFunction)()

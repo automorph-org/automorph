@@ -87,7 +87,7 @@ object RpcServer {
    * @constructor
    *   Creates a new RPC server builder.
    * @param transport
-   *   transport protocol plugin
+   *   server transport protocol plugin
    * @tparam Effect
    *   effect type
    * @tparam Context

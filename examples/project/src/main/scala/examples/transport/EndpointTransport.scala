@@ -22,14 +22,17 @@ private[examples] object EndpointTransport {
         Future(s"Hello $some $n!")
     }
 
-    // Setup Undertow JSON-RPC HTTP endpoint
+    // Setup JSON-RPC HTTP endpoint with Undertow adapter
     val endpoint = Default.rpcEndpoint().bind(api)
 
-    // Start Undertow HTTP server listening on port 9000 for requests to '/api'
-    val server = Undertow.builder()
-      .addHttpListener(9000, "0.0.0.0")
-      .setHandler(Handlers.path().addPrefixPath("/api", endpoint.adapter))
-      .build()
+    // Create Undertow HTTP server listening on port 9000
+    val bareServer = Undertow.builder().addHttpListener(9000, "0.0.0.0")
+
+    // Use the JSON-RPC HTTP endpoint adapter as an Undertow handler for requests to '/api'
+    val pathHandler = Handlers.path().addPrefixPath("/api", endpoint.adapter)
+    val server = bareServer.setHandler(pathHandler).build()
+
+    // Start Undertow HTTP server
     server.start()
 
     Await.ready(for {

@@ -22,7 +22,7 @@ private[examples] object RpcProtocol {
         Future(s"Hello $some $n!")
     }
 
-    // Create a server Web-RPC protocol plugin with '/api' path prefix
+    // Create a server Web-RPC protocol plugin with '/api' as URL path prefix
     val serverRpcProtocol = WebRpcProtocol[Default.Node, Default.Codec, Default.ServerContext](
       Default.messageCodec, "/api"
     )
