@@ -123,7 +123,7 @@ lazy val core = source(project, "core", meta, testBase % Test)
 // Effect system
 lazy val standard = source(project, "system/standard", core, testSystem % Test)
 lazy val zio = source(project, "system/zio", core, testSystem % Test).settings(
-  libraryDependencies += "dev.zio" %% "zio" % "2.0.15"
+  libraryDependencies += "dev.zio" %% "zio" % "2.0.16"
 )
 lazy val monix = source(project, "system/monix", core, testSystem % Test).settings(
   libraryDependencies += "io.monix" %% "monix-eval" % "3.4.1"
