@@ -152,7 +152,7 @@ class ApiImpl {
 val api = new ApiImpl
 
 Await.ready(for {
-  // Initialize JSON-RPC HTTP client for sending POST requests to 'http://localhost:9000/api'
+  // Initialize JSON-RPC HTTP & WebSocket server listening on port 9000 for requests to '/api'
   server <- Default.rpcServer(9000, "/api").bind(api).init()
 
   // Initialize JSON-RPC HTTP client for sending POST requests to 'http://localhost:9000/api'
