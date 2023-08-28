@@ -87,8 +87,8 @@ const config = {
         ],
       },
       prism: {
-        theme: require('prism-react-renderer/themes/nightOwl'),
-        darkTheme: require('prism-react-renderer/themes/nightOwl'),
+        theme: require('prism-react-renderer/themes/okaidia'),
+        darkTheme: require('prism-react-renderer/themes/okaidia'),
         additionalLanguages: ['java', 'scala']
       },
     }),
