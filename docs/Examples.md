@@ -51,11 +51,11 @@ Await.ready(for {
   client <- Default.rpcClient(new URI("http://localhost:9000/api")).init()
   remoteApi = client.bind[Api]
 
-  // Call the remote API function statically
+  // Call the remote API function via a type-safe proxy
   result <- remoteApi.hello("world", 1)
   _ = println(result)
 
-  // Call the remote API function dynamically
+  // Call the remote API function dynamically without API specification
   result <- client.call[String]("hello")("some" -> "world", "n" -> 1)
   _ = println(result)
 
@@ -66,6 +66,7 @@ Await.ready(for {
   _ <- server.close()
 } yield (), Duration.Inf)
 ```
+
 
 ### [Synchronous call](https://github.com/automorph-org/automorph/tree/main/examples/project/src/main/scala/examples/basic/SynchronousCall.scala)
 
@@ -101,13 +102,13 @@ val server = Default.rpcServerCustom(IdentitySystem(), 9000, "/api").bind(api).i
 // Initialize JSON-RPC HTTP client sending POST requests to 'http://localhost:9000/api'
 val client = Default.rpcClientCustom(IdentitySystem(), new URI("http://localhost:9000/api")).init()
 
-// Call the remote API function statically
+// Call the remote API function via a type-safe proxy
 val remoteApi = client.bind[Api]
 println(
   remoteApi.hello("world", 1)
 )
 
-// Call the remote API function dynamically
+// Call the remote API function dynamically without API specification
 println(
   client.call[String]("hello")("some" -> "world", "n" -> 1)
 )
@@ -118,6 +119,7 @@ client.close()
 // Close the RPC server
 server.close()
 ```
+
 
 ### [Optional parameters](https://github.com/automorph-org/automorph/tree/main/examples/project/src/main/scala/examples/basic/OptionalParameters.scala)
 
@@ -161,11 +163,11 @@ Await.ready(for {
   client <- Default.rpcClient(new URI("http://localhost:9000/api")).init()
   remoteApi = client.bind[Api]
 
-  // Call the remote API function statically
+  // Call the remote API function via a type-safe proxy
   result <- remoteApi.hello("world")
   _ = println(result)
 
-  // Call the remote API function dynamically
+  // Call the remote API function dynamically without API specification
   result <- client.call[String]("hi")("n" -> 1)
   _ = println(result)
 
@@ -176,6 +178,7 @@ Await.ready(for {
   _ <- server.close()
 } yield (), Duration.Inf)
 ```
+
 
 ### [Multiple APIs](https://github.com/automorph-org/automorph/tree/main/examples/project/src/main/scala/examples/basic/MultipleApis.scala)
 
@@ -304,6 +307,7 @@ Unsafe.unsafe { implicit unsafe =>
 }
 ```
 
+
 ### [Message codec](https://github.com/automorph-org/automorph/tree/main/examples/project/src/main/scala/examples/integration/MessageCodec.scala)
 
 **Build**
@@ -382,6 +386,7 @@ Await.ready(for {
 } yield (), Duration.Inf)
 ```
 
+
 ### [RPC protocol](https://github.com/automorph-org/automorph/tree/main/examples/project/src/main/scala/examples/integration/RpcProtocol.scala)
 
 **Build**
@@ -448,6 +453,7 @@ Await.ready(for {
   _ <- server.close()
 } yield (), Duration.Inf)
 ```
+
 
 ### [Unsupported server](https://github.com/automorph-org/automorph/tree/main/examples/project/src/main/scala/examples/integration/UnsupportedServer.scala)
 
@@ -581,6 +587,7 @@ Await.ready(for {
 } yield (), Duration.Inf)
 ```
 
+
 ### [Server transport](https://github.com/automorph-org/automorph/tree/main/examples/project/src/main/scala/examples/transport/ServerTransport.scala)
 
 **Build**
@@ -635,6 +642,7 @@ Await.ready(for {
   _ <- server.close()
 } yield (), Duration.Inf)
 ```
+
 
 ### [Endpoint transport](https://github.com/automorph-org/automorph/tree/main/examples/project/src/main/scala/examples/transport/EndpointTransport.scala)
 
@@ -702,6 +710,7 @@ server.stop()
 server.stop()
 ```
 
+
 ### [WebSocket transport](https://github.com/automorph-org/automorph/tree/main/examples/project/src/main/scala/examples/transport/WebSocketTransport.scala)
 
 **Build**
@@ -751,6 +760,7 @@ Await.ready(for {
   _ <- server.close()
 } yield (), Duration.Inf)
 ```
+
 
 ### [AMQP transport](https://github.com/automorph-org/automorph/tree/main/examples/project/src/main/scala/examples/transport/AmqpTransport.scala)
 
@@ -911,6 +921,7 @@ Await.ready(for {
 } yield (), Duration.Inf)
 ```
 
+
 ### [Client function names](https://github.com/automorph-org/automorph/tree/main/examples/project/src/main/scala/examples/customization/ClientFunctionNames.scala)
 
 **Build**
@@ -972,6 +983,7 @@ client.close()
 server.close()
 ```
 
+
 ### [Server function names](https://github.com/automorph-org/automorph/tree/main/examples/project/src/main/scala/examples/customization/ServerFunctionNames.scala)
 
 **Build**
@@ -1026,7 +1038,7 @@ val server = Default.rpcServerCustom(IdentitySystem(), 9000, "/api").bind(api, m
 // Initialize JSON-RPC HTTP client sending POST requests to 'http://localhost:9000/api'
 val client = Default.rpcClientCustom(IdentitySystem(), new URI("http://localhost:9000/api")).init()
 
-// Call the remote API function statically
+// Call the remote API function via a type-safe proxy
 val remoteApi = client.bind[Api]
 println(
   remoteApi.hello("world", 1)
@@ -1035,7 +1047,7 @@ println(
   remoteApi.hi("world", 1)
 )
 
-// Call the remote API function dynamically
+// Call the remote API function dynamically without API specification
 println(
   client.call[Double]("test.sum")("numbers" -> List(1, 2, 3))
 )
@@ -1103,7 +1115,7 @@ val remoteApi = client.bind[Api]
   implicit val validAuthentication: ClientContext = client.context
     .authorization("Bearer", "valid")
 
-  // Call the remote API function statically using valid authentication
+  // Call the remote API function via a type-safe proxy using valid authentication
   println(
     remoteApi.hello("test")
   )
@@ -1119,7 +1131,7 @@ val remoteApi = client.bind[Api]
   implicit val invalidAuthentication: ClientContext = client.context
     .headers("X-Authentication" -> "unsupported")
 
-  // Call the remote API function statically using invalid authentication
+  // Call the remote API function a type-safe proxy using invalid authentication
   println(Try(
     remoteApi.hello("test")
   ).failed.get)
@@ -1136,6 +1148,7 @@ client.close()
 // Close the RPC server
 server.close()
 ```
+
 
 ### [HTTP request properties](https://github.com/automorph-org/automorph/tree/main/examples/project/src/main/scala/examples/metadata/HttpRequestProperties.scala)
 
@@ -1187,7 +1200,7 @@ implicit val httpRequest: ClientContext = client.context
   .cookies("Test" -> "value")
   .authorization("Bearer", "value")
 
-// Call the remote API function statically using implicitly given HTTP request metadata
+// Call the remote API function a type-safe proxy using implicitly given HTTP request metadata
 val remoteApi = client.bind[Api]
 println(
   remoteApi.hello("test")
@@ -1204,6 +1217,7 @@ client.close()
 // Close the RPC server
 server.close()
 ```
+
 
 ### [HTTP response properties](https://github.com/automorph-org/automorph/tree/main/examples/project/src/main/scala/examples/metadata/HttpResponseProperties.scala)
 
@@ -1246,7 +1260,7 @@ val server = Default.rpcServerCustom(IdentitySystem(), 9000, "/api").bind(api).i
 // Initialize JSON-RPC HTTP client sending POST requests to 'http://localhost:9000/api'
 val client = Default.rpcClientCustom(IdentitySystem(), new URI("http://localhost:9000/api")).init()
 
-// Call the remote API function statically retrieving a result with HTTP response metadata
+// Call the remote API function a type-safe proxy retrieving a result with HTTP response metadata
 val remoteApi = client.bind[Api]
 val static = remoteApi.hello("test")
 println(static.result)
@@ -1331,6 +1345,7 @@ Await.ready(for {
 } yield (), Duration.Inf)
 ```
 
+
 ### [Server error mapping](https://github.com/automorph-org/automorph/tree/main/examples/project/src/main/scala/examples/errorhandling/ServerErrorMapping.scala)
 
 **Build**
@@ -1400,6 +1415,7 @@ Await.ready(for {
   _ <- server.close()
 } yield (), Duration.Inf)
 ```
+
 
 ### [HTTP status code](https://github.com/automorph-org/automorph/tree/main/examples/project/src/main/scala/examples/errorhandling/HttpStatusCode.scala)
 
@@ -1506,6 +1522,7 @@ Await.ready(for {
 } yield (), Duration.Inf)
 ```
 
+
 ### [Dynamic payload](https://github.com/automorph-org/automorph/tree/main/examples/project/src/main/scala/examples/special/DynamicPayload.scala)
 
 **Build**
@@ -1569,11 +1586,11 @@ Await.ready(for {
   client <- Default.rpcClient(new URI("http://localhost:9000/api")).init()
   remoteApi = client.bind[Api]
 
-  // Call the remote API function statically
+  // Call the remote API function a type-safe proxy
   result <- remoteApi.hello("world", Json.fromInt(1))
   _ = println(result)
 
-  // Call the remote API function dynamically
+  // Call the remote API function dynamically without API specification
   result <- client.call[Seq[Int]]("hello")("some" -> Json.fromInt(0), "n" -> 1)
   _ = println(result)
 
@@ -1584,6 +1601,7 @@ Await.ready(for {
   _ <- server.close()
 } yield (), Duration.Inf)
 ```
+
 
 ### [One-way message](https://github.com/automorph-org/automorph/tree/main/examples/project/src/main/scala/examples/special/OneWayMessage.scala)
 
@@ -1633,6 +1651,7 @@ Await.ready(for {
   _ <- server.close()
 } yield (), Duration.Inf)
 ```
+
 
 ### [Positional arguments](https://github.com/automorph-org/automorph/tree/main/examples/project/src/main/scala/examples/special/PositionalArguments.scala)
 
@@ -1689,6 +1708,7 @@ Await.ready(for {
   _ <- server.close()
 } yield (), Duration.Inf)
 ```
+
 
 ### [Local call](https://github.com/automorph-org/automorph/tree/main/examples/project/src/main/scala/examples/special/LocalCall.scala)
 

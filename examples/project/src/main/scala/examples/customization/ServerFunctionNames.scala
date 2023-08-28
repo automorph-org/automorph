@@ -45,7 +45,7 @@ private[examples] object ServerFunctionNames {
     // Initialize JSON-RPC HTTP client for sending POST requests to 'http://localhost:9000/api'
     val client = Default.rpcClientCustom(IdentitySystem(), new URI("http://localhost:9000/api")).init()
 
-    // Call the remote API function statically
+    // Call the remote API function via a type-safe proxy
     val remoteApi = client.bind[Api]
     println(
       remoteApi.hello("world", 1)
@@ -54,7 +54,7 @@ private[examples] object ServerFunctionNames {
       remoteApi.hi("world", 1)
     )
 
-    // Call the remote API function dynamically
+    // Call the remote API function dynamically without API specification
     println(
       client.call[Double]("test.sum")("numbers" -> List(1, 2, 3))
     )

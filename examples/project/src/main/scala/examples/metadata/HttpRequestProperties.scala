@@ -40,7 +40,7 @@ private[examples] object HttpRequestProperties {
       .cookies("Example" -> "value")
       .authorization("Bearer", "value")
 
-    // Call the remote API function statically using implicitly given HTTP request metadata
+    // Call the remote API function via a type-safe proxy using implicitly given HTTP request metadata
     val remoteApi = client.bind[Api]
     println(
       remoteApi.hello("test")
