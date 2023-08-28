@@ -29,9 +29,7 @@ Add the following dependency to your build configuration:
 #### SBT
 
 ```scala
-libraryDependencies ++= Seq(
-  "org.automorph" %% "automorph-default" % "@PROJECT_VERSION@"
-)
+libraryDependencies += "org.automorph" %% "automorph-default" % "@PROJECT_VERSION@"
 ```
 
 #### Gradle
