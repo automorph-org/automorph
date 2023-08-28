@@ -24,7 +24,7 @@ private[examples] object ApiDiscovery {
     }
 
     Await.ready(for {
-      // Initialize JSON-RPC HTTP & WebSocket server with API discovery listening on port 9000 for POST requests to '/api'
+      // Initialize JSON-RPC HTTP & WebSocket server with API discovery enabled
       server <- Default.rpcServer(9000, "/api").discovery(true).bind(api).init()
 
       // Initialize JSON-RPC HTTP client for sending POST requests to 'http://localhost:9000/api'

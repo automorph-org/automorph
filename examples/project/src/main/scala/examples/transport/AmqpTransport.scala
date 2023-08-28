@@ -29,7 +29,7 @@ private[examples] object AmqpTransport {
           Future(s"Hello $some $n!")
       }
 
-      // Start embedded RabbitMQ broker
+      // Start embedded RabbitMQ broker listening on port 9000
       val brokerConfig = new EmbeddedRabbitMqConfig.Builder().port(9000)
         .rabbitMqServerInitializationTimeoutInMillis(30000).build()
       val broker = new EmbeddedRabbitMq(brokerConfig)
@@ -62,7 +62,8 @@ private[examples] object AmqpTransport {
 
       // Stop embedded RabbitMQ broker
       broker.stop()
-      val brokerDirectory = brokerConfig.getExtractionFolder.toPath.resolve(brokerConfig.getVersion.getExtractionFolder)
+      val brokerDirectory = brokerConfig.getExtractionFolder.toPath
+        .resolve(brokerConfig.getVersion.getExtractionFolder)
       Files.walk(brokerDirectory).iterator().asScala.toSeq.reverse.foreach(_.toFile.delete())
     } else {
       println("Missing Erlang installation")

@@ -34,17 +34,17 @@ private[examples] object MessageCodec {
     }
 
     // Create a server RPC protocol plugin
-    val serverRpcProtocol = Default.rpcProtocol[UpickleMessagePackCodec.Node, messageCodec.type, Default.ServerContext](
-      messageCodec
-    )
+    val serverRpcProtocol = Default.rpcProtocol[
+      UpickleMessagePackCodec.Node, messageCodec.type, Default.ServerContext
+    ](messageCodec)
 
     // Create HTTP & WebSocket server transport listening on port 9000 for requests to '/api'
     val serverTransport = Default.serverTransport(9000, "/api")
 
     // Create a client RPC protocol plugin
-    val clientRpcProtocol = Default.rpcProtocol[UpickleMessagePackCodec.Node, messageCodec.type, Default.ClientContext](
-      messageCodec
-    )
+    val clientRpcProtocol = Default.rpcProtocol[
+      UpickleMessagePackCodec.Node, messageCodec.type, Default.ClientContext
+    ](messageCodec)
 
     // Create HTTP client transport sending POST requests to 'http://localhost:9000/api'
     val clientTransport = Default.clientTransport(new URI("http://localhost:9000/api"))
