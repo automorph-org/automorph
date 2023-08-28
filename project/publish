@@ -9,5 +9,6 @@ git tag -a -m "Version: $1" "v$1"
 git push --follow-tags
 
 # sbt '+ mimaReportBinaryIssues ; tastyMiMaReportIssues ; + publishSigned ; sonatypeBundleRelease'
-sbt '+ mimaReportBinaryIssues ; + publishSigned ; sonatypeBundleRelease'
+# sbt '+ mimaReportBinaryIssues ; + publishSigned ; sonatypeBundleRelease'
+sbt '+ publishSigned ; sonatypeBundleRelease'
 
