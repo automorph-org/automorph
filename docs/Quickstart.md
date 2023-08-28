@@ -68,11 +68,11 @@ val api = new ApiImpl
 val server = Default.rpcServer(9000, "/api")
 
 // Expose the server API implementation to be accessible remotely
-val boundServer = server.bind(api)
+val apiServer = server.bind(api)
 
 Await.ready(for {
   // Start the JSON-RPC server
-  activeServer <- boundServer.init()
+  activeServer <- apiServer.init()
 
   // Stop the JSON-RPC server
   _ <- activeServer.close()

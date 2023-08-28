@@ -30,7 +30,7 @@ private[examples] object Quickstart {
     val server = Default.rpcServer(9000, "/api")
 
     // Expose the server API implementation to be accessible remotely
-    val boundServer = server.bind(api)
+    val apiServer = server.bind(api)
 
     // Configure JSON-RPC HTTP client to send POST requests to 'http://localhost:9000/api'
     val client = Default.rpcClient(new URI("http://localhost:9000/api"))
@@ -40,7 +40,7 @@ private[examples] object Quickstart {
 
     Await.ready(for {
       // Start the JSON-RPC server
-      activeServer <- boundServer.init()
+      activeServer <- apiServer.init()
 
       // Initialize the JSON-RPC client
       activeClient <- client.init()
