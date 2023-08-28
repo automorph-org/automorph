@@ -14,7 +14,6 @@ private[examples] object DataStructureSerialization {
 
     // Introduce custom data types
     sealed abstract class State
-
     object State {
       case object On extends State
       case object Off extends State
@@ -25,7 +24,7 @@ private[examples] object DataStructureSerialization {
       state: State
     )
 
-    // Provide custom data type serialization and deserialization logic for the default message codec
+    // Provide custom data type serialization and deserialization logic as needed
     implicit val enumEncoder: Encoder[State] = Encoder.encodeInt.contramap[State](Map(
       State.Off -> 0,
       State.On -> 1

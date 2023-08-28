@@ -325,7 +325,7 @@ case class Record(values: List[String])
 // Create uPickle message codec for JSON format
 val messageCodec = UpickleMessagePackCodec[UpickleMessagePackCustom]()
 
-// Provide custom data type serialization and deserialization logic
+// Provide custom data type serialization and deserialization logic as needed
 import messageCodec.custom.*
 implicit def recordRw: messageCodec.custom.ReadWriter[Record] = messageCodec.custom.macroRW
 
@@ -850,7 +850,7 @@ case class Record(
   state: State
 )
 
-// Provide custom data type serialization and deserialization logic for the default message codec
+// Provide custom data type serialization and deserialization logic as needed
 implicit val enumEncoder: Encoder[State] = Encoder.encodeInt.contramap[State](Map(
   State.Off -> 0,
   State.On -> 1
@@ -911,13 +911,11 @@ import java.net.URI
 trait Api {
   def hello(some: String, n: Int): String
 
-  // Invoked as 'hello'
   def hi(some: String, n: Int): String
 }
 
 // Create server implementation of the remote API
 class ApiImpl {
-  // Exposed both as 'hello' and 'hi'
   def hello(some: String, n: Int): String =
     s"Hello $some $n!"
 }
@@ -931,7 +929,10 @@ val client = Default.rpcClientCustom(IdentitySystem(), new URI("http://localhost
 
 // Customize invoked API to RPC function name mapping
 val mapName = (name: String) => name match {
+  // Calling 'hi' invokes 'hello'
   case "hi" => "hello"
+  
+  // Other calls remain unchanged
   case other => other
 }
 
@@ -977,15 +978,12 @@ trait Api {
 
 // Create server implementation of the remote API
 class ApiImpl {
-  // Exposed both as 'hello' and 'hi'
   def hello(some: String, n: Int): String =
     s"Hello $some $n!"
 
-  // Exposed as 'test.sum'
   def sum(numbers: List[Double]): Double =
     numbers.sum
 
-  // Not exposed
   def hidden(): String =
     ""
 }
@@ -993,8 +991,13 @@ val api = new ApiImpl
 
 // Customize exposed API to RPC function name mapping
 val mapName = (name: String) => name match {
+  // 'hello' is exposed both as 'hello' and 'hi'
   case "hello" => Seq("hello", "hi")
+
+  // 'hidden' is not exposed
   case "hidden" => Seq.empty
+
+  // 'sum' is exposed as 'test.sum'
   case other => Seq(s"test.$other")
 }
 

@@ -18,7 +18,7 @@ private[examples] object MessageCodec {
     // Create uPickle message codec for JSON format
     val messageCodec = UpickleMessagePackCodec[UpickleMessagePackCustom]()
 
-    // Provide custom data type serialization and deserialization logic
+    // Provide custom data type serialization and deserialization logic as needed
     import messageCodec.custom.*
     implicit def recordRw: messageCodec.custom.ReadWriter[Record] = messageCodec.custom.macroRW
 

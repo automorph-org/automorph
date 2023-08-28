@@ -12,13 +12,11 @@ private[examples] object ClientFunctionNames {
     trait Api {
       def hello(some: String, n: Int): String
 
-      // Invoked as 'hello'
       def hi(some: String, n: Int): String
     }
 
     // Create server implementation of the remote API
     class ApiImpl {
-      // Exposed both as 'hello' and 'hi'
       def hello(some: String, n: Int): String =
         s"Hello $some $n!"
     }
@@ -32,7 +30,10 @@ private[examples] object ClientFunctionNames {
 
     // Customize invoked API to RPC function name mapping
     val mapName = (name: String) => name match {
+      // Calling 'hi' invokes 'hello'
       case "hi" => "hello"
+
+      // Other calls remain unchanged
       case other => other
     }
 
