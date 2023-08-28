@@ -14,8 +14,8 @@ Please also review additional [examples](Examples) and [API](https://automorph.o
 Download and run a quickstart example using [Scala CLI](https://scala-cli.virtuslab.org):
 
 ```shell
-curl https://raw.githubusercontent.com/automorph-org/automorph/main/\
-examples/project/src/main/scala/examples/Quickstart.scala -o Quickstart.scala
+curl "https://raw.githubusercontent.com/automorph-org/automorph/main/\
+examples/project/src/main/scala/examples/Quickstart.scala" -o Quickstart.scala
 scala-cli Quickstart.scala
 ```
 
