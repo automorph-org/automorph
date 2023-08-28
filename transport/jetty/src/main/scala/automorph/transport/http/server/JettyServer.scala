@@ -11,7 +11,6 @@ import java.time.Duration
 import java.util
 import org.eclipse.jetty.server.Server
 import org.eclipse.jetty.servlet.{FilterHolder, ServletContextHandler, ServletHolder}
-import org.eclipse.jetty.util.component.AbstractLifeCycle
 import org.eclipse.jetty.util.thread.{QueuedThreadPool, ThreadPool}
 import org.eclipse.jetty.websocket.server.JettyWebSocketServerContainer
 import org.eclipse.jetty.websocket.server.config.JettyWebSocketServletContainerInitializer
