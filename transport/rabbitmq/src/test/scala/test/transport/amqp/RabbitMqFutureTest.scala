@@ -27,7 +27,7 @@ class RabbitMqFutureTest extends ClientServerTest with Mutex {
   private lazy val setupTimeout = 30000
   private lazy val erlangAvailable = Try(Process("erl -eval 'halt()' -noshell").! == 0).getOrElse(false)
   private lazy val embeddedBroker = createBroker()
-  private lazy val serverTransport = LocalServer(system, arbitraryContext.arbitrary.sample.get)
+  private lazy val serverTransport = LocalServer[Future, Context](system)
 
   override lazy val system: FutureSystem = FutureSystem()
 
