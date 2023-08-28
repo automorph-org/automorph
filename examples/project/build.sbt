@@ -15,6 +15,7 @@ libraryDependencies ++= {
     "org.automorph" %% "automorph-rabbitmq" % automorphVersion,
     "org.automorph" %% "automorph-sttp" % automorphVersion,
     "org.automorph" %% "automorph-upickle" % automorphVersion,
+    "org.automorph" %% "automorph-vertx" % automorphVersion,
     "org.automorph" %% "automorph-zio" % automorphVersion,
     "com.softwaremill.sttp.client3" %% "async-http-client-backend-future" % sttpVersion,
     "com.softwaremill.sttp.client3" %% "async-http-client-backend-zio" % sttpVersion,

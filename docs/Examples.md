@@ -585,7 +585,7 @@ libraryDependencies ++= Seq(
 ```scala
 import automorph.{Default, RpcServer}
 import automorph.system.FutureSystem
-import automorph.transport.http.server.NanoServer
+import automorph.transport.http.server.VertxServer
 import java.net.URI
 import scala.concurrent.ExecutionContext.Implicits.global
 import scala.concurrent.duration.Duration
@@ -602,8 +602,8 @@ val api = new Api {
     Future(s"Hello $some $n!")
 }
 
-// Create NanoHTTPD HTTP & WebSocket server transport plugin listening on port 9000 for requests to '/api'
-val serverTransport = NanoServer(FutureSystem(), 9000, "/api")
+// Create Vert.x HTTP & WebSocket server transport plugin listening on port 9000 for requests to '/api'
+val serverTransport = VertxServer(FutureSystem(), 9000, "/api")
 
 Await.ready(for {
   // Initialize custom JSON-RPC HTTP & WebSocket server

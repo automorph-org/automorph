@@ -230,7 +230,7 @@ lazy val finagle = source(project, "transport/finagle", core, testTransport % Te
 // Miscellaneous
 lazy val default = source(project, "default", standard, circe, undertow, testTransport % Test)
 lazy val examples = source(
-  project, "examples", default, upickle, zio, sttp, rabbitmq, testBase % Test
+  project, "examples", default, upickle, zio, vertx, sttp, rabbitmq, testBase % Test
 ).settings(
   Test / fork := true,
   Test / testForkedParallel := true,
