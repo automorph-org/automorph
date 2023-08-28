@@ -30,7 +30,7 @@ private[examples] object UnsupportedServer {
 
     // Process JSON-RPC requests via the generic RPC endpoint from within server request handling logic
     {
-      // Retrieve incoming request body containing a JSON-RPC request (real code will be server specific)
+      // Retrieve incoming request body containing a JSON-RPC request (real implementation will be server specific)
       val requestBody =
         """
           |{
@@ -57,7 +57,7 @@ private[examples] object UnsupportedServer {
       // Extract the response body containing a JSON-RPC response from the request handler result
       val responseBody = handlerResult.map(_.map(_.responseBody).getOrElse(Array.emptyByteArray))
 
-      // Send the response body to the client as a response (real code will be server specific)
+      // Send the response body to the client as a response (real implementation will be server specific)
       responseBody.foreach { response =>
         println(new String(response, StandardCharsets.UTF_8))
       }
