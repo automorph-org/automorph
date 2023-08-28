@@ -502,7 +502,7 @@ Await.ready(for {
       |  }
       |}
       |""".getBytes(StandardCharsets.UTF_8),
-    HttpContext(),
+    (),
     Random.nextString(8)
   )
 
