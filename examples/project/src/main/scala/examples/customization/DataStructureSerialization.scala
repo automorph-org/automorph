@@ -19,6 +19,7 @@ private[examples] object DataStructureSerialization {
       case object Off extends State
     }
 
+    // Product data types will work automatically with most message codecs
     final case class Record(
       value: String,
       state: State

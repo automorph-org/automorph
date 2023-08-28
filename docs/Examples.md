@@ -845,6 +845,7 @@ object State {
   case object Off extends State
 }
 
+// Product data types will work automatically with most message codecs
 case class Record(
   value: String,
   state: State
