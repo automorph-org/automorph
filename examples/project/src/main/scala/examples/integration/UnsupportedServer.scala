@@ -2,7 +2,7 @@ package examples.integration
 
 import automorph.transport.generic.endpoint.GenericEndpoint
 import automorph.{Default, RpcEndpoint}
-import java.nio.charset.StandardCharsets
+import java.nio.charset.StandardCharsets.UTF_8
 import scala.concurrent.ExecutionContext.Implicits.global
 import scala.concurrent.Future
 import scala.util.Random
@@ -42,7 +42,7 @@ private[examples] object UnsupportedServer {
           |    "n" : 1
           |  }
           |}
-          |""".getBytes(StandardCharsets.UTF_8)
+          |""".getBytes(UTF_8)
 
       // Call the remote API function by passing the request body directly to the RPC endpoint request handler
       val handlerResult = endpoint.handler.processRequest(
@@ -59,7 +59,7 @@ private[examples] object UnsupportedServer {
 
       // Send the response body to the client as a response (implementation will be server specific)
       responseBody.foreach { response =>
-        println(new String(response, StandardCharsets.UTF_8))
+        println(new String(response, UTF_8))
       }
     }
   }
