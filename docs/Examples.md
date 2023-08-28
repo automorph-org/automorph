@@ -473,7 +473,6 @@ import automorph.{Default, RpcEndpoint}
 import java.nio.charset.StandardCharsets.UTF_8
 import scala.concurrent.ExecutionContext.Implicits.global
 import scala.concurrent.Future
-import scala.util.Random
 
 // Define a remote API
 trait Api {
@@ -515,7 +514,7 @@ val endpoint = RpcEndpoint.transport(endpointTransport).rpcProtocol(Default.rpcP
     // Request context of String type as defined by the generic endpoint transport plugin
     "127.0.0.1",
     // Request correlation identifier included in logs associated with the request
-    Random.nextString(8)
+    "5678"
   )
 
   // Extract the response body containing a JSON-RPC response from the request handler result
