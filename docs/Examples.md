@@ -449,7 +449,7 @@ Await.ready(for {
 } yield (), Duration.Inf)
 ```
 
-### [Any server](https://github.com/automorph-org/automorph/tree/main/examples/project/src/main/scala/examples/integration/AnyServer.scala)
+### [Unsupported server](https://github.com/automorph-org/automorph/tree/main/examples/project/src/main/scala/examples/integration/UnsupportedServer.scala)
 
 **Build**
 
@@ -462,7 +462,7 @@ libraryDependencies ++= Seq(
 **Source**
 
 ```scala
-import automorph.transport.local.endpoint.LocalEndpoint
+import automorph.transport.generic.endpoint.GenericEndpoint
 import automorph.{Default, RpcEndpoint}
 import java.nio.charset.StandardCharsets
 import scala.concurrent.ExecutionContext.Implicits.global
@@ -480,15 +480,15 @@ val api = new Api {
     Future(s"Hello $some $n!")
 }
 
-// Create local endpoint transport plugin with String as RPC request context type
-val endpointTransport = LocalEndpoint.context[String].effectSystem(Default.effectSystem)
+// Create generic endpoint transport plugin with String as RPC request context type
+val endpointTransport = GenericEndpoint.context[String].effectSystem(Default.effectSystem)
 
-// Setup local JSON-RPC endpoint
+// Setup generic JSON-RPC endpoint
 val endpoint = RpcEndpoint.transport(endpointTransport).rpcProtocol(Default.rpcProtocol).bind(api)
 
-// Process JSON-RPC requests via the local RPC endpoint from within server request handling logic
+// Process JSON-RPC requests via the generic RPC endpoint from within server request handling logic
 {
-  // Retrieve incoming HTTP request body (real implementation will be HTTP server specific)
+  // Retrieve incoming request body containing a JSON-RPC request (real implementation will be server specific)
   val requestBody =
     """
       |{
@@ -502,11 +502,11 @@ val endpoint = RpcEndpoint.transport(endpointTransport).rpcProtocol(Default.rpcP
       |}
       |""".getBytes(StandardCharsets.UTF_8)
 
-  // Call the remote API function by passing the request body directly to the local RPC endpoint request handler
+  // Call the remote API function by passing the request body directly to the generic RPC endpoint request handler
   val handlerResult = endpoint.handler.processRequest(
-    // Incoming HTTP request body
+    // Incoming request body
     requestBody,
-    // Request metadata of the type defined by the local endpoint transport plugin
+    // Request context of String type as defined by the generic endpoint transport plugin
     "127.0.0.1",
     // Request correlation identifier included in all logs related to the request
     Random.nextString(8)
@@ -515,45 +515,11 @@ val endpoint = RpcEndpoint.transport(endpointTransport).rpcProtocol(Default.rpcP
   // Extract the response body containing a JSON-RPC response from the request handler result
   val responseBody = handlerResult.map(_.map(_.responseBody).getOrElse(Array.emptyByteArray))
 
-  // Send the response body to the client as an HTTP response (real implementation will be HTTP server specific)
+  // Send the response body to the client as a response (real implementation will be server specific)
   responseBody.foreach { response =>
     println(new String(response, StandardCharsets.UTF_8))
   }
 }
-
-// HTTP server request handling logic for processing JSON-RPC requests via the local RPC endpoint
-{
-  // Retrieve incoming HTTP request body (real implementation will be HTTP server specific)
-  val requestBody =
-    """
-      |{
-      |  "jsonrpc" : "2.0",
-      |  "id" : "1234",
-      |  "method" : "hello",
-      |  "params" : {
-      |    "some" : "world",
-      |    "n" : 1
-      |  }
-      |}
-      |""".getBytes(StandardCharsets.UTF_8)
-
-  // Call the remote API function by passing the request body directly to the local RPC endpoint request handler
-  val handlerResult = endpoint.handler.processRequest(
-    // Incoming HTTP request body
-    requestBody,
-    // Request metadata of the type defined by the local endpoint transport plugin
-    "127.0.0.1",
-    // Request correlation identifier included in all logs related to the request
-    Random.nextString(8)
-  )
-
-  // Extract the response body containing a JSON-RPC response from the request handler result
-  val responseBody = handlerResult.map(_.map(_.responseBody).getOrElse(Array.emptyByteArray))
-
-  // Send the response body to the client as an HTTP response (real implementation will be HTTP server specific)
-  responseBody.foreach { response =>
-    println(new String(response, StandardCharsets.UTF_8))
-  }
 }
 ```
 
@@ -1758,7 +1724,7 @@ val api = new Api {
 // Create passive JSON-RPC HTTP & WebSocket server on port 9000 for POST requests to '/api'
 val server = Default.rpcServer(9000, "/api").bind(api)
 
-// Create default value for request metadata of the type prescribed by the RPC server
+// Create default value for request metadata of the type defined by the RPC server
 val defaultRequestContext: Default.ServerContext = HttpContext()
 
 // Create local client transport which passes requests directly to RPC server request handler

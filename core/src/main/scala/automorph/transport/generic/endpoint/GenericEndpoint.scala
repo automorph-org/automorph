@@ -1,14 +1,14 @@
-package automorph.transport.local.endpoint
+package automorph.transport.generic.endpoint
 
 import automorph.spi.{EffectSystem, EndpointTransport, RequestHandler}
 
 /**
- * Local endpoint transport plugin.
+ * Generic endpoint transport plugin.
  *
  * Passes RPC API requests directly to the specified RPC request handler.
  *
  * @constructor
- *   Creates a local endpoint transport plugin
+ *   Creates a generic endpoint transport plugin
  * @param effectSystem
  *   effect system plugin
  * @param handler
@@ -18,7 +18,7 @@ import automorph.spi.{EffectSystem, EndpointTransport, RequestHandler}
  * @tparam Context
  *   RPC message context type
  */
-final case class LocalEndpoint[Effect[_], Context](
+final case class GenericEndpoint[Effect[_], Context](
   effectSystem: EffectSystem[Effect],
   handler: RequestHandler[Effect, Context] = RequestHandler.dummy[Effect, Context],
 ) extends EndpointTransport[Effect, Context, Unit] {
@@ -26,23 +26,23 @@ final case class LocalEndpoint[Effect[_], Context](
   override def adapter: Unit =
     ()
 
-  override def withHandler(handler: RequestHandler[Effect, Context]): LocalEndpoint[Effect, Context] =
+  override def withHandler(handler: RequestHandler[Effect, Context]): GenericEndpoint[Effect, Context] =
     copy(handler = handler)
 }
 
-object LocalEndpoint {
+object GenericEndpoint {
 
   /**
-   * Local endpoint transport builder.
+   * Generic endpoint transport builder.
    *
    * @constructor
-   *   Creates a new local endpoint transport builder.
+   *   Creates a new generic endpoint transport builder.
    * @tparam Context
    *   RPC message context type
    */
-  final case class LocalEndpointBuilder[Context]() {
+  final case class GenericEndpointBuilder[Context]() {
     /**
-     * Creates a new local endpoint transport plugin with specified effect system.
+     * Creates a new generic endpoint transport plugin with specified effect system.
      *
      * @param effectSystem
      *   effecty protocol plugin
@@ -51,18 +51,18 @@ object LocalEndpoint {
      * @return
      *   RPC endpoint builder
      */
-    def effectSystem[Effect[_]](effectSystem: EffectSystem[Effect]): LocalEndpoint[Effect, Context] =
-      LocalEndpoint(effectSystem)
+    def effectSystem[Effect[_]](effectSystem: EffectSystem[Effect]): GenericEndpoint[Effect, Context] =
+      GenericEndpoint(effectSystem)
   }
 
   /**
-   * Creates a new local endpoint transport builder with specified RPC message contex type.
+   * Creates a new generic endpoint transport builder with specified RPC message contex type.
    *
    * @tparam Context
    *   RPC message context type
    * @return
-   *   local endpoint transport builder
+   *   generic endpoint transport builder
    */
-  def context[Context]: LocalEndpointBuilder[Context] =
-    LocalEndpointBuilder()
+  def context[Context]: GenericEndpointBuilder[Context] =
+    GenericEndpointBuilder()
 }

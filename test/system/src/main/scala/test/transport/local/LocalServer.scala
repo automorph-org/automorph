@@ -1,12 +1,12 @@
 package test.transport.local
 
 import automorph.spi.{EffectSystem, RequestHandler, ServerTransport}
-import automorph.transport.local.endpoint.LocalEndpoint
+import automorph.transport.generic.endpoint.GenericEndpoint
 
 final case class LocalServer[Effect[_], Context](
   effectSystem: EffectSystem[Effect],
 ) extends ServerTransport[Effect, Context] {
-  private var endpoint: LocalEndpoint[Effect, Context] = LocalEndpoint(effectSystem)
+  private var endpoint: GenericEndpoint[Effect, Context] = GenericEndpoint(effectSystem)
 
   def handler: RequestHandler[Effect, Context] =
     endpoint.handler
