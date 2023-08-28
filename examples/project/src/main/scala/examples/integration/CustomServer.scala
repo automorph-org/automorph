@@ -1,8 +1,7 @@
 package examples.integration
 
-import automorph.transport.local.client.LocalClient
 import automorph.transport.local.endpoint.LocalEndpoint
-import automorph.{Default, RpcClient, RpcEndpoint}
+import automorph.{Default, RpcEndpoint}
 import java.nio.charset.StandardCharsets
 import scala.concurrent.ExecutionContext.Implicits.global
 import scala.concurrent.duration.Duration
@@ -30,9 +29,6 @@ private[examples] object CustomServer {
     // Setup local JSON-RPC endpoint
     val endpoint = RpcEndpoint.transport(endpointTransport).rpcProtocol(Default.rpcProtocol).bind(api)
 
-    // Create local client message transport
-    val clientTransport = LocalClient(Default.effectSystem, (), endpoint.handler)
-
     Await.ready(for {
       // Call the remote API function by passing the request body directly to the local endpoint request handler
       result <- endpoint.handler.processRequest(
@@ -54,17 +50,6 @@ private[examples] object CustomServer {
       // Extract the response body from the request handler result
       responseBody = result.map(_.responseBody).getOrElse(Array.emptyByteArray)
       _ = println(new String(responseBody, StandardCharsets.UTF_8))
-
-      // Initialize local JSON-RPC client
-      client <- RpcClient.transport(clientTransport).rpcProtocol(Default.rpcProtocol).init()
-      remoteApi = client.bind[Api]
-
-      // Call the remote API function using the local client
-      result <- remoteApi.hello("world", 1)
-      _ = println(result)
-
-      // Close the RPC client
-      _ <- client.close()
     } yield (), Duration.Inf)
   }
 }

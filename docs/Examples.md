@@ -462,9 +462,9 @@ libraryDependencies ++= Seq(
 **Source**
 
 ```scala
-import automorph.transport.local.client.LocalClient
+import automorph.transport.http.HttpContext
 import automorph.transport.local.endpoint.LocalEndpoint
-import automorph.{Default, RpcClient, RpcEndpoint}
+import automorph.{Default, RpcEndpoint}
 import java.nio.charset.StandardCharsets
 import scala.concurrent.ExecutionContext.Implicits.global
 import scala.concurrent.duration.Duration
@@ -488,9 +488,6 @@ val endpointTransport = LocalEndpoint(Default.effectSystem, ())
 // Setup local JSON-RPC endpoint
 val endpoint = RpcEndpoint.transport(endpointTransport).rpcProtocol(Default.rpcProtocol).bind(api)
 
-// Create local client message transport
-val clientTransport = LocalClient(Default.effectSystem, (), endpoint.handler)
-
 Await.ready(for {
   // Call the remote API function by passing the request body directly to the local endpoint request handler
   result <- endpoint.handler.processRequest(
@@ -505,24 +502,13 @@ Await.ready(for {
       |  }
       |}
       |""".getBytes(StandardCharsets.UTF_8),
-    (),
+    HttpContext(),
     Random.nextString(8)
   )
-  
+
   // Extract the response body from the request handler result
   responseBody = result.map(_.responseBody).getOrElse(Array.emptyByteArray)
   _ = println(new String(responseBody, StandardCharsets.UTF_8))
-
-  // Initialize local JSON-RPC client
-  client <- RpcClient.transport(clientTransport).rpcProtocol(Default.rpcProtocol).init()
-  remoteApi = client.bind[Api]
-
-  // Call the remote API function using the local client
-  result <- remoteApi.hello("world", 1)
-  _ = println(result)
-
-  // Close the RPC client
-  _ <- client.close()
 } yield (), Duration.Inf)
 ```
 
@@ -1687,5 +1673,56 @@ Await.ready(for {
 
   // Close the RPC server
   _ <- server.close()
+} yield (), Duration.Inf)
+```
+
+### [Local testing](https://github.com/automorph-org/automorph/tree/main/examples/project/src/main/scala/examples/special/LocalTesting.scala)
+
+**Build**
+
+```scala
+libraryDependencies ++= Seq(
+  "org.automorph" %% "automorph-default" % "@PROJECT_VERSION@"
+)
+```
+
+**Source**
+
+```scala
+import automorph.transport.http.HttpContext
+import automorph.transport.local.client.LocalClient
+import automorph.{Default, RpcClient}
+import scala.concurrent.ExecutionContext.Implicits.global
+import scala.concurrent.duration.Duration
+import scala.concurrent.{Await, Future}
+
+// Define a remote API
+trait Api {
+  def hello(some: String, n: Int): Future[String]
+}
+
+// Create server implementation of the remote API
+val api = new Api {
+  def hello(some: String, n: Int): Future[String] =
+    Future(s"Hello $some $n!")
+}
+
+// Create JSON-RPC HTTP endpoint
+val endpoint = Default.rpcEndpoint().bind(api)
+
+// Create local client message transport
+val clientTransport = LocalClient(Default.effectSystem, (), endpoint.handler)
+
+Await.ready(for {
+  // Initialize local JSON-RPC client
+  client <- RpcClient.transport(clientTransport).rpcProtocol(Default.rpcProtocol).init()
+  remoteApi = client.bind[Api]
+
+  // Call the remote API function using the local client
+  result <- remoteApi.hello("world", 1)
+  _ = println(result)
+
+  // Close the RPC client
+  _ <- client.close()
 } yield (), Duration.Inf)
 ```
