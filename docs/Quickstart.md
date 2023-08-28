@@ -11,42 +11,13 @@ Please also review additional [examples](Examples) and [API](https://automorph.o
 
 ## Script
 
-Download and run an example using [Scala CLI](https://scala-cli.virtuslab.org):
+Download and run a quickstart example using [Scala CLI](https://scala-cli.virtuslab.org):
 
 ```shell
-scala-cli https://raw.githubusercontent.com/automorph-org/automorph/main/examples/project/src/main/scala/examples/Quickstart.scala
+curl https://raw.githubusercontent.com/automorph-org/automorph/main/\
+examples/project/src/main/scala/examples/Quickstart.scala -o Quickstart.scala
+scala-cli Quickstart.scala
 ```
-
-
-## New project
-
-Create an [SBT](https://www.scala-sbt.org/) project from a [Giter8](http://www.foundweekends.org/giter8/) template:
-
-```shell
-sbt new automorph-org/automorph.g8
-cd automorph-example
-sbt run
-```
-
-Customize the example by editing `src/main/scala/examples/Quickstart.scala` and `build.sbt`.
-
-Application logs are saved to `target/main.log` using the `LOG_LEVEL` environment variable to set a log level (`ERROR`, `WARN`, `INFO`, `DEBUG`, `TRACE`).
-
-
-## Example project
-
-Clone the [example project](@REPOSITORY_URL@/tree/main/examples/project) and run any of the examples:
-
-```shell
-git clone --depth 1 @REPOSITORY_URL@
-cd automorph/examples/project
-sbt run
-```
-
-Customize the [examples](@REPOSITORY_URL@/blob/main/examples/project/src/main/scala/examples) by:
-- Integrating with preferred platforms by including additional plugins
-- Configuring RPC client, server or endpoint properties
-- Removing unused examples and build dependencies
 
 
 ## Existing project
@@ -71,7 +42,7 @@ implementation group: 'org.automorph', name: 'automorph-default_3', version: '@P
 
 ### Server
 
-Expose the API instance for remote calls using JSON-RPC over HTTP(S).
+Expose an API instance for remote calls using JSON-RPC over HTTP(S).
 
 ```scala
 import automorph.Default
@@ -108,9 +79,10 @@ Await.ready(for {
 } yield (), Duration.Inf)
 ```
 
-### Static client
+### Client
 
-Call the remote API instance via proxy created from API type using JSON-RPC over HTTP(S).
+Call a remote API using JSON-RPC over HTTP(S) via a type-safe proxy created from the API trait or
+dynamically without prior API specification.
 
 ```scala
 import automorph.Default
@@ -128,42 +100,19 @@ trait Api {
 // Configure JSON-RPC HTTP client to send POST requests to 'http://localhost:9000/api'
 val client = Default.rpcClient(new URI("http://localhost:9000/api"))
 
-// Create proxy for the remote API to be accessible locally
+// Create a type-safe proxy for the remote API from its API trait
 val remoteApi = client.bind[Api]
 
 Await.ready(for {
   // Initialize the JSON-RPC client
   activeClient <- client.init()
 
-  // Call the remote API function statically
+  // Call the remote API function via the type-safe proxy
   result <- remoteApi.hello("world", 1)
   _ = println(result)
 
-  // Close the JSON-RPC client
-  _ <- activeClient.close()
-} yield (), Duration.Inf)
-```
-
-### Dynamic client
-
-Call the remote API dynamically without API type definition using JSON-RPC over HTTP(S).
-
-```scala
-import automorph.Default
-import java.net.URI
-import scala.concurrent.ExecutionContext.Implicits.global
-import scala.concurrent.duration.Duration
-import scala.concurrent.{Await, Future}
-
-// Configure JSON-RPC HTTP client to send POST requests to 'http://localhost:9000/api'
-val client = Default.rpcClient(new URI("http://localhost:9000/api"))
-
-Await.ready(for {
-  // Initialize the JSON-RPC client
-  activeClient <- client.init()
-
-  // Call the remote API function dynamically
-  result <- client.call[String]("hello")("some" -> "world", "n" -> 1)
+  // Call the remote API function dynamically without API specification
+  result <- activeClient.call[String]("hello")("some" -> "world", "n" -> 1)
   _ = println(result)
 
   // Close the JSON-RPC client
@@ -171,3 +120,36 @@ Await.ready(for {
 } yield (), Duration.Inf)
 ```
 
+
+## New project
+
+### Template
+
+Create an [SBT](https://www.scala-sbt.org/) project containing a quickstart example from a
+[Giter8](http://www.foundweekends.org/giter8/) template:
+
+```shell
+sbt new automorph-org/automorph.g8
+cd automorph-example
+sbt run
+```
+
+Customize the example by editing `src/main/scala/examples/Quickstart.scala` and `build.sbt`.
+
+Application logs are saved to `target/main.log` using the `LOG_LEVEL` environment variable to set a log level (`ERROR`, `WARN`, `INFO`, `DEBUG`, `TRACE`).
+
+
+### Examples
+
+Clone the [example project](@REPOSITORY_URL@/tree/main/examples/project) and run any of the examples:
+
+```shell
+git clone --depth 1 @REPOSITORY_URL@
+cd automorph/examples/project
+sbt run
+```
+
+Customize the [examples](@REPOSITORY_URL@/blob/main/examples/project/src/main/scala/examples) by:
+- Integrating with preferred platforms by including additional plugins
+- Configuring RPC client, server or endpoint properties
+- Removing unused examples and build dependencies
