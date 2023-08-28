@@ -484,7 +484,7 @@ def processRpcRequest(requestBody: Array[Byte]): Future[Array[Byte]] = {
   // Supply request context of type Unit as defined by the generic endpoint transport plugin
   val requestContext: Unit = ()
 
-  // Supply request correlation identifier included in logs associated with the request
+  // Supply request correlation identifier which will be included in logs associated with the request
   val requestId = Random.nextInt(Int.MaxValue).toString
 
   // Call the remote API function by passing the request body directly to the RPC endpoint request handler
