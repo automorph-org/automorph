@@ -508,7 +508,7 @@ def processRpcRequest(requestBody: Array[Byte]): Future[Array[Byte]] = {
   handlerResult.map(_.map(_.responseBody).getOrElse(Array.emptyByteArray))
 }
 
-// Test the RPC request processing function
+// Test the JSON-RPC request processing function
 val requestBody =
   """
     |{
