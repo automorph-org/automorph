@@ -1,7 +1,6 @@
 package examples.transport
 
 import automorph.{Default, RpcClient}
-import automorph.system.FutureSystem
 import automorph.transport.http.client.UrlClient
 import java.net.URI
 import scala.concurrent.ExecutionContext.Implicits.global
@@ -24,7 +23,7 @@ private[examples] object ClientTransport {
     }
 
     // Create standard JRE HTTP client transport sending POST requests to 'http://localhost:9000/api'
-    val clientTransport = UrlClient(FutureSystem(), new URI("http://localhost:9000/api"))
+    val clientTransport = UrlClient(Default.effectSystem, new URI("http://localhost:9000/api"))
 
     Await.ready(for {
       // Initialize JSON-RPC HTTP & WebSocket server listening on port 80 for requests to '/api'

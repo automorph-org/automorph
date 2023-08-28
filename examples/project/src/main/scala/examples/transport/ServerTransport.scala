@@ -1,7 +1,6 @@
 package examples.transport
 
 import automorph.{Default, RpcServer}
-import automorph.system.FutureSystem
 import automorph.transport.http.server.VertxServer
 import java.net.URI
 import scala.concurrent.ExecutionContext.Implicits.global
@@ -24,7 +23,7 @@ private[examples] object ServerTransport {
     }
 
     // Create Vert.x HTTP & WebSocket server transport plugin listening on port 9000 for requests to '/api'
-    val serverTransport = VertxServer(FutureSystem(), 9000, "/api")
+    val serverTransport = VertxServer(Default.effectSystem, 9000, "/api")
 
     Await.ready(for {
       // Initialize custom JSON-RPC HTTP & WebSocket server

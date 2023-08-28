@@ -530,7 +530,6 @@ libraryDependencies ++= Seq(
 
 ```scala
 import automorph.{Default, RpcClient}
-import automorph.system.FutureSystem
 import automorph.transport.http.client.UrlClient
 import java.net.URI
 import scala.concurrent.ExecutionContext.Implicits.global
@@ -549,7 +548,7 @@ val api = new Api {
 }
 
 // Create standard JRE HTTP client transport sending POST requests to 'http://localhost:9000/api'
-val clientTransport = UrlClient(FutureSystem(), new URI("http://localhost:9000/api"))
+val clientTransport = UrlClient(Default.effectSystem, new URI("http://localhost:9000/api"))
 
 Await.ready(for {
   // Initialize JSON-RPC HTTP & WebSocket server listening on port 80 for requests to '/api'
@@ -584,7 +583,6 @@ libraryDependencies ++= Seq(
 
 ```scala
 import automorph.{Default, RpcServer}
-import automorph.system.FutureSystem
 import automorph.transport.http.server.VertxServer
 import java.net.URI
 import scala.concurrent.ExecutionContext.Implicits.global
@@ -603,7 +601,7 @@ val api = new Api {
 }
 
 // Create Vert.x HTTP & WebSocket server transport plugin listening on port 9000 for requests to '/api'
-val serverTransport = VertxServer(FutureSystem(), 9000, "/api")
+val serverTransport = VertxServer(Default.effectSystem, 9000, "/api")
 
 Await.ready(for {
   // Initialize custom JSON-RPC HTTP & WebSocket server
