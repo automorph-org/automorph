@@ -3,7 +3,6 @@ val projectRoot = "org"
 val projectName = "automorph"
 val projectDomain = s"$projectName.$projectRoot"
 val projectDescription = "RPC client and server library for Scala"
-val siteVersion = "0.2.2"
 val siteUrl = s"https://$projectDomain"
 val apiUrl = s"$siteUrl/api"
 ThisBuild / homepage := Some(url(siteUrl))
@@ -341,7 +340,12 @@ lazy val allDependencyClasspath = Def.taskDyn(flattenTasks(root.uses.map(_ / Com
 lazy val docs = project.in(file("site")).settings(
   name := projectName,
   mdocVariables := Map(
-    "PROJECT_VERSION" -> siteVersion,
+    "PROJECT_VERSION" -> {
+      IO.readLines((examples / baseDirectory).value / "project/src/main/scala/examples/Quickstart.scala")
+        .filter(_.startsWith("//> using dep org.automorph::"))
+        .flatMap(_.split(":").lastOption)
+        .lastOption.getOrElse("")
+    },
     "SCALADOC_VERSION" -> scalaVersion.value,
     "REPOSITORY_URL" -> repositoryUrl
   ),
