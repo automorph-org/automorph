@@ -23,7 +23,7 @@ trait RequestHandler[Effect[_], Context] {
    * @param context
    *   request context
    * @param id
-   *   request correlation identifier included in all logs related to the request
+   *   request correlation identifier included in logs associated with the request
    * @return
    *   request processing result
    */

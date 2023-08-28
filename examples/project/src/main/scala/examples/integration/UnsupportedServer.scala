@@ -50,7 +50,7 @@ private[examples] object UnsupportedServer {
         requestBody,
         // Request context of String type as defined by the generic endpoint transport plugin
         "127.0.0.1",
-        // Request correlation identifier included in all logs related to the request
+        // Request correlation identifier included in logs associated with the request
         Random.nextString(8)
       )
 
