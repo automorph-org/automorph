@@ -34,7 +34,7 @@ private[examples] object AsynchronousCall {
       result <- remoteApi.hello("world", 1)
       _ = println(result)
 
-      // Call the remote API function dynamically without API specification
+      // Call the remote API function dynamically without an API trait
       result <- client.call[String]("hello")("some" -> "world", "n" -> 1)
       _ = println(result)
 

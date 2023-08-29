@@ -35,7 +35,7 @@ private[examples] object Quickstart {
     // Configure JSON-RPC HTTP client to send POST requests to 'http://localhost:9000/api'
     val client = Default.rpcClient(new URI("http://localhost:9000/api"))
 
-    // Create a type-safe proxy for the remote API from its API trait
+    // Create a type-safe proxy for the remote API from the API trait
     val remoteApi = client.bind[Api]
 
     Await.ready(for {
@@ -49,7 +49,7 @@ private[examples] object Quickstart {
       result <- remoteApi.hello("world", 1)
       _ = println(result)
 
-      // Call the remote API function without API specification
+      // Call the remote API function without an API trait
       result <- activeClient.call[String]("hello")("some" -> "world", "n" -> 1)
       _ = println(result)
 

@@ -40,7 +40,7 @@ private[examples] object DynamicPayload {
       result <- remoteApi.hello("world", Json.fromInt(1))
       _ = println(result)
 
-      // Call the remote API function dynamically without API specification
+      // Call the remote API function dynamically without an API trait
       result <- client.call[Seq[Int]]("hello")("some" -> Json.fromInt(0), "n" -> 1)
       _ = println(result)
 

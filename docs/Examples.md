@@ -55,7 +55,7 @@ Await.ready(for {
   result <- remoteApi.hello("world", 1)
   _ = println(result)
 
-  // Call the remote API function dynamically without API specification
+  // Call the remote API function dynamically without an API trait
   result <- client.call[String]("hello")("some" -> "world", "n" -> 1)
   _ = println(result)
 
@@ -106,7 +106,7 @@ println(
   remoteApi.hello("world", 1)
 )
 
-// Call the remote API function dynamically without API specification
+// Call the remote API function dynamically without an API trait
 println(
   client.call[String]("hello")("some" -> "world", "n" -> 1)
 )
@@ -163,7 +163,7 @@ Await.ready(for {
   result <- remoteApi.hello("world")
   _ = println(result)
 
-  // Call the remote API function dynamically without API specification
+  // Call the remote API function dynamically without an API trait
   result <- client.call[String]("hi")("n" -> 1)
   _ = println(result)
 
@@ -1017,7 +1017,7 @@ println(
   remoteApi.hi("world", 1)
 )
 
-// Call the remote API function dynamically without API specification
+// Call the remote API function dynamically without an API trait
 println(
   client.call[Double]("test.sum")("numbers" -> List(1, 2, 3))
 )
@@ -1544,7 +1544,7 @@ Await.ready(for {
   result <- remoteApi.hello("world", Json.fromInt(1))
   _ = println(result)
 
-  // Call the remote API function dynamically without API specification
+  // Call the remote API function dynamically without an API trait
   result <- client.call[Seq[Int]]("hello")("some" -> Json.fromInt(0), "n" -> 1)
   _ = println(result)
 

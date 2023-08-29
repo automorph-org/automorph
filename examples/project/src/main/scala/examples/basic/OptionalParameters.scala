@@ -37,7 +37,7 @@ private[examples] object OptionalParameters {
       result <- remoteApi.hello("world")
       _ = println(result)
 
-      // Call the remote API function dynamically without API specification
+      // Call the remote API function dynamically without an API trait
       result <- client.call[String]("hi")("n" -> 1)
       _ = println(result)
 

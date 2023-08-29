@@ -56,7 +56,7 @@ private[examples] object ServerFunctionNames {
       remoteApi.hi("world", 1)
     )
 
-    // Call the remote API function dynamically without API specification
+    // Call the remote API function dynamically without an API trait
     println(
       client.call[Double]("test.sum")("numbers" -> List(1, 2, 3))
     )

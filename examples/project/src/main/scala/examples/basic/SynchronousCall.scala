@@ -32,7 +32,7 @@ private[examples] object SynchronousCall {
       remoteApi.hello("world", 1)
     )
 
-    // Call the remote API function dynamically without API specification
+    // Call the remote API function dynamically without an API trait
     println(
       client.call[String]("hello")("some" -> "world", "n" -> 1)
     )
