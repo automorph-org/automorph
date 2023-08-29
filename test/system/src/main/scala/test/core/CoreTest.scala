@@ -36,6 +36,7 @@ trait CoreTest extends BaseTest {
     invalidApi: InvalidApiType,
     call: (String, (String, String)) => Effect[String],
     tell: (String, (String, String)) => Effect[Unit],
+    nameSuffix: String = "",
   ) {
 
     val genericClient: GenericClient[Effect, Context] = client.asInstanceOf[GenericClient[Effect, Context]]
@@ -44,7 +45,7 @@ trait CoreTest extends BaseTest {
     def name: String = {
       val rpcProtocol = genericClient.rpcProtocol
       val codecName = rpcProtocol.messageCodec.getClass.getSimpleName.replaceAll("MessageCodec$", "")
-      s"${rpcProtocol.name} / $codecName"
+      s"${rpcProtocol.name} / $codecName$nameSuffix"
     }
   }
 

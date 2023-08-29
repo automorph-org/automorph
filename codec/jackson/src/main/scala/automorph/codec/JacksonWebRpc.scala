@@ -1,6 +1,6 @@
-package automorph.codec.json
+package automorph.codec
 
-import automorph.codec.json.JacksonRpcProtocol.{field, serializer}
+import automorph.codec.JacksonRpcProtocol.{field, serializer}
 import automorph.protocol.webrpc.{Message, MessageError}
 import com.fasterxml.jackson.core.{JsonParseException, JsonParser}
 import com.fasterxml.jackson.databind.deser.std.StdDeserializer

@@ -144,7 +144,11 @@ lazy val circe = source(project, s"codec/circe", core, testCodec % Test).setting
 )
 val jacksonVersion = "2.15.2"
 lazy val jackson = source(project, "codec/jackson", core, testCodec % Test).settings(
-  libraryDependencies += "com.fasterxml.jackson.module" %% "jackson-module-scala" % jacksonVersion
+  libraryDependencies ++= Seq(
+    "com.fasterxml.jackson.module" %% "jackson-module-scala" % jacksonVersion,
+    "com.fasterxml.jackson.dataformat" % "jackson-dataformat-cbor" % jacksonVersion,
+    "com.fasterxml.jackson.dataformat" % "jackson-dataformat-smile" % jacksonVersion
+  )
 )
 lazy val upickle = source(project, "codec/upickle", core, testCodec % Test).settings(
   libraryDependencies += "com.lihaoyi" %% "upickle" % "3.1.2"

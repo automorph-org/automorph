@@ -1,4 +1,4 @@
-package automorph.codec.json
+package automorph.codec
 
 import automorph.spi.MessageCodec
 import com.fasterxml.jackson.databind.{JsonNode, ObjectMapper}
@@ -6,7 +6,7 @@ import scala.compiletime.summonInline
 import scala.reflect.ClassTag
 
 /** Jackson JSON codec plugin code generation. */
-private[automorph] trait JacksonJsonMeta extends MessageCodec[JsonNode]:
+private[automorph] trait JacksonMeta extends MessageCodec[JsonNode]:
 
   def objectMapper: ObjectMapper
 

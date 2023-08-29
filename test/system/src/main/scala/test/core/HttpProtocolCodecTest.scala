@@ -15,7 +15,7 @@ trait HttpProtocolCodecTest extends ProtocolCodecTest {
   override def createFixtures(implicit context: Context): Seq[TestFixture] =
     super.createFixtures ++ {
       if (BaseTest.testSimple || BaseTest.testAll || !integration) {
-        Seq(circeWebRpcJsonFixture(5))
+        Seq(circeWebRpcJsonFixture(7))
       } else {
         Seq.empty
       }

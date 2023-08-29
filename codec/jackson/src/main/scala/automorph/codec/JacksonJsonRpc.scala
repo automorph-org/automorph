@@ -1,6 +1,6 @@
-package automorph.codec.json
+package automorph.codec
 
-import automorph.codec.json.JacksonRpcProtocol.{field, serializer}
+import automorph.codec.JacksonRpcProtocol.{field, serializer}
 import automorph.protocol.jsonrpc.{Message, MessageError}
 import com.fasterxml.jackson.core.{JsonGenerator, JsonParseException, JsonParser}
 import com.fasterxml.jackson.databind.deser.std.StdDeserializer
@@ -47,7 +47,7 @@ private[automorph] object JacksonJsonRpc {
           case (name, Some(Right(value))) => Some(name -> value)
           case (name, Some(Left(value))) => Some(name -> value)
           case (name, Some(value)) => Some(name -> value)
-          case (_, None) => None
+          case _ => None
         }.toMap
         generator.writeObject(entries)
       }
