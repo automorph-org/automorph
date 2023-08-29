@@ -1,6 +1,6 @@
 package test.codec.messagepack
 
-import automorph.codec.messagepack.{UpickleMessagePackCodec, UpickleMessagePackCustom}
+import automorph.codec.messagepack.{UpickleMessagePackCodec, UpickleMessagePackConfig}
 import org.scalacheck.{Arbitrary, Gen}
 import test.api.Generators.arbitraryRecord
 import test.api.{Enum, Record, Structure}
@@ -28,8 +28,8 @@ class UpickleMessagePackTest extends MessageCodecTest {
     )
   })
 
-  private lazy val custom = codec.custom
-  private implicit lazy val recordRw: custom.ReadWriter[Record] = custom.macroRW
+  private lazy val config = codec.config
+  private implicit lazy val recordRw: config.ReadWriter[Record] = config.macroRW
   Seq(recordRw)
 
   "" - {
@@ -43,7 +43,7 @@ class UpickleMessagePackTest extends MessageCodecTest {
   }
 }
 
-object UpickleMessagePackTest extends UpickleMessagePackCustom {
+object UpickleMessagePackTest extends UpickleMessagePackConfig {
 
   implicit lazy val enumRw: ReadWriter[Enum.Enum] = readwriter[Int].bimap[Enum.Enum](
     value => Enum.toOrdinal(value),

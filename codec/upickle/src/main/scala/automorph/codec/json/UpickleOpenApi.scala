@@ -8,35 +8,35 @@ import upickle.core.Abort
 /** OpenAPI schema support for Circe message codec plugin using JSON format. */
 private[automorph] object UpickleOpenApi {
 
-  def readWriter[Custom <: UpickleJsonCustom](custom: Custom): custom.ReadWriter[OpenApi] = {
-    import custom.*
+  def readWriter[Config <: UpickleJsonConfig](config: Config): config.ReadWriter[OpenApi] = {
+    import config.*
 
-    implicit val schemaRw: custom.ReadWriter[Schema] = readwriter[Value].bimap[Schema](fromSchema, toSchema)
-    implicit val authFlowRw: custom.ReadWriter[OAuthFlow] = custom.macroRW
-    implicit val contactRw: custom.ReadWriter[Contact] = custom.macroRW
-    implicit val externalDocumentationRw: custom.ReadWriter[ExternalDocumentation] = custom.macroRW
-    implicit val exampleRw: custom.ReadWriter[Example] = custom.macroRW
-    implicit val headerReferenceRw: custom.ReadWriter[HeaderReference] = custom.macroRW
-    implicit val licenseRw: custom.ReadWriter[License] = custom.macroRW
-    implicit val pathItemReferenceRw: custom.ReadWriter[PathItemReference] = custom.macroRW
-    implicit val serverVariableRw: custom.ReadWriter[ServerVariable] = custom.macroRW
-    implicit val authFlowsRw: custom.ReadWriter[OAuthFlows] = custom.macroRW
-    implicit val infoRw: custom.ReadWriter[Info] = custom.macroRW
-    implicit val securitySchemeRw: custom.ReadWriter[SecurityScheme] = custom.macroRW
-    implicit val serverRw: custom.ReadWriter[Server] = custom.macroRW
-    implicit val tagRw: custom.ReadWriter[Tag] = custom.macroRW
-    implicit val encodingRw: custom.ReadWriter[Encoding] = custom.macroRW
-    implicit val mediaTypeRw: custom.ReadWriter[MediaType] = custom.macroRW
-    implicit val headerRw: custom.ReadWriter[Header] = custom.macroRW
-    implicit val linkRw: custom.ReadWriter[Link] = custom.macroRW
-    implicit val parameterRw: custom.ReadWriter[Parameter] = custom.macroRW
-    implicit val requestBodyRw: custom.ReadWriter[RequestBody] = custom.macroRW
-    implicit val responseRw: custom.ReadWriter[Response] = custom.macroRW
-    implicit val operationRw: custom.ReadWriter[Operation] = custom.macroRW
-    implicit val pathItemRw: custom.ReadWriter[PathItem] = custom.macroRW
-    implicit val componentsRw: custom.ReadWriter[Components] = custom.macroRW
+    implicit val schemaRw: config.ReadWriter[Schema] = readwriter[Value].bimap[Schema](fromSchema, toSchema)
+    implicit val authFlowRw: config.ReadWriter[OAuthFlow] = config.macroRW
+    implicit val contactRw: config.ReadWriter[Contact] = config.macroRW
+    implicit val externalDocumentationRw: config.ReadWriter[ExternalDocumentation] = config.macroRW
+    implicit val exampleRw: config.ReadWriter[Example] = config.macroRW
+    implicit val headerReferenceRw: config.ReadWriter[HeaderReference] = config.macroRW
+    implicit val licenseRw: config.ReadWriter[License] = config.macroRW
+    implicit val pathItemReferenceRw: config.ReadWriter[PathItemReference] = config.macroRW
+    implicit val serverVariableRw: config.ReadWriter[ServerVariable] = config.macroRW
+    implicit val authFlowsRw: config.ReadWriter[OAuthFlows] = config.macroRW
+    implicit val infoRw: config.ReadWriter[Info] = config.macroRW
+    implicit val securitySchemeRw: config.ReadWriter[SecurityScheme] = config.macroRW
+    implicit val serverRw: config.ReadWriter[Server] = config.macroRW
+    implicit val tagRw: config.ReadWriter[Tag] = config.macroRW
+    implicit val encodingRw: config.ReadWriter[Encoding] = config.macroRW
+    implicit val mediaTypeRw: config.ReadWriter[MediaType] = config.macroRW
+    implicit val headerRw: config.ReadWriter[Header] = config.macroRW
+    implicit val linkRw: config.ReadWriter[Link] = config.macroRW
+    implicit val parameterRw: config.ReadWriter[Parameter] = config.macroRW
+    implicit val requestBodyRw: config.ReadWriter[RequestBody] = config.macroRW
+    implicit val responseRw: config.ReadWriter[Response] = config.macroRW
+    implicit val operationRw: config.ReadWriter[Operation] = config.macroRW
+    implicit val pathItemRw: config.ReadWriter[PathItem] = config.macroRW
+    implicit val componentsRw: config.ReadWriter[Components] = config.macroRW
 
-    custom.macroRW[OpenApi]
+    config.macroRW[OpenApi]
   }
 
   private def fromSchema(schema: Schema): Value =

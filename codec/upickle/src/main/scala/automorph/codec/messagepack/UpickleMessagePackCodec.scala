@@ -14,28 +14,28 @@ import upack.Msg
  *   [[https://com-lihaoyi.github.io/upickle/#uPack Node type]]
  * @constructor
  *   Creates a uPickle codec plugin using MessagePack as message format.
- * @param custom
- *   customized Upickle reader and writer implicits instance
- * @tparam Custom
- *   customized Upickle reader and writer implicits instance type
+ * @param config
+ *   Upickle configuration containing implicit reader and writer instances
+ * @tparam Config
+ *   Upickle configuration type
  */
-final case class UpickleMessagePackCodec[Custom <: UpickleMessagePackCustom](
-  custom: Custom = UpickleMessagePackCustom.default
-) extends UpickleMessagePackMeta[Custom] {
+final case class UpickleMessagePackCodec[Config <: UpickleMessagePackConfig](
+  config: Config = UpickleMessagePackConfig.default
+) extends UpickleMessagePackMeta[Config] {
 
-  import custom.*
+  import config.*
 
   override val mediaType: String = "application/msgpack"
   private val indent = 2
 
   override def serialize(node: Msg): Array[Byte] =
-    custom.writeBinary(node)
+    config.writeBinary(node)
 
   override def deserialize(data: Array[Byte]): Msg =
-    custom.readBinary[Msg](data)
+    config.readBinary[Msg](data)
 
   override def text(node: Msg): String =
-    custom.write(node, indent)
+    config.write(node, indent)
 }
 
 case object UpickleMessagePackCodec {

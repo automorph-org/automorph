@@ -1,6 +1,6 @@
 package automorph.codec.json.meta
 
-import automorph.codec.json.UpickleJsonCustom
+import automorph.codec.json.UpickleJsonConfig
 import automorph.spi.MessageCodec
 import scala.language.experimental.macros
 import scala.reflect.macros.blackbox
@@ -9,10 +9,10 @@ import ujson.Value
 /**
  * UPickle JSON codec plugin code generation.
  *
- * @tparam Custom
- *   customized Upickle reader and writer implicits instance type
+ * @tparam Config
+ *   Upickle configuration type
  */
-trait UpickleJsonMeta[Custom <: UpickleJsonCustom] extends MessageCodec[Value] {
+trait UpickleJsonMeta[Config <: UpickleJsonConfig] extends MessageCodec[Value] {
 
   override def encode[T](value: T): Value =
     macro UpickleJsonMeta.encodeMacro[T]
@@ -27,8 +27,8 @@ object UpickleJsonMeta {
     import c.universe.Quasiquote
 
     c.Expr[Value](q"""
-      import ${c.prefix}.custom.*
-      ${c.prefix}.custom.writeJs($value)
+      import ${c.prefix}.config.*
+      ${c.prefix}.config.writeJs($value)
     """)
   }
 
@@ -36,8 +36,8 @@ object UpickleJsonMeta {
     import c.universe.{weakTypeOf, Quasiquote}
 
     c.Expr[T](q"""
-      import ${c.prefix}.custom.*
-      ${c.prefix}.custom.read[${weakTypeOf[T]}]($node)
+      import ${c.prefix}.config.*
+      ${c.prefix}.config.read[${weakTypeOf[T]}]($node)
     """)
   }
 }

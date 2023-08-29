@@ -8,26 +8,26 @@ import upickle.core.Abort
 /** OpenRPC schema support for Circe message codec plugin using JSON format. */
 private[automorph] object UpickleOpenRpc {
 
-  def readWriter[Custom <: UpickleJsonCustom](custom: Custom): custom.ReadWriter[OpenRpc] = {
-    import custom.*
+  def readWriter[Config <: UpickleJsonConfig](config: Config): config.ReadWriter[OpenRpc] = {
+    import config.*
 
-    implicit val schemaRw: custom.ReadWriter[Schema] = readwriter[Value].bimap[Schema](fromSchema, toSchema)
-    implicit val contactRw: custom.ReadWriter[Contact] = custom.macroRW
-    implicit val contentDescriptorRw: custom.ReadWriter[ContentDescriptor] = custom.macroRW
-    implicit val externalDocumentationRw: custom.ReadWriter[ExternalDocumentation] = custom.macroRW
-    implicit val errorRw: custom.ReadWriter[Error] = custom.macroRW
-    implicit val exampleRw: custom.ReadWriter[Example] = custom.macroRW
-    implicit val licenseRw: custom.ReadWriter[License] = custom.macroRW
-    implicit val serverVariableRw: custom.ReadWriter[ServerVariable] = custom.macroRW
-    implicit val examplePairingRw: custom.ReadWriter[ExamplePairing] = custom.macroRW
-    implicit val infoRw: custom.ReadWriter[Info] = custom.macroRW
-    implicit val serverRw: custom.ReadWriter[Server] = custom.macroRW
-    implicit val tagRw: custom.ReadWriter[Tag] = custom.macroRW
-    implicit val linkRw: custom.ReadWriter[Link] = custom.macroRW
-    implicit val componentsRw: custom.ReadWriter[Components] = custom.macroRW
-    implicit val methodRw: custom.ReadWriter[Method] = custom.macroRW
+    implicit val schemaRw: config.ReadWriter[Schema] = readwriter[Value].bimap[Schema](fromSchema, toSchema)
+    implicit val contactRw: config.ReadWriter[Contact] = config.macroRW
+    implicit val contentDescriptorRw: config.ReadWriter[ContentDescriptor] = config.macroRW
+    implicit val externalDocumentationRw: config.ReadWriter[ExternalDocumentation] = config.macroRW
+    implicit val errorRw: config.ReadWriter[Error] = config.macroRW
+    implicit val exampleRw: config.ReadWriter[Example] = config.macroRW
+    implicit val licenseRw: config.ReadWriter[License] = config.macroRW
+    implicit val serverVariableRw: config.ReadWriter[ServerVariable] = config.macroRW
+    implicit val examplePairingRw: config.ReadWriter[ExamplePairing] = config.macroRW
+    implicit val infoRw: config.ReadWriter[Info] = config.macroRW
+    implicit val serverRw: config.ReadWriter[Server] = config.macroRW
+    implicit val tagRw: config.ReadWriter[Tag] = config.macroRW
+    implicit val linkRw: config.ReadWriter[Link] = config.macroRW
+    implicit val componentsRw: config.ReadWriter[Components] = config.macroRW
+    implicit val methodRw: config.ReadWriter[Method] = config.macroRW
 
-    custom.macroRW[OpenRpc]
+    config.macroRW[OpenRpc]
   }
 
   private def fromSchema(schema: Schema): Value =

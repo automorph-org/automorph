@@ -1,6 +1,6 @@
 package automorph.codec.messagepack.meta
 
-import automorph.codec.messagepack.UpickleMessagePackCustom
+import automorph.codec.messagepack.UpickleMessagePackConfig
 import automorph.spi.MessageCodec
 import scala.compiletime.summonInline
 import upack.Msg
@@ -8,15 +8,15 @@ import upack.Msg
 /**
  * UPickle JSON codec plugin code generation.
  *
- * @tparam Custom
- *   custom Upickle reader and writer implicits instance type
+ * @tparam Config
+ *   Upickle configuration type
  */
-private[automorph] trait UpickleMessagePackMeta[Custom <: UpickleMessagePackCustom] extends MessageCodec[Msg]:
+private[automorph] trait UpickleMessagePackMeta[Config <: UpickleMessagePackConfig] extends MessageCodec[Msg]:
 
-  val custom: Custom
+  val config: Config
 
   override inline def encode[T](value: T): Msg =
-    custom.writeMsg(value)(using summonInline[custom.Writer[T]])
+    config.writeMsg(value)(using summonInline[config.Writer[T]])
 
   override inline def decode[T](node: Msg): T =
-    custom.readBinary[T](node)(using summonInline[custom.Reader[T]])
+    config.readBinary[T](node)(using summonInline[config.Reader[T]])

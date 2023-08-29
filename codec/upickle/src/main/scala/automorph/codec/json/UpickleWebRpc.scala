@@ -8,10 +8,10 @@ private[automorph] object UpickleWebRpc {
 
   type RpcMessage = Message[Value]
 
-  def readWriter[Custom <: UpickleJsonCustom](custom: Custom): custom.ReadWriter[Message[Value]] = {
-    import custom.*
+  def readWriter[Config <: UpickleJsonConfig](config: Config): config.ReadWriter[Message[Value]] = {
+    import config.*
 
-    implicit val messageErrorRw: custom.ReadWriter[MessageError] = custom.macroRW
-    custom.macroRW[Message[Value]]
+    implicit val messageErrorRw: config.ReadWriter[MessageError] = config.macroRW
+    config.macroRW[Message[Value]]
   }
 }

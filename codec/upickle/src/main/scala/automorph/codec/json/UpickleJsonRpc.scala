@@ -9,8 +9,8 @@ private[automorph] object UpickleJsonRpc {
 
   private[automorph] type RpcMessage = Message[Value]
 
-  def readWriter[Custom <: UpickleJsonCustom](custom: Custom): custom.ReadWriter[Message[Value]] = {
-    import custom.*
+  def readWriter[Config <: UpickleJsonConfig](config: Config): config.ReadWriter[Message[Value]] = {
+    import config.*
 
     implicit val idRw: ReadWriter[Option[Message.Id]] = readwriter[Value].bimap[Option[Message.Id]](
       {
@@ -39,7 +39,7 @@ private[automorph] object UpickleJsonRpc {
           case params => throw Abort(s"Invalid request parameters: $params")
         },
       )
-    implicit val messageErrorRw: custom.ReadWriter[MessageError[Value]] = custom.macroRW
-    custom.macroRW[Message[Value]]
+    implicit val messageErrorRw: config.ReadWriter[MessageError[Value]] = config.macroRW
+    config.macroRW[Message[Value]]
   }
 }

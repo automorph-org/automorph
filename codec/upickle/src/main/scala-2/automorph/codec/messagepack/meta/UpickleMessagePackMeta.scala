@@ -1,6 +1,6 @@
 package automorph.codec.messagepack.meta
 
-import automorph.codec.messagepack.UpickleMessagePackCustom
+import automorph.codec.messagepack.UpickleMessagePackConfig
 import automorph.spi.MessageCodec
 import scala.language.experimental.macros
 import scala.reflect.macros.blackbox
@@ -9,10 +9,10 @@ import upack.Msg
 /**
  * UPickle MessagePack codec plugin code generation.
  *
- * @tparam Custom
- *   customized Upickle reader and writer implicits instance type
+ * @tparam Config
+ *   Upickle configuration type
  */
-trait UpickleMessagePackMeta[Custom <: UpickleMessagePackCustom] extends MessageCodec[Msg] {
+trait UpickleMessagePackMeta[Config <: UpickleMessagePackConfig] extends MessageCodec[Msg] {
 
   override def encode[T](value: T): Msg =
     macro UpickleMessagePackMeta.encodeMacro[T]
@@ -27,8 +27,8 @@ object UpickleMessagePackMeta {
     import c.universe.Quasiquote
 
     c.Expr[Msg](q"""
-      import ${c.prefix}.custom.*
-      ${c.prefix}.custom.writeMsg($value)
+      import ${c.prefix}.config.*
+      ${c.prefix}.config.writeMsg($value)
     """)
   }
 
@@ -36,8 +36,8 @@ object UpickleMessagePackMeta {
     import c.universe.{weakTypeOf, Quasiquote}
 
     c.Expr[T](q"""
-      import ${c.prefix}.custom.*
-      ${c.prefix}.custom.readBinary[${weakTypeOf[T]}]($node)
+      import ${c.prefix}.config.*
+      ${c.prefix}.config.readBinary[${weakTypeOf[T]}]($node)
     """)
   }
 }

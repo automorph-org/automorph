@@ -8,11 +8,11 @@ private[automorph] case object UpickleWebRpc {
 
   type RpcMessage = Message[Msg]
 
-  def readWriter[Custom <: UpickleMessagePackCustom](custom: Custom): custom.ReadWriter[Message[Msg]] = {
-    import custom.*
+  def readWriter[Config <: UpickleMessagePackConfig](config: Config): config.ReadWriter[Message[Msg]] = {
+    import config.*
 
-    implicit val messageErrorRw: custom.ReadWriter[MessageError] = custom.macroRW
+    implicit val messageErrorRw: config.ReadWriter[MessageError] = config.macroRW
     Seq(messageErrorRw)
-    custom.macroRW[Message[Msg]]
+    config.macroRW[Message[Msg]]
   }
 }

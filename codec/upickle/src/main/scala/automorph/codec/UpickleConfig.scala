@@ -3,12 +3,8 @@ package automorph.codec
 import upickle.AttributeTagged
 import upickle.core.{Abort, ByteUtils, CharUtils, ParseUtils, Visitor}
 
-/**
- * uPickle message codec customization.
- *
- * Provides basic null-safe data types support.
- */
-trait UpickleCustom extends AttributeTagged {
+/** uPickle reader and writer instances providing basic null-safe data types support. */
+trait UpickleConfig extends AttributeTagged {
 
   implicit override def OptionWriter[T: Writer]: Writer[Option[T]] =
     new Writer.MapWriter(

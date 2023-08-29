@@ -1,6 +1,6 @@
 package examples.integration
 
-import automorph.codec.messagepack.{UpickleMessagePackCodec, UpickleMessagePackCustom}
+import automorph.codec.messagepack.{UpickleMessagePackCodec, UpickleMessagePackConfig}
 import automorph.{RpcClient, Default, RpcServer}
 import java.net.URI
 import scala.concurrent.ExecutionContext.Implicits.global
@@ -16,11 +16,11 @@ private[examples] object MessageCodec {
   def main(arguments: Array[String]): Unit = {
 
     // Create uPickle message codec for JSON format
-    val messageCodec = UpickleMessagePackCodec[UpickleMessagePackCustom]()
+    val messageCodec = UpickleMessagePackCodec[UpickleMessagePackConfig]()
 
     // Provide custom data type serialization and deserialization logic as needed
-    import messageCodec.custom.*
-    implicit def recordRw: messageCodec.custom.ReadWriter[Record] = messageCodec.custom.macroRW
+    import messageCodec.config.*
+    implicit def recordRw: messageCodec.config.ReadWriter[Record] = messageCodec.config.macroRW
 
     // Define a remote API
     trait Api {
