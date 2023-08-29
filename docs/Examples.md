@@ -475,7 +475,7 @@ val api = new Api {
 // Create generic endpoint transport plugin with Unit as RPC request context type
 val endpointTransport = GenericEndpoint.context[Unit].effectSystem(Default.effectSystem)
 
-// Setup generic JSON-RPC endpoint
+// Setup JSON-RPC endpoint and bind the server API implementation to it
 val endpoint = RpcEndpoint.transport(endpointTransport).rpcProtocol(Default.rpcProtocol).bind(api)
 
 // Define a function for processing JSON-RPC requests via the generic RPC endpoint.
@@ -493,7 +493,11 @@ def processRpcRequest(requestBody: Array[Byte]): Future[Array[Byte]] = {
   // Extract the response body containing a JSON-RPC response from the request handler result
   handlerResult.map(_.map(_.responseBody).getOrElse(Array.emptyByteArray))
 }
+```
 
+**Test**
+
+```scala
 // Test the JSON-RPC request processing function
 val requestBody =
   """
