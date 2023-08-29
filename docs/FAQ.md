@@ -32,7 +32,7 @@ Many Scala and Java HTTP server libraries are supported. Please see the relevant
 [server examples](Examples#server-transport) and [endpoint examples](Examples#endpoint-transport).
 
 Integrating with unsupported server of any kind involves the following steps as demonstrated in the
-[unsupported server example](https://github.com/automorph-org/automorph/tree/main/examples/project/src/main/scala/examples/integration/UnsupportedServer.scala):
+[unsupported server example](https://automorph.org/examples/src/main/scala/examples/src/main/scala/examples/integration/UnsupportedServer.scala):
 - Create an instance of [LocalEndpoint](https://automorph.org/api/automorph/transport/local/endpoint/LocalEndpoint.html)
   - Supply the desired [effect system](Plugins#effect-system) and default request context value (use `()` if no request context is needed).
 - Create an [RPC endpoint](https://automorph.org/api/automorph/RpcEndpoint.html)

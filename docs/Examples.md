@@ -12,7 +12,7 @@ but will work with any other plugins or feature combinations.
 
 ## Basic
 
-### [Asynchronous call](https://github.com/automorph-org/automorph/tree/main/examples/project/src/main/scala/examples/basic/AsynchronousCall.scala)
+### [Asynchronous call](https://automorph.org/examples/src/main/scala/examples/basic/AsynchronousCall.scala)
 
 **Build**
 
@@ -66,7 +66,7 @@ Await.ready(for {
 ```
 
 
-### [Synchronous call](https://github.com/automorph-org/automorph/tree/main/examples/project/src/main/scala/examples/basic/SynchronousCall.scala)
+### [Synchronous call](https://automorph.org/examples/src/main/scala/examples/basic/SynchronousCall.scala)
 
 **Build**
 
@@ -117,7 +117,7 @@ server.close()
 ```
 
 
-### [Optional parameters](https://github.com/automorph-org/automorph/tree/main/examples/project/src/main/scala/examples/basic/OptionalParameters.scala)
+### [Optional parameters](https://automorph.org/examples/src/main/scala/examples/basic/OptionalParameters.scala)
 
 **Build**
 
@@ -174,7 +174,7 @@ Await.ready(for {
 ```
 
 
-### [Multiple APIs](https://github.com/automorph-org/automorph/tree/main/examples/project/src/main/scala/examples/basic/MultipleApis.scala)
+### [Multiple APIs](https://automorph.org/examples/src/main/scala/examples/basic/MultipleApis.scala)
 
 **Build**
 
@@ -241,7 +241,7 @@ Await.ready(for {
 
 ## Integration
 
-### [Effect system](https://github.com/automorph-org/automorph/tree/main/examples/project/src/main/scala/examples/integration/EffectSystem.scala)
+### [Effect system](https://automorph.org/examples/src/main/scala/examples/integration/EffectSystem.scala)
 
 **Build**
 
@@ -298,7 +298,7 @@ Unsafe.unsafe { implicit unsafe =>
 ```
 
 
-### [Message codec](https://github.com/automorph-org/automorph/tree/main/examples/project/src/main/scala/examples/integration/MessageCodec.scala)
+### [Message codec](https://automorph.org/examples/src/main/scala/examples/integration/MessageCodec.scala)
 
 **Build**
 
@@ -375,7 +375,7 @@ Await.ready(for {
 ```
 
 
-### [RPC protocol](https://github.com/automorph-org/automorph/tree/main/examples/project/src/main/scala/examples/integration/RpcProtocol.scala)
+### [RPC protocol](https://automorph.org/examples/src/main/scala/examples/integration/RpcProtocol.scala)
 
 **Build**
 
@@ -441,7 +441,7 @@ Await.ready(for {
 ```
 
 
-### [Unsupported server](https://github.com/automorph-org/automorph/tree/main/examples/project/src/main/scala/examples/integration/UnsupportedServer.scala)
+### [Unsupported server](https://automorph.org/examples/src/main/scala/examples/integration/UnsupportedServer.scala)
 
 **Build**
 
@@ -516,7 +516,7 @@ responseBody.foreach { response =>
 
 ## Transport
 
-### [Client transport](https://github.com/automorph-org/automorph/tree/main/examples/project/src/main/scala/examples/transport/ClientTransport.scala)
+### [Client transport](https://automorph.org/examples/src/main/scala/examples/transport/ClientTransport.scala)
 
 **Build**
 
@@ -569,7 +569,7 @@ Await.ready(for {
 ```
 
 
-### [Server transport](https://github.com/automorph-org/automorph/tree/main/examples/project/src/main/scala/examples/transport/ServerTransport.scala)
+### [Server transport](https://automorph.org/examples/src/main/scala/examples/transport/ServerTransport.scala)
 
 **Build**
 
@@ -622,7 +622,7 @@ Await.ready(for {
 ```
 
 
-### [Endpoint transport](https://github.com/automorph-org/automorph/tree/main/examples/project/src/main/scala/examples/transport/EndpointTransport.scala)
+### [Endpoint transport](https://automorph.org/examples/src/main/scala/examples/transport/EndpointTransport.scala)
 
 **Build**
 
@@ -685,7 +685,7 @@ apiServer.stop()
 ```
 
 
-### [WebSocket transport](https://github.com/automorph-org/automorph/tree/main/examples/project/src/main/scala/examples/transport/WebSocketTransport.scala)
+### [WebSocket transport](https://automorph.org/examples/src/main/scala/examples/transport/WebSocketTransport.scala)
 
 **Build**
 
@@ -734,7 +734,7 @@ Await.ready(for {
 ```
 
 
-### [AMQP transport](https://github.com/automorph-org/automorph/tree/main/examples/project/src/main/scala/examples/transport/AmqpTransport.scala)
+### [AMQP transport](https://automorph.org/examples/src/main/scala/examples/transport/AmqpTransport.scala)
 
 **Build**
 
@@ -816,7 +816,7 @@ Files.walk(brokerDirectory).iterator().asScala.toSeq.reverse.foreach(_.toFile.de
 
 ## Customization
 
-### [Data structure serialization](https://github.com/automorph-org/automorph/tree/main/examples/project/src/main/scala/examples/customization/DataStructureSerialization.scala)
+### [Data structure serialization](https://automorph.org/examples/src/main/scala/examples/customization/DataStructureSerialization.scala)
 
 **Build**
 
@@ -891,7 +891,7 @@ Await.ready(for {
 ```
 
 
-### [Client function names](https://github.com/automorph-org/automorph/tree/main/examples/project/src/main/scala/examples/customization/ClientFunctionNames.scala)
+### [Client function names](https://automorph.org/examples/src/main/scala/examples/customization/ClientFunctionNames.scala)
 
 **Build**
 
@@ -952,7 +952,7 @@ server.close()
 ```
 
 
-### [Server function names](https://github.com/automorph-org/automorph/tree/main/examples/project/src/main/scala/examples/customization/ServerFunctionNames.scala)
+### [Server function names](https://automorph.org/examples/src/main/scala/examples/customization/ServerFunctionNames.scala)
 
 **Build**
 
@@ -1035,7 +1035,7 @@ server.close()
 
 ## Metadata
 
-### [HTTP authentication](https://github.com/automorph-org/automorph/tree/main/examples/project/src/main/scala/examples/metadata/HttpAuthentication.scala)
+### [HTTP authentication](https://automorph.org/examples/src/main/scala/examples/metadata/HttpAuthentication.scala)
 
 **Build**
 
@@ -1116,7 +1116,7 @@ server.close()
 ```
 
 
-### [HTTP request properties](https://github.com/automorph-org/automorph/tree/main/examples/project/src/main/scala/examples/metadata/HttpRequestProperties.scala)
+### [HTTP request properties](https://automorph.org/examples/src/main/scala/examples/metadata/HttpRequestProperties.scala)
 
 **Build**
 
@@ -1183,7 +1183,7 @@ server.close()
 ```
 
 
-### [HTTP response properties](https://github.com/automorph-org/automorph/tree/main/examples/project/src/main/scala/examples/metadata/HttpResponseProperties.scala)
+### [HTTP response properties](https://automorph.org/examples/src/main/scala/examples/metadata/HttpResponseProperties.scala)
 
 **Build**
 
@@ -1243,7 +1243,7 @@ server.close()
 
 ## Error handling
 
-### [Client error mapping](https://github.com/automorph-org/automorph/tree/main/examples/project/src/main/scala/examples/errorhandling/ClientErrorMapping.scala)
+### [Client error mapping](https://automorph.org/examples/src/main/scala/examples/errorhandling/ClientErrorMapping.scala)
 
 **Build**
 
@@ -1306,7 +1306,7 @@ Await.ready(for {
 ```
 
 
-### [Server error mapping](https://github.com/automorph-org/automorph/tree/main/examples/project/src/main/scala/examples/errorhandling/ServerErrorMapping.scala)
+### [Server error mapping](https://automorph.org/examples/src/main/scala/examples/errorhandling/ServerErrorMapping.scala)
 
 **Build**
 
@@ -1375,7 +1375,7 @@ Await.ready(for {
 ```
 
 
-### [HTTP status code](https://github.com/automorph-org/automorph/tree/main/examples/project/src/main/scala/examples/errorhandling/HttpStatusCode.scala)
+### [HTTP status code](https://automorph.org/examples/src/main/scala/examples/errorhandling/HttpStatusCode.scala)
 
 **Build**
 
@@ -1434,7 +1434,7 @@ Await.ready(for {
 
 ## Special
 
-### [API discovery](https://github.com/automorph-org/automorph/tree/main/examples/project/src/main/scala/examples/special/ApiDiscovery.scala)
+### [API discovery](https://automorph.org/examples/src/main/scala/examples/special/ApiDiscovery.scala)
 
 **Build**
 
@@ -1477,7 +1477,7 @@ Await.ready(for {
 ```
 
 
-### [Dynamic payload](https://github.com/automorph-org/automorph/tree/main/examples/project/src/main/scala/examples/special/DynamicPayload.scala)
+### [Dynamic payload](https://automorph.org/examples/src/main/scala/examples/special/DynamicPayload.scala)
 
 **Build**
 
@@ -1555,7 +1555,7 @@ Await.ready(for {
 ```
 
 
-### [One-way message](https://github.com/automorph-org/automorph/tree/main/examples/project/src/main/scala/examples/special/OneWayMessage.scala)
+### [One-way message](https://automorph.org/examples/src/main/scala/examples/special/OneWayMessage.scala)
 
 **Build**
 
@@ -1603,7 +1603,7 @@ Await.ready(for {
 ```
 
 
-### [Positional arguments](https://github.com/automorph-org/automorph/tree/main/examples/project/src/main/scala/examples/special/PositionalArguments.scala)
+### [Positional arguments](https://automorph.org/examples/src/main/scala/examples/special/PositionalArguments.scala)
 
 **Build**
 
@@ -1658,7 +1658,7 @@ Await.ready(for {
 ```
 
 
-### [Local call](https://github.com/automorph-org/automorph/tree/main/examples/project/src/main/scala/examples/special/LocalCall.scala)
+### [Local call](https://automorph.org/examples/src/main/scala/examples/special/LocalCall.scala)
 
 **Build**
 

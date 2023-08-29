@@ -400,7 +400,7 @@ site := {
   ).filter(_._1.isFile).foreach { case (file, path) =>
     IO.write(apiDirectory / systemDirectory / path, relativizeScaladocLinks(IO.read(file), path))
   }
-  val examplesDirectory = (docs / baseDirectory).value / "build/examples/project"
+  val examplesDirectory = (docs / baseDirectory).value / "build/examples"
   IO.copyDirectory((examples / baseDirectory).value / "project", examplesDirectory, overwrite = true)
 }
 
