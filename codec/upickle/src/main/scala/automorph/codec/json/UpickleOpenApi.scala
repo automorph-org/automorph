@@ -65,6 +65,6 @@ private[automorph] object UpickleOpenApi {
           allOf = fields.get("allOf").map(_.arr.map(toSchema).toList),
           $ref = fields.get("$ref").map(_.str),
         )
-      case _ => throw Abort(s"Invalid OpenAPI object")
+      case _ => throw Abort("Invalid OpenAPI object")
     }
 }

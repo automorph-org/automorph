@@ -56,6 +56,6 @@ private[automorph] object UpickleOpenRpc {
           allOf = fields.get("allOf").map(_.arr.map(toSchema).toList),
           $ref = fields.get("$ref").map(_.str),
         )
-      case _ => throw Abort(s"Invalid OpenRPC object")
+      case _ => throw Abort("Invalid OpenRPC object")
     }
 }
