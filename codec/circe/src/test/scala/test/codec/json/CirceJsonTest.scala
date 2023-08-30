@@ -32,10 +32,10 @@ class CirceJsonTest extends JsonMessageCodecTest {
     )
   )
 
-  private implicit lazy val enumEncoder: Encoder[Enum.Enum] = Encoder.encodeInt.contramap[Enum.Enum](Enum.toOrdinal)
-  private implicit lazy val enumDecoder: Decoder[Enum.Enum] = Decoder.decodeInt.map(Enum.fromOrdinal)
-  private implicit lazy val structureEncoder: Encoder[Structure] = deriveEncoder[Structure]
-  private implicit lazy val structureDecoder: Decoder[Structure] = deriveDecoder[Structure]
+  private implicit val enumEncoder: Encoder[Enum.Enum] = Encoder.encodeInt.contramap[Enum.Enum](Enum.toOrdinal)
+  private implicit val enumDecoder: Decoder[Enum.Enum] = Decoder.decodeInt.map(Enum.fromOrdinal)
+  private implicit val structureEncoder: Encoder[Structure] = deriveEncoder[Structure]
+  private implicit val structureDecoder: Decoder[Structure] = deriveDecoder[Structure]
 
   "" - {
     "Encode & Decode" in {

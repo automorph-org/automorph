@@ -28,13 +28,13 @@ class ArgonautJsonTest extends JsonMessageCodecTest {
     )
   })
 
-  private implicit lazy val enumCodecJson: CodecJson[Enum.Enum] =
+  private implicit val enumCodecJson: CodecJson[Enum.Enum] =
     CodecJson((v: Enum.Enum) => jNumber(Enum.toOrdinal(v)), cursor => cursor.focus.as[Int].map(Enum.fromOrdinal))
 
-  private implicit lazy val structureCodecJson: CodecJson[Structure] = Argonaut
+  private implicit val structureCodecJson: CodecJson[Structure] = Argonaut
     .codec1(Structure.apply, (v: Structure) => v.value)("value")
 
-  private implicit lazy val recordCodecJson: CodecJson[Record] = Argonaut.codec13(
+  private implicit val recordCodecJson: CodecJson[Record] = Argonaut.codec13(
     Record.apply,
     (v: Record) =>
       (
