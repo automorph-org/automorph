@@ -1,5 +1,6 @@
-package automorph.codec
+package test.codec
 
+import automorph.codec.JacksonCodec
 import com.fasterxml.jackson.core.{JsonGenerator, JsonParser}
 import com.fasterxml.jackson.databind.deser.std.StdDeserializer
 import com.fasterxml.jackson.databind.module.SimpleModule

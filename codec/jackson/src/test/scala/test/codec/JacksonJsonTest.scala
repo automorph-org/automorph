@@ -1,19 +1,20 @@
-package automorph.codec
+package test.codec
 
+import automorph.codec.JacksonCodec
 import com.fasterxml.jackson.databind.JsonNode
 import org.scalacheck.Arbitrary
 import test.api.Generators.arbitraryRecord
 import test.api.Record
-import test.codec.MessageCodecTest
+import test.codec.json.JsonMessageCodecTest
 
-class JacksonCborTest extends MessageCodecTest {
+class JacksonJsonTest extends JsonMessageCodecTest {
 
   type Node = JsonNode
   type ActualCodec = JacksonCodec
 
   override lazy val arbitraryNode: Arbitrary[Node] = JacksonTest.arbitraryNode
 
-  override lazy val codec: ActualCodec = JacksonCodec(JacksonCodec.cborMapper.registerModule(JacksonTest.enumModule))
+  override lazy val codec: ActualCodec = JacksonCodec(JacksonCodec.jsonMapper.registerModule(JacksonTest.enumModule))
 
   "" - {
     "Encode & Decode" in {

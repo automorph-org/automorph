@@ -34,9 +34,9 @@ import scala.util.{Failure, Try}
  * @see
  *   [[https://fasterxml.github.io/jackson-databind/javadoc/2.14/com/fasterxml/jackson/databind/JsonNode.html Node type]]
  * @constructor
- *   Creates a Jackson codec plugin using JSON as message format.
+ *   Creates a Jackson codec plugin using specific message format.
  * @param objectMapper
- *   Jackson object mapper
+ *   Jackson object mapper for specific message format
  */
 final case class JacksonCodec(objectMapper: ObjectMapper = new JsonMapper) extends JacksonMeta {
 
