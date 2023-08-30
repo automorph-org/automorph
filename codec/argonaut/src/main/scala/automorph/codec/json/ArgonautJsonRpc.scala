@@ -9,7 +9,7 @@ private[automorph] object ArgonautJsonRpc {
 
   type RpcMessage = Message[Json]
 
-  def messageCodecJson: CodecJson[Message[Json]] = {
+  def codecJson: CodecJson[Message[Json]] = {
     implicit val idCodecJson: CodecJson[Message.Id] = CodecJson(
       {
         case Right(id) => jString(id)
@@ -41,7 +41,6 @@ private[automorph] object ArgonautJsonRpc {
       MessageError.apply[Json],
       (v: MessageError[Json]) => (v.message, v.code, v.data),
     )(Message.message, Message.code, Message.data)
-
     Argonaut.codec6(
       Message.apply[Json],
       (v: Message[Json]) => (v.jsonrpc, v.id, v.method, v.params, v.result, v.error),

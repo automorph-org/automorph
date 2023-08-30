@@ -9,7 +9,7 @@ private[automorph] object CirceJsonRpc {
 
   type RpcMessage = Message[Json]
 
-  def messageEncoder: Encoder[Message[Json]] = {
+  def encoder: Encoder[Message[Json]] = {
     implicit val idEncoder: Encoder[Message.Id] = Encoder.encodeJson.contramap[Message.Id] {
       case Right(id) => Json.fromString(id)
       case Left(id) => Json.fromBigDecimal(id)
@@ -19,11 +19,10 @@ private[automorph] object CirceJsonRpc {
       case Left(params) => Json.fromValues(params)
     }
     implicit val messageErrorEncoder: Encoder[MessageError[Json]] = deriveEncoder[MessageError[Json]]
-
     deriveEncoder[Message[Json]]
   }
 
-  def messageDecoder: Decoder[Message[Json]] = {
+  def decoder: Decoder[Message[Json]] = {
     implicit val idDecoder: Decoder[Message.Id] = Decoder.decodeJson.map(
       _.fold(
         invalidId(None.orNull),
@@ -45,7 +44,6 @@ private[automorph] object CirceJsonRpc {
       )
     )
     implicit val messageErrorDecoder: Decoder[MessageError[Json]] = deriveDecoder[MessageError[Json]]
-
     deriveDecoder[Message[Json]]
   }
 

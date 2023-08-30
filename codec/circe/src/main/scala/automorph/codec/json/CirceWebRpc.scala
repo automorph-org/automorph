@@ -9,15 +9,13 @@ private[automorph] object CirceWebRpc {
 
   type RpcMessage = Message[Json]
 
-  def messageEncoder: Encoder[Message[Json]] = {
+  def encoder: Encoder[Message[Json]] = {
     implicit val messageErrorEncoder: Encoder[MessageError] = deriveEncoder[MessageError]
-
     deriveEncoder[Message[Json]]
   }
 
-  def messageDecoder: Decoder[Message[Json]] = {
+  def decoder: Decoder[Message[Json]] = {
     implicit val messageErrorDecoder: Decoder[MessageError] = deriveDecoder[MessageError]
-
     deriveDecoder[Message[Json]]
   }
 }

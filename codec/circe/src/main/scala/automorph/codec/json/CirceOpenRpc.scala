@@ -8,7 +8,7 @@ import io.circe.{ACursor, Decoder, DecodingFailure, Encoder, HCursor, Json}
 /** OpenRPC schema support for Circe message codec plugin using JSON format. */
 private[automorph] object CirceOpenRpc {
 
-  def openRpcEncoder: Encoder[OpenRpc] = {
+  def encoder: Encoder[OpenRpc] = {
     implicit val schemaEncoder: Encoder[Schema] = new Encoder[Schema] {
 
       override def apply(schema: Schema): Json = {
@@ -39,11 +39,10 @@ private[automorph] object CirceOpenRpc {
     implicit val linkEncoder: Encoder[Link] = deriveEncoder[Link]
     implicit val componentsEncoder: Encoder[Components] = deriveEncoder[Components]
     implicit val methodEncoder: Encoder[Method] = deriveEncoder[Method]
-
     deriveEncoder[OpenRpc]
   }
 
-  def openRpcDecoder: Decoder[OpenRpc] = {
+  def decoder: Decoder[OpenRpc] = {
     implicit val schemaDecoder: Decoder[Schema] = new Decoder[Schema] {
 
       private val propertiesField = "properties"
@@ -107,7 +106,6 @@ private[automorph] object CirceOpenRpc {
     implicit val linkDecoder: Decoder[Link] = deriveDecoder[Link]
     implicit val componentsDecoder: Decoder[Components] = deriveDecoder[Components]
     implicit val methodDecoder: Decoder[Method] = deriveDecoder[Method]
-
     deriveDecoder[OpenRpc]
   }
 }

@@ -11,11 +11,10 @@ private[automorph] object ArgonautOpenRpc {
   private val propertiesField = "properties"
   private val allOfField = "allOf"
 
-  def openRpcCodecJson: CodecJson[OpenRpc] = {
+  def codecJson: CodecJson[OpenRpc] = {
     implicit val schemaCodecJson: CodecJson[Schema] = CodecJson(fromSchema, toSchema)
     implicit val contactCodecJson: CodecJson[Contact] = Argonaut
       .codec3(Contact.apply, (v: Contact) => (v.name, v.url, v.email))("name", "url", "email")
-
     CodecJson(
       a =>
         Json.obj(

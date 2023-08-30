@@ -36,12 +36,12 @@ object CirceJsonCodec {
   /** Message node type. */
   type Node = Json
 
-  implicit lazy val jsonRpcMessageEncoder: Encoder[CirceJsonRpc.RpcMessage] = CirceJsonRpc.messageEncoder
-  implicit lazy val jsonRpcMessageDecoder: Decoder[CirceJsonRpc.RpcMessage] = CirceJsonRpc.messageDecoder
-  implicit lazy val restRpcMessageEncoder: Encoder[CirceWebRpc.RpcMessage] = CirceWebRpc.messageEncoder
-  implicit lazy val restRpcMessageDecoder: Decoder[CirceWebRpc.RpcMessage] = CirceWebRpc.messageDecoder
-  implicit lazy val openRpcEncoder: Encoder[OpenRpc] = CirceOpenRpc.openRpcEncoder
-  implicit lazy val openRpcDecoder: Decoder[OpenRpc] = CirceOpenRpc.openRpcDecoder
-  implicit lazy val openApiEncoder: Encoder[OpenApi] = CirceOpenApi.openApiEncoder
-  implicit lazy val openApiDecoder: Decoder[OpenApi] = CirceOpenApi.openApiDecoder
+  implicit lazy val jsonRpcMessageEncoder: Encoder[CirceJsonRpc.RpcMessage] = CirceJsonRpc.encoder
+  implicit lazy val jsonRpcMessageDecoder: Decoder[CirceJsonRpc.RpcMessage] = CirceJsonRpc.decoder
+  implicit lazy val restRpcMessageEncoder: Encoder[CirceWebRpc.RpcMessage] = CirceWebRpc.encoder
+  implicit lazy val restRpcMessageDecoder: Decoder[CirceWebRpc.RpcMessage] = CirceWebRpc.decoder
+  implicit lazy val openRpcEncoder: Encoder[OpenRpc] = CirceOpenRpc.encoder
+  implicit lazy val openRpcDecoder: Decoder[OpenRpc] = CirceOpenRpc.decoder
+  implicit lazy val openApiEncoder: Encoder[OpenApi] = CirceOpenApi.encoder
+  implicit lazy val openApiDecoder: Decoder[OpenApi] = CirceOpenApi.decoder
 }

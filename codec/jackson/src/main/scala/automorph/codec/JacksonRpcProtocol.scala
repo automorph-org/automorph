@@ -5,9 +5,9 @@ import com.fasterxml.jackson.databind.node.ObjectNode
 import com.fasterxml.jackson.databind.ser.std.StdSerializer
 import com.fasterxml.jackson.databind.{JsonNode, SerializerProvider}
 
-object JacksonRpcProtocol {
+private[automorph] object JacksonRpcProtocol {
 
-  private[automorph] def serializer[T <: Product](serializedClass: Class[T]) =
+  def serializer[T <: Product](serializedClass: Class[T]): StdSerializer[T] =
     new StdSerializer[T](serializedClass) {
 
       override def serialize(value: T, generator: JsonGenerator, provider: SerializerProvider): Unit = {
@@ -19,7 +19,7 @@ object JacksonRpcProtocol {
       }
     }
 
-  private[automorph] def field[T](
+  def field[T](
     name: String,
     extract: JsonNode => Option[T],
     node: ObjectNode,

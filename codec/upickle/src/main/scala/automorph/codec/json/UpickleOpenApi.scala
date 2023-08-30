@@ -35,7 +35,6 @@ private[automorph] object UpickleOpenApi {
     implicit val operationRw: config.ReadWriter[Operation] = config.macroRW
     implicit val pathItemRw: config.ReadWriter[PathItem] = config.macroRW
     implicit val componentsRw: config.ReadWriter[Components] = config.macroRW
-
     config.macroRW[OpenApi]
   }
 

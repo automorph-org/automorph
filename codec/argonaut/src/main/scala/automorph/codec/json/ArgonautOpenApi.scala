@@ -11,13 +11,12 @@ private[automorph] object ArgonautOpenApi {
   private val propertiesField = "properties"
   private val allOfField = "allOf"
 
-  def openApiCodecJson: CodecJson[OpenApi] = {
+  def codecJson: CodecJson[OpenApi] = {
     implicit val schemaCodecJson: CodecJson[Schema] = CodecJson(fromSchema, toSchema)
     implicit val contactCodecJson: CodecJson[OAuthFlow] = Argonaut.codec4(
       OAuthFlow.apply,
       (v: OAuthFlow) => (v.authorizationUrl, v.tokenUrl, v.refreshUrl, v.scopes),
     )("authorizationUrl", "tokenUrl", "refreshUrl", "scopes")
-
     CodecJson(
       a =>
         Json.obj(

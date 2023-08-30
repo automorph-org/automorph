@@ -8,7 +8,7 @@ import io.circe.{ACursor, Decoder, DecodingFailure, Encoder, HCursor, Json}
 /** OpenAPI schema support for Circe message codec plugin using JSON format. */
 private[automorph] object CirceOpenApi {
 
-  def openApiEncoder: Encoder[OpenApi] = {
+  def encoder: Encoder[OpenApi] = {
     implicit val schemaEncoder: Encoder[Schema] = new Encoder[Schema] {
 
       override def apply(schema: Schema): Json = {
@@ -48,11 +48,10 @@ private[automorph] object CirceOpenApi {
     implicit val operationEncoder: Encoder[Operation] = deriveEncoder[Operation]
     implicit val pathItemEncoder: Encoder[PathItem] = deriveEncoder[PathItem]
     implicit val componentsEncoder: Encoder[Components] = deriveEncoder[Components]
-
     deriveEncoder[OpenApi]
   }
 
-  def openApiDecoder: Decoder[OpenApi] = {
+  def decoder: Decoder[OpenApi] = {
     implicit val schemaDecoder: Decoder[Schema] = new Decoder[Schema] {
 
       private val propertiesField = "properties"
@@ -125,7 +124,6 @@ private[automorph] object CirceOpenApi {
     implicit val operationDecoder: Decoder[Operation] = deriveDecoder[Operation]
     implicit val pathItemDecoder: Decoder[PathItem] = deriveDecoder[PathItem]
     implicit val componentsDecoder: Decoder[Components] = deriveDecoder[Components]
-
     deriveDecoder[OpenApi]
   }
 }

@@ -26,7 +26,6 @@ private[automorph] object UpickleOpenRpc {
     implicit val linkRw: config.ReadWriter[Link] = config.macroRW
     implicit val componentsRw: config.ReadWriter[Components] = config.macroRW
     implicit val methodRw: config.ReadWriter[Method] = config.macroRW
-
     config.macroRW[OpenRpc]
   }
 

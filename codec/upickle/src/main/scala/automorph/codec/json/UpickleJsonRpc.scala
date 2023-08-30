@@ -7,7 +7,7 @@ import upickle.core.Abort
 /** JSON-RPC protocol support for uPickle message codec using JSON format. */
 private[automorph] object UpickleJsonRpc {
 
-  private[automorph] type RpcMessage = Message[Value]
+  type RpcMessage = Message[Value]
 
   def readWriter[Config <: UpickleJsonConfig](config: Config): config.ReadWriter[Message[Value]] = {
     import config.*

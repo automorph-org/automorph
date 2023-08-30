@@ -41,8 +41,8 @@ object ArgonautJsonCodec {
     (_: None.type) => jNull,
     cursor => if (cursor.focus.isNull) DecodeResult.ok(None) else DecodeResult.fail("Not a null", cursor.history),
   )
-  implicit lazy val jsonRpcMessageCodecJson: CodecJson[ArgonautJsonRpc.RpcMessage] = ArgonautJsonRpc.messageCodecJson
-  implicit lazy val restRpcMessageCodecJson: CodecJson[ArgonautWebRpc.RpcMessage] = ArgonautWebRpc.messageCodecJson
-  implicit lazy val openRpcCodecJson: CodecJson[OpenRpc] = ArgonautOpenRpc.openRpcCodecJson
-  implicit lazy val openApiCodecJson: CodecJson[OpenApi] = ArgonautOpenApi.openApiCodecJson
+  implicit lazy val jsonRpcMessageCodecJson: CodecJson[ArgonautJsonRpc.RpcMessage] = ArgonautJsonRpc.codecJson
+  implicit lazy val restRpcMessageCodecJson: CodecJson[ArgonautWebRpc.RpcMessage] = ArgonautWebRpc.codecJson
+  implicit lazy val openRpcCodecJson: CodecJson[OpenRpc] = ArgonautOpenRpc.codecJson
+  implicit lazy val openApiCodecJson: CodecJson[OpenApi] = ArgonautOpenApi.codecJson
 }
