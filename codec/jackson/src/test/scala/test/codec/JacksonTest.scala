@@ -13,7 +13,7 @@ import scala.jdk.CollectionConverters.{MapHasAsJava, SeqHasAsJava}
 
 object JacksonTest {
 
-  lazy val arbitraryNode: Arbitrary[JsonNode] = {
+  val arbitraryNode: Arbitrary[JsonNode] = {
     val nodeFactory = JacksonCodec.jsonMapper.getNodeFactory
     Arbitrary(Gen.recursive[JsonNode] { recurse =>
       Gen.oneOf(
@@ -29,7 +29,7 @@ object JacksonTest {
     })
   }
 
-  lazy val enumModule: SimpleModule = new SimpleModule().addSerializer(
+  val enumModule: SimpleModule = new SimpleModule().addSerializer(
     classOf[Enum.Enum],
     new StdSerializer[Enum.Enum](classOf[Enum.Enum]) {
 

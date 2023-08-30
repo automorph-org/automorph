@@ -11,9 +11,9 @@ class JacksonSmileTest extends MessageCodecTest {
   type Node = JsonNode
   type ActualCodec = JacksonCodec
 
-  override lazy val arbitraryNode: Arbitrary[Node] = JacksonTest.arbitraryNode
-
   override lazy val codec: ActualCodec = JacksonCodec(JacksonCodec.smileMapper.registerModule(JacksonTest.enumModule))
+
+  override lazy val arbitraryNode: Arbitrary[Node] = JacksonTest.arbitraryNode
 
   "" - {
     "Encode & Decode" in {
