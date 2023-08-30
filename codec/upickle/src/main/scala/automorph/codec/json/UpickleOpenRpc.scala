@@ -47,15 +47,15 @@ private[automorph] object UpickleOpenRpc {
   private def toSchema(node: Value): Schema =
     node match {
       case Obj(fields) => Schema(
-          `type` = fields.get("type").map(_.str),
-          title = fields.get("title").map(_.str),
-          description = fields.get("description").map(_.str),
-          properties = fields.get("properties").map(_.obj.view.mapValues(toSchema).toMap),
-          required = fields.get("required").map(_.arr.map(_.str).toList),
-          default = fields.get("default").map(_.str),
-          allOf = fields.get("allOf").map(_.arr.map(toSchema).toList),
-          $ref = fields.get("$ref").map(_.str),
-        )
+        `type` = fields.get("type").map(_.str),
+        title = fields.get("title").map(_.str),
+        description = fields.get("description").map(_.str),
+        properties = fields.get("properties").map(_.obj.view.mapValues(toSchema).toMap),
+        required = fields.get("required").map(_.arr.map(_.str).toList),
+        default = fields.get("default").map(_.str),
+        allOf = fields.get("allOf").map(_.arr.map(toSchema).toList),
+        $ref = fields.get("$ref").map(_.str),
+      )
       case _ => throw Abort("Invalid OpenRPC object")
     }
 }
