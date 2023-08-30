@@ -5,7 +5,7 @@ import argonaut.{Argonaut, CodecJson, DecodeJson, DecodeResult, HCursor, Json}
 import automorph.schema.OpenApi
 import automorph.schema.openapi.*
 
-/** OpenAPI schema support for uPickle message codec plugin using JSON format. */
+/** OpenAPI schema support for Argonaut message codec plugin using JSON format. */
 private[automorph] object ArgonautOpenApi {
 
   private val propertiesField = "properties"
