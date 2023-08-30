@@ -5,7 +5,7 @@ import automorph.schema.openapi.*
 import ujson.{Arr, Obj, Str, Value}
 import upickle.core.Abort
 
-/** OpenAPI schema support for Circe message codec plugin using JSON format. */
+/** OpenAPI schema support for uPickle message codec plugin using JSON format. */
 private[automorph] object UpickleOpenApi {
 
   def readWriter[Config <: UpickleJsonConfig](config: Config): config.ReadWriter[OpenApi] = {

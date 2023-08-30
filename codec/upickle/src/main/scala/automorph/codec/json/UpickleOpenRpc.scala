@@ -5,7 +5,7 @@ import automorph.schema.openrpc.*
 import ujson.{Arr, Obj, Str, Value}
 import upickle.core.Abort
 
-/** OpenRPC schema support for Circe message codec plugin using JSON format. */
+/** OpenRPC schema support for uPickle message codec plugin using JSON format. */
 private[automorph] object UpickleOpenRpc {
 
   def readWriter[Config <: UpickleJsonConfig](config: Config): config.ReadWriter[OpenRpc] = {

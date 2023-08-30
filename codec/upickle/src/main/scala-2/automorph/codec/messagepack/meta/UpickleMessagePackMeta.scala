@@ -7,10 +7,10 @@ import scala.reflect.macros.blackbox
 import upack.Msg
 
 /**
- * UPickle MessagePack codec plugin code generation.
+ * uPickle MessagePack codec plugin code generation.
  *
  * @tparam Config
- *   Upickle configuration type
+ *   uPickle configuration type
  */
 trait UpickleMessagePackMeta[Config <: UpickleMessagePackConfig] extends MessageCodec[Msg] {
 

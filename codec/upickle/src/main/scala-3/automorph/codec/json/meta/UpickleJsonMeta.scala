@@ -6,10 +6,10 @@ import scala.compiletime.summonInline
 import ujson.Value
 
 /**
- * UPickle JSON codec plugin code generation.
+ * uPickle JSON codec plugin code generation.
  *
  * @tparam Config
- *   Upickle configuration type
+ *   uPickle configuration type
  */
 private[automorph] trait UpickleJsonMeta[Config <: UpickleJsonConfig] extends MessageCodec[Value]:
 
