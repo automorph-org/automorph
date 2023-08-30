@@ -52,12 +52,11 @@ final case class JacksonCodec(objectMapper: ObjectMapper = new JsonMapper) exten
   def deserialize(data: Array[Byte]): JsonNode =
     objectMapper.readTree(data)
 
-  override def text(node: JsonNode): String = {
+  override def text(node: JsonNode): String =
     objectMapper match {
       case _: JsonMapper => objectMapper.writerWithDefaultPrettyPrinter.writeValueAsString(node)
       case _ => Base64.getEncoder.encodeToString(objectMapper.writeValueAsBytes(node))
     }
-  }
 }
 
 object JacksonCodec {
@@ -110,41 +109,44 @@ object JacksonCodec {
   )
 
   /** Default Jackson JSON object mapper. */
-  def jsonMapper: ObjectMapper = JsonMapper.builder()
-    .addModule(DefaultScalaModule)
-    .addModule(unitModule)
-    .addModule(bigDecimalModule)
-    .addModule(JacksonJsonRpc.module)
-    .addModule(JacksonWebRpc.module)
-    .configure(DeserializationFeature.FAIL_ON_NULL_FOR_PRIMITIVES, true)
-    .configure(DeserializationFeature.FAIL_ON_NULL_CREATOR_PROPERTIES, true)
-    .serializationInclusion(Include.NON_ABSENT)
-    .defaultLeniency(false)
-    .build() :: ClassTagExtensions
+  def jsonMapper: ObjectMapper =
+    JsonMapper.builder()
+      .addModule(DefaultScalaModule)
+      .addModule(unitModule)
+      .addModule(bigDecimalModule)
+      .addModule(JacksonJsonRpc.module)
+      .addModule(JacksonWebRpc.module)
+      .configure(DeserializationFeature.FAIL_ON_NULL_FOR_PRIMITIVES, true)
+      .configure(DeserializationFeature.FAIL_ON_NULL_CREATOR_PROPERTIES, true)
+      .serializationInclusion(Include.NON_ABSENT)
+      .defaultLeniency(false)
+      .build() :: ClassTagExtensions
 
   /** Default Jackson CBOR object mapper. */
-  def cborMapper: ObjectMapper = CBORMapper.builder()
-    .addModule(DefaultScalaModule)
-    .addModule(unitModule)
-    .addModule(bigDecimalModule)
-    .addModule(JacksonJsonRpc.module)
-    .addModule(JacksonWebRpc.module)
-    .configure(DeserializationFeature.FAIL_ON_NULL_FOR_PRIMITIVES, true)
-    .configure(DeserializationFeature.FAIL_ON_NULL_CREATOR_PROPERTIES, true)
-    .serializationInclusion(Include.NON_ABSENT)
-    .defaultLeniency(false)
-    .build() :: ClassTagExtensions
+  def cborMapper: ObjectMapper =
+    CBORMapper.builder()
+      .addModule(DefaultScalaModule)
+      .addModule(unitModule)
+      .addModule(bigDecimalModule)
+      .addModule(JacksonJsonRpc.module)
+      .addModule(JacksonWebRpc.module)
+      .configure(DeserializationFeature.FAIL_ON_NULL_FOR_PRIMITIVES, true)
+      .configure(DeserializationFeature.FAIL_ON_NULL_CREATOR_PROPERTIES, true)
+      .serializationInclusion(Include.NON_ABSENT)
+      .defaultLeniency(false)
+      .build() :: ClassTagExtensions
 
   /** Default Jackson Smile object mapper. */
-  def smileMapper: ObjectMapper = SmileMapper.builder()
-    .addModule(DefaultScalaModule)
-    .addModule(unitModule)
-    .addModule(bigDecimalModule)
-    .addModule(JacksonJsonRpc.module)
-    .addModule(JacksonWebRpc.module)
-    .configure(DeserializationFeature.FAIL_ON_NULL_FOR_PRIMITIVES, true)
-    .configure(DeserializationFeature.FAIL_ON_NULL_CREATOR_PROPERTIES, true)
-    .serializationInclusion(Include.NON_ABSENT)
-    .defaultLeniency(false)
-    .build() :: ClassTagExtensions
+  def smileMapper: ObjectMapper =
+    SmileMapper.builder()
+      .addModule(DefaultScalaModule)
+      .addModule(unitModule)
+      .addModule(bigDecimalModule)
+      .addModule(JacksonJsonRpc.module)
+      .addModule(JacksonWebRpc.module)
+      .configure(DeserializationFeature.FAIL_ON_NULL_FOR_PRIMITIVES, true)
+      .configure(DeserializationFeature.FAIL_ON_NULL_CREATOR_PROPERTIES, true)
+      .serializationInclusion(Include.NON_ABSENT)
+      .defaultLeniency(false)
+      .build() :: ClassTagExtensions
 }
