@@ -2,7 +2,7 @@ package test.core
 
 import argonaut.Argonaut.jNumber
 import argonaut.{Argonaut, CodecJson}
-import automorph.codec.JacksonCodec
+import automorph.codec.{JacksonCodec, WeepickleCodec}
 import automorph.codec.json.{ArgonautJsonCodec, CirceJsonCodec, UpickleJsonCodec, UpickleJsonConfig}
 import automorph.codec.messagepack.{UpickleMessagePackCodec, UpickleMessagePackConfig}
 import automorph.protocol.JsonRpcProtocol
@@ -14,32 +14,42 @@ import com.fasterxml.jackson.databind.deser.std.StdDeserializer
 import com.fasterxml.jackson.databind.module.SimpleModule
 import com.fasterxml.jackson.databind.ser.std.StdSerializer
 import com.fasterxml.jackson.databind.{DeserializationContext, SerializerProvider}
+import com.rallyhealth.weepickle.v1.WeePickle.{FromInt, FromTo, ToInt, macroFromTo}
 import io.circe.generic.auto.*
 import io.circe.{Decoder, Encoder}
 import scala.util.Try
 import test.api.{Enum, Record, Structure}
 import test.base.BaseTest
+import scala.annotation.nowarn
 
+@nowarn("msg=used")
 trait ProtocolCodecTest extends CoreTest {
   private lazy val testFixtures: Seq[TestFixture] = {
     implicit val context: Context = arbitraryContext.arbitrary.sample.get
-    Seq(context)
     createFixtures
+  }
+  implicit private lazy val recordFromTo: FromTo[Record] = {
+    implicit val enumFromTo: FromTo[Enum.Enum] = FromTo.join(ToInt, FromInt).bimap(Enum.toOrdinal, Enum.fromOrdinal)
+    implicit val structureFromTo: FromTo[Structure] = macroFromTo
+    macroFromTo
   }
 
   def createFixtures(implicit context: Context): Seq[TestFixture] = {
     if (BaseTest.testSimple) {
-      Seq(circeJsonRpcJsonFixture(0))
+      Seq(circeJsonRpcJsonFixture(1))
     } else {
       if (BaseTest.testAll || !integration) {
         Seq(
-          circeJsonRpcJsonFixture(0),
-          jacksonJsonRpcJsonFixture(1),
-          jacksonJsonRpcCborFixture(2),
-          jacksonJsonRpcSmileFixture(3),
-          uPickleJsonRpcJsonFixture(4),
-          uPickleJsonRpcMessagePackFixture(5),
-          argonautJsonRpcJsonFixture(6),
+          circeJsonRpcJsonFixture(1),
+          jacksonJsonRpcJsonFixture(2),
+          jacksonJsonRpcCborFixture(3),
+          jacksonJsonRpcSmileFixture(4),
+          weePickleJsonRpcJsonFixture(5),
+          weePickleJsonRpcCborFixture(6),
+          weePickleJsonRpcSmileFixture(7),
+          uPickleJsonRpcJsonFixture(8),
+          uPickleJsonRpcMessagePackFixture(9),
+          argonautJsonRpcJsonFixture(10),
         )
       } else {
         Seq.empty
@@ -67,9 +77,7 @@ trait ProtocolCodecTest extends CoreTest {
     true
 
   override def fixtures: Seq[TestFixture] =
-    Try {
-      testFixtures
-    }.recover {
+    Try(testFixtures).recover {
       case error =>
         logger.error(s"Failed to initialize test fixtures")
         throw error
@@ -79,25 +87,13 @@ trait ProtocolCodecTest extends CoreTest {
     super.beforeAll()
     fixtures.foreach { fixture =>
       if (testServerClose) {
-        run(
-          system.flatMap(
-            system.flatMap(
-              fixture.genericServer.init()
-            )(_.close())
-          )(_.init())
-        )
+        run(system.flatMap(system.flatMap(fixture.genericServer.init())(_.close()))(_.init()))
       } else {
         run(fixture.genericServer.init())
       }
     }
     fixtures.foreach { fixture =>
-      run(
-        system.flatMap(
-          system.flatMap(
-            fixture.genericClient.init()
-          )(_.close())
-        )(_.init())
-      )
+      run(system.flatMap(system.flatMap(fixture.genericClient.init())(_.close()))(_.init()))
     }
   }
 
@@ -114,7 +110,6 @@ trait ProtocolCodecTest extends CoreTest {
   private def circeJsonRpcJsonFixture(id: Int)(implicit context: Context): TestFixture = {
     implicit val enumEncoder: Encoder[Enum.Enum] = Encoder.encodeInt.contramap[Enum.Enum](Enum.toOrdinal)
     implicit val enumDecoder: Decoder[Enum.Enum] = Decoder.decodeInt.map(Enum.fromOrdinal)
-    Seq(enumEncoder, enumDecoder)
     val codec = CirceJsonCodec()
     val protocol = JsonRpcProtocol[CirceJsonCodec.Node, codec.type, Context](codec)
     RpcEndpoint.transport(endpointTransport).rpcProtocol(protocol).bind(simpleApi, mapName).bind(complexApi)
@@ -133,7 +128,7 @@ trait ProtocolCodecTest extends CoreTest {
   }
 
   private def jacksonJsonRpcJsonFixture(id: Int)(implicit context: Context): TestFixture = {
-    val codec = JacksonCodec(JacksonCodec.jsonMapper.registerModule(jacksonEnumModule))
+    val codec = JacksonCodec(JacksonCodec.jsonMapper.registerModule(enumModule))
     val protocol = JsonRpcProtocol[JacksonCodec.Node, codec.type, Context](codec)
     RpcEndpoint.transport(endpointTransport).rpcProtocol(protocol).bind(simpleApi, mapName).bind(complexApi)
     val server =
@@ -152,7 +147,7 @@ trait ProtocolCodecTest extends CoreTest {
   }
 
   private def jacksonJsonRpcCborFixture(id: Int)(implicit context: Context): TestFixture = {
-    val codec = JacksonCodec(JacksonCodec.cborMapper.registerModule(jacksonEnumModule))
+    val codec = JacksonCodec(JacksonCodec.cborMapper.registerModule(enumModule))
     val protocol = JsonRpcProtocol[JacksonCodec.Node, codec.type, Context](codec)
     RpcEndpoint.transport(endpointTransport).rpcProtocol(protocol).bind(simpleApi, mapName).bind(complexApi)
     val server =
@@ -171,8 +166,65 @@ trait ProtocolCodecTest extends CoreTest {
   }
 
   private def jacksonJsonRpcSmileFixture(id: Int)(implicit context: Context): TestFixture = {
-    val codec = JacksonCodec(JacksonCodec.smileMapper.registerModule(jacksonEnumModule))
+    val codec = JacksonCodec(JacksonCodec.smileMapper.registerModule(enumModule))
     val protocol = JsonRpcProtocol[JacksonCodec.Node, codec.type, Context](codec)
+    RpcEndpoint.transport(endpointTransport).rpcProtocol(protocol).bind(simpleApi, mapName).bind(complexApi)
+    val server =
+      RpcServer.transport(serverTransport(id)).rpcProtocol(protocol).bind(simpleApi, mapName).bind(complexApi)
+    val client = RpcClient.transport(typedClientTransport(id)).rpcProtocol(protocol)
+    TestFixture(
+      client,
+      server,
+      client.bind[SimpleApiType],
+      client.bind[ComplexApiType],
+      client.bind[InvalidApiType],
+      (function, a0) => client.call[String](function)(a0),
+      (function, a0) => client.tell(function)(a0),
+      " / Smile",
+    )
+  }
+
+  private def weePickleJsonRpcJsonFixture(id: Int)(implicit context: Context): TestFixture = {
+    val codec = WeepickleCodec()
+    val protocol = JsonRpcProtocol[WeepickleCodec.Node, codec.type, Context](codec)
+    RpcEndpoint.transport(endpointTransport).rpcProtocol(protocol).bind(simpleApi, mapName).bind(complexApi)
+    val server =
+      RpcServer.transport(serverTransport(id)).rpcProtocol(protocol).bind(simpleApi, mapName).bind(complexApi)
+    val client = RpcClient.transport(typedClientTransport(id)).rpcProtocol(protocol)
+    TestFixture(
+      client,
+      server,
+      client.bind[SimpleApiType],
+      client.bind[ComplexApiType],
+      client.bind[InvalidApiType],
+      (function, a0) => client.call[String](function)(a0),
+      (function, a0) => client.tell(function)(a0),
+      " / JSON",
+    )
+  }
+
+  private def weePickleJsonRpcCborFixture(id: Int)(implicit context: Context): TestFixture = {
+    val codec = WeepickleCodec(WeepickleCodec.cborFactory)
+    val protocol = JsonRpcProtocol[WeepickleCodec.Node, codec.type, Context](codec)
+    RpcEndpoint.transport(endpointTransport).rpcProtocol(protocol).bind(simpleApi, mapName).bind(complexApi)
+    val server =
+      RpcServer.transport(serverTransport(id)).rpcProtocol(protocol).bind(simpleApi, mapName).bind(complexApi)
+    val client = RpcClient.transport(typedClientTransport(id)).rpcProtocol(protocol)
+    TestFixture(
+      client,
+      server,
+      client.bind[SimpleApiType],
+      client.bind[ComplexApiType],
+      client.bind[InvalidApiType],
+      (function, a0) => client.call[String](function)(a0),
+      (function, a0) => client.tell(function)(a0),
+      " / CBOR",
+    )
+  }
+
+  private def weePickleJsonRpcSmileFixture(id: Int)(implicit context: Context): TestFixture = {
+    val codec = WeepickleCodec(WeepickleCodec.smileFactory)
+    val protocol = JsonRpcProtocol[WeepickleCodec.Node, codec.type, Context](codec)
     RpcEndpoint.transport(endpointTransport).rpcProtocol(protocol).bind(simpleApi, mapName).bind(complexApi)
     val server =
       RpcServer.transport(serverTransport(id)).rpcProtocol(protocol).bind(simpleApi, mapName).bind(complexApi)
@@ -197,7 +249,6 @@ trait ProtocolCodecTest extends CoreTest {
       implicit lazy val recordRw: ReadWriter[Record] = macroRW
     }
     val customConfig = new CustomConfig
-    Seq(customConfig.enumRw, customConfig.structureRw, customConfig.recordRw)
     val codec = UpickleJsonCodec(customConfig)
     val protocol = JsonRpcProtocol[UpickleJsonCodec.Node, codec.type, Context](codec)
     RpcEndpoint.transport(endpointTransport).rpcProtocol(protocol).bind(simpleApi, mapName).bind(complexApi)
@@ -223,7 +274,6 @@ trait ProtocolCodecTest extends CoreTest {
       implicit lazy val recordRw: ReadWriter[Record] = macroRW
     }
     val customConfig = new CustomConfig
-    Seq(customConfig.enumRw, customConfig.structureRw, customConfig.recordRw)
     val codec = UpickleMessagePackCodec(customConfig)
     val protocol = JsonRpcProtocol[UpickleMessagePackCodec.Node, codec.type, Context](codec)
     RpcEndpoint.transport(endpointTransport).rpcProtocol(protocol).bind(simpleApi, mapName).bind(complexApi)
@@ -246,25 +296,21 @@ trait ProtocolCodecTest extends CoreTest {
       CodecJson((v: Enum.Enum) => jNumber(Enum.toOrdinal(v)), cursor => cursor.focus.as[Int].map(Enum.fromOrdinal))
     implicit val structureCodecJson: CodecJson[Structure] = Argonaut
       .codec1(Structure.apply, (v: Structure) => v.value)("value")
-    implicit val recordCodecJson: CodecJson[Record] = Argonaut.codec13(
-      Record.apply,
-      (v: Record) =>
-        (
-          v.string,
-          v.boolean,
-          v.byte,
-          v.short,
-          v.int,
-          v.long,
-          v.float,
-          v.double,
-          v.enumeration,
-          v.list,
-          v.map,
-          v.structure,
-          v.none,
-        ),
-    )(
+    implicit val recordCodecJson: CodecJson[Record] = Argonaut.codec13(Record.apply, (v: Record) => (
+      v.string,
+      v.boolean,
+      v.byte,
+      v.short,
+      v.int,
+      v.long,
+      v.float,
+      v.double,
+      v.enumeration,
+      v.list,
+      v.map,
+      v.structure,
+      v.none,
+    ))(
       "string",
       "boolean",
       "byte",
@@ -279,7 +325,6 @@ trait ProtocolCodecTest extends CoreTest {
       "structure",
       "none",
     )
-    Seq(recordCodecJson)
     val codec = ArgonautJsonCodec()
     val protocol = JsonRpcProtocol[ArgonautJsonCodec.Node, codec.type, Context](codec)
     RpcEndpoint.transport(endpointTransport).rpcProtocol(protocol).bind(simpleApi, mapName).bind(complexApi)
@@ -297,19 +342,14 @@ trait ProtocolCodecTest extends CoreTest {
     )
   }
 
-  private def jacksonEnumModule = new SimpleModule().addSerializer(
-    classOf[Enum.Enum],
-    new StdSerializer[Enum.Enum](classOf[Enum.Enum]) {
+  private def enumModule =
+    new SimpleModule().addSerializer(classOf[Enum.Enum], new StdSerializer[Enum.Enum](classOf[Enum.Enum]) {
 
       override def serialize(value: Enum.Enum, generator: JsonGenerator, provider: SerializerProvider): Unit =
         generator.writeNumber(Enum.toOrdinal(value))
-    },
-  ).addDeserializer(
-    classOf[Enum.Enum],
-    new StdDeserializer[Enum.Enum](classOf[Enum.Enum]) {
+    }).addDeserializer(classOf[Enum.Enum], new StdDeserializer[Enum.Enum](classOf[Enum.Enum]) {
 
       override def deserialize(parser: JsonParser, context: DeserializationContext): Enum.Enum =
         Enum.fromOrdinal(parser.getIntValue)
-    },
-  )
+    })
 }

@@ -47,6 +47,7 @@ lazy val root = project.in(file(".")).settings(
   // Message codec
   circe,
   jackson,
+  weepickle,
   upickle,
   argonaut,
 
@@ -146,6 +147,13 @@ val jacksonVersion = "2.15.2"
 lazy val jackson = source(project, "codec/jackson", core, testCodec % Test).settings(
   libraryDependencies ++= Seq(
     "com.fasterxml.jackson.module" %% "jackson-module-scala" % jacksonVersion,
+    "com.fasterxml.jackson.dataformat" % "jackson-dataformat-cbor" % jacksonVersion,
+    "com.fasterxml.jackson.dataformat" % "jackson-dataformat-smile" % jacksonVersion
+  )
+)
+lazy val weepickle = source(project, "codec/weepickle", core, testCodec % Test).settings(
+  libraryDependencies ++= Seq(
+    "com.rallyhealth" %% "weepickle-v1" % "1.8.0",
     "com.fasterxml.jackson.dataformat" % "jackson-dataformat-cbor" % jacksonVersion,
     "com.fasterxml.jackson.dataformat" % "jackson-dataformat-smile" % jacksonVersion
   )
@@ -263,7 +271,7 @@ lazy val testBase = source(project, "test/base").settings(
 lazy val testCodec = source(project, "test/codec", testBase, meta).settings(
   libraryDependencies += "com.fasterxml.jackson.core" % "jackson-databind" % jacksonVersion
 )
-lazy val testSystem = source(project, "test/system", testCodec, core, circe, jackson, upickle, argonaut)
+lazy val testSystem = source(project, "test/system", testCodec, core, circe, jackson, weepickle, upickle, argonaut)
 lazy val testTransport = source(project, "test/transport", testSystem, standard)
 
 
