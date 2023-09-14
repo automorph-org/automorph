@@ -3,6 +3,8 @@ package automorph.spi
 /**
  * Computational effect system plugin.
  *
+ * Enables remote APIs to use specific effect handling abstraction.
+ *
  * The underlying runtime must support monadic composition of effectful values.
  *
  * @tparam Effect

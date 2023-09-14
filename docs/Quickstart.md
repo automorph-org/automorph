@@ -77,8 +77,8 @@ Await.ready(for {
 
 ### Client
 
-Call a remote API using JSON-RPC over HTTP(S) via a type-safe proxy created from the API trait or
-dynamically without prior API specification.
+Call a remote API using JSON-RPC over HTTP(S) via a proxy instance created from the API trait or
+dynamically without an API trait.
 
 ```scala
 import automorph.Default
@@ -96,18 +96,18 @@ trait Api {
 // Configure JSON-RPC HTTP client to send POST requests to 'http://localhost:9000/api'
 val client = Default.rpcClient(new URI("http://localhost:9000/api"))
 
-// Create a type-safe proxy for the remote API from its API trait
+// Create a type-safe proxy for the remote API from the API trait
 val remoteApi = client.bind[Api]
 
 Await.ready(for {
   // Initialize the JSON-RPC client
   activeClient <- client.init()
 
-  // Call the remote API function via the type-safe proxy
+  // Call the remote API function via the proxy instance
   result <- remoteApi.hello("world", 1)
   _ = println(result)
 
-  // Call the remote API function dynamically without API specification
+  // Call the remote API function dynamically without an API trait
   result <- activeClient.call[String]("hello")("some" -> "world", "n" -> 1)
   _ = println(result)
 

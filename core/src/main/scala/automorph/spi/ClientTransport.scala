@@ -3,7 +3,9 @@ package automorph.spi
 /**
  * Client transport protocol plugin.
  *
- * Passively sends requests and receives responses to and from a remote endpoint using specific transport protocol.
+ * Enables RPC client to send requests and receive responses using specific transport protocol.
+ *
+ * Passively sends requests and receives responses to and from a remote endpoint.
  *
  * @tparam Effect
  *   effect type

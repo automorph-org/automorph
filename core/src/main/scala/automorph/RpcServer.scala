@@ -8,8 +8,7 @@ import scala.collection.immutable.ListMap
 /**
  * RPC server.
  *
- * Used to serve remote API requests using specific transport protocol and invoke bound API
- * methods to process them.
+ * Used to serve remote API requests and invoke bound API methods to process them.
  *
  * Automatically derives remote API bindings for existing API instances.
  *

@@ -3,6 +3,8 @@ package automorph.spi
 /**
  * Existing server transport layer integration plugin.
  *
+ * Enables RPC endpoint to integrate with and handle requests from an existing server infrastructure.
+ *
  * Passively parses requests to be processed by the RPC handler and creates responses usable by specific server.
  *
  * @tparam Effect

@@ -5,6 +5,8 @@ import automorph.spi.codec.MessageCodecMeta
 /**
  * Structured message format codec plugin.
  *
+ * Enables serialization of RPC messages into specific structured data format.
+ *
  * The underlying data format must support arbitrarily nested structures of basic data types.
  * Given library must provide intermediate representation of structured data (i.e. document object model).
  *

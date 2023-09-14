@@ -26,23 +26,37 @@ for invoking and exposing remote APIs in a few lines of code.
 
 ## [API](https://automorph.org/api/automorph.html)
 
-Entry points for the application logic to invoke or expose remote APIs:
+The following classes represent the primary entry points to Automorph functionality:
 
-* [RPC client](https://automorph.org/api/automorph/RpcClient.html) - invoke remote APIs
-* [RPC server](https://automorph.org/api/automorph/RpcServer.html) - serve APIs as remote
-* [RPC endpoint](https://automorph.org/api/automorph/RpcEndpoint.html) - expose APIs as remote within an existing server
+* [RPC client](https://automorph.org/api/automorph/RpcClient.html) - Used to perform type-safe remote API calls or send one-way messages.
+* [RPC server](https://automorph.org/api/automorph/RpcServer.html) - Used to serve remote API requests and invoke bound API methods to process them.
+* [RPC endpoint](https://automorph.org/api/automorph/RpcEndpoint.html) - Used to handle remote API requests as part of an existing server
+and invoke bound API methods to process them.
+
+Various combinations of [RPC protocol](Plugins#rpc-protocol), [effect system](Plugins#effect-system),
+[message codec](Plugins#message-codec) and [transport layer](Plugins#client-transport) can be utilized by
+supplying the desired plugin instances to the factory methods of the primary classes listed above.
+
+There are also additional [factory methods](https://automorph.org/api/automorph/Default$.html) for
+creating primary class instances with [default plugins](Plugins#Default).
 
 
 ## [SPI](https://automorph.org/api/automorph/spi.html)
 
-Traits for implementation of various integration plugins:
+The following traits define interfaces for implementing various Automorph plugins:
 
-* [Effect system](https://automorph.org/api/automorph/spi/EffectSystem.html) - accessing remote APIs using effect handling abstractions
-* [Message codec](https://automorph.org/api/automorph/spi/MessageCodec.html) - serialization of RPC messages into structured data formats
-* [Client transport](https://automorph.org/api/automorph/spi/ClientTransport.html) - tranmitting messages for RPC clients
-* [Server transport](https://automorph.org/api/automorph/spi/ServerTransport.html) - transmitting messages for RPC servers
-* [Endpoint transport](https://automorph.org/api/automorph/spi/EndpointTransport.html) - adding RPC support to existing servers
-* [RPC protocol](https://automorph.org/api/automorph/spi/RpcProtocol.html) - specific RPC protocol implementations
+* [RPC protocol](https://automorph.org/api/automorph/spi/RpcProtocol.html) -
+Enables use of a specific RPC protocol.
+* [Effect system](https://automorph.org/api/automorph/spi/EffectSystem.html) - 
+Enables remote APIs to use specific effect handling abstraction.
+* [Message codec](https://automorph.org/api/automorph/spi/MessageCodec.html) -
+Enables serialization of RPC messages into specific structured data format.
+* [Client transport](https://automorph.org/api/automorph/spi/ClientTransport.html) -
+Enables RPC client to send requests and receive responses using specific transport protocol.
+* [Server transport](https://automorph.org/api/automorph/spi/ServerTransport.html) -
+Enables RPC server to receive requests and send responses using specific transport protocol.
+* [Endpoint transport](https://automorph.org/api/automorph/spi/EndpointTransport.html) -
+Enables RPC endpoint to integrate with and handle requests from an existing server infrastructure.
 
 
 ## Limitations
@@ -81,8 +95,8 @@ Traits for implementation of various integration plugins:
 
 ### Effect Handling
 
-* [Synchronous](https://docs.scala-lang.org/scala3/book/taste-functions.html) (*Default*)
 * [Asynchronous](https://docs.scala-lang.org/overviews/core/futures.html) (*Default*)
+* [Synchronous](https://docs.scala-lang.org/scala3/book/taste-functions.html)
 * [Monadic](https://blog.softwaremill.com/figuring-out-scala-functional-programming-libraries-af8230efccb4)
 
 ### API schemas

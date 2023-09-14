@@ -25,7 +25,7 @@ private[examples] object UnsupportedServer {
     // Create generic endpoint transport plugin with Unit as RPC request context type
     val endpointTransport = GenericEndpoint.context[Unit].effectSystem(Default.effectSystem)
 
-    // Setup generic JSON-RPC endpoint
+    // Setup JSON-RPC endpoint and bind the API implementation to it
     val endpoint = RpcEndpoint.transport(endpointTransport).rpcProtocol(Default.rpcProtocol).bind(api)
 
     // Define a function for processing JSON-RPC requests via the generic RPC endpoint.

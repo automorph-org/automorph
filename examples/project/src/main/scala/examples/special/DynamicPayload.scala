@@ -36,7 +36,7 @@ private[examples] object DynamicPayload {
       client <- Default.rpcClient(new URI("http://localhost:9000/api")).init()
       remoteApi = client.bind[Api]
 
-      // Call the remote API function a type-safe proxy
+      // Call the remote API function a proxy instance
       result <- remoteApi.hello("world", Json.fromInt(1))
       _ = println(result)
 
