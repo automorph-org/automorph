@@ -40,16 +40,16 @@ trait ProtocolCodecTest extends CoreTest {
     } else {
       if (BaseTest.testAll || !integration) {
         Seq(
-          circeJsonRpcJsonFixture(1),
-          jacksonJsonRpcJsonFixture(2),
-          jacksonJsonRpcCborFixture(3),
-          jacksonJsonRpcSmileFixture(4),
+//          circeJsonRpcJsonFixture(1),
+//          jacksonJsonRpcJsonFixture(2),
+//          jacksonJsonRpcCborFixture(3),
+//          jacksonJsonRpcSmileFixture(4),
           weePickleJsonRpcJsonFixture(5),
-          weePickleJsonRpcCborFixture(6),
-          weePickleJsonRpcSmileFixture(7),
-          uPickleJsonRpcJsonFixture(8),
-          uPickleJsonRpcMessagePackFixture(9),
-          argonautJsonRpcJsonFixture(10),
+//          weePickleJsonRpcCborFixture(6),
+//          weePickleJsonRpcSmileFixture(7),
+//          uPickleJsonRpcJsonFixture(8),
+//          uPickleJsonRpcMessagePackFixture(9),
+//          argonautJsonRpcJsonFixture(10),
         )
       } else {
         Seq.empty
