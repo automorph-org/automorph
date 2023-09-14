@@ -16,8 +16,8 @@ import scala.util.Try
  *
  * Used to perform type-safe remote API calls or send one-way messages.
  *
- * Remote APIs can be invoked statically using transparent proxy instances automatically derived from specified API
- * traits or dynamically by supplying the required type information on invocation.
+ * Remote APIs can be invoked via proxy instances automatically created from specified API trait
+ * or without an API trait by supplying the required type information on invocation.
  *
  * @constructor
  *   Creates a RPC client with specified protocol and transport plugins providing corresponding message context type.

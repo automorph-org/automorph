@@ -3,7 +3,9 @@ package automorph.spi
 /**
  * Server transport protocol plugin.
  *
- * Actively receives requests to be processed by the RPC handler and sends responses using specific transport protocol.
+ * Enables RPC server to receive requests and send responses using specific transport protocol.
+ *
+ * Actively receives requests to be processed by the RPC handler and sends responses.
  *
  * @tparam Effect
  *   effect type

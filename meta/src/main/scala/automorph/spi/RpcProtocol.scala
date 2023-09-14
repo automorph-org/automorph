@@ -6,6 +6,8 @@ import scala.util.Try
 /**
  * Remote procedure call protocol plugin.
  *
+ * Enables use of a specific RPC protocol.
+ *
  * The underlying RPC protocol must support remote function invocation.
  *
  * @tparam Node

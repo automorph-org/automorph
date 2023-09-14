@@ -8,8 +8,7 @@ import scala.collection.immutable.ListMap
 /**
  * RPC endpoint.
  *
- * Integrates with an existing server to receive remote API requests using
- * specific transport protocol and invoke bound API methods to process them.
+ * Used to handle remote API requests as part of an existing server and invoke bound API methods to process them.
  *
  * Automatically derives remote API bindings for existing API instances.
  *
