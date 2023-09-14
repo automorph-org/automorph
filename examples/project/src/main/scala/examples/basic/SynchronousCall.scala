@@ -26,7 +26,7 @@ private[examples] object SynchronousCall {
     // Initialize JSON-RPC HTTP client for sending POST requests to 'http://localhost:9000/api'
     val client = Default.rpcClientCustom(IdentitySystem(), new URI("http://localhost:9000/api")).init()
 
-    // Call the remote API function via a type-safe proxy
+    // Call the remote API function via a proxy instance
     val remoteApi = client.bind[Api]
     println(
       remoteApi.hello("world", 1)

@@ -51,7 +51,7 @@ Await.ready(for {
   client <- Default.rpcClient(new URI("http://localhost:9000/api")).init()
   remoteApi = client.bind[Api]
 
-  // Call the remote API function via a type-safe proxy
+  // Call the remote API function via a proxy instance
   result <- remoteApi.hello("world", 1)
   _ = println(result)
 
@@ -100,7 +100,7 @@ val server = Default.rpcServerCustom(IdentitySystem(), 9000, "/api").bind(api).i
 // Initialize JSON-RPC HTTP client sending POST requests to 'http://localhost:9000/api'
 val client = Default.rpcClientCustom(IdentitySystem(), new URI("http://localhost:9000/api")).init()
 
-// Call the remote API function via a type-safe proxy
+// Call the remote API function via a proxy instance
 val remoteApi = client.bind[Api]
 println(
   remoteApi.hello("world", 1)
@@ -159,7 +159,7 @@ Await.ready(for {
   client <- Default.rpcClient(new URI("http://localhost:9000/api")).init()
   remoteApi = client.bind[Api]
 
-  // Call the remote API function via a type-safe proxy
+  // Call the remote API function via a proxy instance
   result <- remoteApi.hello("world")
   _ = println(result)
 
@@ -1012,7 +1012,7 @@ val server = Default.rpcServerCustom(IdentitySystem(), 9000, "/api").bind(api, m
 // Initialize JSON-RPC HTTP client sending POST requests to 'http://localhost:9000/api'
 val client = Default.rpcClientCustom(IdentitySystem(), new URI("http://localhost:9000/api")).init()
 
-// Call the remote API function via a type-safe proxy
+// Call the remote API function via a proxy instance
 val remoteApi = client.bind[Api]
 println(
   remoteApi.hello("world", 1)
@@ -1087,7 +1087,7 @@ val remoteApi = client.bind[Api]
   implicit val validAuthentication: ClientContext = client.context
     .authorization("Bearer", "valid")
 
-  // Call the remote API function via a type-safe proxy using valid authentication
+  // Call the remote API function via a proxy instance using valid authentication
   println(
     remoteApi.hello("test")
   )
@@ -1103,7 +1103,7 @@ val remoteApi = client.bind[Api]
   implicit val invalidAuthentication: ClientContext = client.context
     .headers("X-Authentication" -> "unsupported")
 
-  // Call the remote API function a type-safe proxy using invalid authentication
+  // Call the remote API function a proxy instance using invalid authentication
   println(Try(
     remoteApi.hello("test")
   ).failed.get)
@@ -1170,7 +1170,7 @@ implicit val httpRequest: ClientContext = client.context
   .cookies("Test" -> "value")
   .authorization("Bearer", "value")
 
-// Call the remote API function a type-safe proxy using implicitly given HTTP request metadata
+// Call the remote API function a proxy instance using implicitly given HTTP request metadata
 val remoteApi = client.bind[Api]
 println(
   remoteApi.hello("test")
@@ -1228,7 +1228,7 @@ val server = Default.rpcServerCustom(IdentitySystem(), 9000, "/api").bind(api).i
 // Initialize JSON-RPC HTTP client sending POST requests to 'http://localhost:9000/api'
 val client = Default.rpcClientCustom(IdentitySystem(), new URI("http://localhost:9000/api")).init()
 
-// Call the remote API function a type-safe proxy retrieving a result with HTTP response metadata
+// Call the remote API function a proxy instance retrieving a result with HTTP response metadata
 val remoteApi = client.bind[Api]
 val static = remoteApi.hello("test")
 println(static.result)
@@ -1544,7 +1544,7 @@ Await.ready(for {
   client <- Default.rpcClient(new URI("http://localhost:9000/api")).init()
   remoteApi = client.bind[Api]
 
-  // Call the remote API function a type-safe proxy
+  // Call the remote API function a proxy instance
   result <- remoteApi.hello("world", Json.fromInt(1))
   _ = println(result)
 

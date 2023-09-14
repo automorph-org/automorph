@@ -77,7 +77,7 @@ Await.ready(for {
 
 ### Client
 
-Call a remote API using JSON-RPC over HTTP(S) via a type-safe proxy created from the API trait or
+Call a remote API using JSON-RPC over HTTP(S) via a proxy instance created from the API trait or
 dynamically without an API trait.
 
 ```scala
@@ -103,7 +103,7 @@ Await.ready(for {
   // Initialize the JSON-RPC client
   activeClient <- client.init()
 
-  // Call the remote API function via the type-safe proxy
+  // Call the remote API function via the proxy instance
   result <- remoteApi.hello("world", 1)
   _ = println(result)
 

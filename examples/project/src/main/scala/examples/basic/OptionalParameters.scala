@@ -33,7 +33,7 @@ private[examples] object OptionalParameters {
       client <- Default.rpcClient(new URI("http://localhost:9000/api")).init()
       remoteApi = client.bind[Api]
 
-      // Call the remote API function via a type-safe proxy
+      // Call the remote API function via a proxy instance
       result <- remoteApi.hello("world")
       _ = println(result)
 
