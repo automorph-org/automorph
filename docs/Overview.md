@@ -26,19 +26,19 @@ for invoking and exposing remote APIs in a few lines of code.
 
 ## [API](https://automorph.org/api/automorph.html)
 
-The following classes represent the main entry points to Automorph functionality:
+The following classes represent the primary entry points to Automorph functionality:
 
 * [RPC client](https://automorph.org/api/automorph/RpcClient.html) - Used to perform type-safe remote API calls or send one-way messages.
 * [RPC server](https://automorph.org/api/automorph/RpcServer.html) - Used to serve remote API requests and invoke bound API methods to process them.
 * [RPC endpoint](https://automorph.org/api/automorph/RpcEndpoint.html) - Used to handle remote API requests as part of an existing server
 and invoke bound API methods to process them.
 
-Various combinations of [RPC protocol](Plugins#RPC protocol), [effect system](Plugins#Effect system),
-[message codec](Plugins#Message codec) and [transport layer](Plugins#Client transport) can be utilized by
-supplying the desired plugin instances to the factory methods of the main classes listed above.
+Various combinations of [RPC protocol](Plugins#rpc-protocol), [effect system](Plugins#effect-system),
+[message codec](Plugins#message-codec) and [transport layer](Plugins#client-transport) can be utilized by
+supplying the desired plugin instances to the factory methods of the primary classes listed above.
 
 There are also additional [factory methods](https://automorph.org/api/automorph/Default$.html) for
-creating main class instances with [default plugins](Plugins#Default).
+creating primary class instances with [default plugins](Plugins#Default).
 
 
 ## [SPI](https://automorph.org/api/automorph/spi.html)
