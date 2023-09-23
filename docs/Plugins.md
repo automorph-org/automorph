@@ -15,7 +15,7 @@ instantiated, configured and combined at will.
 
 * RPC protocol: [JSON-RPC](https://www.jsonrpc.org/specification)
 * Message format: [JSON](https://www.json.org/)
-* Transport protocol: [HTTP](https://en.wikipedia.org/wiki/HTTP )
+* Transport protocol: [HTTP](https://en.wikipedia.org/wiki/HTTP)
 * Synchronous effect: [Identity](https://scala-lang.org/api/3.x/scala/Predef$.html#identity-957)
 * Asynchronous effect: [Future](https://scala-lang.org/api/3.x/scala/concurrent/Future.html)
 * Message codec: [Circe](https://circe.github.io/circe)

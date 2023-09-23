@@ -33,17 +33,17 @@ The following classes represent the primary entry points to Automorph functional
 * [RPC endpoint](https://automorph.org/api/automorph/RpcEndpoint.html) - Used to handle remote API requests as part of an existing server
 and invoke bound API methods to process them.
 
-Various combinations of [RPC protocol](Plugins#rpc-protocol), [effect system](Plugins#effect-system),
-[message codec](Plugins#message-codec) and [transport layer](Plugins#client-transport) can be utilized by
+Various combinations of [RPC protocol](https://automorph.org/docs/Plugins#rpc-protocol), [effect system](https://automorph.org/docs/Plugins#effect-system),
+[message codec](https://automorph.org/docs/Plugins#message-codec) and [transport layer](https://automorph.org/docs/Plugins#client-transport) can be utilized by
 supplying the desired plugin instances to the factory methods of the primary classes listed above.
 
 There are also additional [factory methods](https://automorph.org/api/automorph/Default$.html) for
-creating primary class instances with [default plugins](Plugins#Default).
+creating primary class instances with [default plugins](https://automorph.org/docs/Plugins#Default).
 
 
 ## [SPI](https://automorph.org/api/automorph/spi.html)
 
-The following traits define interfaces for implementing various Automorph plugins:
+The following traits define interfaces for implementing various Automorph [plugins](https://automorph.org/docs/Plugins):
 
 * [RPC protocol](https://automorph.org/api/automorph/spi/RpcProtocol.html) -
 Enables use of a specific RPC protocol.
@@ -80,7 +80,7 @@ Enables RPC endpoint to integrate with and handle requests from an existing serv
 ### RPC protocols
 
 * [JSON-RPC](https://www.jsonrpc.org/specification) (*Default*)
-* [Web-RPC](Web-RPC)
+* [Web-RPC](https://automorph.org/docs/Web-RPC)
 
 ### Transport protocols
 
