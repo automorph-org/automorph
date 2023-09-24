@@ -6,7 +6,7 @@ sidebar_position: 2
 
 Expose and call a remote JSON-RPC API over HTTP.
 
-Please also review additional [examples](https://automorph.org/docs/Examples) and [API](https://automorph.org/api/automorph.html) documentation.
+Please see the library functionality [overview](https://automorph.org/docs/Overview), component [architecture](https://automorph.org/docs/Architecture) additional [examples](https://automorph.org/docs/Examples) and [API](https://automorph.org/api/automorph.html) documentation for more information.
 
 
 ## Script

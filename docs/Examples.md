@@ -6,7 +6,7 @@ sidebar_position: 7
 
 The following examples illustrate how to address various remote call use-cases. 
 
-They mostly use [default plugins](Plugins) and focus on specific features
+They mostly use [default plugins](https://automorph.org/docs/Plugins) and focus on specific features
 but will work with any other plugins or feature combinations.
 
 

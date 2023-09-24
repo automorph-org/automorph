@@ -8,7 +8,9 @@ sidebar_position: 1
 for invoking and exposing remote APIs in a few lines of code.
 
 
-## Design goals
+## Functionality
+
+### Design goals
 
 * Enable **remote API calls** with **no boilerplate** and **minimal limitations**
 * Ensure **no technical changes** are required for **existing projects**
@@ -17,16 +19,30 @@ for invoking and exposing remote APIs in a few lines of code.
 * Allow access to **transport protocol metadata** for remote API calls
 
 
-## Platform requirements
+### Use cases
+
+* Invoke remote APIs in an optimized type-safe fashion and without boilerplate
+* Expose remote APIs in an optimized type-safe fashion and without boilerplate
+* Use preferred effect system for calling or implementing remote APIs
+* Change transport layer of selected RPC protocol to a more suitable one
+* Replace selectd RPC protocol message format with a more efficient one
+* Supply dynamic payload when calling or serving remote APIs
+* Access or modify underlying transport protocol meta-data while using transport-agnostic RPC protocol
+
+
+
+## Usage
+
+### Platform requirements
 
 * [Scala](https://www.scala-lang.org/) 3.3+ or 2.13+
 * [Java Runtime Environment](https://openjdk.java.net/) 11+
 * [SLF4J](http://www.slf4j.org/) logger implementation (optional)
 
 
-## [API](https://automorph.org/api/automorph.html)
+### [API](https://automorph.org/api/automorph.html)
 
-The following classes represent the primary entry points to Automorph functionality:
+Following classes represent the primary entry points to Automorph functionality:
 
 * [RPC client](https://automorph.org/api/automorph/RpcClient.html) - Used to perform type-safe remote API calls or send one-way messages.
 * [RPC server](https://automorph.org/api/automorph/RpcServer.html) - Used to serve remote API requests and invoke bound API methods to process them.
@@ -34,16 +50,16 @@ The following classes represent the primary entry points to Automorph functional
 and invoke bound API methods to process them.
 
 Various combinations of [RPC protocol](https://automorph.org/docs/Plugins#rpc-protocol), [effect system](https://automorph.org/docs/Plugins#effect-system),
-[message codec](https://automorph.org/docs/Plugins#message-codec) and [transport layer](https://automorph.org/docs/Plugins#client-transport) can be utilized by
+[message codec](https://automorph.org/docs/Plugins#message-codec) and [transport layer](https://automorph.org/docs/Plugins#transport-layer) can be utilized by
 supplying the desired plugin instances to the factory methods of the primary classes listed above.
 
 There are also additional [factory methods](https://automorph.org/api/automorph/Default$.html) for
-creating primary class instances with [default plugins](https://automorph.org/docs/Plugins#Default).
+creating primary class instances with [default plugins](https://automorph.org/docs/Plugins#default-plugins).
 
 
-## [SPI](https://automorph.org/api/automorph/spi.html)
+### [SPI](https://automorph.org/api/automorph/spi.html)
 
-The following traits define interfaces for implementing various Automorph [plugins](https://automorph.org/docs/Plugins):
+Following traits define interfaces for implementing various Automorph [plugins](https://automorph.org/docs/Plugins):
 
 * [RPC protocol](https://automorph.org/api/automorph/spi/RpcProtocol.html) -
 Enables use of a specific RPC protocol.
@@ -59,7 +75,7 @@ Enables RPC server to receive requests and send responses using specific transpo
 Enables RPC endpoint to integrate with and handle requests from an existing server infrastructure.
 
 
-## Limitations
+### Limitations
 
 * Remote APIs must not contain [overloaded methods](https://en.wikipedia.org/wiki/Function_overloading)
 * Remote API methods must not use [type parameters](https://docs.scala-lang.org/tour/polymorphic-methods.html)
@@ -70,12 +86,15 @@ Enables RPC endpoint to integrate with and handle requests from an existing serv
 * RPC protocol plugin constructors for Scala 2 might require explicitly supplied type parameters due to [type inference](https://docs.scala-lang.org/tour/type-inference.html) constraints
 
 
-## Known issues
+### Known issues
 
 * Mangled signatures for a few nonessential methods in Automorph API documentation caused by a Scaladoc defect
 
 
 ## Supported standards
+
+Following technical standards are supported by freely combining the relevant
+[plugins](https://automorph.org/docs/Plugins).
 
 ### RPC protocols
 
@@ -110,12 +129,12 @@ Enables RPC endpoint to integrate with and handle requests from an existing serv
 * Martin Ockajak
 
 
-## Special thanks to
+### Special thanks
 
 * Luigi Antognini
 
 
-## Inspired by
+### Inspired by
 
 * [Scala JSON-RPC](https://github.com/shogowada/scala-json-rpc)
 * [Autowire](https://github.com/lihaoyi/autowire)
