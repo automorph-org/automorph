@@ -6,7 +6,7 @@ sidebar_position: 1
 
 **Automorph** is a Scala [RPC](https://en.wikipedia.org/wiki/Remote_procedure_call) client and server library
 for calling and serving remote APIs in a few lines of code.
-```
+
 ### Goals
 
 * Provide efficient **calling** and **serving** of **remote APIs**
