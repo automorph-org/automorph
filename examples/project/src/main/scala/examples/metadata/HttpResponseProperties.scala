@@ -33,7 +33,7 @@ private[examples] object HttpResponseProperties {
     // Initialize JSON-RPC HTTP client for sending POST requests to 'http://localhost:9000/api'
     val client = Default.rpcClientCustom(IdentitySystem(), new URI("http://localhost:9000/api")).init()
 
-    // Call the remote API function via a proxy instance retrieving a result with HTTP response metadata
+    // Call the remote API function via a local proxy retrieving a result with HTTP response metadata
     val remoteApi = client.bind[Api]
     val static = remoteApi.hello("test")
     println(static.result)

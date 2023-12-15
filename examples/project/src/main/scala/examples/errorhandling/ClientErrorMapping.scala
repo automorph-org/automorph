@@ -42,7 +42,7 @@ private[examples] object ClientErrorMapping {
       client <- RpcClient.transport(clientTransport).rpcProtocol(rpcProtocol).init()
       remoteApi = client.bind[Api]
 
-      // Call the remote API function and fail with SQLException
+      // Call the remote API function via a local proxy and fail with SQLException
       error <- remoteApi.hello("world", 1).failed
       _ = println(error)
 

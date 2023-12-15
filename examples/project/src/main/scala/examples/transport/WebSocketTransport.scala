@@ -29,7 +29,7 @@ private[examples] object WebSocketTransport {
       client <- Default.rpcClient(new URI("ws://localhost:9000/api")).init()
       remoteApi = client.bind[Api]
 
-      // Call the remote API function
+      // Call the remote API function via a local proxy
       result <- remoteApi.hello("world", 1)
       _ = println(result)
 

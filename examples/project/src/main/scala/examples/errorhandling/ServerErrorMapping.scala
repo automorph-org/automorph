@@ -45,11 +45,11 @@ private[examples] object ServerErrorMapping {
       client <- Default.rpcClient(new URI("http://localhost:9000/api")).init()
       remoteApi = client.bind[Api]
 
-      // Call the remote API function and fail with InvalidRequestException
+      // Call the remote API function via a local proxy an fail with InvalidRequestException
       error <- remoteApi.hello("world", 1).failed
       _ = println(error)
 
-      // Call the remote API function and fail with RuntimeException
+      // Call the remote API function via a local proxy and fail with RuntimeException
       error <- remoteApi.hello("world", -1).failed
       _ = println(error)
 
