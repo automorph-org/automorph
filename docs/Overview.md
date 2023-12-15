@@ -21,6 +21,7 @@ val apiServer = server.bind(api)
 
 // Create a type-safe local proxy for the remote API from an API trait
 val remoteApi = client.bind[Api]
+```
 
 
 ## Features
