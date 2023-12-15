@@ -61,7 +61,7 @@ const features = [
     ),
   },
   {
-    titl:e 'Discoverable',
+    title: 'Discoverable',
     link: 'docs/Examples#api-discovery',
     description: (
         <>
