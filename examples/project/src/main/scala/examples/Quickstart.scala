@@ -29,7 +29,7 @@ private[examples] object Quickstart {
     // Configure JSON-RPC HTTP & WebSocket server to listen on port 9000 for requests to '/api'
     val server = Default.rpcServer(9000, "/api")
 
-    // Expose the server API implementation to be accessible remotely
+    // Expose the server API implementation to be called remotely
     val apiServer = server.bind(api)
 
     // Configure JSON-RPC HTTP client to send POST requests to 'http://localhost:9000/api'
