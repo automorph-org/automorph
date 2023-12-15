@@ -38,9 +38,8 @@ val remoteApi = client.bind[Api]
 ---
 
 * [Quick Start](https://automorph.org/docs/Quickstart)
-* [Documentation](https://automorph.org)
+* [Website](https://automorph.org)
 * [API](https://automorph.org/api/index.html)
 * [Artifacts](https://central.sonatype.com/namespace/org.automorph)
 * [Contact](mailto:automorph.org@proton.me)
-
 
