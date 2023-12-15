@@ -9,9 +9,11 @@ for calling and serving remote APIs in a few lines of code.
 ```
 ### Goals
 
-* Enable efficient calling and serving of **remote APIs** with **no boilerplate**
+* Provide efficient **calling** and **serving** of **remote APIs**
+* Ensure there is **no boilerplate** API code and **minimal dependencies** are required
 * Support manipulation of **transport protocol metadata** and **dynamic message payload**
-* Facilitate **easy integration** by **preserving technical decisions** of existing applications
+* Facilitate **smooth integration** by supporting wide range of **existing technology**
+* Allow for easy **customization** and **extension** of library features
 
 ### Main interface example
 
@@ -44,6 +46,7 @@ val remoteApi = client.bind[Api]
 
 ### General
 
+  * Build only with specific artifacts required to provide desired [integrations](Plugins).
   * Use [JSON-RPC](https://www.jsonrpc.org/specification) or [Web-RPC](Web-RPC) as an [RPC protocol](Plugins#rpc-protocol).
   * Use any [effect system](Plugins#effect-system) to call or implement remote APIs.
   * Serialize arbitrary data types by configuring the selected [message codec](Examples#data-serialization).
