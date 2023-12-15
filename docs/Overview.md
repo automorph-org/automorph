@@ -19,12 +19,12 @@ for calling and serving remote APIs in a few lines of code.
 ### Features
 
 * Client
-  * Transparently generate [RPC client](Quickstart#static-client) bindings at compile time.
+  * Transparently generate optimized [RPC client](Quickstart#static-client) bindings at compile time.
   * Call remote APIs using a supported transport protocol by selecting a [client transport](Plugins#client-transport) layer.
   * Change the mapping of [local to remote RPC function names](Examples#client-function-names).
   * Change the mapping of [RPC errors to exceptions](Examples#client-error-mapping).
 * Server
-  * Transparently generate [RPC server](Quickstart#server) bindings at compile time.
+  * Transparently generate optimized [RPC server](Quickstart#server) bindings at compile time.
   * Serve remote APIs using a standalone server by selecting a [server transport](Plugins#server-transport) layer.
   * Embed remote API into an existing server via a suitable [endpoint transport](Plugins#endpoint-transport).
   * Automatically expose RPC API functions providing [OpenRPC](https://spec.open-rpc.org) and [OpenAPI](https://github.com/OAI/OpenAPI-Specification) schemas.
