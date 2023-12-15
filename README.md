@@ -12,7 +12,9 @@ https://github.com/automorph-org/automorph/actions/workflows/build.yml)
 **Automorph** is a Scala [RPC](https://en.wikipedia.org/wiki/Remote_procedure_call) client and server library
 for invoking and exposing remote APIs in a few lines of code.
 
-Main interface example:
+---
+
+**Main interface example**
 ```scala
 // Expose the server API implementation to be called remotely
 val apiServer = server.bind(api)
