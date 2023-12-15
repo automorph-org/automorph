@@ -55,19 +55,18 @@ const features = [
     description: (
         <>
           Use <a
-            href="docs/Examples#dynamic-payload">dynamic message payload</a> and transparently access <a
+            href="docs/Examples#dynamic-payload">dynamic message payload</a> and access or modify <a
             href="docs/Examples#metadata">transport protocol metadata</a>.
         </>
     ),
   },
   {
-    title: 'Discoverable',
+    titl:e 'Discoverable',
     link: 'docs/Examples#api-discovery',
     description: (
         <>
-          Consume and provide <a href="https://spec.open-rpc.org">OpenRPC</a> 1.3+ or <a
-            href="https://github.com/OAI/OpenAPI-Specification">OpenAPI</a> 3.1+ schemas
-          using API discovery functions.
+          Provide API discovery functions supporting <a href="https://spec.open-rpc.org">OpenRPC</a> 1.3+ and <a
+            href="https://github.com/OAI/OpenAPI-Specification">OpenAPI</a> 3.1+ formats.
         </>
     ),
   },

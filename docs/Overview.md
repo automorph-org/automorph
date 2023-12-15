@@ -5,24 +5,42 @@ sidebar_position: 1
 # Overview
 
 **Automorph** is a Scala [RPC](https://en.wikipedia.org/wiki/Remote_procedure_call) client and server library
-for invoking and exposing remote APIs in a few lines of code.
+for calling and serving remote APIs in a few lines of code.
 
 
 ## Functionality
 
 ### Design goals
 
-* Enable **remote API calls** with **no boilerplate** and **minimal limitations**
-* Ensure **no technical changes** are required for **existing projects**
-* Facilitate **customization** and **extension** of library features
-* Allow use of **dynamic message payload** in remote API calls
-* Allow access to **transport protocol metadata** for remote API calls
+* Enable efficient calling and serving of **remote APIs** with **no boilerplate**
+* Support manipulation of **transport protocol metadata** and **dynamic message payload**
+* Facilitate **easy integration** by **preserving technical decisions** of existing applications
+
+### Features
+
+* Client
+  * Transparently generate [RPC client](Quickstart#static-client) bindings at compile time.
+  * Call remote APIs using a supported transport protocol by selecting a [client transport](Plugins#client-transport) layer.
+  * Change the mapping of [local to remote RPC function names](Examples#client-function-names).
+  * Change the mapping of [RPC errors to exceptions](Examples#client-error-mapping).
+* Server
+  * Transparently generate [RPC server](Quickstart#server) bindings at compile time.
+  * Serve remote APIs using a standalone server by selecting a [server transport](Plugins#server-transport) layer.
+  * Embed remote API into an existing server via a suitable [endpoint transport](Plugins#endpoint-transport).
+  * Automatically expose RPC API functions providing [OpenRPC](https://spec.open-rpc.org) and [OpenAPI](https://github.com/OAI/OpenAPI-Specification) schemas.
+  * Change the mapping of called to implemented RPC function names on [server side](Examples#server-function-names).
+  * Change the mapping of exceptions to RPC errors [client side](Examples#server-error-mapping).
+* General
+  * Use [JSON-RPC](https://www.jsonrpc.org/specification) or [Web-RPC](Web-RPC) as an [RPC protocol](Plugins#rpc-protocol).
+  * Use any [effect system](Plugins#effect-system) to call or implement remote APIs.
+  * Serialize arbitrary data types by configuring the selected [message codec](Examples#data-serialization).
+  * Use optional remote API extensions to access or modify [transport protocol metadata](Examples#metadata).
+  * Use RPC protocol message model to create and consume [dynamic message payload](Examples#dynamic-payload).
 
 
 ### Use cases
 
-* Invoke remote APIs in an optimized type-safe fashion and without boilerplate
-* Expose remote APIs in an optimized type-safe fashion and without boilerplate
+* Call or serve remote APIs in an optimized type-safe fashion and without boilerplate
 * Use preferred effect system for calling or implementing remote APIs
 * Change transport layer of selected RPC protocol to a more suitable one
 * Replace selectd RPC protocol message format with a more efficient one
