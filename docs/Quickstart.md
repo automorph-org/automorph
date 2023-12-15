@@ -9,6 +9,7 @@ Expose and call a remote JSON-RPC API over HTTP.
 Please see the library functionality [overview](https://automorph.org/docs/Overview), component [architecture](https://automorph.org/docs/Architecture) additional [examples](https://automorph.org/docs/Examples) and [API](https://automorph.org/api/automorph.html) documentation for more information.
 
 
+
 ## Script
 
 Download and run a quickstart example using [Scala CLI](https://scala-cli.virtuslab.org):
@@ -63,7 +64,7 @@ val api = new ApiImpl
 // Configure JSON-RPC HTTP & WebSocket server to listen on port 9000 for requests to '/api'
 val server = Default.rpcServer(9000, "/api")
 
-// Expose the server API implementation to be accessible remotely
+// Expose the server API implementation to be called remotely
 val apiServer = server.bind(api)
 
 Await.ready(for {
