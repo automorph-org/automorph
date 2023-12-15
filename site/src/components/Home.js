@@ -139,7 +139,7 @@ function TaglineRow() {
         <div className={'col col--12'}>
           <div className="text--center padding-vert--sm">
             <p style={{
-              fontSize: '2rem',
+              fontSize: '1.8rem',
               color: 'var(--ifm-menu-color)',
             }}>{config.tagline}</p>
           </div>
@@ -177,7 +177,7 @@ function DocumentationRow() {
             <a className="button" href="docs/Quickstart" style={{
               color: 'var(--sidebar-background-color)',
               backgroundColor: 'var(--ifm-link-color)',
-              fontSize: '1.5rem',
+              fontSize: '1.3rem',
             }}>
               Get Started
             </a>
