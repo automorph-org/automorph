@@ -13,7 +13,6 @@ https://github.com/automorph-org/automorph/actions/workflows/build.yml)
 for invoking and exposing remote APIs in a few lines of code.
 
 Main interface example:
-```
 ```scala
 // Expose the server API implementation to be called remotely
 val apiServer = server.bind(api)
