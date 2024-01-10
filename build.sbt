@@ -322,9 +322,16 @@ ThisBuild / scalacOptions ++= (CrossVersion.partialVersion(scalaVersion.value) m
 scalastyleConfig := baseDirectory.value / "project/scalastyle-config.sbt.xml"
 Compile / scalastyleSources ++= (Compile / unmanagedSourceDirectories).value
 scalastyleFailOnError := true
+
+
+// Test
 lazy val testScalastyle = taskKey[Unit]("testScalastyle")
 testScalastyle := (Test / scalastyle).toTask("").value
-Test / test := (Test / test).dependsOn(testScalastyle).value
+val testEnvironment = taskKey[Unit]("Prepares testing environment.")
+testEnvironment := {
+  IO.delete(target.value / "lock")
+}
+Test / test := (Test / test).dependsOn(testScalastyle).dependsOn(testEnvironment).value
 
 
 // Documentation
