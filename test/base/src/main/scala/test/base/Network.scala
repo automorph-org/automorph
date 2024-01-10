@@ -1,6 +1,6 @@
 package test.base
 
-import java.net.ServerSocket
+import java.net.{ServerSocket, Socket}
 import java.nio.file.{Files, Path, Paths}
 import scala.collection.mutable
 import scala.util.{Random, Try}
@@ -22,7 +22,7 @@ trait Network {
     }.getOrElse(throw new IllegalStateException("No available ports found"))
 
   private def portAvailable(port: Int): Boolean =
-    Try(new ServerSocket(port)).map(_.close()).isSuccess
+    Try(new Socket("localhost", port)).map(socket => Try(socket.close())).isFailure
 }
 
 object Network {
