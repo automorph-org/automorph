@@ -16,7 +16,7 @@ import scala.util.Try
 private[examples] object AmqpTransport {
   @scala.annotation.nowarn
   def main(arguments: Array[String]): Unit = {
-    if (Try(Process("erl -eval 'halt()' -noshell").! == 0).getOrElse(false)) {
+    if (Try(Process("erl -eval 'halt()' -noshell").! == 0).getOrElse(false) && false) {
 
       // Define a remote API
       trait Api {
