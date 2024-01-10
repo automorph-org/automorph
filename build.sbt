@@ -295,7 +295,7 @@ val compileScalac2Options = commonScalacOptions ++ Seq(
   "-Vfree-terms",
   "-Vimplicits",
   "-Ybackend-parallelism",
-  "4"
+  s"${Math.min(java.lang.Runtime.getRuntime.availableProcessors, 16)}"
 )
 val docScalac3Options = compileScalac3Options ++ Seq(
   s"-source-links:src=github://$repositoryPath/master",
@@ -359,7 +359,7 @@ lazy val docs = project.in(file("site")).settings(
   Compile / doc / sources ++= allSources.value.flatten.filter(_.getName != "MonixSystem.scala"),
   Compile / doc / tastyFiles ++= allTastyFiles.value.flatten.filter(_.getName != "MonixSystem.tasty"),
   Compile / doc / dependencyClasspath ++=
-    allDependencyClasspath.value.flatten.filter(_.data.getName != "cats-effect_3-2.5.4.jar")
+    allDependencyClasspath.value.flatten.filter(!_.data.getName.startsWith("cats-effect_3-2"))
 ).enablePlugins(MdocPlugin)
 
 
