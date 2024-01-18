@@ -29,16 +29,22 @@ object BaseTest {
 
   /** Test level environment variable. */
   private val testLevelEnvironment = "TEST_LEVEL"
-  /** Execute simple remote API tests */
+  /** Simple tests environment value. */
   private val testSimpleValue = "simple"
-  /** Execute all remote API tests */
+  /** Complex tests environment value. */
+  private val testComplexValue = "complex"
+  /** All tests environment value. */
   private val testAllValue = "all"
 
-  /** Execute simple remote API tests */
+  /** Execute simple remote API tests for all transport plugins and default codec plugin only. */
   final def testSimple: Boolean =
     Option(System.getenv(testLevelEnvironment)).exists(_.toLowerCase == testSimpleValue)
 
-  /** Execute all remote API tests */
+  /** Execute complex remote API tests for all transport plugins and default codec plugin only. */
+  final def testComplex: Boolean =
+    Option(System.getenv(testLevelEnvironment)).exists(_.toLowerCase == testComplexValue)
+
+  /** Execute complex remote API tests for all transport plugins and all codec plugins. */
   final def testAll: Boolean =
     Option(System.getenv(testLevelEnvironment)).exists(_.toLowerCase == testAllValue)
 }

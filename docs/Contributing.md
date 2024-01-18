@@ -38,13 +38,19 @@ with questions, ideas, features, improvements or fixes.
 sbt '+ test'
 ```
 
-### Simple API tests
+### Simple API tests for all transport plugins and default codec plugin only
 
 ```shell
 TEST_LEVEL=simple sbt '+ test'
 ```
 
-### Complex API and integration tests
+### Complex API tests for all transport plugins and default codec plugin only
+
+```shell
+TEST_LEVEL=complex sbt '+ test'
+```
+
+### Complex API tests for all transport plugins and all codec plugins
 
 ```shell
 TEST_LEVEL=all sbt '+ test'

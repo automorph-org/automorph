@@ -12,4 +12,7 @@ class HttpClientHttpIdentityTest extends HttpClientHttpTest {
 
   override def run[T](effect: Effect[T]): T =
     effect
+
+  override def basic: Boolean =
+    true
 }

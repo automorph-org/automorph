@@ -13,7 +13,4 @@ trait HttpServerTest extends HttpClientServerTest {
 
   def url(fixtureId: Int): URI =
     new URI(s"http://localhost:${port(fixtureId)}")
-
-  override def integration: Boolean =
-    true
 }

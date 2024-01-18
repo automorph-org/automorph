@@ -27,7 +27,4 @@ class VertxServerHttpFutureTest extends HttpServerTest {
 
   override def endpointTransport: EndpointTransport[Future, Context, ?] =
     VertxHttpEndpoint(system)
-
-  override def integration: Boolean =
-    true
 }

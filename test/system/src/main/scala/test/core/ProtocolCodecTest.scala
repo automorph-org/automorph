@@ -27,20 +27,16 @@ trait ProtocolCodecTest extends CoreTest {
   }
 
   def createFixtures(implicit context: Context): Seq[TestFixture] = {
-    if (BaseTest.testSimple) {
-      Seq(circeJsonRpcJsonFixture(0))
+    if (BaseTest.testAll || basic) {
+      Seq(
+        circeJsonRpcJsonFixture(0),
+        jacksonJsonRpcJsonFixture(1),
+        uPickleJsonRpcJsonFixture(2),
+        uPickleJsonRpcMessagePackFixture(3),
+        argonautJsonRpcJsonFixture(4),
+      )
     } else {
-      if (BaseTest.testAll || !integration) {
-        Seq(
-          circeJsonRpcJsonFixture(0),
-          jacksonJsonRpcJsonFixture(1),
-          uPickleJsonRpcJsonFixture(2),
-          uPickleJsonRpcMessagePackFixture(3),
-          argonautJsonRpcJsonFixture(4),
-        )
-      } else {
-        Seq.empty
-      }
+      Seq(circeJsonRpcJsonFixture(0))
     }
   }
 
@@ -59,15 +55,6 @@ trait ProtocolCodecTest extends CoreTest {
       case "method" => Seq("method", "function")
       case value => Seq(value)
     }
-
-  override def fixtures: Seq[TestFixture] =
-    Try {
-      testFixtures
-    }.recover {
-      case error =>
-        logger.error(s"Failed to initialize test fixtures")
-        throw error
-    }.get
 
   override def beforeAll(): Unit = {
     super.beforeAll()
@@ -94,6 +81,15 @@ trait ProtocolCodecTest extends CoreTest {
     }
     super.afterAll()
   }
+
+  override def fixtures: Seq[TestFixture] =
+    Try {
+      testFixtures
+    }.recover {
+      case error =>
+        logger.error(s"Failed to initialize test fixtures")
+        throw error
+    }.get
 
   private def circeJsonRpcJsonFixture(id: Int)(implicit context: Context): TestFixture = {
     implicit val enumEncoder: Encoder[Enum.Enum] = Encoder.encodeInt.contramap[Enum.Enum](Enum.toOrdinal)

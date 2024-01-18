@@ -7,19 +7,12 @@ import automorph.transport.http.HttpContext
 import io.circe.generic.auto.*
 import io.circe.{Decoder, Encoder}
 import test.api.Enum
-import test.base.BaseTest
 
 trait HttpProtocolCodecTest extends ProtocolCodecTest {
   type Context <: HttpContext[?]
 
   override def createFixtures(implicit context: Context): Seq[TestFixture] =
-    super.createFixtures ++ {
-      if (BaseTest.testSimple || BaseTest.testAll || !integration) {
-        Seq(circeWebRpcJsonFixture(5))
-      } else {
-        Seq.empty
-      }
-    }
+    super.createFixtures ++ Seq(circeWebRpcJsonFixture(5))
 
   private def circeWebRpcJsonFixture(id: Int)(implicit context: Context): TestFixture = {
     implicit val enumEncoder: Encoder[Enum.Enum] = Encoder.encodeInt.contramap[Enum.Enum](Enum.toOrdinal)

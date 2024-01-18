@@ -13,7 +13,4 @@ trait WebSocketServerTest extends ClientServerTest {
 
   def url(fixtureId: Int): URI =
     new URI(s"ws://localhost:${port(fixtureId)}")
-
-  override def integration: Boolean =
-    true
 }

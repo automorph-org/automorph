@@ -23,4 +23,7 @@ trait HttpClientHttpTest extends HttpClientServerTest {
 
   private def url(fixtureId: Int): URI =
     new URI(s"http://localhost:${port(fixtureId)}")
+
+  override def basic: Boolean =
+    true
 }

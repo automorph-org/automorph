@@ -12,4 +12,7 @@ class HttpClientHttpTryTest extends HttpClientHttpTest {
 
   override def run[T](effect: Effect[T]): T =
     effect.get
+
+  override def basic: Boolean =
+    true
 }
