@@ -5,6 +5,7 @@ import automorph.system.IdentitySystem
 import automorph.system.IdentitySystem.Identity
 import automorph.transport.http.HttpMethod
 import automorph.transport.http.client.SttpClient
+import sttp.client3.HttpClientSyncBackend
 import org.scalacheck.Arbitrary
 import sttp.client3.HttpURLConnectionBackend
 import test.transport.HttpClientTest

@@ -39,7 +39,6 @@ nativeImageOptions ++= Seq(
   "--no-fallback",
   s"--parallelism=${java.lang.Runtime.getRuntime.availableProcessors}",
   s"-H:ConfigurationFileDirectories=${(Compile / resourceDirectory).value}",
-  "--link-at-build-time=io.undertow.UndertowLogger",
   "--initialize-at-build-time=org.slf4j.LoggerFactory"
 )
 

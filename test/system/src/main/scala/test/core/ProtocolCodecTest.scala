@@ -60,9 +60,6 @@ trait ProtocolCodecTest extends CoreTest {
       case value => Seq(value)
     }
 
-  def testServerClose: Boolean =
-    true
-
   override def fixtures: Seq[TestFixture] =
     Try {
       testFixtures
@@ -75,17 +72,7 @@ trait ProtocolCodecTest extends CoreTest {
   override def beforeAll(): Unit = {
     super.beforeAll()
     fixtures.foreach { fixture =>
-      if (testServerClose) {
-        run(
-          system.flatMap(
-            system.flatMap(
-              fixture.genericServer.init()
-            )(_.close())
-          )(_.init())
-        )
-      } else {
-        run(fixture.genericServer.init())
-      }
+      run(fixture.genericServer.init())
     }
     fixtures.foreach { fixture =>
       run(
