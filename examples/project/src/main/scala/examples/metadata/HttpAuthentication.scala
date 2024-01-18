@@ -39,7 +39,7 @@ private[examples] object HttpAuthentication {
       implicit val validAuthentication: ClientContext = client.context
         .authorization("Bearer", "valid")
 
-      // Call the remote API function via a proxy instance using valid authentication
+      // Call the remote API function via a local proxy using valid authentication
       println(
         remoteApi.hello("test")
       )

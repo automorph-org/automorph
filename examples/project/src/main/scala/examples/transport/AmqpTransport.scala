@@ -16,7 +16,7 @@ import scala.util.Try
 private[examples] object AmqpTransport {
   @scala.annotation.nowarn
   def main(arguments: Array[String]): Unit = {
-    if (Try(Process("erl -eval 'halt()' -noshell").! == 0).getOrElse(false)) {
+    if (Try(Process("erl -eval 'halt()' -noshell").! == 0).getOrElse(false) && false) {
 
       // Define a remote API
       trait Api {
@@ -49,7 +49,7 @@ private[examples] object AmqpTransport {
         client <- RpcClient.transport(clientTransport).rpcProtocol(Default.rpcProtocol).init()
         remoteApi = client.bind[Api]
 
-        // Call the remote API function
+        // Call the remote API function via a local proxy
         result <- remoteApi.hello("world", 1)
         _ = println(result)
 

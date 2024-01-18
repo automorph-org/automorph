@@ -27,6 +27,8 @@ with questions, ideas, features, improvements or fixes.
 
 **Note**: uPickle plugin might take a long time to build but it works.
 
+**Note**: Due to Scala 3 compiler issue the build does not work on JDK 21. Use `-java-home` SBT option to select an alternative JDK installation.
+
 
 ## Testing
 
@@ -36,13 +38,19 @@ with questions, ideas, features, improvements or fixes.
 sbt '+ test'
 ```
 
-### Simple API tests
+### Simple API tests for all transport plugins and default codec plugin only
 
 ```shell
 TEST_LEVEL=simple sbt '+ test'
 ```
 
-### Complex API and integration tests
+### Complex API tests for all transport plugins and default codec plugin only
+
+```shell
+TEST_LEVEL=complex sbt '+ test'
+```
+
+### Complex API tests for all transport plugins and all codec plugins
 
 ```shell
 TEST_LEVEL=all sbt '+ test'

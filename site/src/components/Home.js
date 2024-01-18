@@ -55,7 +55,7 @@ const features = [
     description: (
         <>
           Use <a
-            href="docs/Examples#dynamic-payload">dynamic message payload</a> and transparently access <a
+            href="docs/Examples#dynamic-payload">dynamic message payload</a> and access or modify <a
             href="docs/Examples#metadata">transport protocol metadata</a>.
         </>
     ),
@@ -65,9 +65,8 @@ const features = [
     link: 'docs/Examples#api-discovery',
     description: (
         <>
-          Consume and provide <a href="https://spec.open-rpc.org">OpenRPC</a> 1.3+ or <a
-            href="https://github.com/OAI/OpenAPI-Specification">OpenAPI</a> 3.1+ schemas
-          using API discovery functions.
+          Provide API discovery functions supporting <a href="https://spec.open-rpc.org">OpenRPC</a> 1.3+ and <a
+            href="https://github.com/OAI/OpenAPI-Specification">OpenAPI</a> 3.1+ formats.
         </>
     ),
   },
@@ -140,7 +139,7 @@ function TaglineRow() {
         <div className={'col col--12'}>
           <div className="text--center padding-vert--sm">
             <p style={{
-              fontSize: '2rem',
+              fontSize: '1.8rem',
               color: 'var(--ifm-menu-color)',
             }}>{config.tagline}</p>
           </div>
@@ -178,7 +177,7 @@ function DocumentationRow() {
             <a className="button" href="docs/Quickstart" style={{
               color: 'var(--sidebar-background-color)',
               backgroundColor: 'var(--ifm-link-color)',
-              fontSize: '1.5rem',
+              fontSize: '1.3rem',
             }}>
               Get Started
             </a>

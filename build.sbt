@@ -307,7 +307,7 @@ val compileScalac2Options = commonScalacOptions ++ Seq(
   "-Vfree-terms",
   "-Vimplicits",
   "-Ybackend-parallelism",
-  "4"
+  s"${Math.min(java.lang.Runtime.getRuntime.availableProcessors, 16)}"
 )
 val docScalac3Options = compileScalac3Options ++ Seq(
   s"-source-links:src=github://$repositoryPath/master",
@@ -334,9 +334,16 @@ ThisBuild / scalacOptions ++= (CrossVersion.partialVersion(scalaVersion.value) m
 scalastyleConfig := baseDirectory.value / "project/scalastyle-config.sbt.xml"
 Compile / scalastyleSources ++= (Compile / unmanagedSourceDirectories).value
 scalastyleFailOnError := true
+
+
+// Test
 lazy val testScalastyle = taskKey[Unit]("testScalastyle")
 testScalastyle := (Test / scalastyle).toTask("").value
-Test / test := (Test / test).dependsOn(testScalastyle).value
+val testEnvironment = taskKey[Unit]("Prepares testing environment.")
+testEnvironment := {
+  IO.delete(target.value / "lock")
+}
+Test / test := (Test / test).dependsOn(testScalastyle).dependsOn(testEnvironment).value
 
 
 // Documentation
@@ -371,7 +378,7 @@ lazy val docs = project.in(file("site")).settings(
   Compile / doc / sources ++= allSources.value.flatten.filter(_.getName != "MonixSystem.scala"),
   Compile / doc / tastyFiles ++= allTastyFiles.value.flatten.filter(_.getName != "MonixSystem.tasty"),
   Compile / doc / dependencyClasspath ++=
-    allDependencyClasspath.value.flatten.filter(_.data.getName != "cats-effect_3-2.5.4.jar")
+    allDependencyClasspath.value.flatten.filter(!_.data.getName.startsWith("cats-effect_3-2"))
 ).enablePlugins(MdocPlugin)
 
 

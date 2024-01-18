@@ -38,7 +38,6 @@ trait CoreTest extends BaseTest {
     tell: (String, (String, String)) => Effect[Unit],
     nameSuffix: String = "",
   ) {
-
     val genericClient: GenericClient[Effect, Context] = client.asInstanceOf[GenericClient[Effect, Context]]
     val genericServer: GenericServer[Effect, Context] = server.asInstanceOf[GenericServer[Effect, Context]]
 
@@ -61,7 +60,7 @@ trait CoreTest extends BaseTest {
 
   def fixtures: Seq[TestFixture]
 
-  def integration: Boolean =
+  def basic: Boolean =
     false
 
   "" - {
@@ -69,7 +68,7 @@ trait CoreTest extends BaseTest {
       // Simple tests
       fixtures.foreach { fixture =>
         fixture.name - {
-          "Basic" - {
+          "Static" - {
             "Simple API" - {
               val apis = (fixture.simpleApi, simpleApi)
               "method" in {
@@ -80,7 +79,7 @@ trait CoreTest extends BaseTest {
         }
       }
     } else {
-      if (BaseTest.testAll || !integration) {
+      if (BaseTest.testComplex || BaseTest.testAll || basic) {
         // All tests
         fixtures.foreach { fixture =>
           fixture.name - {

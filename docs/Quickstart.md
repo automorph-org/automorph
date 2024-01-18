@@ -6,7 +6,8 @@ sidebar_position: 2
 
 Expose and call a remote JSON-RPC API over HTTP.
 
-Please also review additional [examples](Examples) and [API](https://automorph.org/api/automorph.html) documentation.
+Please see the library functionality [overview](https://automorph.org/docs/Overview), component [architecture](https://automorph.org/docs/Architecture) additional [examples](https://automorph.org/docs/Examples) and [API](https://automorph.org/api/automorph.html) documentation for more information.
+
 
 
 ## Script
@@ -63,7 +64,7 @@ val api = new ApiImpl
 // Configure JSON-RPC HTTP & WebSocket server to listen on port 9000 for requests to '/api'
 val server = Default.rpcServer(9000, "/api")
 
-// Expose the server API implementation to be accessible remotely
+// Expose the server API implementation to be called remotely
 val apiServer = server.bind(api)
 
 Await.ready(for {
@@ -77,7 +78,7 @@ Await.ready(for {
 
 ### Client
 
-Call a remote API using JSON-RPC over HTTP(S) via a proxy instance created from the API trait or
+Call a remote API using JSON-RPC over HTTP(S) via a type-safe local proxy created from the API trait or
 dynamically without an API trait.
 
 ```scala
@@ -96,14 +97,14 @@ trait Api {
 // Configure JSON-RPC HTTP client to send POST requests to 'http://localhost:9000/api'
 val client = Default.rpcClient(new URI("http://localhost:9000/api"))
 
-// Create a type-safe proxy for the remote API from the API trait
+// Create a type-safe local proxy for the remote API from the API trait
 val remoteApi = client.bind[Api]
 
 Await.ready(for {
   // Initialize the JSON-RPC client
   activeClient <- client.init()
 
-  // Call the remote API function via the proxy instance
+  // Call the remote API function via the local proxy
   result <- remoteApi.hello("world", 1)
   _ = println(result)
 

@@ -1,4 +1,4 @@
-//> using scala 3.3.0
+//> using scala 3.3.1
 //> using dep org.automorph::automorph-default:0.2.3
 //> using dep ch.qos.logback:logback-classic:1.4.11
 package examples
@@ -29,13 +29,13 @@ private[examples] object Quickstart {
     // Configure JSON-RPC HTTP & WebSocket server to listen on port 9000 for requests to '/api'
     val server = Default.rpcServer(9000, "/api")
 
-    // Expose the server API implementation to be accessible remotely
+    // Expose the server API implementation to be called remotely
     val apiServer = server.bind(api)
 
     // Configure JSON-RPC HTTP client to send POST requests to 'http://localhost:9000/api'
     val client = Default.rpcClient(new URI("http://localhost:9000/api"))
 
-    // Create a proxy instance for the remote API from the API trait
+    // Create a type-safe local proxy for the remote API from the API trait
     val remoteApi = client.bind[Api]
 
     Await.ready(for {
@@ -45,7 +45,7 @@ private[examples] object Quickstart {
       // Initialize the JSON-RPC client
       activeClient <- client.init()
 
-      // Call the remote API function via the proxy instance
+      // Call the remote API function via the local proxy
       result <- remoteApi.hello("world", 1)
       _ = println(result)
 

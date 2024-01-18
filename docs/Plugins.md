@@ -5,17 +5,19 @@ sidebar_position: 6
 # Plugins
 
 *Automorph* supports integration with other libraries by providing plugins published in separate artifacts. Plugins
-are separated into categories based on which part of RPC functionality they provide. Specific plugins can be
-instantiated, configured and combined at will.
+are separated into categories based on which part of RPC functionality they provide. Specific plugin instances can be
+supplied to the factory methods of [RPC client](https://automorph.org/api/automorph/RpcClient.html),
+[RPC server](https://automorph.org/api/automorph/RpcServer.html) or
+[RPC endpoint](https://automorph.org/api/automorph/RpcEndpoint.html) at will.
 
 
-## Defaults
+## Default plugins
 
 *Automorph* defines a set of default plugins aiming at a good balance of features, performance and simplicity:
 
 * RPC protocol: [JSON-RPC](https://www.jsonrpc.org/specification)
 * Message format: [JSON](https://www.json.org/)
-* Transport protocol: [HTTP](https://en.wikipedia.org/wiki/HTTP )
+* Transport protocol: [HTTP](https://en.wikipedia.org/wiki/HTTP)
 * Synchronous effect: [Identity](https://scala-lang.org/api/3.x/scala/Predef$.html#identity-957)
 * Asynchronous effect: [Future](https://scala-lang.org/api/3.x/scala/concurrent/Future.html)
 * Message codec: [Circe](https://circe.github.io/circe)
@@ -65,7 +67,9 @@ which provides a convenient way to create default plugin instances or combine de
 | [Json4sNativeJsonCodec](https://automorph.org/api/automorph/codec/json/Json4sNativeJsonCodec.html) | [automorph-json4s-native](https://central.sonatype.com/artifact/org.automorph/automorph-json4s-native_3) | [Json4sNative](https://github.com/json4s/json4s) |[JValue](https://javadoc.io/doc/org.json4s/json4s-ast_3/4.0.6/index.html) | [JSON](https://www.json.org/) |
 
 
-## [Client transport](https://automorph.org/api/automorph/spi/ClientTransport.html)
+## Transport layer
+
+### [Client transport](https://automorph.org/api/automorph/spi/ClientTransport.html)
 
 | Class | Artifact | Library | Protocol |
 | --- | --- | --- | --- |
@@ -80,7 +84,7 @@ which provides a convenient way to create default plugin instances or combine de
 | [LocalClient](https://automorph.org/api/automorph/transport/local/client/LocalClient.html) | [automorph-core](https://central.sonatype.com/artifact/org.automorph/automorph-core_3) | [Standard](https://docs.oracle.com/javase/8/docs/api/java/net/HttpURLConnection.html) |  |
 
 
-## [Server transport](https://automorph.org/api/automorph/spi/ServerTransport.html)
+### [Server transport](https://automorph.org/api/automorph/spi/ServerTransport.html)
 
 | Class | Artifact | Library | Protocol |
 | --- | --- | --- |
@@ -92,7 +96,7 @@ which provides a convenient way to create default plugin instances or combine de
 | [RabbitMqServer](https://automorph.org/api/automorph/transport/amqp/server/RabbitMqServer.html) | [automorph-rabbitmq](https://central.sonatype.com/artifact/org.automorph/automorph-rabbitmq_3) | [RabbitMq](https://www.rabbitmq.com/java-client.html) | [AMQP](https://en.wikipedia.org/wiki/Advanced_Message_Queuing_Protocol) |
 
 
-## [Endpoint transport](https://automorph.org/api/automorph/spi/EndpointTransport.html)
+### [Endpoint transport](https://automorph.org/api/automorph/spi/EndpointTransport.html)
 
 | Class | Artifact | Library | Protocol |
 | --- | --- | --- |

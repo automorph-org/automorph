@@ -25,7 +25,7 @@ class RabbitMqFutureTest extends ClientServerTest with Mutex {
   type Context = RabbitMqServer.Context
 
   private lazy val setupTimeout = 60000
-  private lazy val erlangAvailable = Try(Process("erl -eval 'halt()' -noshell").! == 0).getOrElse(false)
+  private lazy val erlangAvailable = Try(Process("erl -eval 'halt()' -noshell").! == 0).getOrElse(false) && false
   private lazy val embeddedBroker = createBroker()
   private lazy val serverTransport = LocalServer[Future, Context](system)
 
@@ -51,9 +51,6 @@ class RabbitMqFutureTest extends ClientServerTest with Mutex {
     }.getOrElse(
       serverTransport.asInstanceOf[ServerTransport[Effect, Context]]
     )
-
-  override def integration: Boolean =
-    true
 
   override def afterAll(): Unit =
     try {

@@ -33,7 +33,7 @@ private[examples] object EffectSystem {
           client <- Default.rpcClientCustom(effectSystem, new URI("http://localhost:9000/api")).init()
           remoteApi = client.bind[Api]
 
-          // Call the remote API function
+          // Call the remote API function via a local proxy
           result <- remoteApi.hello("world", 1)
           _ <- Console.printLine(result)
 

@@ -28,16 +28,16 @@ private[examples] object ClientFunctionNames {
     // Initialize JSON-RPC HTTP client for sending POST requests to 'http://localhost:9000/api'
     val client = Default.rpcClientCustom(IdentitySystem(), new URI("http://localhost:9000/api")).init()
 
-    // Customize invoked API to RPC function name mapping
+    // Customize local proxy API to RPC function name mapping
     val mapName = (name: String) => name match {
-      // Calling 'hi' invokes 'hello'
+      // Calling 'hi' translates to calling 'hello'
       case "hi" => "hello"
 
       // Other calls remain unchanged
       case other => other
     }
 
-    // Call the remote API function
+    // Call the remote API function via a local proxy
     val remoteApi = client.bind[Api](mapName)
     println(
       remoteApi.hello("world", 1)

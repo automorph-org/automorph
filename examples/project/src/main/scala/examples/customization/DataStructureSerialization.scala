@@ -54,7 +54,7 @@ private[examples] object DataStructureSerialization {
       client <- Default.rpcClient(new URI("http://localhost:9000/api")).init()
       remoteApi = client.bind[Api]
 
-      // Call the remote API function
+      // Call the remote API function via a local proxy
       result <- remoteApi.hello("world", Record("test", State.On))
       _ = println(result)
 

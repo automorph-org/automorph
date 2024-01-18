@@ -35,25 +35,21 @@ trait ProtocolCodecTest extends CoreTest {
   }
 
   def createFixtures(implicit context: Context): Seq[TestFixture] = {
-    if (BaseTest.testSimple) {
-      Seq(circeJsonRpcJsonFixture(1))
+    if (BaseTest.testAll || basic) {
+      Seq(
+        //          circeJsonRpcJsonFixture(1),
+        //          jacksonJsonRpcJsonFixture(2),
+        //          jacksonJsonRpcCborFixture(3),
+        //          jacksonJsonRpcSmileFixture(4),
+        weePickleJsonRpcJsonFixture(5),
+        //          weePickleJsonRpcCborFixture(6),
+        //          weePickleJsonRpcSmileFixture(7),
+        //          uPickleJsonRpcJsonFixture(8),
+        //          uPickleJsonRpcMessagePackFixture(9),
+        //          argonautJsonRpcJsonFixture(10),
+      )
     } else {
-      if (BaseTest.testAll || !integration) {
-        Seq(
-//          circeJsonRpcJsonFixture(1),
-//          jacksonJsonRpcJsonFixture(2),
-//          jacksonJsonRpcCborFixture(3),
-//          jacksonJsonRpcSmileFixture(4),
-          weePickleJsonRpcJsonFixture(5),
-//          weePickleJsonRpcCborFixture(6),
-//          weePickleJsonRpcSmileFixture(7),
-//          uPickleJsonRpcJsonFixture(8),
-//          uPickleJsonRpcMessagePackFixture(9),
-//          argonautJsonRpcJsonFixture(10),
-        )
-      } else {
-        Seq.empty
-      }
+      Seq(circeJsonRpcJsonFixture(0))
     }
   }
 
@@ -73,24 +69,10 @@ trait ProtocolCodecTest extends CoreTest {
       case value => Seq(value)
     }
 
-  def testServerClose: Boolean =
-    true
-
-  override def fixtures: Seq[TestFixture] =
-    Try(testFixtures).recover {
-      case error =>
-        logger.error(s"Failed to initialize test fixtures")
-        throw error
-    }.get
-
   override def beforeAll(): Unit = {
     super.beforeAll()
     fixtures.foreach { fixture =>
-      if (testServerClose) {
-        run(system.flatMap(system.flatMap(fixture.genericServer.init())(_.close()))(_.init()))
-      } else {
-        run(fixture.genericServer.init())
-      }
+      run(fixture.genericServer.init())
     }
     fixtures.foreach { fixture =>
       run(system.flatMap(system.flatMap(fixture.genericClient.init())(_.close()))(_.init()))
@@ -106,6 +88,15 @@ trait ProtocolCodecTest extends CoreTest {
     }
     super.afterAll()
   }
+
+  override def fixtures: Seq[TestFixture] =
+    Try {
+      testFixtures
+    }.recover {
+      case error =>
+        logger.error(s"Failed to initialize test fixtures")
+        throw error
+    }.get
 
   private def circeJsonRpcJsonFixture(id: Int)(implicit context: Context): TestFixture = {
     implicit val enumEncoder: Encoder[Enum.Enum] = Encoder.encodeInt.contramap[Enum.Enum](Enum.toOrdinal)

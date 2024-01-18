@@ -1,6 +1,6 @@
 package test.base
 
-import java.net.ServerSocket
+import java.net.Socket
 import java.nio.charset.StandardCharsets
 import java.nio.file.{Files, Path, Paths}
 import java.security.MessageDigest
@@ -26,15 +26,12 @@ trait Network {
     Range(initialPort, maxPort).find { port =>
       // Consider an available port to be exclusively acquired if a lock file was newly atomically created
       val lockFile = Network.lockDirectory.resolve(f"port-$port%05d.lock").toFile
-      lockFile.createNewFile() && {
-        lockFile.deleteOnExit()
-        portAvailable(port)
-      }
+      lockFile.createNewFile() && portAvailable(port)
     }.getOrElse(throw new IllegalStateException("No available ports found"))
   }
 
   private def portAvailable(port: Int): Boolean =
-    Try(new ServerSocket(port)).map(_.close()).isSuccess
+    Try(new Socket("localhost", port)).map(socket => Try(socket.close())).isFailure
 }
 
 object Network {

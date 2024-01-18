@@ -1,7 +1,9 @@
-scalaVersion := "3.3.0"
-name := "automorph"
+// Project
+scalaVersion := "3.3.1"
+name := "automorph-example"
 organization := "example"
 
+// Dependencies
 libraryDependencies ++= {
   // Set the library version to the latest version control tag
   val automorphVersion = version.value.split("\\+").head
@@ -28,5 +30,19 @@ libraryDependencies ++= {
   )
 }
 
+// Native Image
+enablePlugins(NativeImagePlugin)
+Compile / mainClass := Some("examples.Quickstart")
+nativeImageInstalled := true
+nativeImageOptions ++= Seq(
+  "--report-unsupported-elements-at-runtime",
+  s"--parallelism=${java.lang.Runtime.getRuntime.availableProcessors}",
+  s"-H:ConfigurationFileDirectories=${(Compile / resourceDirectory).value}",
+  "--initialize-at-build-time=org.slf4j.LoggerFactory",
+  "--initialize-at-build-time=ch.qos.logback.core.status.InfoStatus"
+)
+
+
+// Test
 Test / parallelExecution := false
 
