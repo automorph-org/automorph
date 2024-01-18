@@ -265,7 +265,7 @@ lazy val testTransport = source(project, "test/transport", testSystem, standard)
 
 // Compile
 ThisBuild / scalaVersion := "3.3.0"
-ThisBuild / crossScalaVersions += "2.13.11"
+ThisBuild / crossScalaVersions += "2.13.12"
 ThisBuild / javacOptions ++= Seq("-source", "11", "-target", "11")
 val commonScalacOptions = Seq(
   "-language:higherKinds",
@@ -288,7 +288,7 @@ val compileScalac2Options = commonScalacOptions ++ Seq(
   "-language:existentials",
   "-Xsource:3",
   "-Xlint:_,-byname-implicit",
-  "-Wconf:site=[^.]+\\.codec\\.json\\..*:silent,cat=other-non-cooperative-equals:silent",
+  "-Wconf:site=[^.]+\\.codec\\.json\\..*:silent,cat=other-non-cooperative-equals:silent,msg=constructor modifiers are assumed:silent",
   "-Wextra-implicit",
   "-Wnumeric-widen",
   "-Wunused:imports,patvars,privates,locals,params",
