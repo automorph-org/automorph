@@ -39,16 +39,16 @@ trait UpickleCustom extends AttributeTagged {
     override def expectedMsg =
       "expected boolean"
 
-    override def visitTrue(index: Int) =
+    override def visitTrue(index: Int): Boolean =
       true
 
-    override def visitFalse(index: Int) =
+    override def visitFalse(index: Int): Boolean =
       false
 
     override def visitString(s: CharSequence, index: Int): Boolean =
       s.toString.toBoolean
 
-    override def visitNull(index: Int) =
+    override def visitNull(index: Int): Boolean =
       throw Abort(s"$expectedMsg got null")
   }
 
@@ -75,7 +75,7 @@ trait UpickleCustom extends AttributeTagged {
     override def visitFloat64StringParts(s: CharSequence, decIndex: Int, expIndex: Int, index: Int): Double =
       s.toString.toDouble
 
-    override def visitNull(index: Int) =
+    override def visitNull(index: Int): Double =
       throw Abort(s"$expectedMsg got null")
   }
 
@@ -112,7 +112,7 @@ trait UpickleCustom extends AttributeTagged {
     ): Int =
       CharUtils.parseIntegralNum(s, arrOffset, arrLength, decIndex, expIndex).toInt
 
-    override def visitNull(index: Int) =
+    override def visitNull(index: Int): Int =
       throw Abort(s"$expectedMsg got null")
   }
 
@@ -142,7 +142,7 @@ trait UpickleCustom extends AttributeTagged {
     override def visitFloat64StringParts(s: CharSequence, decIndex: Int, expIndex: Int, index: Int): Float =
       s.toString.toFloat
 
-    override def visitNull(index: Int) =
+    override def visitNull(index: Int): Float =
       throw Abort(s"$expectedMsg got null")
   }
 
@@ -179,7 +179,7 @@ trait UpickleCustom extends AttributeTagged {
     ): Short =
       CharUtils.parseIntegralNum(s, arrOffset, arrLength, decIndex, expIndex).toShort
 
-    override def visitNull(index: Int) =
+    override def visitNull(index: Int): Short =
       throw Abort(s"$expectedMsg got null")
   }
 
@@ -216,7 +216,7 @@ trait UpickleCustom extends AttributeTagged {
     ): Byte =
       CharUtils.parseIntegralNum(s, arrOffset, arrLength, decIndex, expIndex).toByte
 
-    override def visitNull(index: Int) =
+    override def visitNull(index: Int): Byte =
       throw Abort(s"$expectedMsg got null")
   }
 
@@ -246,7 +246,7 @@ trait UpickleCustom extends AttributeTagged {
     override def visitFloat64StringParts(s: CharSequence, decIndex: Int, expIndex: Int, index: Int): Char =
       ParseUtils.parseIntegralNum(s, decIndex, expIndex, index).toChar
 
-    override def visitNull(index: Int) =
+    override def visitNull(index: Int): Char =
       throw Abort(s"$expectedMsg got null")
   }
 
@@ -283,7 +283,7 @@ trait UpickleCustom extends AttributeTagged {
     ): Long =
       CharUtils.parseIntegralNum(s, arrOffset, arrLength, decIndex, expIndex)
 
-    override def visitNull(index: Int) =
+    override def visitNull(index: Int): Long =
       throw Abort(s"$expectedMsg got null")
   }
 }

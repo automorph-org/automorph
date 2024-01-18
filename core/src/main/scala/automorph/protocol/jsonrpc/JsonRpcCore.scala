@@ -9,7 +9,6 @@ import automorph.spi.MessageCodec
 import automorph.spi.protocol
 import automorph.spi.protocol.{ApiSchema, ParseError}
 import automorph.util.Extensions.ThrowableOps
-import scala.annotation.nowarn
 import scala.util.{Failure, Success, Try}
 
 /**
@@ -131,7 +130,6 @@ private[automorph] trait JsonRpcCore[Node, Codec <: MessageCodec[Node], Context]
     }
   }
 
-  @nowarn("msg=used")
   override def parseResponse(
     responseBody: Array[Byte],
     responseContext: Context,

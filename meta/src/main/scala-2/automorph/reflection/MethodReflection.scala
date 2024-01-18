@@ -1,7 +1,6 @@
 package automorph.reflection
 
 import automorph.RpcFunction
-import scala.annotation.nowarn
 import scala.reflect.macros.blackbox
 
 /** Method introspection. */
@@ -22,7 +21,7 @@ private[automorph] object MethodReflection {
 
       import ref.c.universe.{Liftable, Quasiquote, Tree}
 
-      @nowarn("msg=used")
+      @scala.annotation.nowarn("msg=used")
       implicit val parameterLiftable: Liftable[RpcFunction.Parameter] = (v: RpcFunction.Parameter) => q"""
         automorph.RpcFunction.Parameter(
           ${v.name},
@@ -180,7 +179,7 @@ private[automorph] object MethodReflection {
    * @return
    *   contextual result type if applicable
    */
-  @nowarn("msg=check")
+  @scala.annotation.nowarn("msg=check")
   def contextualResult[C <: blackbox.Context, Context: c.WeakTypeTag, RpcResult: c.WeakTypeTag](
     c: C
   )(someType: c.Type): Option[c.Type] = {
@@ -210,7 +209,7 @@ private[automorph] object MethodReflection {
    * @return
    *   wrapped type
    */
-  @nowarn("msg=check")
+  @scala.annotation.nowarn("msg=check")
   def unwrapType[C <: blackbox.Context, Wrapper: c.WeakTypeTag](c: C)(someType: c.Type): c.Type = {
     import c.universe.TypeRef
 
@@ -254,7 +253,7 @@ private[automorph] object MethodReflection {
    * @return
    *   result type
    */
-  @nowarn("msg=check")
+  @scala.annotation.nowarn("msg=check")
   private def resultType[C <: blackbox.Context](c: C)(someType: c.Type): c.Type =
     someType.dealias match {
       case polyType: c.universe.PolyType => polyType.resultType.dealias

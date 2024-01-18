@@ -2,14 +2,13 @@ package automorph.codec.messagepack
 
 import automorph.schema.OpenApi
 import automorph.schema.openapi.*
-import scala.annotation.nowarn
 import upack.{Arr, Msg, Obj, Str}
 import upickle.core.{Abort, LinkedHashMap}
 
 /** JSON-RPC protocol support for Circe message codec plugin using JSON format. */
 private[automorph] object UpickleOpenApi {
 
-  @nowarn("msg=used")
+  @scala.annotation.nowarn("msg=used")
   def readWriter[Custom <: UpickleMessagePackCustom](custom: Custom): custom.ReadWriter[OpenApi] = {
     import custom.*
 
