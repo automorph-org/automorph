@@ -11,7 +11,7 @@ libraryDependencies ++= {
   Seq(
     // Default
     "org.automorph" %% "automorph-default" % automorphVersion,
-//    "ch.qos.logback" % "logback-classic" % "1.4.11",
+    "ch.qos.logback" % "logback-classic" % "1.4.11",
 
     // Plugins
     "org.automorph" %% "automorph-rabbitmq" % automorphVersion,
@@ -36,10 +36,10 @@ Compile / mainClass := Some("examples.Quickstart")
 nativeImageInstalled := true
 nativeImageOptions ++= Seq(
   "--report-unsupported-elements-at-runtime",
-  "--no-fallback",
   s"--parallelism=${java.lang.Runtime.getRuntime.availableProcessors}",
   s"-H:ConfigurationFileDirectories=${(Compile / resourceDirectory).value}",
-  "--initialize-at-build-time=org.slf4j.LoggerFactory"
+  "--initialize-at-build-time=org.slf4j.LoggerFactory",
+  "--initialize-at-build-time=ch.qos.logback.core.status.InfoStatus"
 )
 
 
