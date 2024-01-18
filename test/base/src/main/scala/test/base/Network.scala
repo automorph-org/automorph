@@ -1,6 +1,6 @@
 package test.base
 
-import java.net.{ServerSocket, Socket}
+import java.net.Socket
 import java.nio.file.{Files, Path, Paths}
 import scala.collection.mutable
 import scala.util.{Random, Try}
