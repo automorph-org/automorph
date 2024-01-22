@@ -54,7 +54,7 @@ const features = [
     link: 'docs/Examples#metadata',
     description: (
         <>
-          Use <a
+          Consume or create <a
             href="docs/Examples#dynamic-payload">dynamic message payload</a> and access or modify <a
             href="docs/Examples#metadata">transport protocol metadata</a>.
         </>
@@ -65,8 +65,8 @@ const features = [
     link: 'docs/Examples#api-discovery',
     description: (
         <>
-          Provide API discovery functions supporting <a href="https://spec.open-rpc.org">OpenRPC</a> 1.3+ and <a
-            href="https://github.com/OAI/OpenAPI-Specification">OpenAPI</a> 3.1+ formats.
+          Utilize description functions providing <a href="https://spec.open-rpc.org">OpenRPC</a> 1.3+ and <a
+            href="https://github.com/OAI/OpenAPI-Specification">OpenAPI</a> 3.1+ schemas for exposed APIs.
         </>
     ),
   },
@@ -75,8 +75,8 @@ const features = [
     link: 'https://central.sonatype.com/namespace/org.automorph',
     description: (
         <>
-          Supports <a href="https://www.scala-lang.org/">Scala</a> 3.3+ and 2.13+ on <a
-            href="https://openjdk.java.net/">JRE</a> 11+ and integrates with various popular <a
+          Use with <a href="https://www.scala-lang.org/">Scala</a> 3.3+ or 2.13+ on <a
+            href="https://openjdk.java.net/">JRE</a> 11+ and easily integrate with various popular <a
             href="docs/Plugins">libraries</a>.
         </>
     ),
