@@ -820,7 +820,7 @@ Files.walk(brokerDirectory).iterator().asScala.toSeq.reverse.foreach(_.toFile.de
 
 ## Customization
 
-### [Data structure serialization](https://automorph.org/examples/src/main/scala/examples/customization/DataStructureSerialization.scala)
+### [Data type serialization](https://automorph.org/examples/src/main/scala/examples/customization/DataStructureSerialization.scala)
 
 **Build**
 
