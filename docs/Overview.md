@@ -30,10 +30,10 @@ val remoteApi = client.bind[Api]
 
 ### Client
 
-  * Transparently generate optimized [RPC client](Quickstart#static-client) bindings at compile time.
-  * Call remote APIs using a supported transport protocol by selecting a [client transport](Plugins#client-transport) layer.
-  * Change the mapping of [local to remote RPC function names](Examples#client-function-names).
-  * Change the mapping of [RPC errors to exceptions](Examples#client-error-mapping).
+  * Transparently generate optimized [RPC client](/Quickstart#static-client) bindings at compile time.
+  * Call remote APIs using a supported transport protocol by selecting a [client transport](/Plugins#client-transport) layer.
+  * Change the mapping of [local to remote RPC function names](/Examples#client-function-names).
+  * Change the mapping of [RPC errors to exceptions](/Examples#client-error-mapping).
 
 ### Server
 
