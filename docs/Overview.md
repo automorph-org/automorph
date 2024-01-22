@@ -30,29 +30,29 @@ val remoteApi = client.bind[Api]
 
 ### Client
 
-  * Transparently generates optimized [RPC client](/Quickstart#static-client) bindings at compile time.
-  * Calls remote APIs using a supported transport protocol by selecting a [client transport](/Plugins#client-transport) layer.
-  * Allows changing the [local to remote RPC function names mapping](/Examples#client-function-names).
-  * Allows changing the [RPC errors to exceptions mapping](/Examples#client-error-mapping).
+  * Transparently generates optimized [RPC client](https://automorph.org/docs/Quickstart#static-client) bindings at compile time.
+  * Calls remote APIs using a supported transport protocol by selecting a [client transport](https://automorph.org/docs/Plugins#client-transport) layer.
+  * Allows changing the [local to remote RPC function names mapping](https://automorph.org/docs/Examples#client-function-names).
+  * Allows changing the [RPC errors to exceptions mapping](https://automorph.org/docs/Examples#client-error-mapping).
 
 ### Server
 
-  * Transparently generates optimized [RPC server](Quickstart#server) bindings at compile time.
-  * Serves remote APIs using a standalone server by selecting a [server transport](Plugins#server-transport) layer.
-  * Embeds remote API into an existing server via a suitable [endpoint transport](Plugins#endpoint-transport).
+  * Transparently generates optimized [RPC server](https://automorph.org/docs/Quickstart#server) bindings at compile time.
+  * Serves remote APIs using a standalone server by selecting a [server transport](https://automorph.org/docs/Plugins#server-transport) layer.
+  * Embeds remote API into an existing server via a suitable [endpoint transport](https://automorph.org/docs/Plugins#endpoint-transport).
   * Automatically generates RPC API functions providing schemas for exposed APIs in [OpenRPC](https://spec.open-rpc.org) and [OpenAPI](https://github.com/OAI/OpenAPI-Specification) formats.
-  * Allows changing the [remote to local RPC function names mapping](Examples#server-function-names).
-  * Allows changing the [exceptions to RPC errors mapping](Examples#server-error-mapping).
+  * Allows changing the [remote to local RPC function names mapping](https://automorph.org/docs/Examples#server-function-names).
+  * Allows changing the [exceptions to RPC errors mapping](https://automorph.org/docs/Examples#server-error-mapping).
 
 ### General
 
-  * Enables builds with minimal dependencies on the selected [integrations](Plugins) only.
-  * Supports use of [JSON-RPC](https://www.jsonrpc.org/specification) or [Web-RPC](Web-RPC) as an [RPC protocol](Plugins#rpc-protocol).
-  * Supports all [effect systems](Plugins#effect-system) to call or implement remote APIs.
-  * Serializes arbitrary data types via the selected [message codec](Examples#data-type-serialization).
-  * Defines an easily composable set of [default plugins](Plugins#default-plugins) and configuration values.
-  * Provides optional remote API extensions to access or modify [transport protocol metadata](Examples#metadata).
-  * Provides RPC protocol message model to create and consume [dynamic message payload](Examples#dynamic-payload).
+  * Enables builds with minimal dependencies on the selected [integrations](https://automorph.org/docs/Plugins) only.
+  * Supports use of [JSON-RPC](https://www.jsonrpc.org/specification) or [Web-RPC](https://automorph.org/docs/Web-RPC) as an [RPC protocol](https://automorph.org/docs/Plugins#rpc-protocol).
+  * Supports all [effect systems](https://automorph.org/docs/Plugins#effect-system) to call or implement remote APIs.
+  * Serializes arbitrary data types via the selected [message codec](https://automorph.org/docs/Examples#data-type-serialization).
+  * Defines an easily composable set of [default plugins](https://automorph.org/docs/Plugins#default-plugins) and configuration values.
+  * Provides optional remote API extensions to access or modify [transport protocol metadata](https://automorph.org/docs/Examples#metadata).
+  * Provides RPC protocol message model to create and consume [dynamic message payload](https://automorph.org/docs/Examples#dynamic-payload).
 
 
 
