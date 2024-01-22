@@ -15,7 +15,7 @@ import com.fasterxml.jackson.databind.ser.std.StdSerializer
 import com.fasterxml.jackson.databind.{DeserializationContext, SerializerProvider}
 import io.circe.generic.auto.*
 import io.circe.{Decoder, Encoder}
-import scala.util.Try
+import scala.util.{Failure, Try}
 import test.api.{Enum, Record, Structure}
 import test.base.BaseTest
 
@@ -90,10 +90,10 @@ trait ProtocolCodecTest extends CoreTest {
   override def fixtures: Seq[TestFixture] =
     Try {
       testFixtures
-    }.recover {
+    }.recoverWith {
       case error =>
         logger.error(s"Failed to initialize test fixtures")
-        throw error
+        Failure(error)
     }.get
 
   private def circeJsonRpcJsonFixture()(implicit context: Context): TestFixture = {
