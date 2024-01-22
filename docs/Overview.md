@@ -46,7 +46,7 @@ val remoteApi = client.bind[Api]
 
 ### General
 
-  * Enables builds with minimal dependencies on the selected [integrations](https://automorph.org/docs/Plugins) only.
+  * Enables flexible builds with specific artifacts for selected [integrations](https://automorph.org/docs/Plugins) only.
   * Supports use of [JSON-RPC](https://www.jsonrpc.org/specification) or [Web-RPC](https://automorph.org/docs/Web-RPC) as an [RPC protocol](https://automorph.org/docs/Plugins#rpc-protocol).
   * Supports all [effect systems](https://automorph.org/docs/Plugins#effect-system) to call or implement remote APIs.
   * Serializes arbitrary data types via the selected [message codec](https://automorph.org/docs/Examples#data-type-serialization).
