@@ -195,6 +195,7 @@ object SttpClient {
 
   /**
    * Creates an STTP HTTP & WebSocket client message transport plugin with the specified STTP backend.
+   * Use the alternative [[SttpClient.http]] function for STTP backends without WebSocket capability.
    *
    * @param effectSystem
    *   effect system plugin
