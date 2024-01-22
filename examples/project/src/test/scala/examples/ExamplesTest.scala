@@ -3,7 +3,7 @@ package examples
 import examples.metadata.{HttpAuthentication, HttpRequestProperties, HttpResponseProperties}
 import examples.basic.{AsynchronousCall, MultipleApis, OptionalParameters, SynchronousCall}
 import examples.special.{ApiDiscovery, DynamicPayload, LocalCall, OneWayMessage, PositionalArguments}
-import examples.customization.{ClientFunctionNames, DataStructureSerialization, ServerFunctionNames}
+import examples.customization.{ClientFunctionNames, DataTypeSerialization, ServerFunctionNames}
 import examples.errorhandling.{ClientErrorMapping, HttpStatusCode, ServerErrorMapping}
 import examples.integration.{UnsupportedServer, EffectSystem, MessageCodec, RpcProtocol}
 import examples.transport.{AmqpTransport, ClientTransport, EndpointTransport, ServerTransport, WebSocketTransport}
@@ -61,7 +61,7 @@ class ExamplesTest extends BaseTest with Mutex {
     }
     "Customization" - {
       Seq[Any](
-        DataStructureSerialization,
+        DataTypeSerialization,
         ClientFunctionNames,
         ServerFunctionNames,
       ).foreach { instance =>
