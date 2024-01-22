@@ -15,7 +15,7 @@ for calling and serving remote APIs in a few lines of code.
 * Facilitate **smooth integration** by supporting wide range of **existing technology**
 * Allow for easy **customization** and **extension** of library features
 
-### Main interface example
+### Main interface
 
 ```scala
 // Expose a server API implementation to be called remotely
