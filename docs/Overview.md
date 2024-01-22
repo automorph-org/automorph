@@ -43,7 +43,7 @@ client.call[String]("hello")("some" -> "world", "n" -> 1)
   * Transparently generates optimized [RPC server](https://automorph.org/docs/Quickstart#server) bindings at compile time.
   * Serves remote APIs using a standalone server by selecting a [server transport](https://automorph.org/docs/Plugins#server-transport) layer.
   * Embeds remote API into an existing server via a suitable [endpoint transport](https://automorph.org/docs/Plugins#endpoint-transport).
-  * Automatically generates RPC API functions providing schema for exposed APIs in [OpenRPC](https://spec.open-rpc.org) and [OpenAPI](https://www.openapis.org) formats.
+  * Automatically generates RPC API discovery functions providing [OpenRPC](https://spec.open-rpc.org) and [OpenAPI](https://www.openapis.org) schemas.
   * Allows changing the [remote to local RPC function names mapping](https://automorph.org/docs/Examples#server-function-names).
   * Allows changing the [exceptions to RPC errors mapping](https://automorph.org/docs/Examples#server-error-mapping).
 
