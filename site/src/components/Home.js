@@ -66,7 +66,7 @@ const features = [
     description: (
         <>
           Utilize discovery functions providing <a href='https://spec.open-rpc.org'>OpenRPC</a> 1.3+ and <a
-            href='https://www.openapis.org'>OpenAPI</a> 3.1+ schema for exposed APIs.
+            href='https://www.openapis.org'>OpenAPI</a> 3.1+ schemas for exposed APIs.
         </>
     ),
   },
