@@ -93,7 +93,7 @@ final case class RpcClient[Node, Codec <: MessageCodec[Node], Effect[_], Context
   }
 
   /**
-   * This method must never be used and should be be considered private.
+   * This method must never be used and should be considered private.
    *
    * Calls a remote API function using specified arguments.
    *
