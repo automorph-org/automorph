@@ -4,9 +4,9 @@ sidebar_position: 2
 
 # Quickstart
 
-Expose and call a remote JSON-RPC API over HTTP.
-
 Please see the library functionality [overview](https://automorph.org/docs/Overview), component [architecture](https://automorph.org/docs/Architecture) additional [examples](https://automorph.org/docs/Examples) and [API](https://automorph.org/api/automorph.html) documentation for more information.
+
+The following sections describe multiple ways to start with Automorph depending on the scenario.
 
 
 
@@ -23,7 +23,7 @@ scala-cli "https://automorph.org/examples/src/main/scala/examples/Quickstart.sca
 
 ### Build
 
-Add the following dependency to your build configuration:
+Add the following dependency to project build configuration:
 
 #### SBT
 
@@ -78,8 +78,7 @@ Await.ready(for {
 
 ### Client
 
-Call a remote API using JSON-RPC over HTTP(S) via a type-safe local proxy created from the API trait or
-dynamically without an API trait.
+Call a remote API using JSON-RPC over HTTP(S) via a type-safe local proxy created from the API trait.
 
 ```scala
 import automorph.Default
@@ -108,6 +107,30 @@ Await.ready(for {
   result <- remoteApi.hello("world", 1)
   _ = println(result)
 
+  // Close the JSON-RPC client
+  _ <- activeClient.close()
+} yield (), Duration.Inf)
+```
+
+### Dynamic client
+
+Call a remote API using JSON-RPC over HTTP(S) dynamically without an API trait.
+
+```scala
+import automorph.Default
+import io.circe.generic.auto.*
+import java.net.URI
+import scala.concurrent.ExecutionContext.Implicits.global
+import scala.concurrent.duration.Duration
+import scala.concurrent.{Await, Future}
+
+// Configure JSON-RPC HTTP client to send POST requests to 'http://localhost:9000/api'
+val client = Default.rpcClient(new URI("http://localhost:9000/api"))
+
+Await.ready(for {
+  // Initialize the JSON-RPC client
+  activeClient <- client.init()
+
   // Call the remote API function dynamically without an API trait
   result <- activeClient.call[String]("hello")("some" -> "world", "n" -> 1)
   _ = println(result)
@@ -119,8 +142,6 @@ Await.ready(for {
 
 
 ## New project
-
-### Template
 
 Create an [SBT](https://www.scala-sbt.org/) project containing a quickstart example from a
 [Giter8](http://www.foundweekends.org/giter8/) template:
@@ -136,7 +157,7 @@ Customize the example by editing `src/main/scala/examples/Quickstart.scala` and 
 Application logs are saved to `target/main.log` using the `LOG_LEVEL` environment variable to set a log level (`ERROR`, `WARN`, `INFO`, `DEBUG`, `TRACE`).
 
 
-### Examples
+## Example project
 
 Clone the [example project](@REPOSITORY_URL@/tree/main/examples/project) and run any of the examples:
 

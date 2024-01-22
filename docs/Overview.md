@@ -40,7 +40,7 @@ val remoteApi = client.bind[Api]
   * Transparently generates optimized [RPC server](https://automorph.org/docs/Quickstart#server) bindings at compile time.
   * Serves remote APIs using a standalone server by selecting a [server transport](https://automorph.org/docs/Plugins#server-transport) layer.
   * Embeds remote API into an existing server via a suitable [endpoint transport](https://automorph.org/docs/Plugins#endpoint-transport).
-  * Automatically generates RPC API functions providing schemas for exposed APIs in [OpenRPC](https://spec.open-rpc.org) and [OpenAPI](https://github.com/OAI/OpenAPI-Specification) formats.
+  * Automatically generates RPC API functions providing schema for exposed APIs in [OpenRPC](https://spec.open-rpc.org) and [OpenAPI](https://www.openapis.org) formats.
   * Allows changing the [remote to local RPC function names mapping](https://automorph.org/docs/Examples#server-function-names).
   * Allows changing the [exceptions to RPC errors mapping](https://automorph.org/docs/Examples#server-error-mapping).
 
@@ -107,7 +107,7 @@ Enables RPC endpoint to integrate with and handle requests from an existing serv
 * Remote API methods must not be [inline](https://docs.scala-lang.org/scala3/guides/macros/inline.html)
 * Remote APIs must not be used from within the [App](https://scala-lang.org/api/3.x/scala/App.html) trait nor from within any other [delayed initialization](https://scala-lang.org/api/3.x/scala/DelayedInit.html) scope
 * JSON-RPC protocol implementation does not support [batch requests](https://www.jsonrpc.org/specification#batch)
-* Maximum number of arguments the RPC client supports for remote APIs calls without API trait is 9
+* Maximum number of arguments the RPC client supports for [dynamic remote APIs calls](https://automorph.org/docs/Quickstart#dynamic-client) without an API trait is 9
 * RPC protocol plugin constructors for Scala 2 might require explicitly supplied type parameters due to [type inference](https://docs.scala-lang.org/tour/type-inference.html) constraints
 
 
@@ -146,7 +146,7 @@ Following technical standards are supported by freely combining the relevant
 ### API schemas
 
 * [OpenRPC](https://spec.open-rpc.org)
-* [OpenAPI](https://github.com/OAI/OpenAPI-Specification)
+* [OpenAPI](https://www.openapis.org)
 
 
 ## Author

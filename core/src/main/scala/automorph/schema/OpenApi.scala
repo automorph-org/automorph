@@ -11,7 +11,7 @@ import automorph.schema.openapi.{
  * OpenAPI API schema.
  *
  * @see
- *   [[https://github.com/OAI/OpenAPI-Specification OpenAPI schema]]
+ *   [[https://www.openapis.org OpenAPI schema]]
  */
 final case class OpenApi(
   openapi: String = "3.1.0",
