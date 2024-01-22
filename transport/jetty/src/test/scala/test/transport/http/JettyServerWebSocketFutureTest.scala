@@ -22,7 +22,7 @@ class JettyServerWebSocketFutureTest extends WebSocketServerTest {
   override def arbitraryContext: Arbitrary[Context] =
     HttpContextGenerator.arbitrary
 
-  override def serverTransport(fixtureId: Int): ServerTransport[Effect, Context] = {
+  override def serverTransport(fixtureId: String): ServerTransport[Effect, Context] = {
     System.setProperty("org.eclipse.jetty.LEVEL", "ERROR")
     JettyServer(system, port(fixtureId))
   }

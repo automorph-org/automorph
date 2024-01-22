@@ -22,7 +22,7 @@ class JettyClientHttpFutureTest extends HttpClientTest {
   override def arbitraryContext: Arbitrary[Context] =
     HttpContextGenerator.arbitrary
 
-  override def clientTransport(fixtureId: Int): ClientTransport[Effect, Context] = {
+  override def clientTransport(fixtureId: String): ClientTransport[Effect, Context] = {
     System.setProperty("org.eclipse.jetty.LEVEL", "ERROR")
     JettyClient(system, url(fixtureId), HttpMethod.Post)
   }

@@ -8,9 +8,9 @@ import test.core.HttpClientServerTest
 
 trait HttpServerTest extends HttpClientServerTest {
 
-  override def clientTransport(fixtureId: Int): ClientTransport[Effect, ?] =
+  override def clientTransport(fixtureId: String): ClientTransport[Effect, ?] =
     HttpClient(system, url(fixtureId), HttpMethod.Post)
 
-  def url(fixtureId: Int): URI =
+  def url(fixtureId: String): URI =
     new URI(s"http://localhost:${port(fixtureId)}")
 }

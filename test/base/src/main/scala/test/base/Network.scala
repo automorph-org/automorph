@@ -9,17 +9,18 @@ trait Network {
   private lazy val minPort = 16384
   private lazy val maxPort = 65536
 
-  def port(id: String): Int =
+  def freePort(id: String): Int =
     Network.ports.synchronized {
-      Network.ports.getOrElseUpdate(id, claimPort())
+      Network.ports.getOrElseUpdate(id, claimPort(id))
     }
 
-  def claimPort(): Int =
+  private def claimPort(id: String): Int = {
     LazyList.continually(Network.random.between(minPort, maxPort)).take(maxPort - minPort).find { port =>
       // Consider an available port to be exclusively acquired if a lock file was newly atomically created
       val lockFile = Network.lockDirectory.resolve(f"port-$port%05d.lock").toFile
       lockFile.createNewFile() && portAvailable(port)
     }.getOrElse(throw new IllegalStateException("No available ports found"))
+  }
 
   private def portAvailable(port: Int): Boolean =
     Try(new Socket("localhost", port)).map(socket => Try(socket.close())).isFailure

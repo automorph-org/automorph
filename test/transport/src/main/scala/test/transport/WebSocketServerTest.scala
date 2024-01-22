@@ -8,9 +8,9 @@ import test.core.ClientServerTest
 
 trait WebSocketServerTest extends ClientServerTest {
 
-  override def clientTransport(fixtureId: Int): ClientTransport[Effect, ?] =
+  override def clientTransport(fixtureId: String): ClientTransport[Effect, ?] =
     HttpClient(system, url(fixtureId), HttpMethod.Post)
 
-  def url(fixtureId: Int): URI =
+  def url(fixtureId: String): URI =
     new URI(s"ws://localhost:${port(fixtureId)}")
 }

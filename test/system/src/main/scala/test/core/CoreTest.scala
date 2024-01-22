@@ -29,6 +29,7 @@ trait CoreTest extends BaseTest {
   private type GenericClient[E[_], C] = RpcClient[Any, MessageCodec[Any], E, C]
 
   case class TestFixture(
+    id: String,
     client: RpcClient[?, ?, Effect, Context],
     server: RpcServer[?, ?, Effect, Context],
     simpleApi: SimpleApiType,
@@ -39,12 +40,6 @@ trait CoreTest extends BaseTest {
   ) {
     val genericClient: GenericClient[Effect, Context] = client.asInstanceOf[GenericClient[Effect, Context]]
     val genericServer: GenericServer[Effect, Context] = server.asInstanceOf[GenericServer[Effect, Context]]
-
-    def name: String = {
-      val rpcProtocol = genericClient.rpcProtocol
-      val codecName = rpcProtocol.messageCodec.getClass.getSimpleName.replaceAll("MessageCodec$", "")
-      s"${rpcProtocol.name} / $codecName"
-    }
   }
 
   val logger: Logger = LoggerFactory.getLogger(getClass)
@@ -66,7 +61,7 @@ trait CoreTest extends BaseTest {
     if (BaseTest.testSimple) {
       // Simple tests
       fixtures.foreach { fixture =>
-        fixture.name - {
+        fixture.id - {
           "Static" - {
             "Simple API" - {
               val apis = (fixture.simpleApi, simpleApi)
@@ -81,7 +76,7 @@ trait CoreTest extends BaseTest {
       if (BaseTest.testComplex || BaseTest.testAll || basic) {
         // All tests
         fixtures.foreach { fixture =>
-          fixture.name - {
+          fixture.id - {
             "Static" - {
               "Simple API" - {
                 val apis = (fixture.simpleApi, simpleApi)
