@@ -3,7 +3,7 @@
 ![Automorph](https://github.com/automorph-org/automorph/raw/main/site/static/banner.jpg)
 
 [![Documentation](https://img.shields.io/badge/Website-documentation-purple)](https://automorph.org)
-[![API](https://img.shields.io/badge/Scaladoc-API-blue)](https://automorph.org/api/index.html)
+[![API](https://img.shields.io/badge/Scaladoc-API-blue)](https://automorph.org/api/automorph.html)
 [![Artifacts](https://img.shields.io/badge/Releases-artifacts-yellow)](
 https://central.sonatype.com/namespace/org.automorph)
 [![Build](https://github.com/automorph-org/automorph/workflows/Build/badge.svg)](
@@ -42,7 +42,7 @@ client.call[String]("hello")("some" -> "world", "n" -> 1)
 
 * [Quick Start](https://automorph.org/docs/Quickstart)
 * [Documentation](https://automorph.org)
-* [API](https://automorph.org/api/index.html)
+* [API](https://automorph.org/api/automorph.html)
 * [Artifacts](https://central.sonatype.com/namespace/org.automorph)
 * [Contact](mailto:automorph.org@proton.me)
 

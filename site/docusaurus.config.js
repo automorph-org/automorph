@@ -65,7 +65,7 @@ const config = {
             position: 'left',
           },
           {
-            to: 'https://automorph.org/api/index.html',
+            to: 'https://automorph.org/api/automorph.html',
             label: 'API',
             position: 'left',
           },
