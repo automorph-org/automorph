@@ -61,19 +61,22 @@ trait ProtocolCodecTest extends CoreTest {
     s"${rpcProtocol.name} / $codecName"
   }
 
+  override def fixtures: Seq[TestFixture] =
+    testFixtures
+
   override def beforeAll(): Unit = {
     super.beforeAll()
     fixtures.foreach { fixture =>
-      run(fixture.genericServer.init())
+      Try(run(fixture.genericServer.init())).recoverWith {
+        case error =>
+          Failure(new IllegalStateException(s"Failed to initialize server: ${getClass.getName} / ${fixture.id}", error))
+      }.get
     }
     fixtures.foreach { fixture =>
-      run(
-        system.flatMap(
-          system.flatMap(
-            fixture.genericClient.init()
-          )(_.close())
-        )(_.init())
-      )
+      Try(run(fixture.genericClient.init())).recoverWith {
+        case error =>
+          Failure(new IllegalStateException(s"Failed to initialize client: ${getClass.getName} / ${fixture.id}", error))
+      }.get
     }
   }
 
@@ -86,15 +89,6 @@ trait ProtocolCodecTest extends CoreTest {
     }
     super.afterAll()
   }
-
-  override def fixtures: Seq[TestFixture] =
-    Try {
-      testFixtures
-    }.recoverWith {
-      case error =>
-        logger.error(s"Failed to initialize test fixtures")
-        Failure(error)
-    }.get
 
   private def circeJsonRpcJsonFixture()(implicit context: Context): TestFixture = {
     implicit val enumEncoder: Encoder[Enum.Enum] = Encoder.encodeInt.contramap[Enum.Enum](Enum.toOrdinal)
