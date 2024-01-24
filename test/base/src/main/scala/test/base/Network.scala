@@ -2,9 +2,8 @@ package test.base
 
 import java.net.ServerSocket
 import java.nio.file.{Files, Path, Paths}
-import java.security.MessageDigest
 import scala.collection.mutable
-import scala.util.Try
+import scala.util.{Random, Try}
 
 trait Network {
   private lazy val minPort = 16384
