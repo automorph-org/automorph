@@ -143,7 +143,7 @@ lazy val circe = source(project, s"codec/circe", core, testCodec % Test).setting
     "io.circe" %% "circe-generic" % circeVersion
   )
 )
-val jacksonVersion = "2.15.2"
+val jacksonVersion = "2.16.1"
 lazy val jackson = source(project, "codec/jackson", core, testCodec % Test).settings(
   libraryDependencies ++= Seq(
     "com.fasterxml.jackson.module" %% "jackson-module-scala" % jacksonVersion,
@@ -153,7 +153,7 @@ lazy val jackson = source(project, "codec/jackson", core, testCodec % Test).sett
 )
 lazy val weepickle = source(project, "codec/weepickle", core, testCodec % Test).settings(
   libraryDependencies ++= Seq(
-    "com.rallyhealth" %% "weepickle-v1" % "1.8.0",
+    "com.rallyhealth" %% "weepickle-v1" % "1.9.1",
     "com.fasterxml.jackson.dataformat" % "jackson-dataformat-cbor" % jacksonVersion,
     "com.fasterxml.jackson.dataformat" % "jackson-dataformat-smile" % jacksonVersion
   )
