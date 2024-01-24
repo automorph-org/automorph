@@ -1,7 +1,6 @@
 package test.base
 
-import java.net.Socket
-import java.nio.charset.StandardCharsets
+import java.net.ServerSocket
 import java.nio.file.{Files, Path, Paths}
 import java.security.MessageDigest
 import scala.collection.mutable
@@ -9,21 +8,15 @@ import scala.util.Try
 
 trait Network {
   private lazy val minPort = 16384
-  private lazy val maxPort = 65536
-  private lazy val messageDigest = MessageDigest.getInstance("SHA-1")
+  private lazy val maxPort = 32768
 
-  def port(id: String): Int =
+  def freePort(id: String): Int =
     Network.ports.synchronized {
-      Network.ports.getOrElseUpdate(id, claimPort(id))
+      Network.ports.getOrElseUpdate(id, claimPort())
     }
 
-  private def claimPort(id: String): Int = {
-    val idHash = messageDigest.digest(id.getBytes(StandardCharsets.UTF_8))
-    val initialPort = idHash.map(_ & 0xff).sliding(2, 2).map {
-      case Array(low, high) => high * 256 + low
-      case _ => 0
-    }.sum % (maxPort - minPort) + minPort
-    Range(initialPort, maxPort).find { port =>
+  private def claimPort(): Int =
+    LazyList.continually(Network.random.between(minPort, maxPort)).take(maxPort - minPort).find { port =>
       // Consider an available port to be exclusively acquired if a lock file was newly atomically created
       val lockFile = Network.lockDirectory.resolve(f"port-$port%05d.lock").toFile
       lockFile.createNewFile() && portAvailable(port)
@@ -31,14 +24,10 @@ trait Network {
   }
 
   private def portAvailable(port: Int): Boolean =
-    Try(new Socket("localhost", port)).map(socket => Try(socket.close())).isFailure
+    Try(new ServerSocket(port)).map(_.close()).isSuccess
 }
 
 object Network {
-  private val targetDirectoryProperty = "project.target"
-  private val targetDirectoryDefault = "target"
-  private val ports = mutable.HashMap[String, Int]()
-
   private lazy val lockDirectory: Path = {
     val targetDir = Paths.get(Option(System.getProperty(targetDirectoryProperty)).getOrElse(targetDirectoryDefault))
     if (!Files.exists(targetDir)) {
@@ -48,4 +37,8 @@ object Network {
     Files.createDirectories(lockDir)
     lockDir
   }
+  private val targetDirectoryProperty = "project.target"
+  private val targetDirectoryDefault = "target"
+  private val ports = mutable.HashMap[String, Int]()
+  private val random = new Random()
 }

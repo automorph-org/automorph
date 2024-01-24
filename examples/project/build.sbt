@@ -31,15 +31,28 @@ libraryDependencies ++= {
 }
 
 // Native Image
+val initializeAtBuildTime = Seq(
+  "org.slf4j.LoggerFactory",
+  "org.slf4j.helpers",
+  "ch.qos.logback.classic.Logger",
+  "ch.qos.logback.classic.LoggerContext",
+  "ch.qos.logback.classic.spi.LogbackServiceProvider",
+  "ch.qos.logback.classic.util.LogbackMDCAdapter",
+  "ch.qos.logback.core.status.InfoStatus",
+  "ch.qos.logback.core.util.Duration"
+)
 enablePlugins(NativeImagePlugin)
 Compile / mainClass := Some("examples.Quickstart")
 nativeImageInstalled := true
 nativeImageOptions ++= Seq(
+  "-O3",
+  "--gc=G1",
+  "--no-fallback",
+  "--strict-image-heap",
   "--report-unsupported-elements-at-runtime",
-  s"--parallelism=${java.lang.Runtime.getRuntime.availableProcessors}",
   s"-H:ConfigurationFileDirectories=${(Compile / resourceDirectory).value}",
-  "--initialize-at-build-time=org.slf4j.LoggerFactory",
-  "--initialize-at-build-time=ch.qos.logback.core.status.InfoStatus"
+  s"--initialize-at-build-time=${initializeAtBuildTime.mkString(",")}",
+  s"--parallelism=${java.lang.Runtime.getRuntime.availableProcessors}"
 )
 
 

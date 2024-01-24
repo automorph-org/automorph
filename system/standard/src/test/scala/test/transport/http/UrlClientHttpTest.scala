@@ -15,12 +15,12 @@ trait UrlClientHttpTest extends HttpClientServerTest {
   override def arbitraryContext: Arbitrary[Context] =
     HttpContextGenerator.arbitrary
 
-  override def clientTransport(fixtureId: Int): ClientTransport[Effect, ?] =
+  override def clientTransport(fixtureId: String): ClientTransport[Effect, ?] =
     UrlClient(system, url(fixtureId), HttpMethod.Put)
 
-  override def serverTransport(fixtureId: Int): ServerTransport[Effect, Context] =
+  override def serverTransport(fixtureId: String): ServerTransport[Effect, Context] =
     NanoServer[Effect](system, port(fixtureId))
 
-  private def url(fixtureId: Int): URI =
+  private def url(fixtureId: String): URI =
     new URI(s"http://localhost:${port(fixtureId)}")
 }

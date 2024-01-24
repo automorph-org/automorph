@@ -60,27 +60,27 @@ const config = {
         },
         items: [
           {
-            href: 'https://automorph.org/docs/Overview',
+            to: 'https://automorph.org/docs/Overview',
             label: 'Documentation',
             position: 'left',
           },
           {
-            href: 'https://automorph.org/api/index.html',
+            to: 'https://automorph.org/api/automorph.html',
             label: 'API',
             position: 'left',
           },
           {
-            href: 'https://github.com/automorph-org/automorph',
+            to: 'https://github.com/automorph-org/automorph',
             label: 'Source',
             position: 'left',
           },
           {
-            href: 'https://central.sonatype.com/namespace/org.automorph',
+            to: 'https://central.sonatype.com/namespace/org.automorph',
             label: 'Artifacts',
             position: 'left',
           },
           {
-            href: 'mailto:automorph.org@proton.me',
+            to: 'mailto:automorph.org@proton.me',
             label: 'Contact',
             position: 'left',
           },

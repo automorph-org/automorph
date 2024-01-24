@@ -24,6 +24,6 @@ class SttpClientHttpClientWebSocketFutureTest extends WebSocketClientTest {
   override def arbitraryContext: Arbitrary[Context] =
     HttpContextGenerator.arbitrary
 
-  override def clientTransport(fixtureId: Int): ClientTransport[Effect, ?] =
+  override def clientTransport(fixtureId: String): ClientTransport[Effect, ?] =
     SttpClient(system, HttpClientFutureBackend(), url(fixtureId), HttpMethod.Get)
 }

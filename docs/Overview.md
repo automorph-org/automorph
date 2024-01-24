@@ -15,7 +15,7 @@ for calling and serving remote APIs in a few lines of code.
 * Facilitate **smooth integration** by supporting wide range of **existing technology**
 * Allow for easy **customization** and **extension** of library features
 
-### Main interface example
+### Main interface
 
 ```scala
 // Expose a server API implementation to be called remotely
@@ -23,6 +23,9 @@ val apiServer = server.bind(api)
 
 // Create a type-safe local proxy for the remote API from an API trait
 val remoteApi = client.bind[Api]
+
+// Call a remote API function dynamically without an API trait
+client.call[String]("hello")("some" -> "world", "n" -> 1)
 ```
 
 
@@ -30,28 +33,29 @@ val remoteApi = client.bind[Api]
 
 ### Client
 
-  * Transparently generate optimized [RPC client](Quickstart#static-client) bindings at compile time.
-  * Call remote APIs using a supported transport protocol by selecting a [client transport](Plugins#client-transport) layer.
-  * Change the mapping of [local to remote RPC function names](Examples#client-function-names).
-  * Change the mapping of [RPC errors to exceptions](Examples#client-error-mapping).
+  * Transparently generates optimized [RPC client](https://automorph.org/docs/Quickstart#static-client) bindings at compile time.
+  * Calls remote APIs using a supported transport protocol by selecting a [client transport](https://automorph.org/docs/Plugins#client-transport) layer.
+  * Allows changing the [local to remote RPC function names mapping](https://automorph.org/docs/Examples#client-function-names).
+  * Allows changing the [RPC errors to exceptions mapping](https://automorph.org/docs/Examples#client-error-mapping).
 
 ### Server
 
-  * Transparently generate optimized [RPC server](Quickstart#server) bindings at compile time.
-  * Serve remote APIs using a standalone server by selecting a [server transport](Plugins#server-transport) layer.
-  * Embed remote API into an existing server via a suitable [endpoint transport](Plugins#endpoint-transport).
-  * Automatically expose RPC API functions providing [OpenRPC](https://spec.open-rpc.org) and [OpenAPI](https://github.com/OAI/OpenAPI-Specification) schemas.
-  * Change the mapping of called to implemented RPC function names on [server side](Examples#server-function-names).
-  * Change the mapping of exceptions to RPC errors [client side](Examples#server-error-mapping).
+  * Transparently generates optimized [RPC server](https://automorph.org/docs/Quickstart#server) bindings at compile time.
+  * Serves remote APIs using a standalone server by selecting a [server transport](https://automorph.org/docs/Plugins#server-transport) layer.
+  * Embeds remote API into an existing server via a suitable [endpoint transport](https://automorph.org/docs/Plugins#endpoint-transport).
+  * Automatically generates RPC API discovery functions providing [OpenRPC](https://spec.open-rpc.org) and [OpenAPI](https://www.openapis.org) schemas.
+  * Allows changing the [remote to local RPC function names mapping](https://automorph.org/docs/Examples#server-function-names).
+  * Allows changing the [exceptions to RPC errors mapping](https://automorph.org/docs/Examples#server-error-mapping).
 
 ### General
 
-  * Build only with specific artifacts required to provide desired [integrations](Plugins).
-  * Use [JSON-RPC](https://www.jsonrpc.org/specification) or [Web-RPC](Web-RPC) as an [RPC protocol](Plugins#rpc-protocol).
-  * Use any [effect system](Plugins#effect-system) to call or implement remote APIs.
-  * Serialize arbitrary data types by configuring the selected [message codec](Examples#data-serialization).
-  * Use optional remote API extensions to access or modify [transport protocol metadata](Examples#metadata).
-  * Use RPC protocol message model to create and consume [dynamic message payload](Examples#dynamic-payload).
+  * Enables flexible builds with specific artifacts for selected [integrations](https://automorph.org/docs/Plugins) only.
+  * Supports use of [JSON-RPC](https://www.jsonrpc.org/specification) or [Web-RPC](https://automorph.org/docs/Web-RPC) as an [RPC protocol](https://automorph.org/docs/Plugins#rpc-protocol).
+  * Supports all [effect systems](https://automorph.org/docs/Plugins#effect-system) to call or implement remote APIs.
+  * Serializes arbitrary data types via the selected [message codec](https://automorph.org/docs/Examples#data-type-serialization).
+  * Defines an easily composable set of [default plugins](https://automorph.org/docs/Plugins#default-plugins) and configuration values.
+  * Provides optional remote API extensions to access or modify [transport protocol metadata](https://automorph.org/docs/Examples#metadata).
+  * Provides RPC protocol message model to create and consume [dynamic message payload](https://automorph.org/docs/Examples#dynamic-payload).
 
 
 
@@ -106,7 +110,7 @@ Enables RPC endpoint to integrate with and handle requests from an existing serv
 * Remote API methods must not be [inline](https://docs.scala-lang.org/scala3/guides/macros/inline.html)
 * Remote APIs must not be used from within the [App](https://scala-lang.org/api/3.x/scala/App.html) trait nor from within any other [delayed initialization](https://scala-lang.org/api/3.x/scala/DelayedInit.html) scope
 * JSON-RPC protocol implementation does not support [batch requests](https://www.jsonrpc.org/specification#batch)
-* Maximum number of arguments the RPC client supports for remote APIs calls without API trait is 9
+* Maximum number of arguments the RPC client supports for [dynamic remote APIs calls](https://automorph.org/docs/Quickstart#dynamic-client) without an API trait is 9
 * RPC protocol plugin constructors for Scala 2 might require explicitly supplied type parameters due to [type inference](https://docs.scala-lang.org/tour/type-inference.html) constraints
 
 
@@ -145,7 +149,7 @@ Following technical standards are supported by freely combining the relevant
 ### API schemas
 
 * [OpenRPC](https://spec.open-rpc.org)
-* [OpenAPI](https://github.com/OAI/OpenAPI-Specification)
+* [OpenAPI](https://www.openapis.org)
 
 
 ## Author

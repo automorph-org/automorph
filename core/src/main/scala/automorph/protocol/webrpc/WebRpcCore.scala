@@ -10,7 +10,6 @@ import automorph.spi.{MessageCodec, protocol}
 import automorph.spi.protocol.{ApiSchema, ParseError}
 import automorph.transport.http.{HttpContext, HttpMethod}
 import automorph.util.Extensions.ThrowableOps
-import scala.annotation.nowarn
 import scala.util.{Failure, Success, Try}
 
 /**
@@ -127,7 +126,6 @@ private[automorph] trait WebRpcCore[Node, Codec <: MessageCodec[Node], Context <
       )
     }
 
-  @nowarn("msg=used")
   override def createResponse(result: Try[Node], requestMetadata: Metadata): Try[protocol.Response[Node, Metadata]] = {
     // Create response
     val responseMessage = result.fold(
@@ -156,7 +154,6 @@ private[automorph] trait WebRpcCore[Node, Codec <: MessageCodec[Node], Context <
     }
   }
 
-  @nowarn("msg=used")
   override def parseResponse(
     responseBody: Array[Byte],
     responseContext: Context,

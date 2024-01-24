@@ -10,14 +10,14 @@ sidebar_position: 8
 
 Yes.
 
-All Scala effect systems are supported. Please see the relevant [examples](Examples#effect-system).
+All Scala effect systems are supported. Please see the relevant [examples](https://automorph.org/docs/Examples#effect-system).
 
 
 ### Can I use Automorph with my existing JSON parser ?
 
 Quite possibly.
 
-Several Scala and Java JSON parsers are supported. Please see the relevant [examples](Examples#message-codec).
+Several Scala and Java JSON parsers are supported. Please see the relevant [examples](https://automorph.org/docs/Examples#message-codec).
 
 Additional data serialization layer support can be added if the following conditions are met:
 - The underlying data format must support arbitrarily nested structures of basic data types.
@@ -29,14 +29,14 @@ Additional data serialization layer support can be added if the following condit
 Almost certainly.
 
 Many Scala and Java HTTP server libraries are supported. Please see the relevant
-[server examples](Examples#server-transport) and [endpoint examples](Examples#endpoint-transport).
+[server examples](https://automorph.org/docs/Examples#server-transport) and [endpoint examples](https://automorph.org/docs/Examples#endpoint-transport).
 
 Integrating with unsupported server of any kind involves the following steps as demonstrated in the
 [unsupported server example](https://automorph.org/examples/src/main/scala/examples/src/main/scala/examples/integration/UnsupportedServer.scala):
 - Create an instance of [LocalEndpoint](https://automorph.org/api/automorph/transport/local/endpoint/LocalEndpoint.html)
-  - Supply the desired [effect system](Plugins#effect-system) and default request context value (use `()` if no request context is needed).
+  - Supply the desired [effect system](https://automorph.org/docs/Plugins#effect-system) and default request context value (use `()` if no request context is needed).
 - Create an [RPC endpoint](https://automorph.org/api/automorph/RpcEndpoint.html)
-  - Supply the local endpoint instance and [RPC protocol](Plugins#rpc-protocol).
+  - Supply the local endpoint instance and [RPC protocol](https://automorph.org/docs/Plugins#rpc-protocol).
 - In the HTTP server request handling code
   - Pass the request body to `processRequest()` method of the RPC endpoint `handler`
   - Send the response body returned by `processRequest()` to the client
@@ -46,7 +46,7 @@ Integrating with unsupported server of any kind involves the following steps as 
 
 Most likely.
 
-Many Scala and Java HTTP client libraries are supported. Please see the relevant [examples](Examples#client-transport).
+Many Scala and Java HTTP client libraries are supported. Please see the relevant [examples](https://automorph.org/docs/Examples#client-transport).
 
 
 ## Features

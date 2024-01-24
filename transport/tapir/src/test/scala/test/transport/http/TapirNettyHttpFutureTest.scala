@@ -23,7 +23,7 @@ class TapirNettyHttpFutureTest extends HttpServerTest {
   override lazy val arbitraryContext: Arbitrary[Context] =
     HttpContextGenerator.arbitrary
 
-  def serverTransport(fixtureId: Int): ServerTransport[Effect, Context] =
+  def serverTransport(fixtureId: String): ServerTransport[Effect, Context] =
     TapirServer(system, port(fixtureId))
 }
 

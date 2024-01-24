@@ -3,7 +3,6 @@ package automorph.client
 import automorph.reflection.MethodReflection
 import automorph.spi.MessageCodec
 import automorph.RpcResult
-import scala.annotation.nowarn
 import scala.language.experimental.macros
 import scala.reflect.macros.blackbox
 
@@ -492,7 +491,7 @@ object RemoteInvoke {
     """)
   }
 
-  @nowarn("msg=used")
+  @scala.annotation.nowarn("msg=used")
   def decodeResultMacro[Node: c.WeakTypeTag, Codec, Context: c.WeakTypeTag, Result: c.WeakTypeTag](
     c: blackbox.Context
   )(codec: c.Expr[Codec])(codecBound: c.Expr[Codec <:< MessageCodec[Node]]): c.Expr[(Node, Context) => Result] = {

@@ -37,8 +37,8 @@ which provides a convenient way to create default plugin instances or combine de
 
 | Class | Artifact | Protocol | Service discovery |
 | --- | --- | --- | --- |
-| [JsonRpcProtocol](https://automorph.org/api/automorph/protocol/JsonRpcProtocol.html) (*Default*) | [automorph-core](https://central.sonatype.com/artifact/org.automorph/automorph-core_3) | [JSON-RPC](https://www.jsonrpc.org/specification) | [OpenRPC](https://spec.open-rpc.org), [OpenAPI](https://github.com/OAI/OpenAPI-Specification) |
-| [WebRpcProtocol](https://automorph.org/api/automorph/protocol/WebRpcProtocol.html) | [automorph-core](https://central.sonatype.com/artifact/org.automorph/automorph-core_3) | [Web-RPC](Web-RPC) | [OpenAPI](https://github.com/OAI/OpenAPI-Specification) |
+| [JsonRpcProtocol](https://automorph.org/api/automorph/protocol/JsonRpcProtocol.html) (*Default*) | [automorph-core](https://central.sonatype.com/artifact/org.automorph/automorph-core_3) | [JSON-RPC](https://www.jsonrpc.org/specification) | [OpenRPC](https://spec.open-rpc.org), [OpenAPI](https://www.openapis.org) |
+| [WebRpcProtocol](https://automorph.org/api/automorph/protocol/WebRpcProtocol.html) | [automorph-core](https://central.sonatype.com/artifact/org.automorph/automorph-core_3) | [Web-RPC](Web-RPC) | [OpenAPI](https://www.openapis.org) |
 
 
 ## [Effect system](https://automorph.org/api/automorph/spi/EffectSystem.html)
