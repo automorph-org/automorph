@@ -73,7 +73,7 @@ trait CoreTest extends BaseTest {
         }
       }
     } else {
-      if (BaseTest.testComplex || BaseTest.testAll || basic) {
+      if (BaseTest.testComplex || BaseTest.testAll) {
         // All tests
         fixtures.foreach { fixture =>
           fixture.id - {
