@@ -14,13 +14,12 @@ trait Network {
       Network.ports.getOrElseUpdate(id, claimPort(id))
     }
 
-  private def claimPort(id: String): Int = {
+  private def claimPort(id: String): Int =
     LazyList.continually(Network.random.between(minPort, maxPort)).take(maxPort - minPort).find { port =>
       // Consider an available port to be exclusively acquired if a lock file was newly atomically created
       val lockFile = Network.lockDirectory.resolve(f"port-$port%05d.lock").toFile
       lockFile.createNewFile() && portAvailable(port)
     }.getOrElse(throw new IllegalStateException("No available ports found"))
-  }
 
   private def portAvailable(port: Int): Boolean =
     Try(new Socket("localhost", port)).map(socket => Try(socket.close())).isFailure
