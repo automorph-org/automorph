@@ -21,7 +21,6 @@ trait Network {
       val lockFile = Network.lockDirectory.resolve(f"port-$port%05d.lock").toFile
       lockFile.createNewFile() && portAvailable(port)
     }.getOrElse(throw new IllegalStateException("No available ports found"))
-  }
 
   private def portAvailable(port: Int): Boolean =
     Try(new ServerSocket(port)).map(_.close()).isSuccess
