@@ -122,13 +122,13 @@ lazy val core = source(project, "core", meta, testBase % Test)
 // Effect system
 lazy val standard = source(project, "system/standard", core, testSystem % Test)
 lazy val zio = source(project, "system/zio", core, testSystem % Test).settings(
-  libraryDependencies += "dev.zio" %% "zio" % "2.0.16"
+  libraryDependencies += "dev.zio" %% "zio" % "2.0.21"
 )
 lazy val monix = source(project, "system/monix", core, testSystem % Test).settings(
   libraryDependencies += "io.monix" %% "monix-eval" % "3.4.1"
 )
 lazy val catsEffect = source(project, "system/cats-effect", core, testSystem % Test).settings(
-  libraryDependencies += "org.typelevel" %% "cats-effect" % "3.5.1"
+  libraryDependencies += "org.typelevel" %% "cats-effect" % "3.5.3"
 )
 lazy val scalazEffect = source(project, "system/scalaz-effect", core, testSystem % Test).settings(
   libraryDependencies += "org.scalaz" %% "scalaz-effect" % "7.4.0-M13"
@@ -142,19 +142,19 @@ lazy val circe = source(project, s"codec/circe", core, testCodec % Test).setting
     "io.circe" %% "circe-generic" % circeVersion
   )
 )
-val jacksonVersion = "2.15.2"
+val jacksonVersion = "2.16.1"
 lazy val jackson = source(project, "codec/jackson", core, testCodec % Test).settings(
   libraryDependencies += "com.fasterxml.jackson.module" %% "jackson-module-scala" % jacksonVersion
 )
 lazy val upickle = source(project, "codec/upickle", core, testCodec % Test).settings(
-  libraryDependencies += "com.lihaoyi" %% "upickle" % "3.1.2"
+  libraryDependencies += "com.lihaoyi" %% "upickle" % "3.1.4"
 )
 lazy val argonaut = source(project, "codec/argonaut", core, testCodec % Test).settings(
   libraryDependencies += "io.argonaut" %% "argonaut" % "6.3.8"
 )
 
 // Client transport
-val sttpVersion = "3.9.0"
+val sttpVersion = "3.9.2"
 val sttpHttpClientVersion = "3.5.2"
 lazy val sttp =
   source(project, "transport/sttp", core, catsEffect % Test, zio % Test, testTransport % Test).settings(
@@ -172,19 +172,19 @@ lazy val rabbitmq = source(project, "transport/rabbitmq", core, testTransport % 
   Test / testForkedParallel := true,
   Test / javaOptions += s"-Dproject.target=${System.getProperty("project.target")}",
   libraryDependencies ++= Seq(
-    "com.rabbitmq" % "amqp-client" % "5.18.0",
+    "com.rabbitmq" % "amqp-client" % "5.20.0",
     "io.arivera.oss" % "embedded-rabbitmq" % embeddedRabbitMqVersion % Test
   )
 )
 
 // Server transport
-val tapirVersion = "1.7.3"
+val tapirVersion = "1.9.6"
 lazy val tapir = source(project, "transport/tapir", core, catsEffect % Test, testTransport % Test).settings(
   libraryDependencies ++= Seq(
     "com.softwaremill.sttp.tapir" %% "tapir-server" % tapirVersion,
     "com.softwaremill.sttp.tapir" %% "tapir-armeria-server" % tapirVersion % Test,
     "com.softwaremill.sttp.tapir" %% "tapir-http4s-server" % tapirVersion % Test,
-    "org.http4s" %% "http4s-ember-server" % "0.23.23" % Test,
+    "org.http4s" %% "http4s-ember-server" % "0.23.25" % Test,
     "com.softwaremill.sttp.tapir" %% "tapir-netty-server" % tapirVersion % Test,
     "com.softwaremill.sttp.tapir" %% "tapir-vertx-server" % tapirVersion % Test
   )
@@ -193,9 +193,9 @@ lazy val undertow = source(project, "transport/undertow", core, testTransport % 
   libraryDependencies += "io.undertow" % "undertow-core" % "2.3.8.Final"
 )
 lazy val vertx = source(project, "transport/vertx", core, testTransport % Test).settings(
-  libraryDependencies += "io.vertx" % "vertx-core" % "4.4.4"
+  libraryDependencies += "io.vertx" % "vertx-core" % "4.5.1"
 )
-val jettyVersion = "11.0.15"
+val jettyVersion = "11.0.18"
 lazy val jetty = source(project, "transport/jetty", core, testTransport % Test).settings(
   libraryDependencies ++= Seq(
     "org.eclipse.jetty.websocket" % "websocket-jetty-client" % jettyVersion,
@@ -203,13 +203,13 @@ lazy val jetty = source(project, "transport/jetty", core, testTransport % Test).
     "org.eclipse.jetty.websocket" % "websocket-jetty-server" % jettyVersion
   )
 )
-val akkaVersion = "2.8.4"
+val akkaVersion = "2.8.5"
 lazy val akkaHttp = source(project, "transport/akka-http", core, testTransport % Test).settings(
   Test / fork := true,
   Test / testForkedParallel := true,
   Test / javaOptions += s"-Dproject.target=${System.getProperty("project.target")}",
   libraryDependencies ++= Seq(
-    "com.typesafe.akka" %% "akka-http" % "10.5.2",
+    "com.typesafe.akka" %% "akka-http" % "10.5.3",
     "com.typesafe.akka" %% "akka-actor-typed" % akkaVersion,
     "com.typesafe.akka" %% "akka-stream" % akkaVersion,
     "com.typesafe.akka" %% "akka-slf4j" % akkaVersion % Test
@@ -219,7 +219,7 @@ lazy val akkaHttp = source(project, "transport/akka-http", core, testTransport %
 // Endpoint transport
 lazy val finagle = source(project, "transport/finagle", core, testTransport % Test).settings(
   libraryDependencies ++= Seq(
-    ("com.twitter" % "finagle-http" % "22.12.0")
+    ("com.twitter" % "finagle-http" % "23.11.0")
       .exclude("org.scala-lang.modules", "scala-collection-compat_2.13")
       .exclude("com.fasterxml.jackson.module", "jackson-module-scala_2.13")
       .cross(CrossVersion.for3Use2_13),
@@ -252,7 +252,7 @@ lazy val testBase = source(project, "test/base").settings(
     "org.scalatest" %% "scalatest" % "3.2.16",
     "org.scalatestplus" %% "scalacheck-1-17" % "3.2.16.0",
     "org.slf4j" % "jul-to-slf4j" % slf4jVersion,
-    "ch.qos.logback" % "logback-classic" % "1.4.11",
+    "ch.qos.logback" % "logback-classic" % "1.4.14",
     "com.lihaoyi" %% "pprint" % "0.8.1"
   )
 )

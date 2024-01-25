@@ -7,11 +7,11 @@ organization := "example"
 libraryDependencies ++= {
   // Set the library version to the latest version control tag
   val automorphVersion = version.value.split("\\+").head
-  val sttpVersion = "3.9.0"
+  val sttpVersion = "3.9.2"
   Seq(
     // Default
     "org.automorph" %% "automorph-default" % automorphVersion,
-    "ch.qos.logback" % "logback-classic" % "1.4.11",
+    "ch.qos.logback" % "logback-classic" % "1.4.14",
 
     // Plugins
     "org.automorph" %% "automorph-rabbitmq" % automorphVersion,
