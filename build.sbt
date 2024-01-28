@@ -166,14 +166,9 @@ lazy val sttp =
     "com.softwaremill.sttp.client3" %% "httpclient-backend" % sttpHttpClientVersion % Test
   )
 )
-val embeddedRabbitMqVersion = "1.5.0"
 lazy val rabbitmq = source(project, "transport/rabbitmq", core, testTransport % Test).settings(
-  Test / fork := true,
-  Test / testForkedParallel := true,
-  Test / javaOptions += s"-Dproject.target=${System.getProperty("project.target")}",
   libraryDependencies ++= Seq(
-    "com.rabbitmq" % "amqp-client" % "5.20.0",
-    "io.arivera.oss" % "embedded-rabbitmq" % embeddedRabbitMqVersion % Test
+    "com.rabbitmq" % "amqp-client" % "5.20.0"
   )
 )
 
@@ -237,8 +232,7 @@ lazy val examples = source(
   Test / javaOptions += s"-Dproject.target=${System.getProperty("project.target")}",
   libraryDependencies ++= Seq(
     "com.softwaremill.sttp.client3" %% "async-http-client-backend-future" % sttpVersion,
-    "com.softwaremill.sttp.client3" %% "async-http-client-backend-zio" % sttpVersion,
-    "io.arivera.oss" % "embedded-rabbitmq" % embeddedRabbitMqVersion
+    "com.softwaremill.sttp.client3" %% "async-http-client-backend-zio" % sttpVersion
   ),
   Compile / scalaSource := baseDirectory.value / "project/src/main/scala",
   Test / scalaSource := baseDirectory.value / "project/src/test/scala"
