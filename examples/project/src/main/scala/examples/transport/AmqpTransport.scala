@@ -3,43 +3,34 @@ package examples.transport
 import automorph.{RpcClient, Default, RpcServer}
 import automorph.transport.amqp.client.RabbitMqClient
 import automorph.transport.amqp.server.RabbitMqServer
-import io.arivera.oss.embedded.rabbitmq.{EmbeddedRabbitMq, EmbeddedRabbitMqConfig}
 import java.net.URI
-import java.nio.file.Files
 import scala.concurrent.ExecutionContext.Implicits.global
 import scala.concurrent.duration.Duration
 import scala.concurrent.{Await, Future}
-import scala.jdk.CollectionConverters.IteratorHasAsScala
-import scala.sys.process.Process
-import scala.util.Try
 
 private[examples] object AmqpTransport {
   @scala.annotation.nowarn
   def main(arguments: Array[String]): Unit = {
-    if (Try(Process("erl -eval 'halt()' -noshell").! == 0).getOrElse(false) && false) {
 
-      // Define a remote API
-      trait Api {
-        def hello(some: String, n: Int): Future[String]
-      }
+    // Define a remote API
+    trait Api {
+      def hello(some: String, n: Int): Future[String]
+    }
 
-      // Create server implementation of the remote API
-      val api = new Api {
-        override def hello(some: String, n: Int): Future[String] =
-          Future(s"Hello $some $n!")
-      }
+    // Create server implementation of the remote API
+    val api = new Api {
+      override def hello(some: String, n: Int): Future[String] =
+        Future(s"Hello $some $n!")
+    }
 
-      // Start embedded RabbitMQ broker listening on port 9000
-      val brokerConfig = new EmbeddedRabbitMqConfig.Builder().port(9000)
-        .rabbitMqServerInitializationTimeoutInMillis(30000).build()
-      val broker = new EmbeddedRabbitMq(brokerConfig)
-      broker.start()
+    // Check for the AMQP broker URL configuration
+    Option(System.getenv("AMQP_BROKER_URL")).map(new URI(_)).map { url =>
 
       // Create RabbitMQ AMQP server transport consuming requests from the 'api' queue
-      val serverTransport = RabbitMqServer(Default.effectSystem, new URI("amqp://localhost:9000"), Seq("api"))
+      val serverTransport = RabbitMqServer(Default.effectSystem, url, Seq("api"))
 
       // Create RabbitMQ AMQP client transport publishing requests to the 'api' queue
-      val clientTransport = RabbitMqClient(new URI("amqp://localhost:9000"), "api", Default.effectSystem)
+      val clientTransport = RabbitMqClient(url, "api", Default.effectSystem)
 
       Await.ready(for {
         // Initialize custom JSON-RPC AMQP server
@@ -57,14 +48,8 @@ private[examples] object AmqpTransport {
         _ <- client.close()
         _ <- server.close()
       } yield (), Duration.Inf)
-
-      // Stop embedded RabbitMQ broker
-      broker.stop()
-      val brokerDirectory = brokerConfig.getExtractionFolder.toPath
-        .resolve(brokerConfig.getVersion.getExtractionFolder)
-      Files.walk(brokerDirectory).iterator().asScala.toSeq.reverse.foreach(_.toFile.delete())
-    } else {
-      println("Missing Erlang installation")
+    }.getOrElse {
+      println("Enable AMQP example by setting AMQP_BROKER_URL environment variable to 'amqp://{host}:{port}'.")
     }
   }
 }

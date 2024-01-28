@@ -745,26 +745,20 @@ Await.ready(for {
 ```scala
 libraryDependencies ++= Seq(
   "org.automorph" %% "automorph-default" % "@PROJECT_VERSION@",
-  "org.automorph" %% "automorph-rabbitmq" % "@PROJECT_VERSION@",
-  "io.arivera.oss" % "embedded-rabbitmq" % "1.5.0"
+  "org.automorph" %% "automorph-rabbitmq" % "@PROJECT_VERSION@"
 )
 ```
 
 **Source**
 
 ```scala
-import automorph.{Default, RpcClient, RpcServer}
+import automorph.{RpcClient, Default, RpcServer}
 import automorph.transport.amqp.client.RabbitMqClient
 import automorph.transport.amqp.server.RabbitMqServer
-import io.arivera.oss.embedded.rabbitmq.{EmbeddedRabbitMq, EmbeddedRabbitMqConfig}
 import java.net.URI
-import java.nio.file.Files
 import scala.concurrent.ExecutionContext.Implicits.global
 import scala.concurrent.duration.Duration
 import scala.concurrent.{Await, Future}
-import scala.jdk.CollectionConverters.IteratorHasAsScala
-import scala.sys.process.Process
-import scala.util.Try
 
 // Define a remote API
 trait Api {
@@ -777,44 +771,34 @@ val api = new Api {
     Future(s"Hello $some $n!")
 }
 
-// Start embedded RabbitMQ broker
-val brokerConfig = new EmbeddedRabbitMqConfig.Builder().port(9000)
-  .rabbitMqServerInitializationTimeoutInMillis(30000).build()
-val broker = new EmbeddedRabbitMq(brokerConfig)
-broker.start()
+// Check for the AMQP broker URL configuration
+Option(System.getenv("AMQP_BROKER_URL")).map(new URI(_)).map { url =>
 
-// Create RabbitMQ AMQP server transport consuming requests from the 'api' queue
-val serverTransport = RabbitMqServer(Default.effectSystem, new URI("amqp://localhost:9000"), Seq("api"))
+  // Create RabbitMQ AMQP server transport consuming requests from the 'api' queue
+  val serverTransport = RabbitMqServer(Default.effectSystem, url, Seq("api"))
 
-// Initialize RabbitMQ AMQP JSON-RPC server
-val server = run(
-  RpcServer.transport(serverTransport).rpcProtocol(Default.rpcProtocol).bind(api).init()
-)
+  // Create RabbitMQ AMQP client transport publishing requests to the 'api' queue
+  val clientTransport = RabbitMqClient(url, "api", Default.effectSystem)
 
-// Create RabbitMQ AMQP client transport publishing requests to the 'api' queue
-val clientTransport = RabbitMqClient(new URI("amqp://localhost:9000"), "api", Default.effectSystem)
+  Await.ready(for {
+    // Initialize custom JSON-RPC AMQP server
+    server <- RpcServer.transport(serverTransport).rpcProtocol(Default.rpcProtocol).bind(api).init()
 
-Await.ready(for {
-  // Initialize custom JSON-RPC AMQP server
-  server <- RpcServer.transport(serverTransport).rpcProtocol(Default.rpcProtocol).bind(api).init()
+    // Initialize custom JSON-RPC AMQP client
+    client <- RpcClient.transport(clientTransport).rpcProtocol(Default.rpcProtocol).init()
+    remoteApi = client.bind[Api]
 
-  // Initialize custom JSON-RPC AMQP client
-  client <- RpcClient.transport(clientTransport).rpcProtocol(Default.rpcProtocol).init()
-  remoteApi = client.bind[Api]
+    // Call the remote API function via a local proxy
+    result <- remoteApi.hello("world", 1)
+    _ = println(result)
 
-  // Call the remote API function via a local proxy
-  result <- remoteApi.hello("world", 1)
-  _ = println(result)
-
-  // Close the RPC client and server
-  _ <- client.close()
-  _ <- server.close()
-} yield (), Duration.Inf)
-
-// Stop embedded RabbitMQ broker
-broker.stop()
-val brokerDirectory = brokerConfig.getExtractionFolder.toPath.resolve(brokerConfig.getVersion.getExtractionFolder)
-Files.walk(brokerDirectory).iterator().asScala.toSeq.reverse.foreach(_.toFile.delete())
+    // Close the RPC client and server
+    _ <- client.close()
+    _ <- server.close()
+  } yield (), Duration.Inf)
+}.getOrElse {
+  println("Enable AMQP example by setting AMQP_BROKER_URL environment variable to 'amqp://{host}:{port}'.")
+}
 ```
 
 
