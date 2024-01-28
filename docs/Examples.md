@@ -778,7 +778,7 @@ Option(System.getenv("AMQP_BROKER_URL")).map(new URI(_)).map { url =>
   val serverTransport = RabbitMqServer(Default.effectSystem, url, Seq("api"))
 
   // Create RabbitMQ AMQP client transport publishing requests to the 'api' queue
-  val clientTransport = RabbitMqClient(url, "api", Default.effectSystem)
+  val clientTransport = RabbitMqClient(Default.effectSystem, url, "api")
 
   Await.ready(for {
     // Initialize custom JSON-RPC AMQP server

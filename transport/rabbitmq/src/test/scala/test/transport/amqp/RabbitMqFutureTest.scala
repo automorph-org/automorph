@@ -33,7 +33,7 @@ class RabbitMqFutureTest extends ClientServerTest with Mutex {
 
   override def clientTransport(fixtureId: String): ClientTransport[Effect, Context] =
     amqpBrokerUrl.map { url =>
-      RabbitMqClient[Effect](url, fixtureId.replaceAll(" ", "_"), system)
+      RabbitMqClient[Effect](system, url, fixtureId.replaceAll(" ", "_"))
     }.getOrElse(
       LocalClient(system, arbitraryContext.arbitrary.sample.get, serverTransport.handler)
         .asInstanceOf[ClientTransport[Effect, Context]]

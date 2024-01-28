@@ -25,12 +25,12 @@ import scala.util.Try
  *   [[https://rabbitmq.github.io/rabbitmq-java-client/api/current/index.html API]]
  * @constructor
  *   Creates a RabbitMQ client message transport plugin.
+ * @param effectSystem
+ *   effect system plugin
  * @param url
  *   AMQP broker URL (amqp[s]://[username:password@]host[:port][/virtual_host])
  * @param routingKey
  *   AMQP routing key (typically a queue name)
- * @param effectSystem
- *   effect system plugin
  * @param exchange
  *   direct non-durable AMQP message exchange name
  * @param addresses
@@ -41,9 +41,9 @@ import scala.util.Try
  *   effect type
  */
 final case class RabbitMqClient[Effect[_]](
+  effectSystem: AsyncEffectSystem[Effect],
   url: URI,
   routingKey: String,
-  effectSystem: AsyncEffectSystem[Effect],
   exchange: String = RabbitMq.defaultDirectExchange,
   addresses: Seq[Address] = Seq.empty,
   connectionFactory: ConnectionFactory = new ConnectionFactory,
