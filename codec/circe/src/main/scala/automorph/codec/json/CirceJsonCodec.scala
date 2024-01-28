@@ -22,13 +22,13 @@ final case class CirceJsonCodec() extends CirceJsonMeta {
   override val mediaType: String = "application/json"
 
   override def serialize(node: Json): Array[Byte] =
-    node.dropNullValues.noSpaces.toByteArray
+    node.noSpaces.toByteArray
 
   override def deserialize(data: Array[Byte]): Json =
     parser.decode[Json](data.asString).toTry.get
 
   override def text(node: Json): String =
-    node.dropNullValues.spaces2
+    node.spaces2
 }
 
 object CirceJsonCodec {
