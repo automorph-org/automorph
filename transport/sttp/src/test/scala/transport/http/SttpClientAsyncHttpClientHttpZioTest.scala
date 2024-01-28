@@ -26,5 +26,5 @@ class SttpClientAsyncHttpClientHttpZioTest extends HttpClientTest {
     HttpContextGenerator.arbitrary
 
   override def clientTransport(fixtureId: String): ClientTransport[Effect, ?] =
-    SttpClient.http(system, run(AsyncHttpClientZioBackend()), url(fixtureId), HttpMethod.Post)
+    SttpClient(system, run(AsyncHttpClientZioBackend()), url(fixtureId), HttpMethod.Post)
 }

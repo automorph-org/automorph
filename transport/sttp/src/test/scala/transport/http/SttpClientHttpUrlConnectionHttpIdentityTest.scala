@@ -24,5 +24,5 @@ class SttpClientHttpUrlConnectionHttpIdentityTest extends HttpClientTest {
     HttpContextGenerator.arbitrary
 
   override def clientTransport(fixtureId: String): ClientTransport[Effect, ?] =
-    SttpClient.http(system, HttpURLConnectionBackend(), url(fixtureId), HttpMethod.Post)
+    SttpClient(system, HttpURLConnectionBackend(), url(fixtureId), HttpMethod.Post)
 }

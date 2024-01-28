@@ -25,5 +25,5 @@ class SttpClientAsyncHttpClientHttpFutureTest extends HttpClientTest {
     HttpContextGenerator.arbitrary
 
   override def clientTransport(fixtureId: String): ClientTransport[Effect, ?] =
-    SttpClient.http(system, AsyncHttpClientFutureBackend(), url(fixtureId), HttpMethod.Post)
+    SttpClient(system, AsyncHttpClientFutureBackend(), url(fixtureId), HttpMethod.Post)
 }

@@ -25,5 +25,5 @@ class SttpClientArmeriaHttpFutureTest extends HttpClientTest {
     HttpContextGenerator.arbitrary
 
   override def clientTransport(fixtureId: String): ClientTransport[Effect, ?] =
-    SttpClient.http(system, ArmeriaFutureBackend(), url(fixtureId), HttpMethod.Post)
+    SttpClient(system, ArmeriaFutureBackend(), url(fixtureId), HttpMethod.Post)
 }
