@@ -135,7 +135,7 @@ lazy val scalazEffect = source(project, "system/scalaz-effect", core, testSystem
 )
 
 // Message codec
-val circeVersion = "0.14.5"
+val circeVersion = "0.14.6"
 lazy val circe = source(project, s"codec/circe", core, testCodec % Test).settings(
   libraryDependencies ++= Seq(
     "io.circe" %% "circe-parser" % circeVersion,
