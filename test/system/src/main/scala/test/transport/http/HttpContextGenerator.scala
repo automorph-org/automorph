@@ -10,8 +10,8 @@ object HttpContextGenerator {
   private val charset = StandardCharsets.UTF_8
   private val methods = Seq(HttpMethod.Post)
   private val maxItems = 4
-  private val maxNameSize = 16
-  private val maxValueSize = 64
+  private val maxNameSize = 8
+  private val maxValueSize = 16
   private val header = for {
     name <- stringGenerator(1, maxNameSize, Gen.alphaNumChar)
     value <- stringGenerator(0, maxValueSize, Gen.alphaNumChar)
