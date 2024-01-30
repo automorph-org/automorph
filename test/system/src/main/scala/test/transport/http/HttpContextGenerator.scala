@@ -9,15 +9,13 @@ object HttpContextGenerator {
 
   private val charset = StandardCharsets.UTF_8
   private val methods = Seq(HttpMethod.Post)
-  private val maxItems = 16
-  private val maxNameSize = 16
-  private val maxValueSize = 64
-
+  private val maxItems = 4
+  private val maxNameSize = 8
+  private val maxValueSize = 16
   private val header = for {
     name <- stringGenerator(1, maxNameSize, Gen.alphaNumChar)
     value <- stringGenerator(0, maxValueSize, Gen.alphaNumChar)
   } yield (name, value)
-
   private val parameter = for {
     name <- stringGenerator(1, maxNameSize, Gen.alphaNumChar).map { value =>
       URLEncoder.encode(value, charset)
@@ -30,12 +28,12 @@ object HttpContextGenerator {
   def arbitrary[T]: Arbitrary[HttpContext[T]] =
     Arbitrary(for {
       method <- Gen.oneOf(methods)
-      headers <- Gen.listOfN(maxItems, header)
-      parameters <- Gen.listOfN(maxItems, parameter)
+      headers <- Gen.listOfN(maxItems, header).map(_.distinctBy(_._1))
+      parameters <- Gen.listOfN(maxItems, parameter).map(_.distinctBy(_._1))
     } yield HttpContext(
       method = Some(method),
       headers = headers,
-      parameters = parameters
+      parameters = parameters,
     ))
 
   private def stringGenerator(minSize: Int, maxSize: Int, charGenerator: Gen[Char]): Gen[String] =

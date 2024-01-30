@@ -194,39 +194,16 @@ object SttpClient {
   type Context = HttpContext[TransportContext]
 
   /**
-   * Creates an STTP HTTP & WebSocket client message transport plugin with the specified STTP backend.
-   * Use the alternative [[SttpClient.http]] function for STTP backends without WebSocket capability.
-   *
-   * @param effectSystem
-   *   effect system plugin
-   * @param backend
-   *   STTP backend
-   * @param url
-   *   HTTP or WebSocket server endpoint URL
-   * @param method
-   *   HTTP request method (default: POST)
-   * @tparam Effect
-   *   effect type
-   * @return
-   *   STTP HTTP & WebSocket client message transport plugin
-   */
-  def apply[Effect[_]](
-    effectSystem: EffectSystem[Effect],
-    backend: SttpBackend[Effect, WebSockets],
-    url: URI,
-    method: HttpMethod = HttpMethod.Post,
-  ): SttpClient[Effect] =
-    SttpClient[Effect](effectSystem, backend, url, method, webSocket = true)
-
-  /**
    * Creates an STTP HTTP client message transport plugin with the specified STTP backend.
    *
+   * Use the alternative [[SttpClient.webSocket]] function for STTP backends with WebSocket capability.
+   *
    * @param effectSystem
    *   effect system plugin
    * @param backend
    *   STTP backend
    * @param url
-   *   HTTP or WebSocket server endpoint URL
+   *   remote API HTTP URL
    * @param method
    *   HTTP request method (default: POST)
    * @tparam Effect
@@ -234,13 +211,37 @@ object SttpClient {
    * @return
    *   STTP HTTP client message transport plugin
    */
-  def http[Effect[_]](
+  def apply[Effect[_]](
     effectSystem: EffectSystem[Effect],
     backend: SttpBackend[Effect, ?],
     url: URI,
     method: HttpMethod = HttpMethod.Post,
   ): SttpClient[Effect] =
     SttpClient[Effect](effectSystem, backend, url, method, webSocket = false)
+
+  /**
+   * Creates an STTP HTTP & WebSocket client message transport plugin with the specified STTP backend.
+   *
+   * @param effectSystem
+   *   effect system plugin
+   * @param backend
+   *   STTP backend
+   * @param url
+   *   remote API HTTP or WebSocket URL
+   * @param method
+   *   HTTP request method (default: POST)
+   * @tparam Effect
+   *   effect type
+   * @return
+   *   STTP HTTP & WebSocket client message transport plugin
+   */
+  def webSocket[Effect[_]](
+    effectSystem: EffectSystem[Effect],
+    backend: SttpBackend[Effect, WebSockets],
+    url: URI,
+    method: HttpMethod = HttpMethod.Post,
+  ): SttpClient[Effect] =
+    SttpClient[Effect](effectSystem, backend, url, method, webSocket = true)
 
   /** Transport context. */
   final case class TransportContext(request: PartialRequest[Either[String, String], Any])

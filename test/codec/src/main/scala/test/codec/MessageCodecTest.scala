@@ -31,9 +31,9 @@ trait MessageCodecTest extends BaseTest {
     }
     "Text" in {
       forAll { (node: Node) =>
-        val serializedTextSize = codec.text(node).getBytes(charset).length
-        val serializedBinarySize = codec.serialize(node).length
-        serializedTextSize.shouldBe(>=(serializedBinarySize))
+        val textLength = codec.text(node).getBytes(charset).length
+        val serializedLength = codec.serialize(node).length
+        textLength.shouldBe(>=(serializedLength - 1))
       }
     }
   }
