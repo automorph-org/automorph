@@ -4,7 +4,7 @@ import automorph.RpcFunction
 import scala.reflect.macros.blackbox
 
 /** Method introspection. */
-private[automorph] object MethodReflection {
+private[automorph] object ApiReflection {
 
   /**
    * Creates RPC function quoted tree converter.

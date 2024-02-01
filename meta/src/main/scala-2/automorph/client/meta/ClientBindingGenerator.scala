@@ -3,7 +3,7 @@ package automorph.client.meta
 import automorph.{RpcResult, RpcFunction}
 import automorph.client.ClientBinding
 import automorph.log.MacroLogger
-import automorph.reflection.{MethodReflection, ClassReflection}
+import automorph.reflection.{ApiReflection, ClassReflection}
 import automorph.spi.MessageCodec
 import scala.language.experimental.macros
 import scala.reflect.macros.blackbox
@@ -13,7 +13,7 @@ import scala.reflect.macros.blackbox
  *
  * Note: Consider this class to be private and do not use it. It remains public only due to Scala 2 macro limitations.
  */
-object ClientBindings {
+object ClientBindingGenerator {
 
   /**
    * Generates client bindings for all valid public methods of an API type.
@@ -52,7 +52,7 @@ object ClientBindings {
     val ref = ClassReflection[c.type](c)
 
     // Detect and validate public methods in the API type
-    val apiMethods = MethodReflection.apiMethods[c.type, Api, Effect[?]](ref)
+    val apiMethods = ApiReflection.apiMethods[c.type, Api, Effect[?]](ref)
     val validMethods = apiMethods.flatMap(_.swap.toOption) match {
       case Seq() => apiMethods.flatMap(_.toOption)
       case errors =>
@@ -86,14 +86,14 @@ object ClientBindings {
     val encodeArguments = generateArgumentEncoders[C, Node, Codec, Context](ref)(method, codec)
     val decodeResult = generateDecodeResult[C, Node, Codec, Effect, Context](ref)(method, codec)
     logBoundMethod[C, Api](ref)(method, encodeArguments, decodeResult)
-    implicit val functionLiftable: Liftable[RpcFunction] = MethodReflection.functionLiftable(ref)
+    implicit val functionLiftable: Liftable[RpcFunction] = ApiReflection.functionLiftable(ref)
     Seq(functionLiftable)
     ref.c.Expr[ClientBinding[Node, Context]](q"""
       automorph.client.ClientBinding[$nodeType, $contextType](
         ${method.lift.rpcFunction},
         $encodeArguments,
         $decodeResult,
-        ${MethodReflection.acceptsContext[C, Context](ref)(method)}
+        ${ApiReflection.acceptsContext[C, Context](ref)(method)}
       )
     """)
   }
@@ -123,7 +123,7 @@ object ClientBindings {
     val argumentEncoders = method.parameters.toList.zip(parameterListOffsets).flatMap { case (parameters, offset) =>
       parameters.toList.zipWithIndex.flatMap { case (parameter, index) =>
         Option.when(
-          (offset + index) != lastArgumentIndex || !MethodReflection.acceptsContext[C, Context](ref)(method)
+          (offset + index) != lastArgumentIndex || !ApiReflection.acceptsContext[C, Context](ref)(method)
         ) {
           q"""
             ${parameter.name} -> (
@@ -154,8 +154,8 @@ object ClientBindings {
     //     codec.decode[RpcResultResultType](resultNode),
     //     responseContext
     //   )
-    val resultType = MethodReflection.unwrapType[C, Effect[?]](ref.c)(method.resultType).dealias
-    MethodReflection.contextualResult[C, Context, RpcResult[?, ?]](ref.c)(resultType).map { contextualResultType =>
+    val resultType = ApiReflection.unwrapType[C, Effect[?]](ref.c)(method.resultType).dealias
+    ApiReflection.contextualResult[C, Context, RpcResult[?, ?]](ref.c)(resultType).map { contextualResultType =>
       ref.c.Expr[(Node, Context) => Any](q"""
         (resultNode: $nodeType, responseContext: $contextType) => automorph.RpcResult(
           $codec.decode[$contextualResultType](resultNode),
@@ -174,7 +174,7 @@ object ClientBindings {
     encodeArguments: ref.c.Expr[Any],
     decodeResult: ref.c.Expr[Any],
   ): Unit = MacroLogger.debug(
-    s"""${MethodReflection.methodSignature[C, Api](ref)(method)} =
+    s"""${ApiReflection.methodSignature[C, Api](ref)(method)} =
       |  ${ref.c.universe.showCode(encodeArguments.tree)}
       |  ${ref.c.universe.showCode(decodeResult.tree)}
       |""".stripMargin

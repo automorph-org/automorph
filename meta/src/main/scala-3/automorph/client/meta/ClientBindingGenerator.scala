@@ -11,7 +11,7 @@ import scala.quoted.{Expr, Quotes, Type}
 /**
  * RPC client API bindings generator.
  */
-private[automorph] object ClientBindings:
+private[automorph] object ClientBindingGenerator:
 
   /**
    * Generates client bindings for all valid public methods of an API type.

@@ -21,7 +21,7 @@ import scala.util.{Failure, Try}
  * @tparam Context
  *   RPC message context type
  */
-private[automorph] trait ClientBind[Node, Codec <: MessageCodec[Node], Effect[_], Context]:
+private[automorph] trait ClientBase[Node, Codec <: MessageCodec[Node], Effect[_], Context]:
 
   def rpcProtocol: RpcProtocol[Node, Codec, Context]
 
@@ -74,7 +74,7 @@ private[automorph] trait ClientBind[Node, Codec <: MessageCodec[Node], Effect[_]
    */
   inline def bind[Api <: AnyRef](mapName: String => String): Api =
     // Generate API method bindings
-    val bindings = ClientBindings.generate[Node, Codec, Effect, Context, Api](
+    val bindings = ClientBindingGenerator.generate[Node, Codec, Effect, Context, Api](
       rpcProtocol.messageCodec
     ).map { binding =>
       binding.function.name -> binding

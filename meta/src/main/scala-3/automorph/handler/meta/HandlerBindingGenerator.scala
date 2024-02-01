@@ -12,7 +12,7 @@ import scala.util.{Failure, Try}
 /**
  * RPC handler API bindings generator.
  */
-private[automorph] object HandlerBindings:
+private[automorph] object HandlerBindingGenerator:
 
   /**
    * Generates handler bindings for all valid public methods of an API type.
@@ -203,9 +203,9 @@ private[automorph] object HandlerBindings:
         '{ (arguments, requestContext) =>
           ${
             // Create the method argument lists by type coercing supplied arguments
-            // List(List(
-            //   arguments(N).asInstanceOf[NType]
-            // )): List[List[ParameterXType]]
+            //   List(List(
+            //     arguments(N).asInstanceOf[NType]
+            //   )): List[List[ParameterXType]]
             val apiMethodArguments = method.parameters.toList.zip(parameterListOffsets).map((parameters, offset) =>
               parameters.toList.zipWithIndex.map { (parameter, index) =>
                 val argumentIndex = offset + index
