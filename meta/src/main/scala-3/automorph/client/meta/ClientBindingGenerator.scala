@@ -54,11 +54,11 @@ private[automorph] object ClientBindingGenerator:
 
     // Generate bound API method bindings
     val bindings = validMethods.map { method =>
-      binding[Node, Codec, Effect, Context, Api](ref)(method, codec)
+      generateBinding[Node, Codec, Effect, Context, Api](ref)(method, codec)
     }
     Expr.ofSeq(bindings)
 
-  private def binding[Node: Type, Codec <: MessageCodec[Node]: Type, Effect[_]: Type, Context: Type, Api: Type](
+  private def generateBinding[Node: Type, Codec <: MessageCodec[Node]: Type, Effect[_]: Type, Context: Type, Api: Type](
     ref: ClassReflection
   )(method: ref.RefMethod, codec: Expr[Codec]): Expr[ClientBinding[Node, Context]] =
     given Quotes =

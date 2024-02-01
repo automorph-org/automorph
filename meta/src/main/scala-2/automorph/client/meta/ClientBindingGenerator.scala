@@ -1,10 +1,11 @@
 package automorph.client.meta
 
-import automorph.{RpcResult, RpcFunction}
+import automorph.{RpcFunction, RpcResult}
 import automorph.client.ClientBinding
 import automorph.log.MacroLogger
 import automorph.reflection.{ApiReflection, ClassReflection}
 import automorph.spi.MessageCodec
+import scala.annotation.nowarn
 import scala.language.experimental.macros
 import scala.reflect.macros.blackbox
 
@@ -48,7 +49,6 @@ object ClientBindingGenerator {
     apiType: c.WeakTypeTag[Api],
   ): c.Expr[Seq[ClientBinding[Node, Context]]] = {
     import c.universe.Quasiquote
-    Seq(nodeType, codecType, effectType, contextType, apiType)
     val ref = ClassReflection[c.type](c)
 
     // Detect and validate public methods in the API type
@@ -64,14 +64,15 @@ object ClientBindingGenerator {
 
     // Generate bound API method bindings
     val bindings = validMethods.map { method =>
-      binding[c.type, Node, Codec, Effect, Context, Api](ref)(method, codec)
+      generateBinding[c.type, Node, Codec, Effect, Context, Api](ref)(method, codec)
     }
     c.Expr[Seq[ClientBinding[Node, Context]]](q"""
       Seq(..$bindings)
     """)
   }
 
-  private def binding[C <: blackbox.Context, Node, Codec <: MessageCodec[Node], Effect[_], Context, Api](
+  @nowarn("msg=used")
+  private def generateBinding[C <: blackbox.Context, Node, Codec <: MessageCodec[Node], Effect[_], Context, Api](
     ref: ClassReflection[C]
   )(method: ref.RefMethod, codec: ref.c.Expr[Codec])(implicit
     nodeType: ref.c.WeakTypeTag[Node],
@@ -81,13 +82,11 @@ object ClientBindingGenerator {
     apiType: ref.c.WeakTypeTag[Api],
   ): ref.c.Expr[ClientBinding[Node, Context]] = {
     import ref.c.universe.{Liftable, Quasiquote}
-    Seq(codecType, effectType, apiType)
 
     val encodeArguments = generateArgumentEncoders[C, Node, Codec, Context](ref)(method, codec)
     val decodeResult = generateDecodeResult[C, Node, Codec, Effect, Context](ref)(method, codec)
     logBoundMethod[C, Api](ref)(method, encodeArguments, decodeResult)
     implicit val functionLiftable: Liftable[RpcFunction] = ApiReflection.functionLiftable(ref)
-    Seq(functionLiftable)
     ref.c.Expr[ClientBinding[Node, Context]](q"""
       automorph.client.ClientBinding[$nodeType, $contextType](
         ${method.lift.rpcFunction},
@@ -136,6 +135,7 @@ object ClientBindingGenerator {
     ref.c.Expr[Map[String, Any => Node]](q"Map(..$argumentEncoders)")
   }
 
+  @nowarn("msg=used")
   private def generateDecodeResult[C <: blackbox.Context, Node, Codec <: MessageCodec[Node], Effect[_], Context](
     ref: ClassReflection[C]
   )(method: ref.RefMethod, codec: ref.c.Expr[Codec])(implicit
@@ -145,7 +145,6 @@ object ClientBindingGenerator {
     contextType: ref.c.WeakTypeTag[Context],
   ): ref.c.Expr[(Node, Context) => Any] = {
     import ref.c.universe.Quasiquote
-    Seq(codecType, effectType)
 
     // Create a result decoding function
     //   (resultNode: Node, responseContext: Context) => codec.decode[ResultType](resultNode)

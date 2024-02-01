@@ -1,10 +1,11 @@
 package automorph.handler.meta
 
-import automorph.{RpcResult, RpcFunction}
+import automorph.{RpcFunction, RpcResult}
 import automorph.handler.HandlerBinding
 import automorph.log.MacroLogger
 import automorph.reflection.{ApiReflection, ClassReflection}
 import automorph.spi.MessageCodec
+import scala.annotation.nowarn
 import scala.language.experimental.macros
 import scala.reflect.macros.blackbox
 
@@ -52,7 +53,6 @@ object HandlerBindingGenerator {
   ): c.Expr[Seq[HandlerBinding[Node, Effect, Context]]] = {
     import c.universe.Quasiquote
     val ref = ClassReflection[c.type](c)
-    Seq(nodeType, codecType, effectType, contextType, apiType)
 
     // Detect and validate public methods in the API type
     val apiMethods = ApiReflection.apiMethods[c.type, Api, Effect[?]](ref)
@@ -66,14 +66,15 @@ object HandlerBindingGenerator {
 
     // Generate bound API method bindings
     val bindings = validMethods.map { method =>
-      binding[c.type, Node, Codec, Effect, Context, Api](ref)(method, codec, api)
+      generateBinding[c.type, Node, Codec, Effect, Context, Api](ref)(method, codec, api)
     }
     c.Expr[Seq[HandlerBinding[Node, Effect, Context]]](q"""
       Seq(..$bindings)
     """)
   }
 
-  private def binding[C <: blackbox.Context, Node, Codec <: MessageCodec[Node], Effect[_], Context, Api](
+  @nowarn("msg=used")
+  private def generateBinding[C <: blackbox.Context, Node, Codec <: MessageCodec[Node], Effect[_], Context, Api](
     ref: ClassReflection[C]
   )(method: ref.RefMethod, codec: ref.c.Expr[Codec], api: ref.c.Expr[Api])(implicit
     nodeType: ref.c.WeakTypeTag[Node],
@@ -83,7 +84,6 @@ object HandlerBindingGenerator {
     apiType: ref.c.WeakTypeTag[Api],
   ): ref.c.Expr[HandlerBinding[Node, Effect, Context]] = {
     import ref.c.universe.{Liftable, Quasiquote}
-    Seq(nodeType, codecType, effectType, contextType, apiType)
 
     val argumentDecoders = generateArgumentDecoders[C, Node, Codec, Context](ref)(method, codec)
     val encodeResult = generateEncodeResult[C, Node, Codec, Effect, Context](ref)(method, codec)
@@ -93,7 +93,6 @@ object HandlerBindingGenerator {
     logCode[C](ref)("Encode result", encodeResult)
     logCode[C](ref)("Call", call)
     implicit val functionLiftable: Liftable[RpcFunction] = ApiReflection.functionLiftable(ref)
-    Seq(functionLiftable)
     ref.c.Expr[HandlerBinding[Node, Effect, Context]](q"""
       automorph.handler.HandlerBinding(
         ${method.lift.rpcFunction},
@@ -146,6 +145,7 @@ object HandlerBindingGenerator {
     ref.c.Expr[Map[String, Option[Node] => Any]](q"Map(..$argumentDecoders)")
   }
 
+  @nowarn("msg=used")
   private def generateEncodeResult[C <: blackbox.Context, Node, Codec <: MessageCodec[Node], Effect[_], Context](
     ref: ClassReflection[C]
   )(method: ref.RefMethod, codec: ref.c.Expr[Codec])(implicit
@@ -155,7 +155,6 @@ object HandlerBindingGenerator {
     contextType: ref.c.WeakTypeTag[Context],
   ): ref.c.Expr[Any => (Node, Option[Context])] = {
     import ref.c.universe.Quasiquote
-    Seq(nodeType, codecType, effectType, contextType)
 
     // Create a result encoding function
     //   (result: Any) =>
@@ -183,6 +182,7 @@ object HandlerBindingGenerator {
     )
   }
 
+  @nowarn("msg=used")
   private def generateCall[C <: blackbox.Context, Effect[_], Context, Api](ref: ClassReflection[C])(
     method: ref.RefMethod, api: ref.c.Expr[Api]
   )(implicit
@@ -190,7 +190,6 @@ object HandlerBindingGenerator {
     contextType: ref.c.WeakTypeTag[Context],
   ): ref.c.Expr[(Seq[Any], Context) => Any] = {
     import ref.c.universe.{Quasiquote, weakTypeOf}
-    Seq(effectType, contextType)
 
     // Map multiple parameter lists to flat argument node list offsets
     val parameterListOffsets = method.parameters.map(_.size).foldLeft(Seq(0)) { (indices, size) =>
@@ -204,9 +203,9 @@ object HandlerBindingGenerator {
     ref.c.Expr[(Seq[Any], Context) => Any](q"""
       (arguments: Seq[Any], requestContext: $finalContextType) => ${
         // Create the method argument lists by type coercing supplied arguments
-        // List(List(
-        //   arguments(N).asInstanceOf[NType]
-        // )): List[List[ParameterXType]]
+        //   List(List(
+        //     arguments(N).asInstanceOf[NType]
+        //   )): List[List[ParameterXType]]
         val apiMethodArguments = method.parameters.toList.zip(parameterListOffsets).map {
           case (parameters, offset) => parameters.toList.zipWithIndex.map { case (parameter, index) =>
               val argumentIndex = offset + index
