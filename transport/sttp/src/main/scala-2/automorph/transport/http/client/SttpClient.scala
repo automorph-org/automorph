@@ -62,6 +62,8 @@ object SttpClient {
    *   HTTP request method (default: POST)
    * @tparam Effect
    *   effect type
+   * @tparam Capabilities
+   *   STTP backend capabilities
    * @return
    *   STTP HTTP client message transport plugin
    */

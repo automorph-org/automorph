@@ -2,6 +2,7 @@ package automorph.transport.http.client
 
 import automorph.spi.EffectSystem
 import automorph.transport.http.{HttpContext, HttpMethod}
+import com.sun.jdi.connect.spi.TransportService.Capabilities
 import sttp.capabilities.WebSockets
 import sttp.client3.{PartialRequest, SttpBackend}
 import java.net.URI
@@ -62,6 +63,8 @@ object SttpClient {
    *   HTTP request method (default: POST)
    * @tparam Effect
    *   effect type
+   * @tparam Capabilities
+   *   STTP backend capabilities
    * @return
    *   STTP HTTP client message transport plugin
    */
