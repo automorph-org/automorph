@@ -80,6 +80,7 @@ which provides a convenient way to create default plugin instances or combine de
 | -> | [automorph-sttp](https://central.sonatype.com/artifact/org.automorph/automorph-sttp_3) | [Armeria](https://sttp.softwaremill.com/en/latest/backends/summary.html)| [HTTP](https://en.wikipedia.org/wiki/HTTP) |
 | -> | [automorph-sttp](https://central.sonatype.com/artifact/org.automorph/automorph-sttp_3) | [AsyncHttpClient](https://sttp.softwaremill.com/en/latest/backends/summary.html)| [HTTP](https://en.wikipedia.org/wiki/HTTP), [WebSocket](https://en.wikipedia.org/wiki/WebSocket) |
 | -> | [automorph-sttp](https://central.sonatype.com/artifact/org.automorph/automorph-sttp_3) | [HttpClient](https://sttp.softwaremill.com/en/latest/backends/summary.html)| [HTTP](https://en.wikipedia.org/wiki/HTTP ), [WebSocket](https://en.wikipedia.org/wiki/WebSocket) |
+| -> | [automorph-sttp](https://central.sonatype.com/artifact/org.automorph/automorph-sttp_3) | [OkHttp](https://sttp.softwaremill.com/en/latest/backends/summary.html)| [HTTP](https://en.wikipedia.org/wiki/HTTP ), [WebSocket](https://en.wikipedia.org/wiki/WebSocket) |
 | [LocalClient](https://automorph.org/api/automorph/transport/local/client/LocalClient.html) | [automorph-core](https://central.sonatype.com/artifact/org.automorph/automorph-core_3) | [Standard](https://docs.oracle.com/javase/8/docs/api/java/net/HttpURLConnection.html) |  |
 
 

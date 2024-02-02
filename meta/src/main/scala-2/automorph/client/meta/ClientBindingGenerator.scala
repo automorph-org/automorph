@@ -41,7 +41,7 @@ object ClientBindingGenerator {
 
   def generateMacro[
     Node: c.WeakTypeTag,
-    Codec <: MessageCodec[Node]: c.WeakTypeTag,
+    Codec <: MessageCodec[Node],
     Effect[_],
     Context: c.WeakTypeTag,
     Api <: AnyRef: c.WeakTypeTag
@@ -132,7 +132,6 @@ object ClientBindingGenerator {
     ref.c.Expr[Map[String, Any => Node]](q"Map(..$argumentEncoders)")
   }
 
-  @nowarn("msg=used")
   private def generateDecodeResult[C <: blackbox.Context, Node, Codec <: MessageCodec[Node], Effect[_], Context](
     ref: ClassReflection[C]
   )(method: ref.RefMethod, codec: ref.c.Expr[Codec])(implicit
