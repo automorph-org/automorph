@@ -163,7 +163,8 @@ lazy val sttp =
     "com.softwaremill.sttp.client3" %% "async-http-client-backend-future" % sttpVersion % Test,
     "com.softwaremill.sttp.client3" %% "async-http-client-backend-zio" % sttpVersion % Test,
     "com.softwaremill.sttp.client3" %% "armeria-backend" % sttpVersion % Test,
-    "com.softwaremill.sttp.client3" %% "httpclient-backend" % sttpHttpClientVersion % Test
+    "com.softwaremill.sttp.client3" %% "httpclient-backend" % sttpHttpClientVersion % Test,
+    "com.softwaremill.sttp.client3" %% "okhttp-backend" % sttpHttpClientVersion % Test
   )
 )
 lazy val rabbitmq = source(project, "transport/rabbitmq", core, testTransport % Test).settings(
