@@ -42,14 +42,14 @@ object HandlerBindingGenerator {
   ): Seq[HandlerBinding[Node, Effect, Context]] =
     macro generateMacro[Node, Codec, Effect, Context, Api]
 
-  def generateMacro[Node, Codec <: MessageCodec[Node], Effect[_], Context, Api <: AnyRef](c: blackbox.Context)(
-    codec: c.Expr[Codec], api: c.Expr[Api]
-  )(implicit
-    nodeType: c.WeakTypeTag[Node],
-    codecType: c.WeakTypeTag[Codec],
-    effectType: c.WeakTypeTag[Effect[?]],
-    contextType: c.WeakTypeTag[Context],
-    apiType: c.WeakTypeTag[Api],
+  def generateMacro[
+    Node: c.WeakTypeTag,
+    Codec <: MessageCodec[Node],
+    Effect[_],
+    Context: c.WeakTypeTag,
+    Api <: AnyRef: c.WeakTypeTag
+  ](c: blackbox.Context)(codec: c.Expr[Codec], api: c.Expr[Api])(implicit
+    effectType: c.WeakTypeTag[Effect[?]]
   ): c.Expr[Seq[HandlerBinding[Node, Effect, Context]]] = {
     import c.universe.Quasiquote
     val ref = ClassReflection[c.type](c)
@@ -74,14 +74,15 @@ object HandlerBindingGenerator {
   }
 
   @nowarn("msg=used")
-  private def generateBinding[C <: blackbox.Context, Node, Codec <: MessageCodec[Node], Effect[_], Context, Api](
-    ref: ClassReflection[C]
-  )(method: ref.RefMethod, codec: ref.c.Expr[Codec], api: ref.c.Expr[Api])(implicit
-    nodeType: ref.c.WeakTypeTag[Node],
-    codecType: ref.c.WeakTypeTag[Codec],
-    effectType: ref.c.WeakTypeTag[Effect[?]],
-    contextType: ref.c.WeakTypeTag[Context],
-    apiType: ref.c.WeakTypeTag[Api],
+  private def generateBinding[
+    C <: blackbox.Context,
+    Node: ref.c.WeakTypeTag,
+    Codec <: MessageCodec[Node],
+    Effect[_],
+    Context: ref.c.WeakTypeTag,
+    Api
+  ](ref: ClassReflection[C])(method: ref.RefMethod, codec: ref.c.Expr[Codec], api: ref.c.Expr[Api])(implicit
+    effectType: ref.c.WeakTypeTag[Effect[?]]
   ): ref.c.Expr[HandlerBinding[Node, Effect, Context]] = {
     import ref.c.universe.{Liftable, Quasiquote}
 
@@ -107,14 +108,13 @@ object HandlerBindingGenerator {
   private def generateArgumentDecoders[
     C <: blackbox.Context,
     Node: ref.c.WeakTypeTag,
-    Codec <: MessageCodec[Node]: ref.c.WeakTypeTag,
+    Codec <: MessageCodec[Node],
     Context: ref.c.WeakTypeTag
   ](ref: ClassReflection[C])(
     method: ref.RefMethod,
     codec: ref.c.Expr[Codec]
   ): ref.c.Expr[Map[String, Option[Node] => Any]] = {
     import ref.c.universe.{Quasiquote, weakTypeOf}
-    weakTypeOf[Codec]
 
     // Map multiple parameter lists to flat argument node list offsets
     val parameterListOffsets = method.parameters.map(_.size).foldLeft(Seq(0)) { (indices, size) =>
@@ -150,7 +150,6 @@ object HandlerBindingGenerator {
     ref: ClassReflection[C]
   )(method: ref.RefMethod, codec: ref.c.Expr[Codec])(implicit
     nodeType: ref.c.WeakTypeTag[Node],
-    codecType: ref.c.WeakTypeTag[Codec],
     effectType: ref.c.WeakTypeTag[Effect[?]],
     contextType: ref.c.WeakTypeTag[Context],
   ): ref.c.Expr[Any => (Node, Option[Context])] = {
@@ -183,11 +182,10 @@ object HandlerBindingGenerator {
   }
 
   @nowarn("msg=used")
-  private def generateCall[C <: blackbox.Context, Effect[_], Context, Api](ref: ClassReflection[C])(
+  private def generateCall[C <: blackbox.Context, Effect[_], Context: ref.c.WeakTypeTag, Api](ref: ClassReflection[C])(
     method: ref.RefMethod, api: ref.c.Expr[Api]
   )(implicit
-    effectType: ref.c.WeakTypeTag[Effect[?]],
-    contextType: ref.c.WeakTypeTag[Context],
+    effectType: ref.c.WeakTypeTag[Effect[?]]
   ): ref.c.Expr[(Seq[Any], Context) => Any] = {
     import ref.c.universe.{Quasiquote, weakTypeOf}
 
@@ -228,7 +226,7 @@ object HandlerBindingGenerator {
     """)
   }
 
-  private def logMethod[C <: blackbox.Context, Api: ref.c.WeakTypeTag](ref: ClassReflection[C])(
+  private def logMethod[C <: blackbox.Context, Api](ref: ClassReflection[C])(
     method: ref.RefMethod
   ): Unit =
     MacroLogger.debug(s"\n${ApiReflection.methodSignature[C, Api](ref)(method)}")

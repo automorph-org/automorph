@@ -39,14 +39,14 @@ object ClientBindingGenerator {
   ): Seq[ClientBinding[Node, Context]] =
     macro generateMacro[Node, Codec, Effect, Context, Api]
 
-  def generateMacro[Node, Codec <: MessageCodec[Node], Effect[_], Context, Api <: AnyRef](c: blackbox.Context)(
-    codec: c.Expr[Codec]
-  )(implicit
-    nodeType: c.WeakTypeTag[Node],
-    codecType: c.WeakTypeTag[Codec],
-    effectType: c.WeakTypeTag[Effect[?]],
-    contextType: c.WeakTypeTag[Context],
-    apiType: c.WeakTypeTag[Api],
+  def generateMacro[
+    Node: c.WeakTypeTag,
+    Codec <: MessageCodec[Node]: c.WeakTypeTag,
+    Effect[_],
+    Context: c.WeakTypeTag,
+    Api <: AnyRef: c.WeakTypeTag
+  ](c: blackbox.Context)(codec: c.Expr[Codec])(implicit
+    effectType: c.WeakTypeTag[Effect[?]]
   ): c.Expr[Seq[ClientBinding[Node, Context]]] = {
     import c.universe.Quasiquote
     val ref = ClassReflection[c.type](c)
@@ -76,10 +76,8 @@ object ClientBindingGenerator {
     ref: ClassReflection[C]
   )(method: ref.RefMethod, codec: ref.c.Expr[Codec])(implicit
     nodeType: ref.c.WeakTypeTag[Node],
-    codecType: ref.c.WeakTypeTag[Codec],
     effectType: ref.c.WeakTypeTag[Effect[?]],
     contextType: ref.c.WeakTypeTag[Context],
-    apiType: ref.c.WeakTypeTag[Api],
   ): ref.c.Expr[ClientBinding[Node, Context]] = {
     import ref.c.universe.{Liftable, Quasiquote}
 
@@ -99,12 +97,11 @@ object ClientBindingGenerator {
 
   private def generateArgumentEncoders[
     C <: blackbox.Context,
-    Node: ref.c.WeakTypeTag,
-    Codec <: MessageCodec[Node]: ref.c.WeakTypeTag,
+    Node,
+    Codec <: MessageCodec[Node],
     Context: ref.c.WeakTypeTag
   ](ref: ClassReflection[C])(method: ref.RefMethod, codec: ref.c.Expr[Codec]): ref.c.Expr[Map[String, Any => Node]] = {
-    import ref.c.universe.{Quasiquote, weakTypeOf}
-    (weakTypeOf[Node], weakTypeOf[Codec])
+    import ref.c.universe.Quasiquote
 
     // Map multiple parameter lists to flat argument node list offsets
     val parameterListOffsets = method.parameters.map(_.size).foldLeft(Seq(0)) { (indices, size) =>
@@ -140,7 +137,6 @@ object ClientBindingGenerator {
     ref: ClassReflection[C]
   )(method: ref.RefMethod, codec: ref.c.Expr[Codec])(implicit
     nodeType: ref.c.WeakTypeTag[Node],
-    codecType: ref.c.WeakTypeTag[Codec],
     effectType: ref.c.WeakTypeTag[Effect[?]],
     contextType: ref.c.WeakTypeTag[Context],
   ): ref.c.Expr[(Node, Context) => Any] = {

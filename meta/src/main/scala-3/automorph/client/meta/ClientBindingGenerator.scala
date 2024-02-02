@@ -3,8 +3,8 @@ package automorph.client.meta
 import automorph.RpcResult
 import automorph.client.ClientBinding
 import automorph.log.MacroLogger
-import automorph.reflection.MethodReflection.functionToExpr
-import automorph.reflection.{ClassReflection, MethodReflection}
+import automorph.reflection.ApiReflection.functionToExpr
+import automorph.reflection.{ApiReflection, ClassReflection}
 import automorph.spi.MessageCodec
 import scala.quoted.{Expr, Quotes, Type}
 
@@ -34,11 +34,11 @@ private[automorph] object ClientBindingGenerator:
   inline def generate[Node, Codec <: MessageCodec[Node], Effect[_], Context, Api <: AnyRef](
     codec: Codec
   ): Seq[ClientBinding[Node, Context]] =
-    ${ bindingsMacro[Node, Codec, Effect, Context, Api]('codec) }
+    ${ generateMacro[Node, Codec, Effect, Context, Api]('codec) }
 
-  private def bindingsMacro[
+  private def generateMacro[
     Node: Type,
-    Codec <: MessageCodec[Node]: Type,
+    Codec <: MessageCodec[Node],
     Effect[_]: Type,
     Context: Type,
     Api <: AnyRef: Type
@@ -46,7 +46,7 @@ private[automorph] object ClientBindingGenerator:
     val ref = ClassReflection(quotes)
 
     // Detect and validate public methods in the API type
-    val apiMethods = MethodReflection.apiMethods[Api, Effect](ref)
+    val apiMethods = ApiReflection.apiMethods[Api, Effect](ref)
     val validMethods = apiMethods.flatMap(_.swap.toOption) match
       case Seq() => apiMethods.flatMap(_.toOption)
       case errors => ref.q.reflect.report
@@ -58,7 +58,7 @@ private[automorph] object ClientBindingGenerator:
     }
     Expr.ofSeq(bindings)
 
-  private def generateBinding[Node: Type, Codec <: MessageCodec[Node]: Type, Effect[_]: Type, Context: Type, Api: Type](
+  private def generateBinding[Node: Type, Codec <: MessageCodec[Node], Effect[_]: Type, Context: Type, Api: Type](
     ref: ClassReflection
   )(method: ref.RefMethod, codec: Expr[Codec]): Expr[ClientBinding[Node, Context]] =
     given Quotes =
@@ -72,11 +72,11 @@ private[automorph] object ClientBindingGenerator:
         ${ Expr(method.lift.rpcFunction) },
         $encodeArguments,
         $decodeResult,
-        ${ Expr(MethodReflection.acceptsContext[Context](ref)(method)) },
+        ${ Expr(ApiReflection.acceptsContext[Context](ref)(method)) },
       )
     }
 
-  private def generateArgumentEncoders[Node: Type, Codec <: MessageCodec[Node]: Type, Context: Type](
+  private def generateArgumentEncoders[Node: Type, Codec <: MessageCodec[Node], Context: Type](
     ref: ClassReflection
   )(method: ref.RefMethod, codec: Expr[Codec]): Expr[Map[String, Any => Node]] =
     import ref.q.reflect.{Term, asTerm}
@@ -98,11 +98,11 @@ private[automorph] object ClientBindingGenerator:
     //   ): Map[String, Any => Node]
     val argumentEncoders = method.parameters.toList.zip(parameterListOffsets).flatMap((parameters, offset) =>
       parameters.toList.zipWithIndex.flatMap { (parameter, index) =>
-        Option.when(offset + index != lastArgumentIndex || !MethodReflection.acceptsContext[Context](ref)(method)) {
+        Option.when(offset + index != lastArgumentIndex || !ApiReflection.acceptsContext[Context](ref)(method)) {
           parameter.dataType.asType match
             case '[parameterType] => '{
                 ${ Expr(parameter.name) } -> ((argument: Any) => ${
-                  MethodReflection.call(
+                  ApiReflection.call(
                     ref.q,
                     codec.asTerm,
                     MessageCodec.encodeMethod,
@@ -115,7 +115,7 @@ private[automorph] object ClientBindingGenerator:
     )
     '{ Map(${ Expr.ofSeq(argumentEncoders) }*) }
 
-  private def generateDecodeResult[Node: Type, Codec <: MessageCodec[Node]: Type, Effect[_]: Type, Context: Type](
+  private def generateDecodeResult[Node: Type, Codec <: MessageCodec[Node], Effect[_]: Type, Context: Type](
     ref: ClassReflection
   )(method: ref.RefMethod, codec: Expr[Codec]): Expr[(Node, Context) => Any] =
     import ref.q.reflect.asTerm
@@ -129,12 +129,12 @@ private[automorph] object ClientBindingGenerator:
     //     codec.decode[RpcResultResultType](resultNode),
     //     responseContext
     //   )
-    val resultType = MethodReflection.unwrapType[Effect](ref.q)(method.resultType).dealias
-    MethodReflection.contextualResult[Context, RpcResult](ref.q)(resultType).map { contextualResultType =>
+    val resultType = ApiReflection.unwrapType[Effect](ref.q)(method.resultType).dealias
+    ApiReflection.contextualResult[Context, RpcResult](ref.q)(resultType).map { contextualResultType =>
       '{ (resultNode: Node, responseContext: Context) =>
         RpcResult(
           ${
-            MethodReflection.call(
+            ApiReflection.call(
               ref.q,
               codec.asTerm,
               MessageCodec.decodeMethod,
@@ -148,7 +148,7 @@ private[automorph] object ClientBindingGenerator:
     }.getOrElse {
       '{ (resultNode: Node, _: Context) =>
         ${
-          MethodReflection
+          ApiReflection
             .call(ref.q, codec.asTerm, MessageCodec.decodeMethod, List(resultType), List(List('{ resultNode }.asTerm)))
             .asExprOf[Any]
         }
@@ -160,7 +160,7 @@ private[automorph] object ClientBindingGenerator:
   )(method: ref.RefMethod, encodeArguments: Expr[Any], decodeResult: Expr[Any]): Unit =
     import ref.q.reflect.{Printer, asTerm}
 
-    MacroLogger.debug(s"""${MethodReflection.methodSignature[Api](ref)(method)} =
+    MacroLogger.debug(s"""${ApiReflection.methodSignature[Api](ref)(method)} =
       |  ${encodeArguments.asTerm.show(using Printer.TreeShortCode)}
       |  ${decodeResult.asTerm.show(using Printer.TreeShortCode)}
       |""".stripMargin)
