@@ -64,7 +64,6 @@ which provides a convenient way to create default plugin instances or combine de
 | [UpickleJsonCodec](https://automorph.org/api/automorph/codec/json/UpickleJsonCodec.html) | [automorph-upickle](https://central.sonatype.com/artifact/org.automorph/automorph-upickle_3) | [uPickle](https://github.com/com-lihaoyi/upickle) |[Value](http://com-lihaoyi.github.io/upickle/#uJson) | [JSON](https://www.json.org/) |
 | [UpickleMessagePackCodec](https://automorph.org/api/automorph/codec/messagepack/UpickleMessagePackCodec.html) | [automorph-upickle](https://central.sonatype.com/artifact/org.automorph/automorph-upickle_3) | [uPickle](https://github.com/com-lihaoyi/upickle) |[Msg](https://com-lihaoyi.github.io/upickle/#uPack) | [MessagePack](https://msgpack.org/) |
 | [ArgonautJsonCodec](https://automorph.org/api/automorph/codec/json/ArgonautJsonCodec.html) | [automorph-argonaut](https://central.sonatype.com/artifact/org.automorph/automorph-argonaut_3) | [Argonaut](http://argonaut.io/doc/) |[Json](http://argonaut.io/scaladocs/#argonaut.Json) | [JSON](https://www.json.org/) |
-| [Json4sNativeJsonCodec](https://automorph.org/api/automorph/codec/json/Json4sNativeJsonCodec.html) | [automorph-json4s-native](https://central.sonatype.com/artifact/org.automorph/automorph-json4s-native_3) | [Json4sNative](https://github.com/json4s/json4s) |[JValue](https://javadoc.io/doc/org.json4s/json4s-ast_3/4.0.6/index.html) | [JSON](https://www.json.org/) |
 
 
 ## Transport layer
