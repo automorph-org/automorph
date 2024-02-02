@@ -87,6 +87,26 @@ private[automorph] trait ClientBase[Node, Codec <: MessageCodec[Node], Effect[_]
   def call[Result](function: String): RemoteCall[Node, Codec, Effect, Context, Result] =
     macro ClientBase.callMacro[Node, Codec, Effect, Context, Result]
 
+  /**
+   * This method must never be used and should be considered private.
+   *
+   * Calls a remote API function using specified arguments.
+   *
+   * Optional request context is used as a last remote function argument.
+   *
+   * @param function
+   *   remote function name
+   * @param arguments
+   *   named arguments
+   * @param decodeResult
+   *   decodes remote function result
+   * @param requestContext
+   *   request context
+   * @tparam Result
+   *   result type
+   * @return
+   *   result value
+   */
   def performCall[Result](
      function: String,
      arguments: Seq[(String, Node)],

@@ -190,7 +190,7 @@ private[automorph] object ApiReflection {
       case typeRef: TypeRef
         // FIXME - fix generic parameter type detection
         if typeRef.typeConstructor <:< c.weakTypeOf[RpcResult].typeConstructor && typeRef.typeArgs.size == 2
-         => Some(typeRef.typeArgs(0))
+         => Some(typeRef.typeArgs.head)
 //        if typeRef.typeConstructor <:< c.weakTypeOf[RpcResult].typeConstructor && typeRef.typeArgs.size == 2 &&
 //        typeRef.typeArgs(1) =:= c.weakTypeOf[Context] => Some(typeRef.typeArgs(0))
       case _ => None

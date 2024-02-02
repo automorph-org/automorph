@@ -94,23 +94,6 @@ final case class RpcClient[Node, Codec <: MessageCodec[Node], Effect[_], Context
 
   /**
    * This method must never be used and should be considered private.
-   *
-   * Calls a remote API function using specified arguments.
-   *
-   * Optional request context is used as a last remote function argument.
-   *
-   * @param function
-   *   remote function name
-   * @param arguments
-   *   named arguments
-   * @param decodeResult
-   *   decodes remote function result
-   * @param requestContext
-   *   request context
-   * @tparam Result
-   *   result type
-   * @return
-   *   result value
    */
   override def performCall[Result](
     function: String,
