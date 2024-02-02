@@ -1,7 +1,7 @@
 package automorph
 
 import automorph.RpcException.InvalidResponse
-import automorph.client.meta.ClientBind
+import automorph.client.meta.ClientBase
 import automorph.client.RemoteTell
 import automorph.log.{LogProperties, Logging}
 import automorph.spi.protocol.Request
@@ -37,7 +37,7 @@ import scala.util.Try
 final case class RpcClient[Node, Codec <: MessageCodec[Node], Effect[_], Context](
   transport: ClientTransport[Effect, Context],
   rpcProtocol: RpcProtocol[Node, Codec, Context],
-) extends ClientBind[Node, Codec, Effect, Context] with Logging {
+) extends ClientBase[Node, Codec, Effect, Context] with Logging {
 
   private implicit val system: EffectSystem[Effect] = transport.effectSystem
 
@@ -94,23 +94,6 @@ final case class RpcClient[Node, Codec <: MessageCodec[Node], Effect[_], Context
 
   /**
    * This method must never be used and should be considered private.
-   *
-   * Calls a remote API function using specified arguments.
-   *
-   * Optional request context is used as a last remote function argument.
-   *
-   * @param function
-   *   remote function name
-   * @param arguments
-   *   named arguments
-   * @param decodeResult
-   *   decodes remote function result
-   * @param requestContext
-   *   request context
-   * @tparam Result
-   *   result type
-   * @return
-   *   result value
    */
   override def performCall[Result](
     function: String,

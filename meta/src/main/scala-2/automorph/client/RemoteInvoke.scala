@@ -1,6 +1,6 @@
 package automorph.client
 
-import automorph.reflection.MethodReflection
+import automorph.reflection.ApiReflection
 import automorph.spi.MessageCodec
 import automorph.RpcResult
 import scala.language.experimental.macros
@@ -500,7 +500,7 @@ object RemoteInvoke {
     val resultType = weakTypeOf[Result]
     val nodeType = weakTypeOf[Node]
     val contextType = weakTypeOf[Context]
-    MethodReflection.contextualResult[c.type, Context, RpcResult[?, ?]](c)(resultType).map { contextualResultType =>
+    ApiReflection.contextualResult[c.type, Context, RpcResult[?, ?]](c)(resultType).map { contextualResultType =>
       c.Expr[(Node, Context) => Result](q"""
           (resultNode: $nodeType, responseContext: $contextType) => RpcResult(
             $codec.decode[$contextualResultType](resultNode),

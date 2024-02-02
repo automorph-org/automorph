@@ -17,7 +17,7 @@ import scala.reflect.macros.blackbox
  * @tparam Context
  *   RPC message context type
  */
-private[automorph] trait ClientBind[Node, Codec <: MessageCodec[Node], Effect[_], Context] {
+private[automorph] trait ClientBase[Node, Codec <: MessageCodec[Node], Effect[_], Context] {
 
   def rpcProtocol: RpcProtocol[Node, Codec, Context]
 
@@ -41,7 +41,7 @@ private[automorph] trait ClientBind[Node, Codec <: MessageCodec[Node], Effect[_]
    *   if invalid public functions are found in the API type
    */
   def bind[Api <: AnyRef]: Api =
-    macro ClientBind.bindMacro[Node, Codec, Effect, Context, Api]
+    macro ClientBase.bindMacro[Node, Codec, Effect, Context, Api]
 
   /**
    * Creates a remote API proxy with RPC bindings for all public methods of the specified API type.
@@ -67,7 +67,7 @@ private[automorph] trait ClientBind[Node, Codec <: MessageCodec[Node], Effect[_]
    *   if invalid public functions are found in the API type
    */
   def bind[Api <: AnyRef](mapName: String => String): Api =
-    macro ClientBind.bindMapNamesMacro[Node, Codec, Effect, Context, Api]
+    macro ClientBase.bindMapNamesMacro[Node, Codec, Effect, Context, Api]
 
   /**
    * Creates a remote API function call proxy.
@@ -85,8 +85,28 @@ private[automorph] trait ClientBind[Node, Codec <: MessageCodec[Node], Effect[_]
    *   on RPC error
    */
   def call[Result](function: String): RemoteCall[Node, Codec, Effect, Context, Result] =
-    macro ClientBind.callMacro[Node, Codec, Effect, Context, Result]
+    macro ClientBase.callMacro[Node, Codec, Effect, Context, Result]
 
+  /**
+   * This method must never be used and should be considered private.
+   *
+   * Calls a remote API function using specified arguments.
+   *
+   * Optional request context is used as a last remote function argument.
+   *
+   * @param function
+   *   remote function name
+   * @param arguments
+   *   named arguments
+   * @param decodeResult
+   *   decodes remote function result
+   * @param requestContext
+   *   request context
+   * @tparam Result
+   *   result type
+   * @return
+   *   result value
+   */
   def performCall[Result](
      function: String,
      arguments: Seq[(String, Node)],
@@ -95,7 +115,7 @@ private[automorph] trait ClientBind[Node, Codec <: MessageCodec[Node], Effect[_]
    ): Effect[Result]
 }
 
-object ClientBind {
+object ClientBase {
 
   def bindMacro[Node, Codec <: MessageCodec[Node], Effect[_], Context, Api <: AnyRef](c: blackbox.Context)(implicit
     nodeType: c.WeakTypeTag[Node],
@@ -128,7 +148,7 @@ object ClientBind {
     c.Expr[Api](q"""
       // Generate API function bindings
       val client = ${c.prefix}
-      val bindings = automorph.client.meta.ClientBindings
+      val bindings = automorph.client.meta.ClientBindingGenerator
         .generate[$nodeType, $codecType, $effectType, $contextType, $apiType](
           client.rpcProtocol.messageCodec
         ).map { binding =>

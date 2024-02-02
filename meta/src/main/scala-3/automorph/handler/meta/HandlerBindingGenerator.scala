@@ -3,8 +3,8 @@ package automorph.handler.meta
 import automorph.RpcResult
 import automorph.handler.HandlerBinding
 import automorph.log.MacroLogger
-import automorph.reflection.MethodReflection.functionToExpr
-import automorph.reflection.{ClassReflection, MethodReflection}
+import automorph.reflection.ApiReflection.functionToExpr
+import automorph.reflection.{ApiReflection, ClassReflection}
 import automorph.spi.MessageCodec
 import scala.quoted.{Expr, Quotes, Type}
 import scala.util.{Failure, Try}
@@ -12,7 +12,7 @@ import scala.util.{Failure, Try}
 /**
  * RPC handler API bindings generator.
  */
-private[automorph] object HandlerBindings:
+private[automorph] object HandlerBindingGenerator:
 
   /**
    * Generates handler bindings for all valid public methods of an API type.
@@ -42,7 +42,7 @@ private[automorph] object HandlerBindings:
 
   private def generateMacro[
     Node: Type,
-    Codec <: MessageCodec[Node]: Type,
+    Codec <: MessageCodec[Node],
     Effect[_]: Type,
     Context: Type,
     Api <: AnyRef: Type
@@ -52,7 +52,7 @@ private[automorph] object HandlerBindings:
     val ref = ClassReflection(quotes)
 
     // Detect and validate public methods in the API type
-    val apiMethods = MethodReflection.apiMethods[Api, Effect](ref)
+    val apiMethods = ApiReflection.apiMethods[Api, Effect](ref)
     val validMethods = apiMethods.flatMap(_.swap.toOption) match
       case Seq() => apiMethods.flatMap(_.toOption)
       case errors => ref.q.reflect.report.errorAndAbort(
@@ -61,11 +61,11 @@ private[automorph] object HandlerBindings:
 
     // Generate bound API method bindings
     val bindings = validMethods.map { method =>
-      binding[Node, Codec, Effect, Context, Api](ref)(method, codec, api)
+      generateBinding[Node, Codec, Effect, Context, Api](ref)(method, codec, api)
     }
     Expr.ofSeq(bindings)
 
-  private def binding[Node: Type, Codec <: MessageCodec[Node]: Type, Effect[_]: Type, Context: Type, Api: Type](
+  private def generateBinding[Node: Type, Codec <: MessageCodec[Node], Effect[_]: Type, Context: Type, Api: Type](
     ref: ClassReflection
   )(method: ref.RefMethod, codec: Expr[Codec], api: Expr[Api]): Expr[HandlerBinding[Node, Effect, Context]] =
     given Quotes = ref.q
@@ -83,11 +83,11 @@ private[automorph] object HandlerBindings:
         $argumentDecoders,
         $encodeResult,
         $call,
-        ${ Expr(MethodReflection.acceptsContext[Context](ref)(method)) }
+        ${ Expr(ApiReflection.acceptsContext[Context](ref)(method)) }
       )
     }
 
-  private def generateArgumentDecoders[Node: Type, Codec <: MessageCodec[Node]: Type, Context: Type](
+  private def generateArgumentDecoders[Node: Type, Codec <: MessageCodec[Node], Context: Type](
     ref: ClassReflection
   )(method: ref.RefMethod, codec: Expr[Codec]): Expr[Map[String, Option[Node] => Any]] =
     import ref.q.reflect.{Term, TypeRepr, asTerm}
@@ -101,7 +101,7 @@ private[automorph] object HandlerBindings:
 
     // Create encoded non-existent value expression
     //  codec.encode(None)
-    val encodeNoneCall = MethodReflection.call(
+    val encodeNoneCall = ApiReflection.call(
       ref.q,
       codec.asTerm,
       MessageCodec.encodeMethod,
@@ -117,7 +117,7 @@ private[automorph] object HandlerBindings:
     //   ): Map[String, Node => Any]
     val argumentDecoders = method.parameters.toList.zip(parameterListOffsets).flatMap((parameters, offset) =>
       parameters.toList.zipWithIndex.flatMap { (parameter, index) =>
-        Option.when((offset + index) != lastArgumentIndex || !MethodReflection.acceptsContext[Context](ref)(method)) {
+        Option.when((offset + index) != lastArgumentIndex || !ApiReflection.acceptsContext[Context](ref)(method)) {
           '{
             ${ Expr(parameter.name) } -> (
               (argumentNode: Option[Node]) => ${
@@ -125,7 +125,7 @@ private[automorph] object HandlerBindings:
                 val decodeArguments = List(List('{
                   argumentNode.getOrElse(${ encodeNoneCall.asExprOf[Node] })
                 }.asTerm))
-                MethodReflection.call(
+                ApiReflection.call(
                   ref.q,
                   codec.asTerm,
                   MessageCodec.decodeMethod,
@@ -140,7 +140,7 @@ private[automorph] object HandlerBindings:
     )
     '{ Map(${ Expr.ofSeq(argumentDecoders) }*) }
 
-  private def generateEncodeResult[Node: Type, Codec <: MessageCodec[Node]: Type, Effect[_]: Type, Context: Type](
+  private def generateEncodeResult[Node: Type, Codec <: MessageCodec[Node], Effect[_]: Type, Context: Type](
     ref: ClassReflection
   )(method: ref.RefMethod, codec: Expr[Codec]): Expr[Any => (Node, Option[Context])] =
     import ref.q.reflect.asTerm
@@ -154,12 +154,12 @@ private[automorph] object HandlerBindings:
     //     codec.encode[RpcResultResultType](result.asInstanceOf[ResultType].result) -> Some(
     //       result.asInstanceOf[ResultType].context
     //     )
-    val resultType = MethodReflection.unwrapType[Effect](ref.q)(method.resultType).dealias
-    MethodReflection.contextualResult[Context, RpcResult](ref.q)(resultType).map { contextualResultType =>
+    val resultType = ApiReflection.unwrapType[Effect](ref.q)(method.resultType).dealias
+    ApiReflection.contextualResult[Context, RpcResult](ref.q)(resultType).map { contextualResultType =>
       contextualResultType.asType match
         case '[resultValueType] => '{
           (result: Any) => ${
-            MethodReflection.call(
+            ApiReflection.call(
               ref.q,
               codec.asTerm,
               MessageCodec.encodeMethod,
@@ -172,7 +172,7 @@ private[automorph] object HandlerBindings:
       resultType.asType match
         case '[resultValueType] => '{
           (result: Any) => ${
-            MethodReflection.call(
+            ApiReflection.call(
               ref.q,
               codec.asTerm,
               MessageCodec.encodeMethod,
@@ -183,7 +183,7 @@ private[automorph] object HandlerBindings:
         }
     }
 
-  private def generateCall[Effect[_]: Type, Context: Type, Api: Type](ref: ClassReflection)(
+  private def generateCall[Effect[_]: Type, Context: Type, Api](ref: ClassReflection)(
     method: ref.RefMethod,
     api: Expr[Api]
   ): Expr[(Seq[Any], Context) => Any] =
@@ -198,18 +198,18 @@ private[automorph] object HandlerBindings:
 
     // Create API method call function
     //   (arguments: Seq[Any], requestContext: Context) => Any
-    MethodReflection.unwrapType[Effect](ref.q)(method.resultType).dealias.asType match
+    ApiReflection.unwrapType[Effect](ref.q)(method.resultType).dealias.asType match
       case '[resultType] =>
         '{ (arguments, requestContext) =>
           ${
             // Create the method argument lists by type coercing supplied arguments
-            // List(List(
-            //   arguments(N).asInstanceOf[NType]
-            // )): List[List[ParameterXType]]
+            //   List(List(
+            //     arguments(N).asInstanceOf[NType]
+            //   )): List[List[ParameterXType]]
             val apiMethodArguments = method.parameters.toList.zip(parameterListOffsets).map((parameters, offset) =>
               parameters.toList.zipWithIndex.map { (parameter, index) =>
                 val argumentIndex = offset + index
-                if argumentIndex == lastArgumentIndex && MethodReflection.acceptsContext[Context](ref)(method) then
+                if argumentIndex == lastArgumentIndex && ApiReflection.acceptsContext[Context](ref)(method) then
                   // Use supplied request context as a last argument if the method accepts context as its last parameter
                   'requestContext.asTerm
                 else
@@ -228,7 +228,7 @@ private[automorph] object HandlerBindings:
             Select.unique(api.asTerm, method.name).appliedToTypes(List.empty).appliedToArgss(
               apiMethodArguments
             ).asExprOf[Any]
-//            MethodReflection.call(ref.q, api.asTerm, method.name, List.empty, apiMethodArguments)
+//            ApiReflection.call(ref.q, api.asTerm, method.name, List.empty, apiMethodArguments)
 //              .asExprOf[Effect[resultType]]
           }
         }
@@ -236,7 +236,7 @@ private[automorph] object HandlerBindings:
   private def logMethod[Api: Type](ref: ClassReflection)(method: ref.RefMethod): Unit =
     import ref.q.reflect.{Printer, asTerm}
 
-    MacroLogger.debug(s"\n${MethodReflection.methodSignature[Api](ref)(method)}")
+    MacroLogger.debug(s"\n${ApiReflection.methodSignature[Api](ref)(method)}")
 
   private def logCode(ref: ClassReflection)(name: String, expression: Expr[Any]): Unit =
     import ref.q.reflect.{Printer, asTerm}

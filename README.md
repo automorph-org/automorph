@@ -29,7 +29,7 @@ client.call[String]("hello")("some" -> "world", "n" -> 1)
 ---
 
 * **Seamless** - Generate optimized [RPC](https://en.wikipedia.org/wiki/Remote_procedure_call) [client](https://automorph.org/docs/Quickstart#static-client) or [server](https://automorph.org/docs/Quickstart#server) bindings from existing public API methods at compile time.
-* **Flexible** - Customize [data serialization](https://automorph.org/docs/Examples#data-type-serialization), [remote API function names](https://automorph.org/docs/Examples#client-function-names), [RPC protocol errors](https://automorph.org/docs/Examples#client-exceptions) and [authentication](https://automorph.org/docs/Examples#http-authentication).
+* **Flexible** - Customize [data serialization](https://automorph.org/docs/Examples#data-type-serialization), remote API [function names](https://automorph.org/docs/Examples#client-function-names), RPC protocol [errors](https://automorph.org/docs/Examples#client-exceptions) and [authentication](https://automorph.org/docs/Examples#http-authentication).
 * **Modular** - Choose plugins for [RPC protocol](https://automorph.org/docs/Plugins#rpc-protocol), [effect handling](https://automorph.org/docs/Plugins#effect-system), [transport protocol](https://automorph.org/docs/Plugins#client-transport) and [message format](https://automorph.org/docs/Plugins#message-codec).
 * **Permissive** - Consume or create [dynamic message payload](https://automorph.org/docs/Examples#dynamic-payload) and access or modify [transport protocol metadata](https://automorph.org/docs/Examples#metadata).
 * **Discoverable** - Utilize discovery functions providing [OpenRPC](https://spec.open-rpc.org) 1.3+ and [OpenAPI](https://www.openapis.org) 3.1+ schemas for exposed APIs.

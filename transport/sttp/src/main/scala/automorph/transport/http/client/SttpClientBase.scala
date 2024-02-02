@@ -2,50 +2,16 @@ package automorph.transport.http.client
 
 import automorph.log.{LogProperties, Logging, MessageLog}
 import automorph.spi.{ClientTransport, EffectSystem}
-import automorph.transport.http.client.SttpClient.{Context, TransportContext}
-import automorph.transport.http.{HttpContext, HttpMethod, Protocol}
+import SttpClient.{Context, TransportContext}
+import automorph.transport.http.{HttpMethod, Protocol}
 import automorph.util.Extensions.EffectOps
 import java.net.URI
 import scala.collection.immutable.ListMap
 import sttp.capabilities.WebSockets
-import sttp.client3.{
-  PartialRequest, Request, Response, SttpBackend, asByteArrayAlways, asWebSocketAlways, basicRequest, ignore
-}
+import sttp.client3.{Request, Response, SttpBackend, asByteArrayAlways, asWebSocketAlways, basicRequest, ignore}
 import sttp.model.{Header, MediaType, Method, Uri}
 
-/**
- * STTP HTTP & WebSocket client message transport plugin.
- *
- * Uses the supplied RPC request as HTTP request body and returns HTTP response body as a result.
- *
- * @see
- *   [[https://en.wikipedia.org/wiki/HTTP Transport protocol]]
- * @see
- *   [[https://en.wikipedia.org/wiki/WebSocket Alternative transport protocol]]
- * @see
- *   [[https://sttp.softwaremill.com/en/latest Library documentation]]
- * @see
- *   [[https://javadoc.io/doc/com.softwaremill.sttp.client3/core_3/latest/index.html API]]
- * @constructor
- *   Creates an STTP HTTP & WebSocket client message transport plugin with the specified STTP backend.
- * @param effectSystem
- *   effect system plugin
- * @param backend
- *   STTP backend
- * @param url
- *   remote API HTTP or WebSocket URL
- * @param method
- *   HTTP request method
- * @tparam Effect
- *   effect type
- */
-final case class SttpClient[Effect[_]] private (
-  effectSystem: EffectSystem[Effect],
-  backend: SttpBackend[Effect, ?],
-  url: URI,
-  method: HttpMethod,
-  webSocket: Boolean,
-) extends ClientTransport[Effect, Context] with Logging {
+private[automorph] trait SttpClientBase[Effect[_]] extends ClientTransport[Effect, Context] with Logging {
 
   private type WebSocket = sttp.capabilities.Effect[Effect] & WebSockets
 
@@ -53,6 +19,14 @@ final case class SttpClient[Effect[_]] private (
   private val defaultUrl = Uri(url).toJavaUri
   private val log = MessageLog(logger, Protocol.Http.name)
   private implicit val system: EffectSystem[Effect] = effectSystem
+
+  def url: URI
+
+  def backend: SttpBackend[Effect, ?]
+
+  def method: HttpMethod
+
+  def webSocket: Boolean
 
   override def call(
     requestBody: Array[Byte],
@@ -186,69 +160,4 @@ final case class SttpClient[Effect[_]] private (
     } else {
       effectSystem.successful(Protocol.Http)
     }
-}
-
-object SttpClient {
-
-  /** Request context type. */
-  type Context = HttpContext[TransportContext]
-
-  /**
-   * Creates an STTP HTTP client message transport plugin with the specified STTP backend.
-   *
-   * Use the alternative [[SttpClient.webSocket]] function for STTP backends with WebSocket capability.
-   *
-   * @param effectSystem
-   *   effect system plugin
-   * @param backend
-   *   STTP backend
-   * @param url
-   *   remote API HTTP URL
-   * @param method
-   *   HTTP request method (default: POST)
-   * @tparam Effect
-   *   effect type
-   * @return
-   *   STTP HTTP client message transport plugin
-   */
-  def apply[Effect[_]](
-    effectSystem: EffectSystem[Effect],
-    backend: SttpBackend[Effect, ?],
-    url: URI,
-    method: HttpMethod = HttpMethod.Post,
-  ): SttpClient[Effect] =
-    SttpClient[Effect](effectSystem, backend, url, method, webSocket = false)
-
-  /**
-   * Creates an STTP HTTP & WebSocket client message transport plugin with the specified STTP backend.
-   *
-   * @param effectSystem
-   *   effect system plugin
-   * @param backend
-   *   STTP backend
-   * @param url
-   *   remote API HTTP or WebSocket URL
-   * @param method
-   *   HTTP request method (default: POST)
-   * @tparam Effect
-   *   effect type
-   * @return
-   *   STTP HTTP & WebSocket client message transport plugin
-   */
-  def webSocket[Effect[_]](
-    effectSystem: EffectSystem[Effect],
-    backend: SttpBackend[Effect, WebSockets],
-    url: URI,
-    method: HttpMethod = HttpMethod.Post,
-  ): SttpClient[Effect] =
-    SttpClient[Effect](effectSystem, backend, url, method, webSocket = true)
-
-  /** Transport context. */
-  final case class TransportContext(request: PartialRequest[Either[String, String], Any])
-
-  object TransportContext {
-
-    /** Implicit default context value. */
-    implicit val defaultContext: HttpContext[TransportContext] = HttpContext()
-  }
 }

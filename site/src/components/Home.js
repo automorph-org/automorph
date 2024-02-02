@@ -30,9 +30,9 @@ const features = [
     description: (
         <>
           Customize <a
-            href='docs/Examples#data-type-serialization'>data type serialization</a>, <a
-            href='docs/Examples#client-function-names'>remote API function names</a>, <a
-            href='docs/Examples#client-exceptions'>RPC protocol errors</a> and <a
+            href='docs/Examples#data-type-serialization'>data type serialization</a>, remote API <a
+            href='docs/Examples#client-function-names'>function names</a>, RPC protocol <a
+            href='docs/Examples#client-exceptions'>errors</a> and <a
             href='docs/Examples#http-authentication'>authentication</a>.
         </>
     ),
