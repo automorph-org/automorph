@@ -32,7 +32,6 @@ with questions, ideas, features, improvements or fixes.
 
 - [GnuPG](https://www.gnupg.org/)
 - [GitHub CLI](https://cli.github.com/)
-- [Git Extras](https://github.com/tj/git-extras/)
 
 
 ## Testing
