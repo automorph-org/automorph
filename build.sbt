@@ -303,9 +303,10 @@ val docScalac2Options = compileScalac2Options ++ Seq(
 ThisBuild / scalacOptions ++= (CrossVersion.partialVersion(scalaVersion.value) match {
   case Some((3, _)) => compileScalac3Options ++ Seq(
     "-indent",
-//    "-Wunused",
+    "-Wunused:all",
     "-Wvalue-discard",
     "-Xcheck-macros",
+    "-Xmigration",
     "-Ysafe-init"
   )
   case _ => compileScalac2Options
