@@ -29,7 +29,7 @@ gh release create "${TAG}" -t "${VERSION}" -F "${RELEASE_NOTES}"
 rm -f "${RELEASE_NOTES}"
 
 # Update examples
-sed -i "s/:automorph-default:.*$/:automorph-default:${VERSION}/" ./examples/project/src/main/scala/examples/Quickstart.scala
-git commit -m 'Update examples' ./examples/project/src/main/scala/examples/Quickstart.scala
+sed -i "s/:automorph-default:.*$/:automorph-default:${VERSION}/" examples/project/src/main/scala/examples/Quickstart.scala
+git commit -m 'Update examples' examples/project/src/main/scala/examples/Quickstart.scala
 git push
 
