@@ -1,6 +1,7 @@
 package automorph.reflection
 
-import automorph.{RpcResult, RpcFunction}
+import automorph.RpcFunction
+import scala.annotation.nowarn
 import scala.quoted.{quotes, Expr, Quotes, ToExpr, Type}
 
 /** Method introspection. */
@@ -88,6 +89,7 @@ private[automorph] object ApiReflection:
    * @return
    *   contextual result type if applicable
    */
+  @nowarn("msg=unused import")
   def contextualResult[Context: Type, RpcResult[_, _]: Type](q: Quotes)(
     someType: q.reflect.TypeRepr
   ): Option[q.reflect.TypeRepr] =
@@ -112,6 +114,7 @@ private[automorph] object ApiReflection:
    * @return
    *   wrapped type
    */
+  @nowarn("msg=unused import")
   def unwrapType[Wrapper[_]: Type](q: Quotes)(someType: q.reflect.TypeRepr): q.reflect.TypeRepr =
     import q.reflect.{AppliedType, ParamRef, TypeRef, TypeRepr}
 
@@ -194,13 +197,13 @@ private[automorph] object ApiReflection:
    * @return
    *   valid API method or an error message
    */
+  @nowarn("msg=unused import")
   private def validateApiMethod[Api: Type, Effect[_]: Type](
     ref: ClassReflection
   )(method: ref.RefMethod, methodNameCount: Map[String, Int]): Either[String, ref.RefMethod] =
-    import ref.q.reflect.{AppliedType, LambdaType, TypeRepr, TypeTree}
+    import ref.q.reflect.{AppliedType, TypeRepr}
 
     // No type parameters
-    val apiType = TypeTree.of[Api]
     val signature = methodSignature[Api](ref)(method)
     if method.typeParameters.nonEmpty then Left(s"Bound API method must not use type parameters: $signature")
 

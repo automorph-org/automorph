@@ -5,6 +5,7 @@ import automorph.system.IdentitySystem
 import java.net.URI
 
 private[examples] object ClientFunctionNames {
+
   @scala.annotation.nowarn
   def main(arguments: Array[String]): Unit = {
 
@@ -16,14 +17,14 @@ private[examples] object ClientFunctionNames {
     }
 
     // Create server implementation of the remote API
-    class ApiImpl {
+    class Service {
       def hello(some: String, n: Int): String =
         s"Hello $some $n!"
     }
-    val api = new ApiImpl
+    val service = new Service
 
     // Initialize JSON-RPC HTTP & WebSocket server listening on port 9000 for requests to '/api'
-    val server = Default.rpcServerCustom(IdentitySystem(), 9000, "/api").bind(api).init()
+    val server = Default.rpcServerCustom(IdentitySystem(), 9000, "/api").bind(service).init()
 
     // Initialize JSON-RPC HTTP client for sending POST requests to 'http://localhost:9000/api'
     val client = Default.rpcClientCustom(IdentitySystem(), new URI("http://localhost:9000/api")).init()

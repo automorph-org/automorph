@@ -8,6 +8,7 @@ import scala.concurrent.Future
 import scala.util.Random
 
 private[examples] object UnsupportedServer {
+
   @scala.annotation.nowarn
   def main(arguments: Array[String]): Unit = {
 
@@ -17,7 +18,7 @@ private[examples] object UnsupportedServer {
     }
 
     // Create server implementation of the remote API
-    val api = new Api {
+    val service = new Api {
       def hello(some: String, n: Int): Future[String] =
         Future(s"Hello $some $n!")
     }
@@ -26,7 +27,7 @@ private[examples] object UnsupportedServer {
     val endpointTransport = GenericEndpoint.context[Unit].effectSystem(Default.effectSystem)
 
     // Setup JSON-RPC endpoint and bind the API implementation to it
-    val endpoint = RpcEndpoint.transport(endpointTransport).rpcProtocol(Default.rpcProtocol).bind(api)
+    val endpoint = RpcEndpoint.transport(endpointTransport).rpcProtocol(Default.rpcProtocol).bind(service)
 
     // Define a function for processing JSON-RPC requests via the generic RPC endpoint.
     // This function should be called from request handling logic of an unsupported server.

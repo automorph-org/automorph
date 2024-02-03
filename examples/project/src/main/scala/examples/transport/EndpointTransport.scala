@@ -8,6 +8,7 @@ import scala.concurrent.duration.Duration
 import scala.concurrent.{Await, Future}
 
 private[examples] object EndpointTransport {
+
   @scala.annotation.nowarn
   def main(arguments: Array[String]): Unit = {
 
@@ -17,13 +18,13 @@ private[examples] object EndpointTransport {
     }
 
     // Create server implementation of the remote API
-    val api = new Api {
+    val service = new Api {
       def hello(some: String, n: Int): Future[String] =
         Future(s"Hello $some $n!")
     }
 
     // Setup JSON-RPC HTTP endpoint with Undertow adapter
-    val endpoint = Default.rpcEndpoint().bind(api)
+    val endpoint = Default.rpcEndpoint().bind(service)
 
     // Create Undertow HTTP server listening on port 9000
     val server = Undertow.builder().addHttpListener(9000, "0.0.0.0")

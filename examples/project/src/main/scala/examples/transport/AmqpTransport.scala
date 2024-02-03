@@ -9,6 +9,7 @@ import scala.concurrent.duration.Duration
 import scala.concurrent.{Await, Future}
 
 private[examples] object AmqpTransport {
+
   @scala.annotation.nowarn
   def main(arguments: Array[String]): Unit = {
 
@@ -18,7 +19,7 @@ private[examples] object AmqpTransport {
     }
 
     // Create server implementation of the remote API
-    val api = new Api {
+    val service = new Api {
       override def hello(some: String, n: Int): Future[String] =
         Future(s"Hello $some $n!")
     }
@@ -34,7 +35,7 @@ private[examples] object AmqpTransport {
 
       Await.ready(for {
         // Initialize custom JSON-RPC AMQP server
-        server <- RpcServer.transport(serverTransport).rpcProtocol(Default.rpcProtocol).bind(api).init()
+        server <- RpcServer.transport(serverTransport).rpcProtocol(Default.rpcProtocol).bind(service).init()
 
         // Initialize custom JSON-RPC AMQP client
         client <- RpcClient.transport(clientTransport).rpcProtocol(Default.rpcProtocol).init()

@@ -6,6 +6,7 @@ import java.net.URI
 import zio.{Console, Task, Unsafe, ZIO}
 
 private[examples] object EffectSystem {
+
   @scala.annotation.nowarn
   def main(arguments: Array[String]): Unit = {
 
@@ -15,7 +16,7 @@ private[examples] object EffectSystem {
     }
 
     // Create server implementation of the remote API
-    val api = new Api {
+    val service = new Api {
       def hello(some: String, n: Int): Task[String] =
         ZIO.succeed(s"Hello $some $n!")
     }
@@ -27,7 +28,7 @@ private[examples] object EffectSystem {
       ZioSystem.defaultRuntime.unsafe.run(
         for {
           // Initialize JSON-RPC HTTP & WebSocket server listening on port 9000 for requests to '/api'
-          server <- Default.rpcServerCustom(effectSystem, 9000, "/api").bind(api).init()
+          server <- Default.rpcServerCustom(effectSystem, 9000, "/api").bind(service).init()
 
           // Initialize JSON-RPC HTTP client for sending POST requests to 'http://localhost:9000/api'
           client <- Default.rpcClientCustom(effectSystem, new URI("http://localhost:9000/api")).init()

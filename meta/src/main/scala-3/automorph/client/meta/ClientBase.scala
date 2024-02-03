@@ -1,7 +1,7 @@
 package automorph.client.meta
 
 import automorph.RpcException.InvalidRequest
-import automorph.client.{RemoteCall, RemoteTell}
+import automorph.client.RemoteCall
 import automorph.spi.{MessageCodec, RpcProtocol}
 
 import java.lang.reflect.Proxy

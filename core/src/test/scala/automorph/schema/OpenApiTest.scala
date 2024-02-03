@@ -2,7 +2,6 @@ package automorph.schema
 
 import automorph.RpcFunction
 import automorph.RpcFunction.Parameter
-import automorph.schema.OpenApi
 import automorph.schema.openapi.{Info, MediaType, Operation, PathItem, RequestBody, Response, RpcSchema, Schema}
 import test.base.BaseTest
 

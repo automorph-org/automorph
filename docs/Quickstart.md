@@ -147,7 +147,7 @@ Create an [SBT](https://www.scala-sbt.org/) project containing a quickstart exam
 [Giter8](http://www.foundweekends.org/giter8/) template:
 
 ```shell
-sbt new automorph-org/automorph.g8
+sbt new automorph-org/automorph.g8 --name=automorph-example
 cd automorph-example
 sbt run
 ```

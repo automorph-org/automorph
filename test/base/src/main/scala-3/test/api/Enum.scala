@@ -1,7 +1,5 @@
 package test.api
 
-import test.api.Enum.Enum
-
 object Enum:
 
   enum Enum:

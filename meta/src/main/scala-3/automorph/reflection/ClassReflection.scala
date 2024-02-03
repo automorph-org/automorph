@@ -11,10 +11,7 @@ import scala.quoted.{quotes, Expr, Quotes, Type}
 private[automorph] final case class ClassReflection(q: Quotes):
 
   // All meta-programming data types are path-dependent on the compiler-generated reflection context
-  import q.reflect.{Flags, MethodType, PolyType, Printer, Symbol, TypeRepr}
-
-  private given Quotes =
-    q
+  import q.reflect.{Flags, MethodType, Printer, Symbol, TypeRepr}
 
   final case class RefParameter(name: String, dataType: TypeRepr, contextual: Boolean):
 
@@ -55,7 +52,7 @@ private[automorph] final case class ClassReflection(q: Quotes):
 
   private def method(classType: TypeRepr, methodSymbol: Symbol): Option[RefMethod] =
     val (symbolType, typeParameters) = classType.memberType(methodSymbol) match
-      case polyType: PolyType =>
+      case polyType: q.reflect.PolyType =>
         val typeParameters = polyType.paramNames.zip(polyType.paramBounds.indices).map { (name, index) =>
           RefParameter(name, polyType.param(index), false)
         }

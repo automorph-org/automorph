@@ -10,6 +10,7 @@ import scala.concurrent.duration.Duration
 import scala.concurrent.{Await, Future}
 
 private[examples] object ServerErrorMapping {
+
   @scala.annotation.nowarn
   def main(arguments: Array[String]): Unit = {
 
@@ -19,7 +20,7 @@ private[examples] object ServerErrorMapping {
     }
 
     // Create server implementation of the remote API
-    val api = new Api {
+    val service = new Api {
       def hello(some: String, n: Int): Future[String] =
         if (n >= 0) {
           Future.failed(new SQLException("Invalid request"))
@@ -39,7 +40,7 @@ private[examples] object ServerErrorMapping {
 
     Await.ready(for {
       // Initialize custom JSON-RPC HTTP & WebSocket server
-      server <- RpcServer.transport(serverTransport).rpcProtocol(rpcProtocol).bind(api).init()
+      server <- RpcServer.transport(serverTransport).rpcProtocol(rpcProtocol).bind(service).init()
 
       // Initialize JSON-RPC HTTP client for sending POST requests to 'http://localhost:9000/api'
       client <- Default.rpcClient(new URI("http://localhost:9000/api")).init()

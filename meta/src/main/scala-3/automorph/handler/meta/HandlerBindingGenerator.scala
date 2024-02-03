@@ -7,7 +7,6 @@ import automorph.reflection.ApiReflection.functionToExpr
 import automorph.reflection.{ApiReflection, ClassReflection}
 import automorph.spi.MessageCodec
 import scala.quoted.{Expr, Quotes, Type}
-import scala.util.{Failure, Try}
 
 /**
  * RPC handler API bindings generator.
@@ -187,7 +186,7 @@ private[automorph] object HandlerBindingGenerator:
     method: ref.RefMethod,
     api: Expr[Api]
   ): Expr[(Seq[Any], Context) => Any] =
-    import ref.q.reflect.{Select, Term, TypeRepr, asTerm}
+    import ref.q.reflect.{Select, asTerm}
     given Quotes = ref.q
 
     // Map multiple parameter lists to flat argument node list offsets
@@ -234,8 +233,6 @@ private[automorph] object HandlerBindingGenerator:
         }
 
   private def logMethod[Api: Type](ref: ClassReflection)(method: ref.RefMethod): Unit =
-    import ref.q.reflect.{Printer, asTerm}
-
     MacroLogger.debug(s"\n${ApiReflection.methodSignature[Api](ref)(method)}")
 
   private def logCode(ref: ClassReflection)(name: String, expression: Expr[Any]): Unit =

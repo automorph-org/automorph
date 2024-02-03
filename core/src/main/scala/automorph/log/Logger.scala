@@ -2,6 +2,7 @@ package automorph.log
 
 import org.slf4j
 import org.slf4j.{LoggerFactory, MDC}
+import scala.annotation.nowarn
 
 /**
  * Scala Logging compatible structured logger implicit SLF4J Mapped Diagnostic Context.
@@ -146,6 +147,7 @@ private[automorph] final case class Logger private (private val underlying: slf4
   def isTraceEnabled: Boolean =
     underlying.isTraceEnabled
 
+  @nowarn("msg=unused implicit")
   private def log[T](message: => String, properties: => T, enabled: Boolean, logMessage: String => Unit)(implicit
     evidence: Not[Not[T]] <:< Or[Iterable[(String, Any)], Product]
   ): Unit =
@@ -156,6 +158,7 @@ private[automorph] final case class Logger private (private val underlying: slf4
       removeDiagnosticContext(iterableProperties)
     }
 
+  @nowarn("msg=unused implicit")
   private def log[T](
     message: => String,
     cause: => Throwable,

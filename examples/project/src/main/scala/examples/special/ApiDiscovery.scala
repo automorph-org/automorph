@@ -9,6 +9,7 @@ import scala.concurrent.duration.Duration
 import scala.concurrent.{Await, Future}
 
 private[examples] object ApiDiscovery {
+
   @scala.annotation.nowarn
   def main(arguments: Array[String]): Unit = {
 
@@ -18,14 +19,14 @@ private[examples] object ApiDiscovery {
     }
 
     // Create server implementation of the remote API
-    val api = new Api {
+    val service = new Api {
       def hello(some: String, n: Int): Future[String] =
         Future(s"Hello $some $n!")
     }
 
     Await.ready(for {
       // Initialize JSON-RPC HTTP & WebSocket server with API discovery enabled
-      server <- Default.rpcServer(9000, "/api").discovery(true).bind(api).init()
+      server <- Default.rpcServer(9000, "/api").discovery(true).bind(service).init()
 
       // Initialize JSON-RPC HTTP client for sending POST requests to 'http://localhost:9000/api'
       client <- Default.rpcClient(new URI("http://localhost:9000/api")).init()
