@@ -23,7 +23,7 @@ import java.util.Base64
  * @see
  *   [[https://cbor.io CBOR message format]]
  * @see
- *   [[https://github.com/FasterXML/smile-format-specification SMILE message format]]
+ *   [[https://github.com/FasterXML/smile-format-specification Smile message format]]
  * @see
  *   [[https://github.com/rallyhealth/weePickle Library documentation]]
  * @see

@@ -139,6 +139,8 @@ The following technical standards are supported by freely combining appropriate
 
 - [JSON](https://www.json.org) (*Default*)
 - [MessagePack](https://msgpack.org)
+- [Smile](https://github.com/FasterXML/smile-format-specification)
+- [CBOR](https://cbor.io)
 
 ### Effect handling
 
