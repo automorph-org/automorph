@@ -1,5 +1,0 @@
-#!/usr/bin/env bash
-# Compute test coverage
-
-./sbt -213 'clean coverage test coverageAggregate'
-
