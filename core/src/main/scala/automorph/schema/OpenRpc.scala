@@ -10,7 +10,7 @@ import automorph.schema.openrpc.{Components, ContentDescriptor, ExternalDocument
  *   [[https://spec.open-rpc.org OpenRPC schema]]
  */
 final case class OpenRpc(
-  openrpc: String = "1.3.1",
+  openrpc: String = "1.3.2",
   info: Info,
   servers: Option[List[Server]] = None,
   methods: List[Method] = List(),

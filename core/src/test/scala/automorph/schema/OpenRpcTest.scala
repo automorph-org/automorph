@@ -18,7 +18,7 @@ class OpenRpcTest extends BaseTest {
   )
 
   private val expected = OpenRpc(
-    openrpc = "1.3.1",
+    openrpc = "1.3.2",
     info = Info(title = "", version = ""),
     methods = List(Method(
       name = "test",

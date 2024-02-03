@@ -4,6 +4,6 @@ final case class ExamplePairing(
   name: String,
   summary: Option[String] = None,
   description: Option[String] = None,
-  params: Option[List[Example]] = None,
+  params: List[Example] = List(),
   result: Option[Example] = None,
 )

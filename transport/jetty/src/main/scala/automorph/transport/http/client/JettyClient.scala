@@ -3,7 +3,7 @@ package automorph.transport.http.client
 import automorph.log.{LogProperties, Logging, MessageLog}
 import automorph.spi.AsyncEffectSystem.Completable
 import automorph.spi.{AsyncEffectSystem, ClientTransport, EffectSystem}
-import automorph.transport.http.client.JettyClient.{Context, Message, defaultClient}
+import automorph.transport.http.client.JettyClient.{Context, Message}
 import automorph.transport.http.{HttpContext, HttpMethod, Protocol}
 import automorph.util.Extensions.{ByteArrayOps, EffectOps}
 import java.net.URI
@@ -50,7 +50,7 @@ final case class JettyClient[Effect[_]](
   effectSystem: EffectSystem[Effect],
   url: URI,
   method: HttpMethod = HttpMethod.Post,
-  httpClient: HttpClient = defaultClient,
+  httpClient: HttpClient = JettyClient.defaultClient,
 ) extends ClientTransport[Effect, Context] with Logging {
 
   private type Response = (Array[Byte], Option[Int], Seq[(String, String)])
