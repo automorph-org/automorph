@@ -21,51 +21,53 @@ with questions, ideas, features, improvements or fixes.
 ## Build requirements
 
 * [JDK](https://openjdk.java.net/) 11+
-* [SBT](https://www.scala-sbt.org/) 1.9+
-* [NodeJS](https://nodejs.org/) 19+
+
+**Note**: Due to the latest Scala 3 compiler defect the build currently does not work on JDK 21. Use `-java-home` SBT option to select an alternative JDK if needed.
+
+### Documentation build
+
 * [Yarn](https://yarnpkg.com/) 1.22+
-
-**Note**: uPickle plugin might take a long time to build but it works.
-
-**Note**: Due to Scala 3 compiler issue the build does not work on JDK 21. Use `-java-home` SBT option to select an alternative JDK installation.
 
 
 ## Testing
 
+**Note**: Due to uPickle design peculiarities the uPickle plugin takes a very long time to build but it works.
+
+
 ### Basic tests
 
 ```shell
-sbt '+ test'
+./sbt '+ test'
 ```
 
 ### Simple API tests for all transport plugins and default codec plugin only
 
 ```shell
-TEST_LEVEL=simple sbt '+ test'
+TEST_LEVEL=simple ./sbt '+ test'
 ```
 
 ### Complex API tests for all transport plugins and default codec plugin only
 
 ```shell
-TEST_LEVEL=complex sbt '+ test'
+TEST_LEVEL=complex ./sbt '+ test'
 ```
 
 ### Complex API tests for all transport plugins and all codec plugins
 
 ```shell
-TEST_LEVEL=all sbt '+ test'
+TEST_LEVEL=all ./sbt '+ test'
 ```
 
 ### Console log level
 
 ```shell
-LOG_LEVEL=DEBUG sbt '+ test'
+LOG_LEVEL=DEBUG ./sbt '+ test'
 ```
 
 ### Generated code logging
 
 ```shell
-LOG_CODE=true sbt '+ test'
+LOG_CODE=true ./sbt '+ test'
 ```
 
 ### Test log file
@@ -80,12 +82,12 @@ less target/test.log
 ### Generate website
 
 ```shell
-sbt site
+./sbt site
 ```
 
 ### Serve website
 
 ```shell
-sbt serveSite
+./sbt serveSite
 ```
 

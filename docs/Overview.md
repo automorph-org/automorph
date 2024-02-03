@@ -70,7 +70,7 @@ client.call[String]("hello")("some" -> "world", "n" -> 1)
 
 ### [API](https://automorph.org/api/automorph.html)
 
-Following classes represent the primary entry points to Automorph functionality:
+The following classes represent primary entry points to Automorph functionality:
 
 * [RPC client](https://automorph.org/api/automorph/RpcClient.html) - Used to perform type-safe remote API calls or send one-way messages.
 * [RPC server](https://automorph.org/api/automorph/RpcServer.html) - Used to serve remote API requests and invoke bound API methods to process them.
@@ -87,7 +87,7 @@ creating primary class instances with [default plugins](https://automorph.org/do
 
 ### [SPI](https://automorph.org/api/automorph/spi.html)
 
-Following traits define interfaces for implementing various Automorph [plugins](https://automorph.org/docs/Plugins):
+The following traits define interfaces for implementing various Automorph [plugins](https://automorph.org/docs/Plugins):
 
 * [RPC protocol](https://automorph.org/api/automorph/spi/RpcProtocol.html) -
 Enables use of a specific RPC protocol.
@@ -116,12 +116,12 @@ Enables RPC endpoint to integrate with and handle requests from an existing serv
 
 ### Known issues
 
-* Mangled signatures for a few nonessential methods in Automorph API documentation caused by a Scaladoc defect
+* Mangled signatures of a few nonessential methods in the API documentation caused by a Scaladoc defect
 
 
 ## Supported standards
 
-Following technical standards are supported by freely combining the relevant
+The following technical standards are supported by freely combining appropriate
 [plugins](https://automorph.org/docs/Plugins).
 
 ### RPC protocols
@@ -140,7 +140,7 @@ Following technical standards are supported by freely combining the relevant
 * [JSON](https://www.json.org) (*Default*)
 * [MessagePack](https://msgpack.org)
 
-### Effect Handling
+### Effect handling
 
 * [Asynchronous](https://docs.scala-lang.org/overviews/core/futures.html) (*Default*)
 * [Synchronous](https://docs.scala-lang.org/scala3/book/taste-functions.html)
