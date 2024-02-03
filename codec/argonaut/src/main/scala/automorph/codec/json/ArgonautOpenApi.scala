@@ -11,6 +11,7 @@ private[automorph] object ArgonautOpenApi {
   private val propertiesField = "properties"
   private val allOfField = "allOf"
 
+  @scala.annotation.nowarn("msg=unused local")
   def openApiCodecJson: CodecJson[OpenApi] = {
     implicit val schemaCodecJson: CodecJson[Schema] = CodecJson(fromSchema, toSchema)
     implicit val contactCodecJson: CodecJson[OAuthFlow] = Argonaut.codec4(

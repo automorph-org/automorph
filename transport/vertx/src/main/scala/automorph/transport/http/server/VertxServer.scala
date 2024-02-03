@@ -3,7 +3,7 @@ package automorph.transport.http.server
 import automorph.log.Logging
 import automorph.spi.{EffectSystem, RequestHandler, ServerTransport}
 import automorph.transport.http.endpoint.VertxHttpEndpoint
-import automorph.transport.http.server.VertxServer.{Context, defaultVertxOptions}
+import automorph.transport.http.server.VertxServer.Context
 import automorph.transport.http.{HttpContext, HttpMethod, Protocol}
 import automorph.transport.websocket.endpoint.VertxWebSocketEndpoint
 import io.vertx.core.http.{HttpServer, HttpServerOptions}
@@ -55,7 +55,7 @@ final case class VertxServer[Effect[_]](
   methods: Iterable[HttpMethod] = HttpMethod.values,
   webSocket: Boolean = true,
   mapException: Throwable => Int = HttpContext.defaultExceptionToStatusCode,
-  vertxOptions: VertxOptions = defaultVertxOptions,
+  vertxOptions: VertxOptions = VertxServer.defaultVertxOptions,
   httpServerOptions: HttpServerOptions = new HttpServerOptions,
   handler: RequestHandler[Effect, Context] = RequestHandler.dummy[Effect, Context],
 ) extends Logging with ServerTransport[Effect, Context] {
