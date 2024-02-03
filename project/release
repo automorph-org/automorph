@@ -13,7 +13,7 @@ RELEASE_NOTES="release-notes.md"
 
 
 # EXtract a changelog since the last tag
-git log $(git describe --tags --abbrev=0)..HEAD --format="%s" | grep '^-' > "${RELEASE_NOTES}"
+git log $(git describe --tags --abbrev=0)..HEAD --format='%s' | grep '^-' > "${RELEASE_NOTES}"
 
 # Create a new tag
 git tag -a -m "Version: ${VERSION}" "${TAG}"
