@@ -33,18 +33,18 @@ Web-RPC is an attempt to demonstrate that the REST-compatible remote API functio
 and online services can be achieved without effectivelly ending up designing a RPC protocol for each API.
 
 Web-RPC can be understood to be any of the following:
-* Minimalistic sibling of [JSON-RPC](https://www.jsonrpc.org/specification) using HTTP as transport protocol
-* RPC protocol supporting various practical mechanisms often provided by typical REST APIs
-* REST-style protocol prescribing a standard way to represent data and meta-data in REST API requests and responses
+- Minimalistic sibling of [JSON-RPC](https://www.jsonrpc.org/specification) using HTTP as transport protocol
+- RPC protocol supporting various practical mechanisms often provided by typical REST APIs
+- REST-style protocol prescribing a standard way to represent data and meta-data in REST API requests and responses
 
 
 ### Features
 
-* HTTP as transport protocol
-* Structured messages in JSON format
-* API function name as a last URL path element
-* API function arguments can be supplied either in the request body or as URL query parameters
-* Meta-data in HTTP headers
+- HTTP as transport protocol
+- Structured messages in JSON format
+- API function name as a last URL path element
+- API function arguments can be supplied either in the request body or as URL query parameters
+- Meta-data in HTTP headers
 
 
 ## Request
@@ -53,14 +53,14 @@ Web-RPC can be understood to be any of the following:
 
 HTTP methods are not specified by the API but chosen by the client from the following options depending on the desired
 call semantics:
-* POST - standard non-cached call with arguments either in the request body
-* GET - cacheable call with arguments as URL query parameters only
+- POST - standard non-cached call with arguments either in the request body
+- GET - cacheable call with arguments as URL query parameters only
 
 ### URL format
 
-* Remote API endpoint: http://example.org/api
-* Remote API function: hello
-* Remote API function arguments:
+- Remote API endpoint: http://example.org/api
+- Remote API function: hello
+- Remote API function arguments:
   * some = world
   * n = 1
 
@@ -68,8 +68,8 @@ call semantics:
 http://example.org/api/hello?some=world&n=1
 ```
 
-* URL path components following an API-dependent prefix must specify the invoked function
-* URL query parameters may specify additional arguments for the invoked function
+- URL path components following an API-dependent prefix must specify the invoked function
+- URL query parameters may specify additional arguments for the invoked function
 
 Identically named invoked function arguments must not be supplied both in the request body and as URL query parameter.
 Such an ambiguous call must cause an error.
@@ -161,16 +161,16 @@ Response body is interpreted as a failed invocation result if it consists of a J
 The `error` field value is a JSON object providing further information about the failure and consisting of the following
 fields:
 
-* `message` - A JSON string representing an error message. This field is mandatory.
-* `code` - A JSON number representing an error code. This field is optional.
-* `details` - An arbitrary JSON value representing additional error information. This field is optional.
+- `message` - A JSON string representing an error message. This field is mandatory.
+- `code` - A JSON number representing an error code. This field is optional.
+- `details` - An arbitrary JSON value representing additional error information. This field is optional.
 
 Error codes in inclusive range between -32768 and -32000 are reserved for protocol errors with specific meaning as follows:
 
-* `-32600` - Invalid request. Request is malformed or missing.
-* `-32601` - Function not found. Remote function does not exist.
-* `-32602` - Invalid arguments. Supplied arguments have incorrect data type.
-* `-32603` - Server error. Internal request processing error.
+- `-32600` - Invalid request. Request is malformed or missing.
+- `-32601` - Function not found. Remote function does not exist.
+- `-32602` - Invalid arguments. Supplied arguments have incorrect data type.
+- `-32603` - Server error. Internal request processing error.
 
 - Message format: JSON
 - Content-Type: application/json

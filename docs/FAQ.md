@@ -78,15 +78,15 @@ in Scala do not preserve them
 ### When to use Web-RPC ?
 
 In case any of the following remote API concerns need to be addressed with minimal effort:
-* Caching GET requests
-* Using URLs to pass arguments
-* External constraints requiring a simple REST-style API with RPC semantics
+- Caching GET requests
+- Using URLs to pass arguments
+- External constraints requiring a simple REST-style API with RPC semantics
  
 In other situations it is [probably](https://youtu.be/XyJh3qKjSMk?t=53) better to use an established remote call
 protocol such as:
-* [JSON-RPC](https://en.wikipedia.org/wiki/JSON-RPC)
-* [Avro](https://en.wikipedia.org/wiki/Apache_Avro)
-* [GraphQL](https://en.wikipedia.org/wiki/GraphQL)
+- [JSON-RPC](https://en.wikipedia.org/wiki/JSON-RPC)
+- [Avro](https://en.wikipedia.org/wiki/Apache_Avro)
+- [GraphQL](https://en.wikipedia.org/wiki/GraphQL)
 
 
 ### Can Web-RPC be used in without a specific Web-RPC library ?

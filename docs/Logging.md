@@ -6,20 +6,20 @@ sidebar_position: 4
 
 ## Basics
 
-* The library performs **structured event logging** using the [SLF4J](http://www.slf4j.org/) API
-* All events are logged via loggers with top-level **package** name '**automorph**'
-* The log **message** itself specifies the logged **event type** only
-* Event **properties** are passed into the associated [Mapped Diagnostic Context](https://www.slf4j.org/api/org/slf4j/MDC.html)
-* It is thus highly recommended to **configure** the utilized **SL4J implementation** to include **MDC** in the logger output
+- The library performs **structured event logging** using the [SLF4J](http://www.slf4j.org/) API
+- All events are logged via loggers with top-level **package** name '**automorph**'
+- The log **message** itself specifies the logged **event type** only
+- Event **properties** are passed into the associated [Mapped Diagnostic Context](https://www.slf4j.org/api/org/slf4j/MDC.html)
+- It is thus highly recommended to **configure** the utilized **SL4J implementation** to include **MDC** in the logger output
 
 
 ## Log level semantics
 
-* `ERROR` - Non-recoverable errors
-* `WARN` - Recoverable errors
-* `INFO` - Main events (e.g. remote API call performed successfully, component initialized)
-* `DEBUG` - Diagnostic events (e.g. request received, response sent)
-* `TRACE` - Detailed diagnostic events (e.g. message body, message metadata)
+- `ERROR` - Non-recoverable errors
+- `WARN` - Recoverable errors
+- `INFO` - Main events (e.g. remote API call performed successfully, component initialized)
+- `DEBUG` - Diagnostic events (e.g. request received, response sent)
+- `TRACE` - Detailed diagnostic events (e.g. message body, message metadata)
 
 
 ## Example configuration

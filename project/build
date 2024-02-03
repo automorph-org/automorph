@@ -1,4 +1,0 @@
-#!/bin/bash
-
-TEST_LEVEL=all sbt '+ test'
-

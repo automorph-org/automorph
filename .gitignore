@@ -2,6 +2,7 @@
 target
 dist
 .scala-build
+release-notes.md
 
 # Tools
 *.swp
