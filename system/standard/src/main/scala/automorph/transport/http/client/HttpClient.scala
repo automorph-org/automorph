@@ -3,7 +3,7 @@ package automorph.transport.http.client
 import automorph.log.{LogProperties, Logging, MessageLog}
 import automorph.spi.AsyncEffectSystem.Completable
 import automorph.spi.{AsyncEffectSystem, ClientTransport, EffectSystem}
-import automorph.transport.http.client.HttpClient.{Context, Response, TransportContext, defaultBuilder}
+import automorph.transport.http.client.HttpClient.{Context, Response, TransportContext}
 import automorph.transport.http.{HttpContext, HttpMethod, Protocol}
 import automorph.util.Extensions.{ByteArrayOps, ByteBufferOps, EffectOps}
 import java.net.URI
@@ -50,7 +50,7 @@ final case class HttpClient[Effect[_]](
   effectSystem: EffectSystem[Effect],
   url: URI,
   method: HttpMethod = HttpMethod.Post,
-  builder: Builder = defaultBuilder,
+  builder: Builder = HttpClient.defaultBuilder,
 ) extends ClientTransport[Effect, Context] with Logging {
 
   private val contentTypeHeader = "Content-Type"
