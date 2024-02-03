@@ -6,7 +6,6 @@ import com.rallyhealth.weepickle.v1.WeePickle.FromTo
 import org.scalacheck.Arbitrary
 import test.api.Generators.arbitraryRecord
 import test.api.Record
-import scala.annotation.nowarn
 
 class WeepickleCborTest extends MessageCodecTest {
 
@@ -17,7 +16,6 @@ class WeepickleCborTest extends MessageCodecTest {
 
   override lazy val arbitraryNode: Arbitrary[Node] = WeepickleTest.arbitraryNode
 
-  @nowarn("msg=used")
   private implicit val recordFromTo: FromTo[Record] = WeepickleTest.recordFromTo
 
   "" - {

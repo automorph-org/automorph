@@ -9,10 +9,12 @@ import scala.compiletime.summonInline
 /** weePickle codec plugin code generation. */
 private[automorph] trait WeepickleMeta extends MessageCodec[Value]:
 
+  @scala.annotation.nowarn("msg=unused import")
   override inline def encode[T](value: T): Value =
     import WeepickleCodec.given
     FromScala(value)(using summonInline[From[T]]).transform(Value)
 
+  @scala.annotation.nowarn("msg=unused import")
   override inline def decode[T](node: Value): T =
     import WeepickleCodec.given
     node.transform(ToScala(using summonInline[To[T]]))

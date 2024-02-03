@@ -5,12 +5,10 @@ import automorph.schema.openrpc.*
 import com.rallyhealth.weejson.v1.{Arr, Obj, Str, Value}
 import com.rallyhealth.weepickle.v1.WeePickle.{FromTo, macroFromTo}
 import com.rallyhealth.weepickle.v1.core.Abort
-import scala.annotation.nowarn
 
 /** OpenRPC schema support for weePickle message codec plugin. */
 private[automorph] object WeepickleOpenRpc {
 
-  @nowarn("msg=used")
   def fromTo: FromTo[OpenRpc] = {
     implicit val schemaFromTo: FromTo[Schema] = macroFromTo[Value].bimap(fromSchema, toSchema)
     implicit val contactFromTo: FromTo[Contact] = macroFromTo

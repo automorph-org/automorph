@@ -17,7 +17,6 @@ class WeepickleSmileTest extends MessageCodecTest {
 
   override lazy val arbitraryNode: Arbitrary[Node] = WeepickleTest.arbitraryNode
 
-  @nowarn("msg=used")
   private implicit val recordFromTo: FromTo[Record] = WeepickleTest.recordFromTo
 
   "" - {

@@ -7,7 +7,6 @@ import org.scalacheck.Arbitrary
 import test.api.Generators.arbitraryRecord
 import test.api.Record
 import test.codec.json.JsonMessageCodecTest
-import scala.annotation.nowarn
 
 class WeepickleJsonTest extends JsonMessageCodecTest {
 
@@ -18,7 +17,6 @@ class WeepickleJsonTest extends JsonMessageCodecTest {
 
   override lazy val arbitraryNode: Arbitrary[Node] = WeepickleTest.arbitraryNode
 
-  @nowarn("msg=used")
   private implicit val recordFromTo: FromTo[Record] = WeepickleTest.recordFromTo
 
   "" - {
