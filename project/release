@@ -1,0 +1,35 @@
+#!/usr/bin/env bash
+# Create and publish the specified version
+set -eo pipefail
+
+if [ "$#" -ne 1 ]; then
+  echo "Missing version"
+  exit 1
+fi
+
+VERSION="$1"
+TAG="v${VERSION}"
+RELEASE_NOTES="release-notes.md"
+
+
+# EXtract a changelog since the last tag
+git changelog -x | sed 's/^.*\* //' | grep '^-' > "${RELEASE_NOTES}"
+
+# Create a new tag
+git tag -a -m "Version: ${VERSION}" "${TAG}"
+git push --follow-tags
+
+# Publish artifacts
+# ./sbt '+ mimaReportBinaryIssues ; tastyMiMaReportIssues ; + publishSigned ; sonatypeBundleRelease'
+# ./sbt '+ mimaReportBinaryIssues ; + publishSigned ; sonatypeBundleRelease'
+./sbt '+ publishSigned ; sonatypeBundleRelease'
+
+# Create a release
+gh release create "${TAG}" -t "${VERSION}" -F "${RELEASE_NOTES}"
+rm -f "${RELEASE_NOTES}"
+
+# Update examples
+sed -i "s/:automorph-default:.*$/:automorph-default:${VERSION}/" ./examples/project/src/main/scala/examples/Quickstart.scala
+git commit -m 'Update examples' ./examples/project/src/main/scala/examples/Quickstart.scala
+git push
+

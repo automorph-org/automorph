@@ -1,4 +1,5 @@
-#!/bin/bash
+#!/usr/bin/env bash
+# Compute test coverage
 
-sbt '++2.13.11 clean ; ++2.13.11 coverage ; ++2.13.11 test ; ++2.13.11 coverageAggregate'
+./sbt -213 'clean coverage test coverageAggregate'
 
