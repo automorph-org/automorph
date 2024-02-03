@@ -1,11 +1,9 @@
 package automorph.schema
 
 import automorph.RpcFunction
-import automorph.schema.OpenApi.{Components, Paths}
+import automorph.schema.OpenApi.Paths
 import automorph.schema.openapi.Operation.SecurityRequirement
-import automorph.schema.openapi.{
-  ExternalDocumentation, Info, MediaType, Operation, PathItem, RequestBody, Response, RpcSchema, Schema, Server, Tag,
-}
+import automorph.schema.openapi.*
 
 /**
  * OpenAPI API schema.
@@ -29,7 +27,6 @@ final case class OpenApi(
 object OpenApi {
 
   type Paths = Map[String, PathItem]
-  type Components = Map[String, Schema]
 
   /** Result value name. */
   val resultName = "result"
