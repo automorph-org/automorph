@@ -8,6 +8,7 @@ import scala.concurrent.duration.Duration
 import scala.concurrent.{Await, Future}
 
 private[examples] object LocalCall {
+
   @scala.annotation.nowarn
   def main(arguments: Array[String]): Unit = {
 
@@ -17,13 +18,13 @@ private[examples] object LocalCall {
     }
 
     // Create server implementation of the remote API
-    val api = new Api {
+    val service = new Api {
       def hello(some: String, n: Int): Future[String] =
         Future(s"Hello $some $n!")
     }
 
     // Create passive JSON-RPC HTTP & WebSocket server on port 9000 for POST requests to '/api'
-    val server = Default.rpcServer(9000, "/api").bind(api)
+    val server = Default.rpcServer(9000, "/api").bind(service)
 
     // Create default value for request metadata of the type defined by the RPC server
     val defaultRequestContext: Default.ServerContext = HttpContext()

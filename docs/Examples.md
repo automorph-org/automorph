@@ -38,14 +38,14 @@ trait Api {
 }
 
 // Create server implementation of the remote API
-val api = new Api {
+val service = new Api {
   def hello(some: String, n: Int): Future[String] =
     Future(s"Hello $some $n!")
 }
 
 Await.ready(for {
   // Initialize JSON-RPC HTTP & WebSocket server listening on port 9000 for POST or PUT requests to '/api'
-  server <- Default.rpcServer(9000, "/api", Seq(Post, Put)).bind(api).init()
+  server <- Default.rpcServer(9000, "/api", Seq(Post, Put)).bind(service).init()
 
   // Initialize JSON-RPC HTTP client for sending POST requests to 'http://localhost:9000/api'
   client <- Default.rpcClient(new URI("http://localhost:9000/api")).init()
@@ -89,13 +89,13 @@ trait Api {
 }
 
 // Create server implementation of the remote API
-val api = new Api {
+val service = new Api {
   def hello(some: String, n: Int): String =
     s"Hello $some $n!"
 }
 
 // Initialize JSON-RPC HTTP & WebSocket server listening on port 9000 for POST requests to '/api'
-val server = Default.rpcServerCustom(IdentitySystem(), 9000, "/api").bind(api).init()
+val server = Default.rpcServerCustom(IdentitySystem(), 9000, "/api").bind(service).init()
 
 // Initialize JSON-RPC HTTP client sending POST requests to 'http://localhost:9000/api'
 val client = Default.rpcClientCustom(IdentitySystem(), new URI("http://localhost:9000/api")).init()
@@ -142,18 +142,18 @@ trait Api {
 }
 
 // Create server implementation of the remote API
-class ApiImpl {
+class Service {
   def hello(some: String, n: Option[Int]): Future[String] =
     Future(s"Hello $some ${n.getOrElse(0)}!")
 
   def hi(some: Option[String])(n: Int): Future[String] =
     Future(s"Hi ${some.getOrElse("all")} $n!")
 }
-val api = new ApiImpl
+val service = new Service
 
 Await.ready(for {
   // Initialize JSON-RPC HTTP & WebSocket server listening on port 9000 for requests to '/api'
-  server <- Default.rpcServer(9000, "/api").bind(api).init()
+  server <- Default.rpcServer(9000, "/api").bind(service).init()
 
   // Initialize JSON-RPC HTTP client for sending POST requests to 'http://localhost:9000/api'
   client <- Default.rpcClient(new URI("http://localhost:9000/api")).init()
@@ -204,20 +204,20 @@ trait Api2 {
 }
 
 // Create server implementation of the first remote API
-val api1 = new Api1 {
+val service1 = new Api1 {
   def hello(some: String, n: Int): Future[String] =
     Future(s"Hello $some $n!")
 }
 
 // Create server implementation of the second remote API
-val api2 = new Api2 {
+val service2 = new Api2 {
   def hi(): Future[String] =
     Future("Hola!")
 }
 
 Await.ready(for {
   // Initialize JSON-RPC HTTP & WebSocket server listening on port 9000 for POST requests to '/api'
-  server <- Default.rpcServer(9000, "/api").bind(api1).bind(api2).init()
+  server <- Default.rpcServer(9000, "/api").bind(service1).bind(service2).init()
 
   // Initialize JSON-RPC HTTP client for sending POST requests to 'http://localhost:9000/api'
   client <- Default.rpcClient(new URI("http://localhost:9000/api")).init()
@@ -267,7 +267,7 @@ trait Api {
 }
 
 // Create server implementation of the remote API
-val api = new Api {
+val service = new Api {
   def hello(some: String, n: Int): Task[String] =
     ZIO.succeed(s"Hello $some $n!")
 }
@@ -279,7 +279,7 @@ Unsafe.unsafe { implicit unsafe =>
   ZioSystem.defaultRuntime.unsafe.run(
     for {
       // Initialize JSON-RPC HTTP & WebSocket server listening on port 9000 for requests to '/api'
-      server <- Default.rpcServerCustom(effectSystem, 9000, "/api").bind(api).init()
+      server <- Default.rpcServerCustom(effectSystem, 9000, "/api").bind(service).init()
 
       // Initialize JSON-RPC HTTP client for sending POST requests to 'http://localhost:9000/api'
       client <- Default.rpcClientCustom(effectSystem, new URI("http://localhost:9000/api")).init()
@@ -335,7 +335,7 @@ trait Api {
 }
 
 // Create server implementation of the remote API
-val api = new Api {
+val service = new Api {
   def hello(some: String, n: Int): Future[Record] =
     Future(Record(List("Hello", some, n.toString)))
 }
@@ -358,7 +358,7 @@ val clientTransport = Default.clientTransport(new URI("http://localhost:9000/api
 
 Await.ready(for {
   // Initialize custom JSON-RPC HTTP & WebSocket server
-  server <- RpcServer.transport(serverTransport).rpcProtocol(serverRpcProtocol).bind(api).init()
+  server <- RpcServer.transport(serverTransport).rpcProtocol(serverRpcProtocol).bind(service).init()
 
   // Initialize custom JSON-RPC HTTP client
   client <- RpcClient.transport(clientTransport).rpcProtocol(clientRpcProtocol).init()
@@ -401,7 +401,7 @@ trait Api {
 }
 
 // Create server implementation of the remote API
-val api = new Api {
+val service = new Api {
   def hello(some: String, n: Int): Future[String] =
     Future(s"Hello $some $n!")
 }
@@ -424,7 +424,7 @@ val clientTransport = Default.clientTransport(new URI("http://localhost:9000/api
 
 Await.ready(for {
   // Initialize custom JSON-RPC HTTP & WebSocket server
-  server <- RpcServer.transport(serverTransport).rpcProtocol(serverRpcProtocol).bind(api).init()
+  server <- RpcServer.transport(serverTransport).rpcProtocol(serverRpcProtocol).bind(service).init()
 
   // Initialize custom JSON-RPC HTTP client
   client <- RpcClient.transport(clientTransport).rpcProtocol(clientRpcProtocol).init()
@@ -467,7 +467,7 @@ trait Api {
 }
 
 // Create server implementation of the remote API
-val api = new Api {
+val service = new Api {
   def hello(some: String, n: Int): Future[String] =
     Future(s"Hello $some $n!")
 }
@@ -476,7 +476,7 @@ val api = new Api {
 val endpointTransport = GenericEndpoint.context[Unit].effectSystem(Default.effectSystem)
 
 // Setup JSON-RPC endpoint and bind the server API implementation to it
-val endpoint = RpcEndpoint.transport(endpointTransport).rpcProtocol(Default.rpcProtocol).bind(api)
+val endpoint = RpcEndpoint.transport(endpointTransport).rpcProtocol(Default.rpcProtocol).bind(service)
 
 // Define a function for processing JSON-RPC requests via the generic RPC endpoint.
 // This function should be called from request handling logic of an unsupported server.
@@ -546,7 +546,7 @@ trait Api {
 }
 
 // Create server implementation of the remote API
-val api = new Api {
+val service = new Api {
   override def hello(some: String, n: Int): Future[String] =
     Future(s"Hello $some $n!")
 }
@@ -556,7 +556,7 @@ val clientTransport = UrlClient(Default.effectSystem, new URI("http://localhost:
 
 Await.ready(for {
   // Initialize JSON-RPC HTTP & WebSocket server listening on port 80 for requests to '/api'
-  server <- Default.rpcServer(9000, "/api").bind(api).init()
+  server <- Default.rpcServer(9000, "/api").bind(service).init()
 
   // Initialize custom JSON-RPC HTTP client
   client <- RpcClient.transport(clientTransport).rpcProtocol(Default.rpcProtocol).init()
@@ -599,7 +599,7 @@ trait Api {
 }
 
 // Create server implementation of the remote API
-val api = new Api {
+val service = new Api {
   override def hello(some: String, n: Int): Future[String] =
     Future(s"Hello $some $n!")
 }
@@ -609,7 +609,7 @@ val serverTransport = VertxServer(Default.effectSystem, 9000, "/api")
 
 Await.ready(for {
   // Initialize custom JSON-RPC HTTP & WebSocket server
-  server <- RpcServer.transport(serverTransport).rpcProtocol(Default.rpcProtocol).bind(api).init()
+  server <- RpcServer.transport(serverTransport).rpcProtocol(Default.rpcProtocol).bind(service).init()
 
   // Initialize JSON-RPC HTTP client for sending POST requests to 'http://localhost:9000/api'
   client <- Default.rpcClient(new URI("http://localhost:9000/api")).init()
@@ -652,14 +652,14 @@ trait Api {
 }
 
 // Create server implementation of the remote API
-val api = new Api {
+val service = new Api {
   def hello(some: String, n: Int): Future[String] =
     Future(s"Hello $some $n!")
 }
 
 
 // Setup JSON-RPC HTTP endpoint with Undertow adapter
-val endpoint = Default.rpcEndpoint().bind(api)
+val endpoint = Default.rpcEndpoint().bind(service)
 
 // Create Undertow HTTP server listening on port 9000
 val server = Undertow.builder().addHttpListener(9000, "0.0.0.0")
@@ -714,14 +714,14 @@ trait Api {
 }
 
 // Create server implementation of the remote API
-val api = new Api {
+val service = new Api {
   def hello(some: String, n: Int): Future[String] =
     Future(s"Hello $some $n!")
 }
 
 Await.ready(for {
   // Initialize JSON-RPC HTTP & WebSocket server listening on port 9000 for requests to '/api'
-  server <- Default.rpcServer(9000, "/api").bind(api).init()
+  server <- Default.rpcServer(9000, "/api").bind(service).init()
 
   // Initialize JSON-RPC WebSocket client for sending requests to 'ws://localhost:9000/api'
   client <- Default.rpcClient(new URI("ws://localhost:9000/api")).init()
@@ -766,7 +766,7 @@ trait Api {
 }
 
 // Create server implementation of the remote API
-val api = new Api {
+val service = new Api {
   def hello(some: String, n: Int): Future[String] =
     Future(s"Hello $some $n!")
 }
@@ -782,7 +782,7 @@ Option(System.getenv("AMQP_BROKER_URL")).map(new URI(_)).map { url =>
 
   Await.ready(for {
     // Initialize custom JSON-RPC AMQP server
-    server <- RpcServer.transport(serverTransport).rpcProtocol(Default.rpcProtocol).bind(api).init()
+    server <- RpcServer.transport(serverTransport).rpcProtocol(Default.rpcProtocol).bind(service).init()
 
     // Initialize custom JSON-RPC AMQP client
     client <- RpcClient.transport(clientTransport).rpcProtocol(Default.rpcProtocol).init()
@@ -855,14 +855,14 @@ trait Api {
 }
 
 // Create server implementation of the remote API
-val api = new Api {
+val service = new Api {
   def hello(some: String, record: Record): Future[Record] =
     Future(record.copy(value = s"Hello $some!"))
 }
 
 Await.ready(for {
   // Initialize JSON-RPC HTTP & WebSocket server listening on port 9000 for requests to '/api'
-  server <- Default.rpcServer(9000, "/api").bind(api).init()
+  server <- Default.rpcServer(9000, "/api").bind(service).init()
 
   // Initialize JSON-RPC HTTP client for sending POST requests to 'http://localhost:9000/api'
   client <- Default.rpcClient(new URI("http://localhost:9000/api")).init()
@@ -904,14 +904,14 @@ trait Api {
 }
 
 // Create server implementation of the remote API
-class ApiImpl {
+class Service {
   def hello(some: String, n: Int): String =
     s"Hello $some $n!"
 }
-val api = new ApiImpl
+val service = new Service
 
 // Initialize JSON-RPC HTTP & WebSocket server listening on port 9000 for requests to '/api'
-val server = Default.rpcServerCustom(IdentitySystem(), 9000, "/api").bind(api).init()
+val server = Default.rpcServerCustom(IdentitySystem(), 9000, "/api").bind(service).init()
 
 // Initialize JSON-RPC HTTP client sending POST requests to 'http://localhost:9000/api'
 val client = Default.rpcClientCustom(IdentitySystem(), new URI("http://localhost:9000/api")).init()
@@ -966,7 +966,7 @@ trait Api {
 }
 
 // Create server implementation of the remote API
-class ApiImpl {
+class Service {
   def hello(some: String, n: Int): String =
     s"Hello $some $n!"
 
@@ -976,7 +976,7 @@ class ApiImpl {
   def hidden(): String =
     ""
 }
-val api = new ApiImpl
+val service = new Service
 
 // Customize served API to RPC function name mapping
 val mapName = (name: String) => name match {
@@ -991,7 +991,7 @@ val mapName = (name: String) => name match {
 }
 
 // Initialize JSON-RPC HTTP & WebSocket server listening on port 9000 for requests to '/api'
-val server = Default.rpcServerCustom(IdentitySystem(), 9000, "/api").bind(api, mapName).init()
+val server = Default.rpcServerCustom(IdentitySystem(), 9000, "/api").bind(service, mapName).init()
 
 // Initialize JSON-RPC HTTP client sending POST requests to 'http://localhost:9000/api'
 val client = Default.rpcClientCustom(IdentitySystem(), new URI("http://localhost:9000/api")).init()
@@ -1049,7 +1049,7 @@ trait Api {
 }
 
 // Create server implementation of the remote API
-class ApiImpl {
+class Service {
   // Accept HTTP request context provided by the server message transport plugin
   def hello(message: String)(implicit httpRequest: ServerContext): String =
     httpRequest.authorization("Bearer") match {
@@ -1057,10 +1057,10 @@ class ApiImpl {
       case _ => throw new IllegalAccessException("Authentication failed")
     }
 }
-val api = new ApiImpl
+val service = new Service
 
 // Initialize JSON-RPC HTTP & WebSocket server listening on port 9000 for requests to '/api'
-val server = Default.rpcServerCustom(IdentitySystem(), 9000, "/api").bind(api).init()
+val server = Default.rpcServerCustom(IdentitySystem(), 9000, "/api").bind(service).init()
 
 // Initialize JSON-RPC HTTP client sending POST requests to 'http://localhost:9000/api'
 val client = Default.rpcClientCustom(IdentitySystem(), new URI("http://localhost:9000/api")).init()
@@ -1130,7 +1130,7 @@ trait Api {
 }
 
 // Create server implementation of the remote API
-class ApiImpl {
+class Service {
   // Accept HTTP request context provided by the server message transport plugin
   def hello(message: String)(implicit httpRequest: ServerContext): String =
     Seq(
@@ -1139,10 +1139,10 @@ class ApiImpl {
       httpRequest.header("X-Test")
     ).flatten.mkString(",")
 }
-val api = new ApiImpl
+val service = new Service
 
 // Initialize JSON-RPC HTTP & WebSocket server listening on port 9000 for requests to '/api'
-val server = Default.rpcServerCustom(IdentitySystem(), 9000, "/api").bind(api).init()
+val server = Default.rpcServerCustom(IdentitySystem(), 9000, "/api").bind(service).init()
 
 // Initialize JSON-RPC HTTP client sending POST requests to 'http://localhost:9000/api'
 val client = Default.rpcClientCustom(IdentitySystem(), new URI("http://localhost:9000/api")).init()
@@ -1197,17 +1197,17 @@ trait Api {
 }
 
 // Create server implementation of the remote API
-class ApiImpl {
+class Service {
   // Return HTTP response context consumed by the server message transport plugin
   def hello(message: String): RpcResult[String, ServerContext] = RpcResult(
     message,
     HttpContext().headers("X-Test" -> "value", "Cache-Control" -> "no-cache").statusCode(200)
   )
 }
-val api = new ApiImpl
+val service = new Service
 
 // Initialize JSON-RPC HTTP & WebSocket server listening on port 9000 for requests to '/api'
-val server = Default.rpcServerCustom(IdentitySystem(), 9000, "/api").bind(api).init()
+val server = Default.rpcServerCustom(IdentitySystem(), 9000, "/api").bind(service).init()
 
 // Initialize JSON-RPC HTTP client sending POST requests to 'http://localhost:9000/api'
 val client = Default.rpcClientCustom(IdentitySystem(), new URI("http://localhost:9000/api")).init()
@@ -1257,7 +1257,7 @@ trait Api {
 }
 
 // Create server implementation of the remote API
-val api = new Api {
+val service = new Api {
   def hello(some: String, n: Int): Future[String] =
     Future.failed(new IllegalArgumentException("SQL error"))
 }
@@ -1276,7 +1276,7 @@ val clientTransport = Default.clientTransport(new URI("http://localhost:9000/api
 
 Await.ready(for {
   // Initialize JSON-RPC HTTP & WebSocket server listening on port 9000 for requests to '/api'
-  server <- Default.rpcServer(9000, "/api").bind(api).init()
+  server <- Default.rpcServer(9000, "/api").bind(service).init()
 
   
   // Initialize custom JSON-RPC HTTP client
@@ -1322,7 +1322,7 @@ trait Api {
 }
 
 // Create server implementation of the remote API
-val api = new Api {
+val service = new Api {
   def hello(some: String, n: Int): Future[String] =
     if (n >= 0) {
       Future.failed(new SQLException("Invalid request"))
@@ -1342,7 +1342,7 @@ val serverTransport = Default.serverTransport(9000, "/api")
 
 Await.ready(for {
   // Initialize custom JSON-RPC HTTP & WebSocket server
-  server <- RpcServer.transport(serverTransport).rpcProtocol(rpcProtocol).bind(api).init()
+  server <- RpcServer.transport(serverTransport).rpcProtocol(rpcProtocol).bind(service).init()
 
   // Initialize JSON-RPC HTTP client for sending POST requests to 'http://localhost:9000/api'
   client <- Default.rpcClient(new URI("http://localhost:9000/api")).init()
@@ -1390,7 +1390,7 @@ trait Api {
 }
 
 // Create server implementation of the remote API
-val api = new Api {
+val service = new Api {
   def hello(some: String, n: Int): Future[String] =
     Future.failed(new SQLException("Invalid request"))
 }
@@ -1403,7 +1403,7 @@ val mapException = (error: Throwable) => error match {
 
 Await.ready(for {
   // Initialize custom JSON-RPC HTTP & WebSocket server listening on port 9000 for requests to '/api'
-  server <- Default.rpcServer(9000, "/api", mapException = mapException).bind(api).init()
+  server <- Default.rpcServer(9000, "/api", mapException = mapException).bind(service).init()
 
   // Initialize JSON-RPC HTTP client for sending POST requests to 'http://localhost:9000/api'
   client <- Default.rpcClient(new URI("http://localhost:9000/api")).init()
@@ -1445,7 +1445,7 @@ import scala.concurrent.{Await, Future}
 
 Await.ready(for {
   // Initialize JSON-RPC HTTP & WebSocket server with API discovery listening on port 9000 for POST requests to '/api'
-  server <- Default.rpcServer(9000, "/api").discovery(true).bind(api).init()
+  server <- Default.rpcServer(9000, "/api").discovery(true).bind(service).init()
 
   // Initialize JSON-RPC HTTP client for sending POST requests to 'http://localhost:9000/api'
   client <- Default.rpcClient(new URI("http://localhost:9000/api")).init()
@@ -1491,7 +1491,7 @@ trait Api {
 }
 
 // Create server implementation of the remote API
-class ApiImpl {
+class Service {
   def hello(some: Json, n: Int): Json =
     if (some.isString) {
       val value = some.as[String].toTry.get
@@ -1500,8 +1500,7 @@ class ApiImpl {
       Json.fromValues(Seq(some, Json.fromInt(n)))
     }
 }
-val api = new ApiImpl
-
+val service = new Service
 
 // Define client view of a remote API
 trait Api {
@@ -1509,7 +1508,7 @@ trait Api {
 }
 
 // Create server implementation of the remote API
-class ApiImpl {
+class Service {
   def hello(some: Json, n: Int): Future[Json] =
     if (some.isString) {
       val value = some.as[String].toTry.get
@@ -1518,11 +1517,11 @@ class ApiImpl {
       Future(Json.fromValues(Seq(some, Json.fromInt(n))))
     }
 }
-val api = new ApiImpl
+val service = new Service
 
 Await.ready(for {
   // Initialize JSON-RPC HTTP client for sending POST requests to 'http://localhost:9000/api'
-  server <- Default.rpcServer(9000, "/api").bind(api).init()
+  server <- Default.rpcServer(9000, "/api").bind(service).init()
 
   // Initialize JSON-RPC HTTP client for sending POST requests to 'http://localhost:9000/api'
   client <- Default.rpcClient(new URI("http://localhost:9000/api")).init()
@@ -1568,14 +1567,14 @@ trait Api {
 }
 
 // Create server implementation of the remote API
-val api = new Api {
+val service = new Api {
   def hello(some: String, n: Int): Future[String] =
     Future(s"Hello $some $n!")
 }
 
 Await.ready(for {
   // Initialize JSON-RPC HTTP & WebSocket server listening on port 9000 for requests to '/api'
-  server <- Default.rpcServer(9000, "/api").bind(api).init()
+  server <- Default.rpcServer(9000, "/api").bind(service).init()
 
   // Initialize JSON-RPC HTTP client for sending POST requests to 'http://localhost:9000/api'
   client <- Default.rpcClient(new URI("http://localhost:9000/api")).init()
@@ -1616,7 +1615,7 @@ trait Api {
 }
 
 // Create server implementation of the remote API
-val api = new Api {
+val service = new Api {
   def hello(some: String, n: Int): Future[String] =
     Future(s"Hello $some $n!")
 }
@@ -1629,7 +1628,7 @@ val clientTransport = Default.clientTransport(new URI("http://localhost:9000/api
 
 Await.ready(for {
   // Initialize JSON-RPC HTTP & WebSocket server with API discovery listening on port 9000 for POST requests to '/api'
-  server <- Default.rpcServer(9000, "/api").discovery(true).bind(api).init()
+  server <- Default.rpcServer(9000, "/api").discovery(true).bind(service).init()
 
   // Initialize custom JSON-RPC HTTP client
   client <- RpcClient.transport(clientTransport).rpcProtocol(rpcProtocol).init()
@@ -1672,13 +1671,13 @@ trait Api {
 }
 
 // Create server implementation of the remote API
-val api = new Api {
+val service = new Api {
   def hello(some: String, n: Int): Future[String] =
     Future(s"Hello $some $n!")
 }
 
 // Create passive JSON-RPC HTTP & WebSocket server on port 9000 for POST requests to '/api'
-val server = Default.rpcServer(9000, "/api").bind(api)
+val server = Default.rpcServer(9000, "/api").bind(service)
 
 // Create default value for request metadata of the type defined by the RPC server
 val defaultRequestContext: Default.ServerContext = HttpContext()

@@ -8,6 +8,7 @@ import scala.concurrent.duration.Duration
 import scala.concurrent.{Await, Future}
 
 private[examples] object DynamicPayload {
+
   @scala.annotation.nowarn
   def main(arguments: Array[String]): Unit = {
 
@@ -17,7 +18,7 @@ private[examples] object DynamicPayload {
     }
 
     // Create server implementation of the remote API
-    class ApiImpl {
+    class Service {
       def hello(some: Json, n: Int): Future[Json] =
         if (some.isString) {
           val value = some.as[String].toTry.get
@@ -26,11 +27,11 @@ private[examples] object DynamicPayload {
           Future(Json.fromValues(Seq(some, Json.fromInt(n))))
         }
     }
-    val api = new ApiImpl
+    val service = new Service
 
     Await.ready(for {
       // Initialize JSON-RPC HTTP client for sending POST requests to 'http://localhost:9000/api'
-      server <- Default.rpcServer(9000, "/api").bind(api).init()
+      server <- Default.rpcServer(9000, "/api").bind(service).init()
 
       // Initialize JSON-RPC HTTP client for sending POST requests to 'http://localhost:9000/api'
       client <- Default.rpcClient(new URI("http://localhost:9000/api")).init()

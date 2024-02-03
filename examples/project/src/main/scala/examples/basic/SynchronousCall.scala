@@ -6,6 +6,7 @@ import automorph.system.IdentitySystem
 import java.net.URI
 
 private[examples] object SynchronousCall {
+
   @scala.annotation.nowarn
   def main(arguments: Array[String]): Unit = {
 
@@ -15,13 +16,13 @@ private[examples] object SynchronousCall {
     }
 
     // Create server implementation of the remote API
-    val api = new Api {
+    val service = new Api {
       def hello(some: String, n: Int): String =
         s"Hello $some $n!"
     }
 
     // Initialize JSON-RPC HTTP & WebSocket server listening on port 9000 for POST requests to '/api'
-    val server = Default.rpcServerCustom(IdentitySystem(), 9000, "/api").bind(api).init()
+    val server = Default.rpcServerCustom(IdentitySystem(), 9000, "/api").bind(service).init()
 
     // Initialize JSON-RPC HTTP client for sending POST requests to 'http://localhost:9000/api'
     val client = Default.rpcClientCustom(IdentitySystem(), new URI("http://localhost:9000/api")).init()

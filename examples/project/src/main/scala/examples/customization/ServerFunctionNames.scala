@@ -6,6 +6,7 @@ import java.net.URI
 import scala.util.Try
 
 private[examples] object ServerFunctionNames {
+
   @scala.annotation.nowarn
   def main(arguments: Array[String]): Unit = {
 
@@ -27,7 +28,7 @@ private[examples] object ServerFunctionNames {
       def hidden(): String =
         ""
     }
-    val api = new ApiImpl
+    val service = new ApiImpl
 
     // Customize served API to RPC function name mapping
     val mapName = (name: String) => name match {
@@ -42,7 +43,7 @@ private[examples] object ServerFunctionNames {
     }
 
     // Initialize JSON-RPC HTTP & WebSocket server listening on port 9000 for requests to '/api'
-    val server = Default.rpcServerCustom(IdentitySystem(), 9000, "/api").bind(api, mapName).init()
+    val server = Default.rpcServerCustom(IdentitySystem(), 9000, "/api").bind(service, mapName).init()
 
     // Initialize JSON-RPC HTTP client for sending POST requests to 'http://localhost:9000/api'
     val client = Default.rpcClientCustom(IdentitySystem(), new URI("http://localhost:9000/api")).init()

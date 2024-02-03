@@ -11,6 +11,7 @@ import scala.concurrent.duration.Duration
 import scala.concurrent.{Await, Future}
 
 private[examples] object Quickstart {
+
   @scala.annotation.nowarn
   def main(arguments: Array[String]): Unit = {
 
@@ -20,17 +21,17 @@ private[examples] object Quickstart {
     }
 
     // Create server implementation of the remote API
-    class ApiImpl {
+    class Service {
       def hello(some: String, n: Int): Future[String] =
         Future(s"Hello $some $n!")
     }
-    val api = new ApiImpl
+    val service = new Service
 
     // Configure JSON-RPC HTTP & WebSocket server to listen on port 9000 for requests to '/api'
     val server = Default.rpcServer(9000, "/api")
 
     // Expose the server API implementation to be called remotely
-    val apiServer = server.bind(api)
+    val apiServer = server.bind(service)
 
     // Configure JSON-RPC HTTP client to send POST requests to 'http://localhost:9000/api'
     val client = Default.rpcClient(new URI("http://localhost:9000/api"))
@@ -59,5 +60,6 @@ private[examples] object Quickstart {
       // Stop the JSON-RPC server
       _ <- activeServer.close()
     } yield (), Duration.Inf)
+    ()
   }
 }

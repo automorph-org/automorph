@@ -28,7 +28,7 @@ private[examples] object MessageCodec {
     }
 
     // Create server implementation of the remote API
-    val api = new Api {
+    val service = new Api {
       def hello(some: String, n: Int): Future[Record] =
         Future(Record(List("Hello", some, n.toString)))
     }
@@ -51,7 +51,7 @@ private[examples] object MessageCodec {
 
     Await.ready(for {
       // Initialize custom JSON-RPC HTTP & WebSocket server
-      server <- RpcServer.transport(serverTransport).rpcProtocol(serverRpcProtocol).bind(api).init()
+      server <- RpcServer.transport(serverTransport).rpcProtocol(serverRpcProtocol).bind(service).init()
 
       // Initialize custom JSON-RPC HTTP client
       client <- RpcClient.transport(clientTransport).rpcProtocol(clientRpcProtocol).init()

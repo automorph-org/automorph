@@ -7,6 +7,7 @@ import scala.concurrent.duration.Duration
 import scala.concurrent.{Await, Future}
 
 private[examples] object MultipleApis {
+
   @scala.annotation.nowarn
   def main(arguments: Array[String]): Unit = {
 
@@ -21,20 +22,20 @@ private[examples] object MultipleApis {
     }
 
     // Create server implementation of the first remote API
-    val api1 = new Api1 {
+    val service1 = new Api1 {
       def hello(some: String, n: Int): Future[String] =
         Future(s"Hello $some $n!")
     }
 
     // Create server implementation of the second remote API
-    val api2 = new Api2 {
+    val service2 = new Api2 {
       def hi(): Future[String] =
         Future("Hola!")
     }
 
     Await.ready(for {
       // Initialize JSON-RPC HTTP & WebSocket server listening on port 9000 for POST requests to '/api'
-      server <- Default.rpcServer(9000, "/api").bind(api1).bind(api2).init()
+      server <- Default.rpcServer(9000, "/api").bind(service1).bind(service2).init()
 
       // Initialize JSON-RPC HTTP client for sending POST requests to 'http://localhost:9000/api'
       client <- Default.rpcClient(new URI("http://localhost:9000/api")).init()

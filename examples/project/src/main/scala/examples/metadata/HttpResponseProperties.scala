@@ -7,6 +7,7 @@ import automorph.{RpcResult, Default}
 import java.net.URI
 
 private[examples] object HttpResponseProperties {
+
   @scala.annotation.nowarn
   def main(arguments: Array[String]): Unit = {
 
@@ -17,7 +18,7 @@ private[examples] object HttpResponseProperties {
     }
 
     // Create server implementation of the remote API
-    class ApiImpl {
+    class Service {
 
       // Return HTTP response context consumed by the server message transport plugin
       def hello(message: String): RpcResult[String, ServerContext] = RpcResult(
@@ -25,10 +26,10 @@ private[examples] object HttpResponseProperties {
         HttpContext().headers("X-Test" -> "value", "Cache-Control" -> "no-cache").statusCode(200)
       )
     }
-    val api = new ApiImpl
+    val service = new Service
 
     // Initialize JSON-RPC HTTP & WebSocket server listening on port 9000 for requests to '/api'
-    val server = Default.rpcServerCustom(IdentitySystem(), 9000, "/api").bind(api).init()
+    val server = Default.rpcServerCustom(IdentitySystem(), 9000, "/api").bind(service).init()
 
     // Initialize JSON-RPC HTTP client for sending POST requests to 'http://localhost:9000/api'
     val client = Default.rpcClientCustom(IdentitySystem(), new URI("http://localhost:9000/api")).init()

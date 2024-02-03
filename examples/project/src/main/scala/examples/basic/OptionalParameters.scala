@@ -7,6 +7,7 @@ import scala.concurrent.duration.Duration
 import scala.concurrent.{Await, Future}
 
 private[examples] object OptionalParameters {
+
   @scala.annotation.nowarn
   def main(arguments: Array[String]): Unit = {
 
@@ -16,18 +17,18 @@ private[examples] object OptionalParameters {
     }
 
     // Create server implementation of the remote API
-    class ApiImpl {
+    class Service {
       def hello(some: String, n: Option[Int]): Future[String] =
         Future(s"Hello $some ${n.getOrElse(0)}!")
 
       def hi(some: Option[String])(n: Int): Future[String] =
         Future(s"Hi ${some.getOrElse("all")} $n!")
     }
-    val api = new ApiImpl
+    val service = new Service
 
     Await.ready(for {
       // Initialize JSON-RPC HTTP & WebSocket server listening on port 9000 for requests to '/api'
-      server <- Default.rpcServer(9000, "/api").bind(api).init()
+      server <- Default.rpcServer(9000, "/api").bind(service).init()
 
       // Initialize JSON-RPC HTTP client for sending POST requests to 'http://localhost:9000/api'
       client <- Default.rpcClient(new URI("http://localhost:9000/api")).init()

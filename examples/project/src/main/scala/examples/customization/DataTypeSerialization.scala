@@ -9,6 +9,7 @@ import scala.concurrent.duration.Duration
 import scala.concurrent.{Await, Future}
 
 private[examples] object DataTypeSerialization {
+
   @scala.annotation.nowarn
   def main(arguments: Array[String]): Unit = {
 
@@ -41,14 +42,14 @@ private[examples] object DataTypeSerialization {
     }
 
     // Create server implementation of the remote API
-    val api = new Api {
+    val service = new Api {
       def hello(some: String, record: Record): Future[Record] =
         Future(record.copy(value = s"Hello $some!"))
     }
 
     Await.ready(for {
       // Initialize JSON-RPC HTTP & WebSocket server listening on port 9000 for requests to '/api'
-      server <- Default.rpcServer(9000, "/api").bind(api).init()
+      server <- Default.rpcServer(9000, "/api").bind(service).init()
 
       // Initialize JSON-RPC HTTP client for sending POST requests to 'http://localhost:9000/api'
       client <- Default.rpcClient(new URI("http://localhost:9000/api")).init()
