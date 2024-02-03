@@ -9,15 +9,15 @@ sidebar_position: 3
 **Automorph** provides the following building blocks to assemble either standalone RPC clients and servers or integrate
 with existing systems by freely combining its various plugins:
 
-* [RPC client](https://automorph.org/api/automorph/RpcClient.html)
-* [RPC server](https://automorph.org/api/automorph/RpcServer.html)
-* [RPC endpoint](https://automorph.org/api/automorph/RpcEndpoint.html)
-* [RPC protocol](https://automorph.org/api/automorph/spi/RpcProtocol.html)
-* [Effect system](https://automorph.org/api/automorph/spi/EffectSystem.html)
-* [Message codec](https://automorph.org/api/automorph/spi/MessageCodec.html)
-* [Client transport](https://automorph.org/api/automorph/spi/ClientTransport.html)
-* [Server transport](https://automorph.org/api/automorph/spi/ServerTransport.html)
-* [Endpoint transport](https://automorph.org/api/automorph/spi/EndpointTransport.html)
+- [RPC client](https://automorph.org/api/automorph/RpcClient.html)
+- [RPC server](https://automorph.org/api/automorph/RpcServer.html)
+- [RPC endpoint](https://automorph.org/api/automorph/RpcEndpoint.html)
+- [RPC protocol](https://automorph.org/api/automorph/spi/RpcProtocol.html)
+- [Effect system](https://automorph.org/api/automorph/spi/EffectSystem.html)
+- [Message codec](https://automorph.org/api/automorph/spi/MessageCodec.html)
+- [Client transport](https://automorph.org/api/automorph/spi/ClientTransport.html)
+- [Server transport](https://automorph.org/api/automorph/spi/ServerTransport.html)
+- [Endpoint transport](https://automorph.org/api/automorph/spi/EndpointTransport.html)
 
 
 ### RPC client & server
@@ -40,12 +40,12 @@ Remote APIs can be invoked statically using transparent proxy instances automati
 
 **Depends on**
 
-* [Client transport](https://automorph.org/api/automorph/spi/ClientTransport.html)
-* [RPC protocol](https://automorph.org/api/automorph/spi/RpcProtocol.html)
+- [Client transport](https://automorph.org/api/automorph/spi/ClientTransport.html)
+- [RPC protocol](https://automorph.org/api/automorph/spi/RpcProtocol.html)
 
 **Used by**
 
-* Applications
+- Applications
 
 
 ### [RPC server](https://automorph.org/api/automorph/RpcServer.html)
@@ -57,12 +57,12 @@ Automatically derives remote API bindings for existing API instances.
 
 **Depends on**
 
-* [Server transport](https://automorph.org/api/automorph/spi/ServerTransport.html)
-* [RPC protocol](https://automorph.org/api/automorph/spi/RpcProtocol.html)
+- [Server transport](https://automorph.org/api/automorph/spi/ServerTransport.html)
+- [RPC protocol](https://automorph.org/api/automorph/spi/RpcProtocol.html)
 
 **Used by**
 
-* Applications
+- Applications
 
 
 ### [RPC endpoint](https://automorph.org/api/automorph/RpcEndpoint.html)
@@ -74,12 +74,12 @@ Automatically derives remote API bindings for existing API instances.
 
 **Depends on**
 
-* [Endpoint transport](https://automorph.org/api/automorph/spi/EndpointTransport.html)
-* [RPC protocol](https://automorph.org/api/automorph/spi/RpcProtocol.html)
+- [Endpoint transport](https://automorph.org/api/automorph/spi/EndpointTransport.html)
+- [RPC protocol](https://automorph.org/api/automorph/spi/RpcProtocol.html)
 
 **Used by**
 
-* Applications
+- Applications
 
 
 ## Plugins
@@ -92,13 +92,13 @@ The underlying RPC protocol must support remote function invocation.
 
 **Depends on**
 
-* [Message codec](https://automorph.org/api/automorph/spi/MessageCodec.html)
+- [Message codec](https://automorph.org/api/automorph/spi/MessageCodec.html)
 
 **Used by**
 
-* [Client](https://automorph.org/api/automorph/RpcClient.html)
-* [Server](https://automorph.org/api/automorph/RpcServer.html)
-* [Endpoint](https://automorph.org/api/automorph/RpcEndpoint.html)
+- [Client](https://automorph.org/api/automorph/RpcClient.html)
+- [Server](https://automorph.org/api/automorph/RpcServer.html)
+- [Endpoint](https://automorph.org/api/automorph/RpcEndpoint.html)
 
 
 ### [Effect system](https://automorph.org/api/automorph/spi/EffectSystem.html)
@@ -109,9 +109,9 @@ The underlying runtime must support monadic composition of effectful values.
 
 **Used by**
 
-* [Client transport](https://automorph.org/api/automorph/spi/ClientTransport.html)
-* [Server transport](https://automorph.org/api/automorph/spi/ServerTransport.html)
-* [Endpoint transport](https://automorph.org/api/automorph/spi/EndpointTransport.html)
+- [Client transport](https://automorph.org/api/automorph/spi/ClientTransport.html)
+- [Server transport](https://automorph.org/api/automorph/spi/ServerTransport.html)
+- [Endpoint transport](https://automorph.org/api/automorph/spi/EndpointTransport.html)
 
 ### [Message codec](https://automorph.org/api/automorph/spi/MessageCodec.html)
 
@@ -121,7 +121,7 @@ The underlying data format must support storing arbitrarily nested structures of
 
 **Used by**
 
-* [RPC protocol](https://automorph.org/api/automorph/spi/RpcProtocol.html)
+- [RPC protocol](https://automorph.org/api/automorph/spi/RpcProtocol.html)
 
 The underlying transport protocol must support request/response messaging pattern.
 
@@ -134,11 +134,11 @@ Passively sends requests and receives responses to and from a remote endpoint us
 
 **Depends on**
 
-* [Effect system](https://automorph.org/api/automorph/spi/EffectSystem.html)
+- [Effect system](https://automorph.org/api/automorph/spi/EffectSystem.html)
 
 **Used by**
 
-* [Client](https://automorph.org/api/automorph/RpcClientTransport.html)
+- [Client](https://automorph.org/api/automorph/RpcClientTransport.html)
 
 
 ### [Server transport](https://automorph.org/api/automorph/spi/ServerTransport.html)
@@ -149,11 +149,11 @@ Actively receives requests to be processed by the RPC handler and sends response
 
 **Depends on**
 
-* [Effect system](https://automorph.org/api/automorph/spi/EffectSystem.html)
+- [Effect system](https://automorph.org/api/automorph/spi/EffectSystem.html)
 
 **Used by**
 
-* Applications
+- Applications
 
 
 ### [Endpoint transport](https://automorph.org/api/automorph/spi/EndpointTransport.html)
@@ -164,8 +164,8 @@ Passively parses requests to be processed by the RPC handler and creates respons
 
 **Depends on**
 
-* [Effect system](https://automorph.org/api/automorph/spi/EffectSystem.html)
+- [Effect system](https://automorph.org/api/automorph/spi/EffectSystem.html)
 
 **Used by**
 
-* Applications
+- Applications

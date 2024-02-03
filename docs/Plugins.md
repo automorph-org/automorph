@@ -15,15 +15,15 @@ supplied to the factory methods of [RPC client](https://automorph.org/api/automo
 
 *Automorph* defines a set of default plugins aiming at a good balance of features, performance and simplicity:
 
-* RPC protocol: [JSON-RPC](https://www.jsonrpc.org/specification)
-* Message format: [JSON](https://www.json.org/)
-* Transport protocol: [HTTP](https://en.wikipedia.org/wiki/HTTP)
-* Synchronous effect: [Identity](https://scala-lang.org/api/3.x/scala/Predef$.html#identity-957)
-* Asynchronous effect: [Future](https://scala-lang.org/api/3.x/scala/concurrent/Future.html)
-* Message codec: [Circe](https://circe.github.io/circe)
-* HTTP & WebSocket client: [JRE HTTP client](
+- RPC protocol: [JSON-RPC](https://www.jsonrpc.org/specification)
+- Message format: [JSON](https://www.json.org/)
+- Transport protocol: [HTTP](https://en.wikipedia.org/wiki/HTTP)
+- Synchronous effect: [Identity](https://scala-lang.org/api/3.x/scala/Predef$.html#identity-957)
+- Asynchronous effect: [Future](https://scala-lang.org/api/3.x/scala/concurrent/Future.html)
+- Message codec: [Circe](https://circe.github.io/circe)
+- HTTP & WebSocket client: [JRE HTTP client](
 https://docs.oracle.com/en/java/javase/11/docs/api/java.net.http/java/net/http/HttpClient.html)
-* HTTP & WebSocket server: [Undertow](https://undertow.io/)
+- HTTP & WebSocket server: [Undertow](https://undertow.io/)
 
 Default plugin set can be obtained by using the
 [automorph-default](https://central.sonatype.com/artifact/org.automorph/automorph-default_3) artifact

@@ -11,22 +11,27 @@ with questions, ideas, features, improvements or fixes.
 
 ## Potential improvements
 
-* Better documentation
-* More transport layer integrations
-* Additional RPC protocol implementations
-* Stricter type checking in API method invocation macros
-* [ScalaJS](https://www.scala-js.org/) support
+- Better documentation
+- More transport layer integrations
+- Additional RPC protocol implementations
+- Stricter type checking in API method invocation macros
+- [ScalaJS](https://www.scala-js.org/) support
 
 
 ## Build requirements
 
-* [JDK](https://openjdk.java.net/) 11+
+- [JDK](https://openjdk.java.net/) 11+
 
 **Note**: Due to the latest Scala 3 compiler defect the build currently does not work on JDK 21. Use `-java-home` SBT option to select an alternative JDK if needed.
 
-### Documentation build
+### Documentation
 
-* [Yarn](https://yarnpkg.com/) 1.22+
+- [Yarn](https://yarnpkg.com/) 1.22+
+
+### Release
+
+- [GitHub CLI](https://cli.github.com/)
+- [Git Extras](https://github.com/tj/git-extras/)
 
 
 ## Testing
