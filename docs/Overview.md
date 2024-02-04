@@ -12,8 +12,8 @@ for calling and serving remote APIs in a few lines of code.
 - Provide efficient **calling** and **serving** of **remote APIs**
 - Ensure there is **no boilerplate** API code and **minimal dependencies** are required
 - Support manipulation of **transport protocol metadata** and **dynamic message payload**
-- Facilitate **smooth integration** by supporting wide range of **existing technology**
-- Allow for easy **customization** and **extension** of library features
+- Facilitate smooth **integration** with various **existing technologies** using **plugins**
+- Allow for easy **configuration** and **customization** of library features
 
 ### Main interface
 
@@ -56,7 +56,6 @@ client.call[String]("hello")("some" -> "world", "n" -> 1)
 - Defines an easily composable set of [default plugins](https://automorph.org/docs/Plugins#default-plugins) and configuration values.
 - Provides optional remote API extensions to access or modify [transport protocol metadata](https://automorph.org/docs/Examples#metadata).
 - Provides RPC protocol message model to create and consume [dynamic message payload](https://automorph.org/docs/Examples#dynamic-payload).
-
 
 
 ## Usage
@@ -129,12 +128,6 @@ The following technical standards are supported by freely combining appropriate
 - [JSON-RPC](https://www.jsonrpc.org/specification) (*Default*)
 - [Web-RPC](https://automorph.org/docs/Web-RPC)
 
-### Transport protocols
-
-- [HTTP](https://en.wikipedia.org/wiki/Hypertext_Transfer_Protocol) (*Default*)
-- [WebSocket](https://en.wikipedia.org/wiki/WebSocket)
-- [AMQP](https://en.wikipedia.org/wiki/Advanced_Message_Queuing_Protocol)
-
 ### Message formats
 
 - [JSON](https://www.json.org) (*Default*)
@@ -142,6 +135,12 @@ The following technical standards are supported by freely combining appropriate
 - [Smile](https://github.com/FasterXML/smile-format-specification)
 - [CBOR](https://cbor.io)
 - [Ion](https://amazon-ion.github.io/ion-docs)
+
+### Transport protocols
+
+- [HTTP](https://en.wikipedia.org/wiki/Hypertext_Transfer_Protocol) (*Default*)
+- [WebSocket](https://en.wikipedia.org/wiki/WebSocket)
+- [AMQP](https://en.wikipedia.org/wiki/Advanced_Message_Queuing_Protocol)
 
 ### Effect handling
 

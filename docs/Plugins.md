@@ -41,6 +41,18 @@ which provides a convenient way to create default plugin instances or combine de
 | [WebRpcProtocol](https://automorph.org/api/automorph/protocol/WebRpcProtocol.html) | [automorph-core](https://central.sonatype.com/artifact/org.automorph/automorph-core_3) | [Web-RPC](Web-RPC) | [OpenAPI](https://www.openapis.org) |
 
 
+## [Message codec](https://automorph.org/api/automorph/spi/MessageCodec.html)
+
+| Class | Artifact | Library | Node Type | Codec |
+| --- | --- | --- | --- | --- |
+| [CirceJsonCodec](https://automorph.org/api/automorph/codec/json/CirceJsonCodec.html) (*Default*) | [automorph-circe](https://central.sonatype.com/artifact/org.automorph/automorph-circe_3) | [Circe](https://circe.github.io/circe) |[Json](https://circe.github.io/circe/api/io/circe/Json.html) | [JSON](https://www.json.org/) |
+| [JacksonJsonCodec](https://automorph.org/api/automorph/codec/JacksonJsonCodec.html) | [automorph-jackson](https://central.sonatype.com/artifact/org.automorph/automorph-jackson_3) | [Jackson](https://github.com/FasterXML/jackson-module-scala) |[JsonNode](https://fasterxml.github.io/jackson-databind/javadoc/2.14/index.html?com/fasterxml/jackson/databind/JsonNode.html) | [JSON](https://www.json.org), [Smile](https://github.com/FasterXML/smile-format-specification), [CBOR](https://cbor.io), [Ion](https://amazon-ion.github.io/ion-docs) |
+| [WeepickleCodec](https://automorph.org/api/automorph/codec/WeepickleCodec.html) | [automorph-weepickle](https://central.sonatype.com/artifact/org.automorph/automorph-weepickle_3) | [weePickle](https://github.com/rallyhealth/weePickle) |[Value](https://javadoc.io/doc/com.rallyhealth/weejson-v1_3/latest/com/rallyhealth/weejson/v1/Value.html) | [JSON](https://www.json.org), [Smile](https://github.com/FasterXML/smile-format-specification), [CBOR](https://cbor.io), [Ion](https://amazon-ion.github.io/ion-docs) |
+| [UpickleJsonCodec](https://automorph.org/api/automorph/codec/json/UpickleJsonCodec.html) | [automorph-upickle](https://central.sonatype.com/artifact/org.automorph/automorph-upickle_3) | [uPickle](https://github.com/com-lihaoyi/upickle) |[Value](http://com-lihaoyi.github.io/upickle/#uJson) | [JSON](https://www.json.org/) |
+| [UpickleMessagePackCodec](https://automorph.org/api/automorph/codec/messagepack/UpickleMessagePackCodec.html) | [automorph-upickle](https://central.sonatype.com/artifact/org.automorph/automorph-upickle_3) | [uPickle](https://github.com/com-lihaoyi/upickle) |[Msg](https://com-lihaoyi.github.io/upickle/#uPack) | [MessagePack](https://msgpack.org) |
+| [ArgonautJsonCodec](https://automorph.org/api/automorph/codec/json/ArgonautJsonCodec.html) | [automorph-argonaut](https://central.sonatype.com/artifact/org.automorph/automorph-argonaut_3) | [Argonaut](http://argonaut.io/doc) |[Json](http://argonaut.io/scaladocs/#argonaut.Json) | [JSON](https://www.json.org/) |
+
+
 ## [Effect system](https://automorph.org/api/automorph/spi/EffectSystem.html)
 
 | Class | Artifact | Library | Effect type |
@@ -52,18 +64,6 @@ which provides a convenient way to create default plugin instances or combine de
 | [MonixSystem](https://automorph.org/api/automorph/system/MonixSystem.html) | [automorph-monix](https://central.sonatype.com/artifact/org.automorph/automorph-monix_3) | [Monix](https://monix.io) | [Task](https://monix.io/api/current/monix/eval/Task.html) |
 | [CatsEffectSystem](https://automorph.org/api/automorph/system/CatsEffectSystem.html) | [automorph-cats-effect](https://central.sonatype.com/artifact/org.automorph/automorph-cats-effect_3) | [Cats Effect](https://typelevel.org/cats-effect) | [IO](https://typelevel.org/cats-effect/api/3.x/cats/effect/IO.html) |
 | [ScalazEffectSystem](https://automorph.org/api/automorph/system/ScalazEffectSystem.html) | [automorph-scalaz-effect](https://central.sonatype.com/artifact/org.automorph/automorph-scalaz-effect_3) | [Scalaz Effect](https://github.com/scalaz) | [IO](https://www.javadoc.io/doc/org.scalaz/scalaz_3/latest/scalaz/effect/IO.html) |
-
-
-## [Message codec](https://automorph.org/api/automorph/spi/MessageCodec.html)
-
-| Class | Artifact | Library | Node Type | Codec |
-| --- | --- | --- | --- | --- |
-| [CirceJsonCodec](https://automorph.org/api/automorph/codec/json/CirceJsonCodec.html) (*Default*) | [automorph-circe](https://central.sonatype.com/artifact/org.automorph/automorph-circe_3) | [Circe](https://circe.github.io/circe) |[Json](https://circe.github.io/circe/api/io/circe/Json.html) | [JSON](https://www.json.org/) |
-| [JacksonJsonCodec](https://automorph.org/api/automorph/codec/JacksonJsonCodec.html) | [automorph-jackson](https://central.sonatype.com/artifact/org.automorph/automorph-jackson_3) | [Jackson](https://github.com/FasterXML/jackson-module-scala) |[JsonNode](https://fasterxml.github.io/jackson-databind/javadoc/2.14/index.html?com/fasterxml/jackson/databind/JsonNode.html) | [JSON](https://www.json.org), [Smile](https://github.com/FasterXML/smile-format-specification), [CBOR](https://cbor.io), [Ion](https://amazon-ion.github.io/ion-docs) |
-| [WeepickleCodec](https://automorph.org/api/automorph/codec/WeepickleCodec.html) | [automorph-weepickle](https://central.sonatype.com/artifact/org.automorph/automorph-weepickle_3) | [weePickle](https://github.com/rallyhealth/weePickle) |[Value](https://javadoc.io/doc/com.rallyhealth/weejson-v1_3/latest/com/rallyhealth/weejson/v1/Value.html) | [JSON](https://www.json.org), [Smile](https://github.com/FasterXML/smile-format-specification), [CBOR](https://cbor.io), [Ion](https://amazon-ion.github.io/ion-docs) |
-| [UpickleJsonCodec](https://automorph.org/api/automorph/codec/json/UpickleJsonCodec.html) | [automorph-upickle](https://central.sonatype.com/artifact/org.automorph/automorph-upickle_3) | [uPickle](https://github.com/com-lihaoyi/upickle) |[Value](http://com-lihaoyi.github.io/upickle/#uJson) | [JSON](https://www.json.org/) |
-| [UpickleMessagePackCodec](https://automorph.org/api/automorph/codec/messagepack/UpickleMessagePackCodec.html) | [automorph-upickle](https://central.sonatype.com/artifact/org.automorph/automorph-upickle_3) | [uPickle](https://github.com/com-lihaoyi/upickle) |[Msg](https://com-lihaoyi.github.io/upickle/#uPack) | [MessagePack](https://msgpack.org) |
-| [ArgonautJsonCodec](https://automorph.org/api/automorph/codec/json/ArgonautJsonCodec.html) | [automorph-argonaut](https://central.sonatype.com/artifact/org.automorph/automorph-argonaut_3) | [Argonaut](http://argonaut.io/doc) |[Json](http://argonaut.io/scaladocs/#argonaut.Json) | [JSON](https://www.json.org/) |
 
 
 ## Transport layer
