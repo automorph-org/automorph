@@ -12,4 +12,7 @@ class LocalIdentityTest extends LocalTest {
 
   override def run[T](effect: Effect[T]): T =
     effect
+
+  override def basic: Boolean =
+    true
 }

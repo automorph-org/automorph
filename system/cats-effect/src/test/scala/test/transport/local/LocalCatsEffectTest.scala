@@ -14,4 +14,7 @@ class LocalCatsEffectTest extends LocalTest {
 
   override def run[T](effect: Effect[T]): T =
     effect.unsafeRunSync()
+
+  override def basic: Boolean =
+    true
 }

@@ -13,4 +13,7 @@ class LocalFutureTest extends LocalTest {
 
   override def run[T](effect: Effect[T]): T =
     await(effect)
+
+  override def basic: Boolean =
+    true
 }

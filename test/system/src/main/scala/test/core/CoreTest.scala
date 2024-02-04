@@ -58,7 +58,7 @@ trait CoreTest extends BaseTest {
     false
 
   "" - {
-    if (BaseTest.testSimple) {
+    if (BaseTest.testSimple || basic) {
       // Simple tests
       fixtures.foreach { fixture =>
         fixture.id - {
