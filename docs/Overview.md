@@ -19,7 +19,7 @@ for calling and serving remote APIs in a few lines of code.
 
 ```scala
 // Expose a server API implementation to be called remotely
-val apiServer = server.bind(api)
+val apiServer = server.bind(service)
 
 // Create a type-safe local proxy for the remote API from an API trait
 val remoteApi = client.bind[Api]
