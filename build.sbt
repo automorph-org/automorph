@@ -148,6 +148,7 @@ lazy val jackson = source(project, "codec/jackson", core, testCodec % Test).sett
   libraryDependencies ++= Seq(
     "com.fasterxml.jackson.module" %% "jackson-module-scala" % jacksonVersion,
     "com.fasterxml.jackson.dataformat" % "jackson-dataformat-cbor" % jacksonVersion,
+    "com.fasterxml.jackson.dataformat" % "jackson-dataformat-ion" % jacksonVersion,
     "com.fasterxml.jackson.dataformat" % "jackson-dataformat-smile" % jacksonVersion
   )
 )
@@ -155,6 +156,7 @@ lazy val weepickle = source(project, "codec/weepickle", core, testCodec % Test).
   libraryDependencies ++= Seq(
     "com.rallyhealth" %% "weepickle-v1" % "1.9.1",
     "com.fasterxml.jackson.dataformat" % "jackson-dataformat-cbor" % jacksonVersion,
+    "com.fasterxml.jackson.dataformat" % "jackson-dataformat-ion" % jacksonVersion,
     "com.fasterxml.jackson.dataformat" % "jackson-dataformat-smile" % jacksonVersion
   )
 )

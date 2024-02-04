@@ -141,6 +141,7 @@ The following technical standards are supported by freely combining appropriate
 - [MessagePack](https://msgpack.org)
 - [Smile](https://github.com/FasterXML/smile-format-specification)
 - [CBOR](https://cbor.io)
+- [Ion](https://amazon-ion.github.io/ion-docs)
 
 ### Effect handling
 

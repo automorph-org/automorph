@@ -9,6 +9,7 @@ import com.fasterxml.jackson.databind.module.SimpleModule
 import com.fasterxml.jackson.databind.node.{NumericNode, ObjectNode}
 import com.fasterxml.jackson.databind.ser.std.StdSerializer
 import com.fasterxml.jackson.dataformat.cbor.databind.CBORMapper
+import com.fasterxml.jackson.dataformat.ion.IonObjectMapper
 import com.fasterxml.jackson.dataformat.smile.databind.SmileMapper
 import com.fasterxml.jackson.module.scala.{ClassTagExtensions, DefaultScalaModule}
 import java.util.Base64
@@ -26,9 +27,11 @@ import scala.util.{Failure, Try}
  * @see
  *   [[https://www.json.org JSON message format]]
  * @see
+ *   [[https://github.com/FasterXML/smile-format-specification Smile message format]]
+ * @see
  *   [[https://cbor.io CBOR message format]]
  * @see
- *   [[https://github.com/FasterXML/smile-format-specification Smile message format]]
+ *   [[https://amazon-ion.github.io/ion-docs Ion message format]]
  * @see
  *   [[https://github.com/FasterXML/jackson Library documentation]]
  * @see
@@ -122,6 +125,20 @@ object JacksonCodec {
       .defaultLeniency(false)
       .build() :: ClassTagExtensions
 
+  /** Default Jackson Smile object mapper. */
+  def smileMapper: ObjectMapper =
+    SmileMapper.builder()
+      .addModule(DefaultScalaModule)
+      .addModule(unitModule)
+      .addModule(bigDecimalModule)
+      .addModule(JacksonJsonRpc.module)
+      .addModule(JacksonWebRpc.module)
+      .configure(DeserializationFeature.FAIL_ON_NULL_FOR_PRIMITIVES, true)
+      .configure(DeserializationFeature.FAIL_ON_NULL_CREATOR_PROPERTIES, true)
+      .serializationInclusion(Include.NON_ABSENT)
+      .defaultLeniency(false)
+      .build() :: ClassTagExtensions
+
   /** Default Jackson CBOR object mapper. */
   def cborMapper: ObjectMapper =
     CBORMapper.builder()
@@ -137,8 +154,8 @@ object JacksonCodec {
       .build() :: ClassTagExtensions
 
   /** Default Jackson Smile object mapper. */
-  def smileMapper: ObjectMapper =
-    SmileMapper.builder()
+  def ionMapper: ObjectMapper =
+    IonObjectMapper.builder()
       .addModule(DefaultScalaModule)
       .addModule(unitModule)
       .addModule(bigDecimalModule)

@@ -4,6 +4,7 @@ import automorph.codec.meta.WeepickleMeta
 import automorph.schema.{OpenApi, OpenRpc}
 import com.fasterxml.jackson.core.{JsonFactory, JsonGenerator}
 import com.fasterxml.jackson.dataformat.cbor.{CBORFactory, CBORFactoryBuilder}
+import com.fasterxml.jackson.dataformat.ion.{IonFactory, IonFactoryBuilder}
 import com.fasterxml.jackson.dataformat.smile.{SmileFactory, SmileFactoryBuilder}
 import com.rallyhealth.weejson.v1.Value
 import com.rallyhealth.weejson.v1.jackson.{CustomPrettyPrinter, DefaultJsonFactory, JsonGeneratorOps, JsonParserOps}
@@ -21,9 +22,11 @@ import java.util.Base64
  * @see
  *   [[https://www.json.org JSON message format]]
  * @see
+ *   [[https://github.com/FasterXML/smile-format-specification Smile message format]]
+ * @see
  *   [[https://cbor.io CBOR message format]]
  * @see
- *   [[https://github.com/FasterXML/smile-format-specification Smile message format]]
+ *   [[https://amazon-ion.github.io/ion-docs Ion message format]]
  * @see
  *   [[https://github.com/rallyhealth/weePickle Library documentation]]
  * @see
@@ -75,11 +78,15 @@ object WeepickleCodec {
   def jsonFactory: JsonFactory =
     DefaultJsonFactory.Instance
 
+  /** Default Jackson Smile factory. */
+  def smileFactory: JsonFactory =
+    new SmileFactoryBuilder(new SmileFactory).configure(JsonFactory.Feature.INTERN_FIELD_NAMES, false).build()
+
   /** Default Jackson CBOR factory. */
   def cborFactory: JsonFactory =
     new CBORFactoryBuilder(new CBORFactory).configure(JsonFactory.Feature.INTERN_FIELD_NAMES, false).build()
 
-  /** Default Jackson Smile factory. */
-  def smileFactory: JsonFactory =
-    new SmileFactoryBuilder(new SmileFactory).configure(JsonFactory.Feature.INTERN_FIELD_NAMES, false).build()
+  /** Default Jackson Ion factory. */
+  def ionFactory: JsonFactory =
+    new IonFactoryBuilder(new IonFactory).configure(JsonFactory.Feature.INTERN_FIELD_NAMES, false).build()
 }
