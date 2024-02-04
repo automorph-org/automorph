@@ -11,6 +11,7 @@ private[automorph] object ArgonautOpenRpc {
   private val propertiesField = "properties"
   private val allOfField = "allOf"
 
+  @scala.annotation.nowarn("msg=unused local")
   def openRpcCodecJson: CodecJson[OpenRpc] = {
     implicit val schemaCodecJson: CodecJson[Schema] = CodecJson(fromSchema, toSchema)
     implicit val contactCodecJson: CodecJson[Contact] = Argonaut
