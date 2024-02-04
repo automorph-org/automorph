@@ -33,7 +33,7 @@ import scala.util.{Failure, Try}
  * @see
  *   [[https://amazon-ion.github.io/ion-docs Ion message format]]
  * @see
- *   [[https://github.com/FasterXML/jackson Library documentation]]
+ *   [[https://github.com/FasterXML/jackson-module-scala Library documentation]]
  * @see
  *   [[https://fasterxml.github.io/jackson-databind/javadoc/2.14/com/fasterxml/jackson/databind/JsonNode.html Node type]]
  * @constructor

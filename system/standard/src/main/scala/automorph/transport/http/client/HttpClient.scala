@@ -32,7 +32,7 @@ import scala.util.Try
  * @see
  *   [[https://openjdk.org/groups/net/httpclient/intro.html documentation]]
  * @see
- *   [[https://docs.oracle.com/en/java/javase/19/docs/api/java.net.http/java/net/http/HttpClient.html API]]
+ *   [[https://openjdk.org/groups/net/httpclient/intro.html API]]
  * @constructor
  *   Creates an HttpClient HTTP & WebSocket message client transport plugin.
  * @param effectSystem
