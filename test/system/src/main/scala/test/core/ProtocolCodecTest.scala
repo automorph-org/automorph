@@ -1,9 +1,7 @@
 package test.core
 
-import argonaut.Argonaut.jNumber
-import argonaut.{Argonaut, CodecJson}
 import automorph.codec.{JacksonCodec, WeepickleCodec}
-import automorph.codec.json.{ArgonautJsonCodec, CirceJsonCodec, UpickleJsonCodec, UpickleJsonConfig}
+import automorph.codec.json.{CirceJsonCodec, UpickleJsonCodec, UpickleJsonConfig}
 import automorph.codec.messagepack.{UpickleMessagePackCodec, UpickleMessagePackConfig}
 import automorph.protocol.JsonRpcProtocol
 import automorph.schema.OpenApi
@@ -46,7 +44,6 @@ trait ProtocolCodecTest extends CoreTest {
       weePickleJsonRpcIonFixture(),
       uPickleJsonRpcJsonFixture(),
       uPickleJsonRpcMessagePackFixture(),
-//      argonautJsonRpcJsonFixture(),
     )).getOrElse(Seq.empty)
   }
 
@@ -265,32 +262,6 @@ trait ProtocolCodecTest extends CoreTest {
     val customConfig = new CustomConfig
     val codec = UpickleMessagePackCodec(customConfig)
     val protocol = JsonRpcProtocol[UpickleMessagePackCodec.Node, codec.type, Context](codec)
-    RpcEndpoint.transport(endpointTransport).rpcProtocol(protocol).bind(simpleApi, mapName).bind(complexApi)
-    val id = fixtureId(protocol)
-    val server = RpcServer.transport(serverTransport(id)).rpcProtocol(protocol).discovery(true)
-      .bind(simpleApi, mapName).bind(complexApi)
-    val client = RpcClient.transport(typedClientTransport(id)).rpcProtocol(protocol)
-    TestFixture(
-      id, client, server,
-      TestApis(client.bind[SimpleApiType], client.bind[ComplexApiType], client.bind[InvalidApiType]),
-      TestCalls(f => client.call[OpenApi](f)(), (f, a0) => client.call[String](f)(a0), (f, a0) => client.tell(f)(a0)),
-    )
-  }
-
-  private def argonautJsonRpcJsonFixture()(implicit context: Context): TestFixture = {
-    implicit val enumCodecJson: CodecJson[Enum.Enum] =
-      CodecJson((v: Enum.Enum) => jNumber(Enum.toOrdinal(v)), cursor => cursor.focus.as[Int].map(Enum.fromOrdinal))
-    implicit val structureCodecJson: CodecJson[Structure] = Argonaut
-      .codec1(Structure.apply, (v: Structure) => v.value)("value")
-    implicit val recordCodecJson: CodecJson[Record] = Argonaut.codec13(Record.apply, (v: Record) => (
-      v.string, v.boolean, v.byte, v.short, v.int, v.long, v.float, v.double,
-      v.enumeration, v.list, v.map, v.structure, v.none,
-    ))(
-      "string", "boolean", "byte", "short", "int", "long", "float", "double",
-      "enumeration", "list", "map", "structure", "none",
-    )
-    val codec = ArgonautJsonCodec()
-    val protocol = JsonRpcProtocol[ArgonautJsonCodec.Node, codec.type, Context](codec)
     RpcEndpoint.transport(endpointTransport).rpcProtocol(protocol).bind(simpleApi, mapName).bind(complexApi)
     val id = fixtureId(protocol)
     val server = RpcServer.transport(serverTransport(id)).rpcProtocol(protocol).discovery(true)
