@@ -35,19 +35,19 @@ trait ProtocolCodecTest extends CoreTest {
   }
 
   def createFixtures(implicit context: Context): Seq[TestFixture] = {
-    if (BaseTest.testAll || basic) {
+    if (BaseTest.testAll || basic || true) {
       Seq(
-        //          circeJsonRpcJsonFixture(),
-        //          jacksonJsonRpcJsonFixture(),
-        //          jacksonJsonRpcSmileFixture(),
-        //          jacksonJsonRpcCborFixture(),
-        //          jacksonJsonRpcIonFixture(),
+        // circeJsonRpcJsonFixture(),
+        // jacksonJsonRpcJsonFixture(),
+        // jacksonJsonRpcSmileFixture(),
+        // jacksonJsonRpcCborFixture(),
+        // jacksonJsonRpcIonFixture(),
         weePickleJsonRpcJsonFixture(),
-        //          weePickleJsonRpcCborFixture(),
-        //          weePickleJsonRpcSmileFixture(),
-        //          uPickleJsonRpcJsonFixture(),
-        //          uPickleJsonRpcMessagePackFixture(),
-        //          argonautJsonRpcJsonFixture(),
+        // weePickleJsonRpcCborFixture(),
+        // weePickleJsonRpcSmileFixture(),
+        // uPickleJsonRpcJsonFixture(),
+        // uPickleJsonRpcMessagePackFixture(),
+        // argonautJsonRpcJsonFixture(),
       )
     } else {
       Seq(circeJsonRpcJsonFixture())

@@ -37,6 +37,7 @@ object ArgonautJsonCodec {
   /** Message node type. */
   type Node = Json
 
+  /** Serialize and deserialize None as null. */
   implicit lazy val noneCodecJson: CodecJson[None.type] = CodecJson(
     (_: None.type) => jNull,
     cursor => if (cursor.focus.isNull) DecodeResult.ok(None) else DecodeResult.fail("Not a null", cursor.history),

@@ -1,6 +1,8 @@
 package test.core
 
 import automorph.RpcException.{FunctionNotFound, InvalidArguments, InvalidResponse}
+import automorph.protocol.JsonRpcProtocol
+import automorph.schema.OpenApi
 import automorph.spi.{EffectSystem, MessageCodec}
 import automorph.{RpcClient, RpcServer}
 import org.scalacheck.Arbitrary
@@ -59,7 +61,7 @@ trait CoreTest extends BaseTest {
     false
 
   "" - {
-    if (BaseTest.testSimple) {
+    if (BaseTest.testSimple || basic) {
       // Simple tests
       fixtures.foreach { fixture =>
         fixture.id - {
@@ -71,6 +73,13 @@ trait CoreTest extends BaseTest {
               }
             }
           }
+//          "Dynamic" - {
+//            "Discover" - {
+//              "OpenAPI" in {
+//                run(fixture.client.call[OpenApi](JsonRpcProtocol.openApiFunction)())
+//              }
+//            }
+//          }
         }
       }
     } else {
@@ -82,32 +91,22 @@ trait CoreTest extends BaseTest {
               "Simple API" - {
                 val apis = (fixture.simpleApi, simpleApi)
                 "method" in {
-                  check { (a0: String) =>
-                    consistent(apis)(_.method(a0))
-                  }
+                  check((a0: String) => consistent(apis)(_.method(a0)))
                 }
               }
               "Complex API" - {
                 val apis = (fixture.complexApi, complexApi)
                 "method0" in {
-                  check { (_: Unit) =>
-                    consistent(apis)(_.method0())
-                  }
+                  check((_: Unit) => consistent(apis)(_.method0()))
                 }
                 "method1" in {
-                  check { (_: Unit) =>
-                    consistent(apis)(_.method1())
-                  }
+                  check((_: Unit) => consistent(apis)(_.method1()))
                 }
                 "method2" in {
-                  check { (a0: String) =>
-                    consistent(apis)(_.method2(a0))
-                  }
+                  check((a0: String) => consistent(apis)(_.method2(a0)))
                 }
                 "method3" in {
-                  check { (a0: Float, a1: Long, a2: Option[List[Int]]) =>
-                    consistent(apis)(_.method3(a0, a1, a2))
-                  }
+                  check((a0: Float, a1: Long, a2: Option[List[Int]]) => consistent(apis)(_.method3(a0, a1, a2)))
                 }
                 "method4" in {
                   check { (a0: Double, a1: Byte, a2: Map[String, Int], a3: Option[String]) =>
@@ -115,14 +114,10 @@ trait CoreTest extends BaseTest {
                   }
                 }
                 "method5" in {
-                  check { (a0: Boolean, a1: Short, a2: List[Int]) =>
-                    consistent(apis)(_.method5(a0, a1)(a2))
-                  }
+                  check((a0: Boolean, a1: Short, a2: List[Int]) => consistent(apis)(_.method5(a0, a1)(a2)))
                 }
                 "method6" in {
-                  check { (a0: Record, a1: Double) =>
-                    consistent(apis)(_.method6(a0, a1))
-                  }
+                  check((a0: Record, a1: Double) => consistent(apis)(_.method6(a0, a1)))
                 }
                 "method7" in {
                   check { (a0: Record, a1: Boolean, context: Context) =>
@@ -131,13 +126,11 @@ trait CoreTest extends BaseTest {
                   }
                 }
                 "method8" in {
-                  check { (a0: Record, a1: String, a2: Option[Double]) =>
-                    consistent(apis) { api =>
-                      system.map(api.method8(a0, a1, a2)) { result =>
-                        s"${result.result} - ${result.context.getClass.getName}"
-                      }
+                  check((a0: Record, a1: String, a2: Option[Double]) => consistent(apis) { api =>
+                    system.map(api.method8(a0, a1, a2)) { result =>
+                      s"${result.result} - ${result.context.getClass.getName}"
                     }
-                  }
+                  })
                 }
                 "method9" in {
                   check { (a0: String) =>
@@ -169,9 +162,7 @@ trait CoreTest extends BaseTest {
                   error.should(include("p1"))
                 }
                 "Missing arguments" in {
-                  val error = intercept[InvalidArguments] {
-                    run(api.method5(p0 = true, 0))
-                  }.getMessage.toLowerCase
+                  val error = intercept[InvalidArguments](run(api.method5(p0 = true, 0))).getMessage.toLowerCase
                   error.should(include("missing argument"))
                   error.should(include("p2"))
                 }
@@ -181,14 +172,17 @@ trait CoreTest extends BaseTest {
                   error.should(include("0"))
                 }
                 "Malformed result" in {
-                  val error = intercept[InvalidResponse] {
-                    run(api.method2(""))
-                  }.getMessage.toLowerCase
+                  val error = intercept[InvalidResponse](run(api.method2(""))).getMessage.toLowerCase
                   error.should(include("malformed result"))
                 }
               }
             }
             "Dynamic" - {
+//              "Discover" - {
+//                "OpenAPI" in {
+//                  run(fixture.client.call[OpenApi](JsonRpcProtocol.openApiFunction)())
+//                }
+//              }
               "Simple API" - {
                 "Call" in {
                   check { (a0: String) =>

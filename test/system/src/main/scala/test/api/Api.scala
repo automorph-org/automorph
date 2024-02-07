@@ -4,6 +4,11 @@ import automorph.RpcResult
 import automorph.spi.EffectSystem
 import test.api
 
+trait DiscoveryApi[Effect[_]] {
+
+  def method(argument: String): Effect[String]
+}
+
 trait SimpleApi[Effect[_]] {
 
   def method(argument: String): Effect[String]

@@ -44,8 +44,9 @@ import scala.util.{Failure, Try}
 final case class JacksonCodec(objectMapper: ObjectMapper = new JsonMapper) extends JacksonMeta {
 
   override val mediaType: String = objectMapper match {
-    case _: CBORMapper => "application/cbor"
     case _: SmileMapper => "application/x-jackson-smile"
+    case _: CBORMapper => "application/cbor"
+    case _: IonObjectMapper => "application/ion"
     case _ => "application/json"
   }
 
@@ -67,6 +68,7 @@ object JacksonCodec {
   /** Message node type. */
   type Node = JsonNode
 
+  /** Serialize and deserialize Unit as empty object. */
   private lazy val unitModule: SimpleModule = new SimpleModule().addSerializer(
     classOf[BoxedUnit],
     new StdSerializer[BoxedUnit](classOf[BoxedUnit]) {
@@ -89,6 +91,7 @@ object JacksonCodec {
     },
   )
 
+  /** Serialize and deserialize BigDecimal as number. */
   private lazy val bigDecimalModule: SimpleModule = new SimpleModule().addSerializer(
     classOf[BigDecimal],
     new StdSerializer[BigDecimal](classOf[BigDecimal]) {

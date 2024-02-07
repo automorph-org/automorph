@@ -6,15 +6,14 @@ import upickle.core.{Abort, ByteUtils, CharUtils, ParseUtils, Visitor}
 /** uPickle reader and writer instances providing basic null-safe data types support. */
 trait UpickleConfig extends AttributeTagged {
 
+  /** Serialize None as null. */
   implicit override def OptionWriter[T: Writer]: Writer[Option[T]] =
-    new Writer.MapWriter(
-      implicitly[Writer[T]],
-      {
-        case Some(value) => value
-        case None => null.asInstanceOf[T]
-      },
-    )
+    new Writer.MapWriter(implicitly[Writer[T]], {
+      case Some(value) => value
+      case None => null.asInstanceOf[T]
+    })
 
+  /** Deserialize null as None. */
   implicit override def OptionReader[T: Reader]: Reader[Option[T]] =
     new Reader.MapReader[T, T, Option[T]](implicitly[Reader[T]]) {
 
@@ -25,11 +24,13 @@ trait UpickleConfig extends AttributeTagged {
         None
     }
 
+  // Serialize Unit as an empty object
   implicit override val UnitWriter: Writer[Unit] = new Writer[Unit] {
     def write0[R](out: Visitor[?, R], v: Unit): R =
       out.visitObject(0, jsonableKeys = true, -1).visitEnd(-1)
   }
 
+  // Do not deserialize nulls as primitive types
   implicit override val BooleanReader: Reader[Boolean] = new SimpleReader[Boolean] {
 
     override def expectedMsg =
@@ -47,7 +48,6 @@ trait UpickleConfig extends AttributeTagged {
     override def visitNull(index: Int): Boolean =
       throw Abort(s"$expectedMsg got null")
   }
-
   implicit override val DoubleReader: Reader[Double] = new NumericReader[Double] {
 
     override def expectedMsg =
@@ -74,7 +74,6 @@ trait UpickleConfig extends AttributeTagged {
     override def visitNull(index: Int): Double =
       throw Abort(s"$expectedMsg got null")
   }
-
   implicit override val IntReader: Reader[Int] = new NumericReader[Int] {
 
     override def expectedMsg =
@@ -111,7 +110,6 @@ trait UpickleConfig extends AttributeTagged {
     override def visitNull(index: Int): Int =
       throw Abort(s"$expectedMsg got null")
   }
-
   implicit override val FloatReader: Reader[Float] = new NumericReader[Float] {
 
     override def expectedMsg =
@@ -141,7 +139,6 @@ trait UpickleConfig extends AttributeTagged {
     override def visitNull(index: Int): Float =
       throw Abort(s"$expectedMsg got null")
   }
-
   implicit override val ShortReader: Reader[Short] = new NumericReader[Short] {
 
     override def expectedMsg =
@@ -178,7 +175,6 @@ trait UpickleConfig extends AttributeTagged {
     override def visitNull(index: Int): Short =
       throw Abort(s"$expectedMsg got null")
   }
-
   implicit override val ByteReader: Reader[Byte] = new NumericReader[Byte] {
 
     override def expectedMsg =
@@ -215,7 +211,6 @@ trait UpickleConfig extends AttributeTagged {
     override def visitNull(index: Int): Byte =
       throw Abort(s"$expectedMsg got null")
   }
-
   implicit override val CharReader: Reader[Char] = new NumericReader[Char] {
 
     override def expectedMsg =
@@ -245,7 +240,6 @@ trait UpickleConfig extends AttributeTagged {
     override def visitNull(index: Int): Char =
       throw Abort(s"$expectedMsg got null")
   }
-
   implicit override val LongReader: Reader[Long] = new NumericReader[Long] {
 
     override def expectedMsg =

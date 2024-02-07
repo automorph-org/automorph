@@ -18,12 +18,12 @@
   <!-- Synchronous file logging -->
   <appender name="FileSync" class="ch.qos.logback.core.FileAppender">
     <filter class="ch.qos.logback.classic.filter.ThresholdFilter">
-      <level>DEBUG</level>
+      <level>${LOG_LEVEL:-DEBUG}</level>
     </filter>
     <file>target/test.log</file>
     <append>false</append>
     <encoder>
-      <pattern>%date [%-5level] %message - %mdc%n</pattern>
+      <pattern>%date [%-5level] %message - %mdc %n</pattern>
     </encoder>
   </appender>
 

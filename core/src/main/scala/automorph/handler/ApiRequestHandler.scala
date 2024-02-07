@@ -160,11 +160,12 @@ final case class ApiRequestHandler[Node, Codec <: MessageCodec[Node], Effect[_],
       val redundantIdentifiers = redundantNames ++ redundantIndices.map(_.toString)
       Failure(new IllegalArgumentException(s"Redundant arguments: ${redundantIdentifiers.mkString(", ")}"))
     } else {
-      Success(parameterNames.foldLeft(Seq[Option[Node]]() -> 0) { case ((arguments, index), name) =>
+      Success(parameterNames.foldLeft(Seq[Option[Node]]() -> 0) { case ((arguments, currentIndex), name) =>
         val (argument, newIndex) = namedArguments.get(name) match {
-          case Some(value) => Some(value) -> index
-          case _ if index < positionalArguments.size => Some(positionalArguments(index)) -> (index + 1)
-          case _ => None -> index
+          case Some(value) => Some(value) -> currentIndex
+          case _ if currentIndex < positionalArguments.size =>
+            Some(positionalArguments(currentIndex)) -> (currentIndex + 1)
+          case _ => None -> currentIndex
         }
         (arguments :+ argument) -> newIndex
       }._1)

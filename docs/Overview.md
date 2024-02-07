@@ -167,7 +167,9 @@ The following technical standards are supported by freely combining appropriate
 ### Inspired by
 
 - [Scala JSON-RPC](https://github.com/shogowada/scala-json-rpc)
+- [Airframe](https://wvlet.org/airframe)
 - [Autowire](https://github.com/lihaoyi/autowire)
+- [Sloth](https://github.com/cornerman/sloth)
 - [Tapir](https://tapir.softwaremill.com)
 - [STTP](https://sttp.softwaremill.com)
 - [ZIO](https://zio.dev)

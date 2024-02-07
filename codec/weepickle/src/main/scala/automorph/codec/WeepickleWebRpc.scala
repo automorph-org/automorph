@@ -9,8 +9,8 @@ private[automorph] object WeepickleWebRpc {
 
   type RpcMessage = Message[Value]
 
-  def fromTo: FromTo[Message[Value]] = {
+  def fromTo: FromTo[RpcMessage] = {
     implicit val messageErrorFromTo: FromTo[MessageError] = macroFromTo
-    macroFromTo[Message[Value]]
+    macroFromTo[RpcMessage]
   }
 }

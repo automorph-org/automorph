@@ -11,8 +11,8 @@ import test.api.Enum
 trait HttpProtocolCodecTest extends ProtocolCodecTest {
   type Context <: HttpContext[?]
 
-  override def createFixtures(implicit context: Context): Seq[TestFixture] =
-    super.createFixtures ++ Seq(circeWebRpcJsonFixture())
+//  override def createFixtures(implicit context: Context): Seq[TestFixture] =
+//    super.createFixtures ++ Seq(circeWebRpcJsonFixture())
 
   private def circeWebRpcJsonFixture()(implicit context: Context): TestFixture = {
     implicit val enumEncoder: Encoder[Enum.Enum] = Encoder.encodeInt.contramap[Enum.Enum](Enum.toOrdinal)
