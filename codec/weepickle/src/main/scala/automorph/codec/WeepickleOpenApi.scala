@@ -3,14 +3,15 @@ package automorph.codec
 import automorph.schema.OpenApi
 import automorph.schema.openapi.*
 import com.rallyhealth.weejson.v1.{Arr, Obj, Str, Value}
-import com.rallyhealth.weepickle.v1.WeePickle.{FromTo, macroFromTo}
+import com.rallyhealth.weepickle.v1.WeePickle.{From, FromTo, FromValue, To, ToValue, macroFromTo}
 import com.rallyhealth.weepickle.v1.core.Abort
 
 /** OpenAPI schema support for weePickle message codec plugin. */
 private[automorph] object WeepickleOpenApi {
 
   def fromTo: FromTo[OpenApi] = {
-    implicit val schemaFromTo: FromTo[Schema] = macroFromTo[Value].bimap(fromSchema, toSchema)
+    implicit val schemaFrom: From[Schema] = FromValue.comap(fromSchema)
+    implicit val schemaTo: To[Schema] = ToValue.map(toSchema)
     implicit val authFlowFromTo: FromTo[OAuthFlow] = macroFromTo
     implicit val contactFromTo: FromTo[Contact] = macroFromTo
     implicit val externalDocumentationFromTo: FromTo[ExternalDocumentation] = macroFromTo

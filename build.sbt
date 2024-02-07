@@ -147,17 +147,16 @@ val jacksonVersion = "2.16.1"
 lazy val jackson = source(project, "codec/jackson", core, testCodec % Test).settings(
   libraryDependencies ++= Seq(
     "com.fasterxml.jackson.module" %% "jackson-module-scala" % jacksonVersion,
-    "com.fasterxml.jackson.dataformat" % "jackson-dataformat-cbor" % jacksonVersion,
-    "com.fasterxml.jackson.dataformat" % "jackson-dataformat-ion" % jacksonVersion,
-    "com.fasterxml.jackson.dataformat" % "jackson-dataformat-smile" % jacksonVersion
+    "com.fasterxml.jackson.dataformat" % "jackson-dataformat-smile" % jacksonVersion,
+    "com.fasterxml.jackson.dataformat" % "jackson-dataformat-cbor" % jacksonVersion
   )
 )
 lazy val weepickle = source(project, "codec/weepickle", core, testCodec % Test).settings(
   libraryDependencies ++= Seq(
     "com.rallyhealth" %% "weepickle-v1" % "1.9.1",
+    "com.fasterxml.jackson.dataformat" % "jackson-dataformat-smile" % jacksonVersion,
     "com.fasterxml.jackson.dataformat" % "jackson-dataformat-cbor" % jacksonVersion,
-    "com.fasterxml.jackson.dataformat" % "jackson-dataformat-ion" % jacksonVersion,
-    "com.fasterxml.jackson.dataformat" % "jackson-dataformat-smile" % jacksonVersion
+    "com.fasterxml.jackson.dataformat" % "jackson-dataformat-ion" % jacksonVersion
   )
 )
 lazy val upickle = source(project, "codec/upickle", core, testCodec % Test).settings(

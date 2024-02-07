@@ -29,22 +29,22 @@ object BaseTest {
 
   /** Test level environment variable. */
   private val testLevelEnvironment = "TEST_LEVEL"
-  /** Simple tests environment value. */
-  private val testSimpleValue = "simple"
-  /** Complex tests environment value. */
-  private val testComplexValue = "complex"
+  /** Standard tests environment value. */
+  private val testStandardValue = "standard"
+  /** Generative tests environment value. */
+  private val testGenerativeValue = "generative"
   /** All tests environment value. */
   private val testAllValue = "all"
 
-  /** Execute simple remote API tests for all transport plugins and default codec plugin only. */
-  final def testSimple: Boolean =
-    Option(System.getenv(testLevelEnvironment)).exists(_.toLowerCase == testSimpleValue)
+  /** Execute simple standard remote API tests for all transport plugins and default codec plugin only. */
+  final def testStandard: Boolean =
+    testGenerative || Option(System.getenv(testLevelEnvironment)).exists(_.toLowerCase == testStandardValue)
 
-  /** Execute complex remote API tests for all transport plugins and default codec plugin only. */
-  final def testComplex: Boolean =
-    Option(System.getenv(testLevelEnvironment)).exists(_.toLowerCase == testComplexValue)
+  /** Execute complex generative remote API tests for all transport plugins and default codec plugin only. */
+  final def testGenerative: Boolean =
+    testAll || Option(System.getenv(testLevelEnvironment)).exists(_.toLowerCase == testGenerativeValue)
 
-  /** Execute complex remote API tests for all transport plugins and all codec plugins. */
+  /** Execute complex generative remote API tests for all transport plugins and all codec plugins. */
   final def testAll: Boolean =
     Option(System.getenv(testLevelEnvironment)).exists(_.toLowerCase == testAllValue)
 }

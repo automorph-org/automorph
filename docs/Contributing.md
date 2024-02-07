@@ -45,19 +45,19 @@ with questions, ideas, features, improvements or fixes.
 ./sbt '+ test'
 ```
 
-### Simple API tests for all transport plugins and default codec plugin only
+### Simple standard API tests for all transport plugins and default codec plugin only
 
 ```shell
-TEST_LEVEL=simple ./sbt '+ test'
+TEST_LEVEL=standard ./sbt '+ test'
 ```
 
-### Complex API tests for all transport plugins and default codec plugin only
+### Complex generative API tests for all transport plugins and default codec plugin only
 
 ```shell
-TEST_LEVEL=complex ./sbt '+ test'
+TEST_LEVEL=generative ./sbt '+ test'
 ```
 
-### Complex API tests for all transport plugins and all codec plugins
+### Complex generative API tests for all transport plugins and all codec plugins
 
 ```shell
 TEST_LEVEL=all ./sbt '+ test'

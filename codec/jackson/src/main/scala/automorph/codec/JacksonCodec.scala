@@ -9,7 +9,6 @@ import com.fasterxml.jackson.databind.module.SimpleModule
 import com.fasterxml.jackson.databind.node.{NumericNode, ObjectNode}
 import com.fasterxml.jackson.databind.ser.std.StdSerializer
 import com.fasterxml.jackson.dataformat.cbor.databind.CBORMapper
-import com.fasterxml.jackson.dataformat.ion.IonObjectMapper
 import com.fasterxml.jackson.dataformat.smile.databind.SmileMapper
 import com.fasterxml.jackson.module.scala.{ClassTagExtensions, DefaultScalaModule}
 import java.util.Base64
@@ -31,8 +30,6 @@ import scala.util.{Failure, Try}
  * @see
  *   [[https://cbor.io CBOR message format]]
  * @see
- *   [[https://amazon-ion.github.io/ion-docs Ion message format]]
- * @see
  *   [[https://github.com/FasterXML/jackson-module-scala Library documentation]]
  * @see
  *   [[https://fasterxml.github.io/jackson-databind/javadoc/2.14/com/fasterxml/jackson/databind/JsonNode.html Node type]]
@@ -46,7 +43,6 @@ final case class JacksonCodec(objectMapper: ObjectMapper = new JsonMapper) exten
   override val mediaType: String = objectMapper match {
     case _: SmileMapper => "application/x-jackson-smile"
     case _: CBORMapper => "application/cbor"
-    case _: IonObjectMapper => "application/ion"
     case _ => "application/json"
   }
 
@@ -145,20 +141,6 @@ object JacksonCodec {
   /** Default Jackson CBOR object mapper. */
   def cborMapper: ObjectMapper =
     CBORMapper.builder()
-      .addModule(DefaultScalaModule)
-      .addModule(unitModule)
-      .addModule(bigDecimalModule)
-      .addModule(JacksonJsonRpc.module)
-      .addModule(JacksonWebRpc.module)
-      .configure(DeserializationFeature.FAIL_ON_NULL_FOR_PRIMITIVES, true)
-      .configure(DeserializationFeature.FAIL_ON_NULL_CREATOR_PROPERTIES, true)
-      .serializationInclusion(Include.NON_ABSENT)
-      .defaultLeniency(false)
-      .build() :: ClassTagExtensions
-
-  /** Default Jackson Smile object mapper. */
-  def ionMapper: ObjectMapper =
-    IonObjectMapper.builder()
       .addModule(DefaultScalaModule)
       .addModule(unitModule)
       .addModule(bigDecimalModule)

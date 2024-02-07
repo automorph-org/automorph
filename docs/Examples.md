@@ -312,7 +312,7 @@ libraryDependencies ++= Seq(
 **Source**
 
 ```scala
-import automorph.codec.messagepack.{UpickleMessagePackCodec, UpickleMessagePackCustom}
+import automorph.codec.messagepack.{UpickleMessagePackCodec, UpickleMessagePackConfig}
 import automorph.{Default, RpcClient, RpcServer}
 import java.net.URI
 import scala.concurrent.ExecutionContext.Implicits.global
@@ -323,7 +323,7 @@ import scala.concurrent.{Await, Future}
 case class Record(values: List[String])
 
 // Create uPickle message codec for JSON format
-val messageCodec = UpickleMessagePackCodec[UpickleMessagePackCustom]()
+val messageCodec = UpickleMessagePackCodec[UpickleMessagePackConfig]()
 
 // Provide custom data type serialization and deserialization logic as needed
 import messageCodec.config.*
