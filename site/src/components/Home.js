@@ -77,9 +77,6 @@ const integrations = [
   }, {
     title: 'uPickle',
     link: 'docs/Plugins#message-codec',
-  }, {
-    title: 'Argonaut',
-    link: 'docs/Plugins#message-codec',
   },
 ]
 

@@ -49,7 +49,6 @@ lazy val root = project.in(file(".")).settings(
   jackson,
   weepickle,
   upickle,
-  argonaut,
 
   // Effect system
   standard,
@@ -162,9 +161,6 @@ lazy val weepickle = source(project, "codec/weepickle", core, testCodec % Test).
 lazy val upickle = source(project, "codec/upickle", core, testCodec % Test).settings(
   libraryDependencies += "com.lihaoyi" %% "upickle" % "3.1.4"
 )
-lazy val argonaut = source(project, "codec/argonaut", core, testCodec % Test).settings(
-  libraryDependencies += "io.argonaut" %% "argonaut" % "6.3.9"
-)
 
 // Client transport
 val sttpVersion = "3.9.2"
@@ -267,7 +263,7 @@ lazy val testBase = source(project, "test/base").settings(
 lazy val testCodec = source(project, "test/codec", testBase, meta).settings(
   libraryDependencies += "com.fasterxml.jackson.core" % "jackson-databind" % jacksonVersion
 )
-lazy val testSystem = source(project, "test/system", testCodec, core, circe, jackson, weepickle, upickle, argonaut)
+lazy val testSystem = source(project, "test/system", testCodec, core, circe, jackson, weepickle, upickle)
 lazy val testTransport = source(project, "test/transport", testSystem, standard)
 
 
