@@ -42,37 +42,37 @@ with questions, ideas, features, improvements or fixes.
 ### Basic tests
 
 ```shell
-./sbt '+ test'
+sbt -client + test
 ```
 
 ### Simple standard API tests for all transport plugins and default codec plugin only
 
 ```shell
-TEST_LEVEL=standard ./sbt '+ test'
+TEST_LEVEL=standard sbt -client + test
 ```
 
 ### Complex generative API tests for all transport plugins and default codec plugin only
 
 ```shell
-TEST_LEVEL=generative ./sbt '+ test'
+TEST_LEVEL=generative sbt -client + test
 ```
 
 ### Complex generative API tests for all transport plugins and all codec plugins
 
 ```shell
-TEST_LEVEL=all ./sbt '+ test'
+TEST_LEVEL=all sbt -client + test
 ```
 
 ### Console log level
 
 ```shell
-LOG_LEVEL=DEBUG ./sbt '+ test'
+LOG_LEVEL=DEBUG sbt -client + test
 ```
 
 ### Generated code logging
 
 ```shell
-LOG_CODE=true ./sbt '+ test'
+LOG_CODE=true sbt -client + test
 ```
 
 ### Test log file
