@@ -39,9 +39,9 @@ const standards = [
 
 const integrations = [
   {
-    //   title: 'HTTPClient',
-    //   link: 'https://openjdk.org/groups/net/httpclient/intro.html',
-    // }, {
+    title: 'HTTPClient',
+    link: 'https://openjdk.org/groups/net/httpclient/intro.html',
+  }, {
     title: 'STTP',
     link: 'docs/Plugins#client-transport',
   }, {
@@ -70,6 +70,9 @@ const integrations = [
     link: 'docs/Plugins#message-codec',
   }, {
     title: 'Jackson',
+    link: 'docs/Plugins#message-codec',
+  }, {
+    title: 'Json4s',
     link: 'docs/Plugins#message-codec',
   }, {
     title: 'weePickle',
