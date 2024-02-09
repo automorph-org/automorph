@@ -205,7 +205,7 @@ lazy val undertow = source(project, "transport/undertow", core, testTransport % 
   libraryDependencies += "io.undertow" % "undertow-core" % "2.3.10.Final"
 )
 lazy val vertx = source(project, "transport/vertx", core, testTransport % Test).settings(
-  libraryDependencies += "io.vertx" % "vertx-core" % "4.5.2"
+  libraryDependencies += "io.vertx" % "vertx-core" % "4.5.3"
 )
 val jettyVersion = "11.0.18"
 lazy val jetty = source(project, "transport/jetty", core, testTransport % Test).settings(
