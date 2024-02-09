@@ -52,7 +52,6 @@ lazy val root = project.in(file(".")).settings(
   upickle,
 
   // Effect system
-  standard,
   zio,
   monix,
   catsEffect,
@@ -75,6 +74,7 @@ lazy val root = project.in(file(".")).settings(
 
   // Misc
   default,
+  standard,
   examples
 )
 
@@ -122,7 +122,6 @@ lazy val meta = source(project, "meta").settings(
 lazy val core = source(project, "core", meta, testBase % Test)
 
 // Effect system
-lazy val standard = source(project, "system/standard", core, testSystem % Test)
 lazy val zio = source(project, "system/zio", core, testSystem % Test).settings(
   libraryDependencies += "dev.zio" %% "zio" % "2.0.21"
 )
@@ -253,7 +252,7 @@ lazy val finagle = source(project, "transport/finagle", core, testTransport % Te
 )
 
 // Miscellaneous
-lazy val default = source(project, "default", standard, circe, undertow, testTransport % Test)
+lazy val default = source(project, "default", circe, undertow, testTransport % Test)
 lazy val examples = source(
   project, "examples", default, upickle, zio, vertx, sttp, rabbitmq, testBase % Test
 ).settings(

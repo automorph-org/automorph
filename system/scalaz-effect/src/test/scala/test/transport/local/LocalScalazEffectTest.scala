@@ -14,4 +14,7 @@ class LocalScalazEffectTest extends LocalTest {
 
   override def run[T](effect: Effect[T]): T =
     effect.unsafePerformIO()
+
+  override def basic: Boolean =
+    true
 }

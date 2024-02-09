@@ -33,10 +33,10 @@ package automorph.transport.http.server;
  * #L%
  */
 
-import automorph.transport.http.server.NanoHTTPD.Response.IStatus;
-import automorph.transport.http.server.NanoHTTPD.Response.Status;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+import jsonrpc.server.http.standard.NanoHTTPD.ClientHandler;
+import jsonrpc.server.http.standard.NanoHTTPD.CookieHandler;
+import jsonrpc.server.http.standard.NanoHTTPD.Response.IStatus;
+import jsonrpc.server.http.standard.NanoHTTPD.Response.Status;
 
 import java.io.BufferedInputStream;
 import java.io.BufferedReader;
@@ -85,10 +85,8 @@ import java.util.Map.Entry;
 import java.util.Properties;
 import java.util.StringTokenizer;
 import java.util.TimeZone;
-import java.util.concurrent.ArrayBlockingQueue;
-import java.util.concurrent.BlockingQueue;
-import java.util.concurrent.ExecutorService;
-import java.util.concurrent.Executors;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 import java.util.zip.GZIPOutputStream;
@@ -191,8 +189,8 @@ public abstract class NanoHTTPD {
                 // than the expected SocketException OR a
                 // SocketTimeoutException, print the
                 // stacktrace
-                if (!(e instanceof SocketException) && !(e instanceof SocketTimeoutException)) {
-                    NanoHTTPD.LOG.error("Communication with the client broken, or an bug in the handler code", e);
+                if (!(e instanceof SocketException && "NanoHttpd Shutdown".equals(e.getMessage())) && !(e instanceof SocketTimeoutException)) {
+                    NanoHTTPD.LOG.log(Level.SEVERE, "Communication with the client broken, or an bug in the handler code", e);
                 }
             } finally {
                 safeClose(outputStream);
@@ -346,13 +344,16 @@ public abstract class NanoHTTPD {
      */
     public static class DefaultAsyncRunner implements AsyncRunner {
 
-        public DefaultAsyncRunner(int threads) {
-            executorService = Executors.newFixedThreadPool(threads);
-        }
+        private long requestCount;
 
         private final List<NanoHTTPD.ClientHandler> running = Collections.synchronizedList(new ArrayList<NanoHTTPD.ClientHandler>());
 
-        private final ExecutorService executorService;
+        /**
+         * @return a list with currently running clients.
+         */
+        public List<NanoHTTPD.ClientHandler> getRunning() {
+            return running;
+        }
 
         @Override
         public void closeAll() {
@@ -360,7 +361,6 @@ public abstract class NanoHTTPD {
             for (NanoHTTPD.ClientHandler clientHandler : new ArrayList<NanoHTTPD.ClientHandler>(this.running)) {
                 clientHandler.close();
             }
-//            executorService.shutdown();
         }
 
         @Override
@@ -370,11 +370,12 @@ public abstract class NanoHTTPD {
 
         @Override
         public void exec(NanoHTTPD.ClientHandler clientHandler) {
+            ++this.requestCount;
             Thread t = new Thread(clientHandler);
             t.setDaemon(true);
+            t.setName("NanoHttpd Request Processor (#" + this.requestCount + ")");
             this.running.add(clientHandler);
             t.start();
-//            executorService.execute(clientHandler);
         }
     }
 
@@ -446,7 +447,7 @@ public abstract class NanoHTTPD {
                 try {
                     file.delete();
                 } catch (Exception ignored) {
-                    NanoHTTPD.LOG.warn("Could not delete file ", ignored);
+                    NanoHTTPD.LOG.log(Level.WARNING, "could not delete file ", ignored);
                 }
             }
             this.tempFiles.clear();
@@ -695,7 +696,7 @@ public abstract class NanoHTTPD {
                     protocolVersion = st.nextToken();
                 } else {
                     protocolVersion = "HTTP/1.1";
-                    NanoHTTPD.LOG.debug("No protocol version specified, strange. Assuming HTTP/1.1.");
+                    NanoHTTPD.LOG.log(Level.FINE, "no protocol version specified, strange. Assuming HTTP/1.1.");
                 }
                 String line = in.readLine();
                 while (line != null && !line.trim().isEmpty()) {
@@ -943,12 +944,7 @@ public abstract class NanoHTTPD {
                 // TODO: long body_size = getBodySize();
                 // TODO: long pos_before_serve = this.inputStream.totalRead()
                 // (requires implementation for totalRead())
-                BlockingQueue<Response> asyncResponse = serve(this);
-                try {
-                    r = asyncResponse.take();
-                } catch (InterruptedException e) {
-                    throw new RuntimeException("Request processing interrupted", e);
-                }
+                r = serve(this);
                 // TODO: this.inputStream.skip(body_size -
                 // (this.inputStream.totalRead() - pos_before_serve))
 
@@ -1130,8 +1126,8 @@ public abstract class NanoHTTPD {
             return 0;
         }
 
-          @Override
-          public void parseBody(Map<String, String> files) throws IOException, ResponseException {
+        @Override
+        public void parseBody(Map<String, String> files) throws IOException, ResponseException {
             RandomAccessFile randomAccessFile = null;
             try {
                 long size = getBodySize();
@@ -1249,13 +1245,6 @@ public abstract class NanoHTTPD {
         InputStream getInputStream();
 
         Method getMethod();
-
-        /**
-         * Get request body size.
-         *
-         * @return request body size
-         */
-        long getBodySize();
 
         /**
          * This method will only return the first value for a given parameter.
@@ -1638,7 +1627,7 @@ public abstract class NanoHTTPD {
                 outputStream.flush();
                 safeClose(this.data);
             } catch (IOException ioe) {
-                NanoHTTPD.LOG.error("Could not send response to the client", ioe);
+                NanoHTTPD.LOG.log(Level.SEVERE, "Could not send response to the client", ioe);
             }
         }
 
@@ -1654,7 +1643,7 @@ public abstract class NanoHTTPD {
                 try {
                     size = Long.parseLong(contentLengthString);
                 } catch (NumberFormatException ex) {
-                    LOG.error("Content-Length was no number " + contentLengthString);
+                    LOG.severe("content-length was no number " + contentLengthString);
                 }
             }
             pw.print("Content-Length: " + size + "\r\n");
@@ -1691,7 +1680,7 @@ public abstract class NanoHTTPD {
          * @param pending
          *            -1 to send everything, otherwise sets a max limit to the
          *            number of bytes sent
-         * @throws java.io.IOException
+         * @throws IOException
          *             if something goes wrong while sending the data.
          */
         private void sendBody(OutputStream outputStream, long pending) throws IOException {
@@ -1786,9 +1775,7 @@ public abstract class NanoHTTPD {
                     final InputStream inputStream = finalAccept.getInputStream();
                     NanoHTTPD.this.asyncRunner.exec(createClientHandler(finalAccept, inputStream));
                 } catch (IOException e) {
-                    if (!(e instanceof SocketException) && !(e instanceof SocketTimeoutException)) {
-                        NanoHTTPD.LOG.debug("Communication with the client broken", e);
-                    }
+                    NanoHTTPD.LOG.log(Level.FINE, "Communication with the client broken", e);
                 }
             } while (!NanoHTTPD.this.myServerSocket.isClosed());
         }
@@ -1869,7 +1856,7 @@ public abstract class NanoHTTPD {
     /**
      * logger to log to.
      */
-    private static final Logger LOG = LoggerFactory.getLogger(NanoHTTPD.class);
+    private static final Logger LOG = Logger.getLogger(NanoHTTPD.class.getName());
 
     /**
      * Hashtable mapping (String)FILENAME_EXTENSION -> (String)MIME_TYPE
@@ -1882,7 +1869,7 @@ public abstract class NanoHTTPD {
             loadMimeTypes(MIME_TYPES, "META-INF/nanohttpd/default-mimetypes.properties");
             loadMimeTypes(MIME_TYPES, "META-INF/nanohttpd/mimetypes.properties");
             if (MIME_TYPES.isEmpty()) {
-                LOG.warn("No mime types found in the classpath! please provide mimetypes.properties");
+                LOG.log(Level.WARNING, "no mime types found in the classpath! please provide mimetypes.properties");
             }
         }
         return MIME_TYPES;
@@ -1903,14 +1890,14 @@ public abstract class NanoHTTPD {
                     stream = url.openStream();
                     properties.load(stream);
                 } catch (IOException e) {
-                    LOG.error("Could not load mimetypes from " + url, e);
+                    LOG.log(Level.SEVERE, "could not load mimetypes from " + url, e);
                 } finally {
                     safeClose(stream);
                 }
                 result.putAll((Map) properties);
             }
         } catch (IOException e) {
-            LOG.info("No mime types available at " + resourceName);
+            LOG.log(Level.INFO, "no mime types available at " + resourceName);
         }
     };
 
@@ -1998,7 +1985,7 @@ public abstract class NanoHTTPD {
                 }
             }
         } catch (IOException e) {
-            NanoHTTPD.LOG.error("Could not close", e);
+            NanoHTTPD.LOG.log(Level.SEVERE, "Could not close", e);
         }
     }
 
@@ -2025,8 +2012,8 @@ public abstract class NanoHTTPD {
     /**
      * Constructs an HTTP server on given port.
      */
-    public NanoHTTPD(int port, int threads) {
-        this(null, port, threads);
+    public NanoHTTPD(int port) {
+        this(null, port);
     }
 
     // -------------------------------------------------------------------------------
@@ -2040,12 +2027,11 @@ public abstract class NanoHTTPD {
     /**
      * Constructs an HTTP server on given hostname and port.
      */
-    public NanoHTTPD(String hostname, int port, int threads) {
+    public NanoHTTPD(String hostname, int port) {
         this.hostname = hostname;
         this.myPort = port;
         setTempFileManagerFactory(new DefaultTempFileManagerFactory());
-//        setAsyncRunner(new DefaultAsyncRunner());
-        setAsyncRunner(new DefaultAsyncRunner(threads));
+        setAsyncRunner(new DefaultAsyncRunner());
     }
 
     /**
@@ -2142,7 +2128,7 @@ public abstract class NanoHTTPD {
         try {
             decoded = URLDecoder.decode(str, "UTF8");
         } catch (UnsupportedEncodingException ignored) {
-            NanoHTTPD.LOG.warn("Encoding not supported, ignored", ignored);
+            NanoHTTPD.LOG.log(Level.WARNING, "Encoding not supported, ignored", ignored);
         }
         return decoded;
     }
@@ -2218,7 +2204,7 @@ public abstract class NanoHTTPD {
                 }
                 bytes = txt.getBytes(contentType.getEncoding());
             } catch (UnsupportedEncodingException e) {
-                NanoHTTPD.LOG.error("Encoding problem, responding nothing", e);
+                NanoHTTPD.LOG.log(Level.SEVERE, "encoding problem, responding nothing", e);
                 bytes = new byte[0];
             }
             return newFixedLengthResponse(status, contentType.getContentTypeHeader(), new ByteArrayInputStream(bytes), bytes.length);
@@ -2237,31 +2223,27 @@ public abstract class NanoHTTPD {
      * <p/>
      * <p/>
      * (By default, this returns a 404 "Not Found" plain text error response.)
-     *
+     * 
      * @param session
      *            The HTTP session
      * @return HTTP response, see class Response for details
      */
-    public BlockingQueue<Response> serve(IHTTPSession session) {
-        BlockingQueue<Response> responseQueue = new ArrayBlockingQueue<>(1);
+    public Response serve(IHTTPSession session) {
         Map<String, String> files = new HashMap<String, String>();
         Method method = session.getMethod();
         if (Method.PUT.equals(method) || Method.POST.equals(method)) {
             try {
                 session.parseBody(files);
             } catch (IOException ioe) {
-                responseQueue.add(newFixedLengthResponse(Response.Status.INTERNAL_ERROR, NanoHTTPD.MIME_PLAINTEXT, "SERVER INTERNAL ERROR: IOException: " + ioe.getMessage()));
-                return responseQueue;
+                return newFixedLengthResponse(Response.Status.INTERNAL_ERROR, NanoHTTPD.MIME_PLAINTEXT, "SERVER INTERNAL ERROR: IOException: " + ioe.getMessage());
             } catch (ResponseException re) {
-                responseQueue.add(newFixedLengthResponse(re.getStatus(), NanoHTTPD.MIME_PLAINTEXT, re.getMessage()));
-                return responseQueue;
+                return newFixedLengthResponse(re.getStatus(), NanoHTTPD.MIME_PLAINTEXT, re.getMessage());
             }
         }
 
         Map<String, String> parms = session.getParms();
         parms.put(NanoHTTPD.QUERY_STRING_PARAMETER, session.getQueryParameterString());
-        responseQueue.add(serve(session.getUri(), method, session.getHeaders(), parms, files));
-        return responseQueue;
+        return serve(session.getUri(), method, session.getHeaders(), parms, files);
     }
 
     /**
@@ -2310,7 +2292,7 @@ public abstract class NanoHTTPD {
     /**
      * Start the server.
      * 
-     * @throws java.io.IOException
+     * @throws IOException
      *             if the socket is in use.
      */
     public void start() throws IOException {
@@ -2331,7 +2313,7 @@ public abstract class NanoHTTPD {
      *            timeout to use for socket connections.
      * @param daemon
      *            start the thread daemon or not.
-     * @throws java.io.IOException
+     * @throws IOException
      *             if the socket is in use.
      */
     public void start(final int timeout, boolean daemon) throws IOException {
@@ -2368,7 +2350,7 @@ public abstract class NanoHTTPD {
                 this.myThread.join();
             }
         } catch (Exception e) {
-            NanoHTTPD.LOG.error("Could not stop all connections", e);
+            NanoHTTPD.LOG.log(Level.SEVERE, "Could not stop all connections", e);
         }
     }
 

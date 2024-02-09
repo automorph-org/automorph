@@ -33,10 +33,6 @@ package automorph.transport.http.server;
  * #L%
  */
 
-import automorph.transport.http.server.NanoHTTPD.IHTTPSession;
-import automorph.transport.http.server.NanoHTTPD.Response;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import automorph.transport.http.server.NanoWSD.WebSocketFrame.CloseCode;
 import automorph.transport.http.server.NanoWSD.WebSocketFrame.CloseFrame;
 import automorph.transport.http.server.NanoWSD.WebSocketFrame.OpCode;
@@ -53,9 +49,8 @@ import java.util.Arrays;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
-import java.util.concurrent.ArrayBlockingQueue;
-import java.util.concurrent.BlockingQueue;
 import java.util.logging.Level;
+import java.util.logging.Logger;
 
 public abstract class NanoWSD extends NanoHTTPD {
 
@@ -153,14 +148,14 @@ public abstract class NanoWSD extends NanoHTTPD {
                 try {
                     this.in.close();
                 } catch (IOException e) {
-                    NanoWSD.LOG.debug("Close failed", e);
+                    NanoWSD.LOG.log(Level.FINE, "close failed", e);
                 }
             }
             if (this.out != null) {
                 try {
                     this.out.close();
                 } catch (IOException e) {
-                    NanoWSD.LOG.debug("Close failed", e);
+                    NanoWSD.LOG.log(Level.FINE, "close failed", e);
                 }
             }
             this.state = State.CLOSED;
@@ -742,7 +737,7 @@ public abstract class NanoWSD extends NanoHTTPD {
     /**
      * logger to log to.
      */
-    private static final Logger LOG = LoggerFactory.getLogger(NanoWSD.class);
+    private static final Logger LOG = Logger.getLogger(NanoWSD.class.getName());
 
     public static final String HEADER_UPGRADE = "upgrade";
 
@@ -811,12 +806,12 @@ public abstract class NanoWSD extends NanoHTTPD {
         return encodeBase64(sha1hash);
     }
 
-    public NanoWSD(int port, int threads) {
-        super(port, threads);
+    public NanoWSD(int port) {
+        super(port);
     }
 
-    public NanoWSD(String hostname, int port, int threads) {
-        super(hostname, port, threads);
+    public NanoWSD(String hostname, int port) {
+        super(hostname, port);
     }
 
     private boolean isWebSocketConnectionHeader(Map<String, String> headers) {
@@ -824,7 +819,7 @@ public abstract class NanoWSD extends NanoHTTPD {
         return connection != null && connection.toLowerCase().contains(NanoWSD.HEADER_CONNECTION_VALUE.toLowerCase());
     }
 
-    protected boolean isWebsocketRequested(NanoHTTPD.IHTTPSession session) {
+    protected boolean isWebsocketRequested(IHTTPSession session) {
         Map<String, String> headers = session.getHeaders();
         String upgrade = headers.get(NanoWSD.HEADER_UPGRADE);
         boolean isCorrectConnection = isWebSocketConnectionHeader(headers);
@@ -834,45 +829,41 @@ public abstract class NanoWSD extends NanoHTTPD {
 
     // --------------------------------Listener--------------------------------
 
-    protected abstract WebSocket openWebSocket(NanoHTTPD.IHTTPSession handshake);
+    protected abstract WebSocket openWebSocket(IHTTPSession handshake);
 
-    public BlockingQueue<NanoHTTPD.Response> serve(final NanoHTTPD.IHTTPSession session) {
-        BlockingQueue<Response> responseQueue = new ArrayBlockingQueue<>(1);
+    @Override
+    public Response serve(final IHTTPSession session) {
         Map<String, String> headers = session.getHeaders();
         if (isWebsocketRequested(session)) {
             if (!NanoWSD.HEADER_WEBSOCKET_VERSION_VALUE.equalsIgnoreCase(headers.get(NanoWSD.HEADER_WEBSOCKET_VERSION))) {
-                responseQueue.add(newFixedLengthResponse(Response.Status.BAD_REQUEST, NanoHTTPD.MIME_PLAINTEXT,
-                  "Invalid Websocket-Version " + headers.get(NanoWSD.HEADER_WEBSOCKET_VERSION)));
-                return responseQueue;
+                return newFixedLengthResponse(Response.Status.BAD_REQUEST, NanoHTTPD.MIME_PLAINTEXT,
+                        "Invalid Websocket-Version " + headers.get(NanoWSD.HEADER_WEBSOCKET_VERSION));
             }
 
             if (!headers.containsKey(NanoWSD.HEADER_WEBSOCKET_KEY)) {
-                responseQueue.add(newFixedLengthResponse(Response.Status.BAD_REQUEST, NanoHTTPD.MIME_PLAINTEXT, "Missing Websocket-Key"));
-                return responseQueue;
+                return newFixedLengthResponse(Response.Status.BAD_REQUEST, NanoHTTPD.MIME_PLAINTEXT, "Missing Websocket-Key");
             }
 
             WebSocket webSocket = openWebSocket(session);
-            NanoHTTPD.Response handshakeResponse = webSocket.getHandshakeResponse();
+            Response handshakeResponse = webSocket.getHandshakeResponse();
             try {
                 handshakeResponse.addHeader(NanoWSD.HEADER_WEBSOCKET_ACCEPT, makeAcceptKey(headers.get(NanoWSD.HEADER_WEBSOCKET_KEY)));
             } catch (NoSuchAlgorithmException e) {
-                responseQueue.add(newFixedLengthResponse(Response.Status.INTERNAL_ERROR, NanoHTTPD.MIME_PLAINTEXT,
-                  "The SHA-1 Algorithm required for websockets is not available on the server."));
-                return responseQueue;
+                return newFixedLengthResponse(Response.Status.INTERNAL_ERROR, NanoHTTPD.MIME_PLAINTEXT,
+                        "The SHA-1 Algorithm required for websockets is not available on the server.");
             }
 
             if (headers.containsKey(NanoWSD.HEADER_WEBSOCKET_PROTOCOL)) {
                 handshakeResponse.addHeader(NanoWSD.HEADER_WEBSOCKET_PROTOCOL, headers.get(NanoWSD.HEADER_WEBSOCKET_PROTOCOL).split(",")[0]);
             }
 
-            responseQueue.add(handshakeResponse);
-            return responseQueue;
+            return handshakeResponse;
         } else {
             return serveHttp(session);
         }
     }
 
-    protected BlockingQueue<NanoHTTPD.Response> serveHttp(final NanoHTTPD.IHTTPSession session) {
+    protected Response serveHttp(final IHTTPSession session) {
         return super.serve(session);
     }
 
@@ -880,7 +871,7 @@ public abstract class NanoWSD extends NanoHTTPD {
      * not all websockets implementations accept gzip compression.
      */
     @Override
-    protected boolean useGzipWhenAccepted(NanoHTTPD.Response r) {
+    protected boolean useGzipWhenAccepted(Response r) {
         return false;
     }
 }

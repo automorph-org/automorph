@@ -9,7 +9,6 @@ import upickle.core.{Abort, LinkedHashMap}
 private[automorph] object UpickleOpenRpc {
 
   def readWriter[Config <: UpickleMessagePackConfig](config: Config): config.ReadWriter[OpenRpc] = {
-    import config.*
 
     implicit val schemaRw: config.ReadWriter[Schema] = readwriter[Msg].bimap[Schema](fromSchema, toSchema)
     implicit val contactRw: config.ReadWriter[Contact] = config.macroRW

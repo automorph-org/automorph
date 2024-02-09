@@ -15,4 +15,7 @@ class LocalMonixTest extends LocalTest {
 
   override def run[T](effect: Effect[T]): T =
     effect.runSyncUnsafe(Duration.Inf)
+
+  override def basic: Boolean =
+    true
 }

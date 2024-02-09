@@ -15,4 +15,7 @@ class LocalZioTest extends LocalTest {
     Unsafe.unsafe { implicit unsafe =>
       ZioSystem.defaultRuntime.unsafe.run(effect).toEither.swap.map(_.getCause).swap.toTry.get
     }
+
+  override def basic: Boolean =
+    true
 }
