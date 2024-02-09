@@ -50,7 +50,7 @@ private[examples] object Quickstart {
       result <- remoteApi.hello("world", 1)
       _ = println(result)
 
-      // Call the remote API function dynamically not using an API trait
+      // Call the remote API function dynamically not using the API trait
       result <- activeClient.call[String]("hello")("some" -> "world", "n" -> 1)
       _ = println(result)
 

@@ -83,7 +83,7 @@ Call the remote API function via the local proxy:
 remoteApi.hello("world", 1)
 ```
 
-Call the remote API function dynamically not using an API trait:
+Call the remote API function dynamically not using the API trait:
 ```scala
 client.call[String]("hello")("some" -> "world", "n" -> 1)
 ```
