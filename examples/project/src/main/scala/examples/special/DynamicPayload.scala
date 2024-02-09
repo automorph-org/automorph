@@ -14,17 +14,17 @@ private[examples] object DynamicPayload {
 
     // Define client view of a remote API
     trait Api {
-      def hello(some: String, n: Json): Future[Json]
+      def test(who: String, n: Json): Future[Json]
     }
 
     // Create server implementation of the remote API
     class Service {
-      def hello(some: Json, n: Int): Future[Json] =
-        if (some.isString) {
-          val value = some.as[String].toTry.get
+      def test(who: Json, n: Int): Future[Json] =
+        if (who.isString) {
+          val value = who.as[String].toTry.get
           Future(Json.fromString(s"Hello $value $n!"))
         } else {
-          Future(Json.fromValues(Seq(some, Json.fromInt(n))))
+          Future(Json.fromValues(Seq(who, Json.fromInt(n))))
         }
     }
     val service = new Service
@@ -38,11 +38,11 @@ private[examples] object DynamicPayload {
       remoteApi = client.bind[Api]
 
       // Call the remote API function a proxy instance
-      result <- remoteApi.hello("world", Json.fromInt(1))
+      result <- remoteApi.test("test", Json.fromInt(1))
       _ = println(result)
 
       // Call the remote API function dynamically without an API trait
-      result <- client.call[Seq[Int]]("hello")("some" -> Json.fromInt(0), "n" -> 1)
+      result <- client.call[Seq[Int]]("test")("who" -> Json.fromInt(0), "n" -> 1)
       _ = println(result)
 
       // Close the RPC client and server

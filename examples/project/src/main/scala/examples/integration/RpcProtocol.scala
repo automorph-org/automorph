@@ -14,13 +14,13 @@ private[examples] object RpcProtocol {
 
     // Define a remote API
     trait Api {
-      def hello(some: String, n: Int): Future[String]
+      def test(n: Int): Future[String]
     }
 
     // Create server implementation of the remote API
     val service = new Api {
-      def hello(some: String, n: Int): Future[String] =
-        Future(s"Hello $some $n!")
+      def test(n: Int): Future[String] =
+        Future(s"Hello world $n")
     }
 
     // Create a server Web-RPC protocol plugin with '/api' as URL path prefix
@@ -48,7 +48,7 @@ private[examples] object RpcProtocol {
       remoteApi = client.bind[Api]
 
       // Call the remote API function via a local proxy
-      result <- remoteApi.hello("world", 1)
+      result <- remoteApi.test(1)
       _ = println(result)
 
       // Close the RPC client and server

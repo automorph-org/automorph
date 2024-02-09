@@ -13,16 +13,16 @@ private[examples] object OptionalParameters {
 
     // Define client view of a remote API
     trait Api {
-      def hello(some: String): Future[String]
+      def test(who: String): Future[String]
     }
 
     // Create server implementation of the remote API
     class Service {
-      def hello(some: String, n: Option[Int]): Future[String] =
-        Future(s"Hello $some ${n.getOrElse(0)}!")
+      def test(who: String, n: Option[Int]): Future[String] =
+        Future(s"Hello $who ${n.getOrElse(0)}")
 
-      def hi(some: Option[String])(n: Int): Future[String] =
-        Future(s"Hi ${some.getOrElse("all")} $n!")
+      def hi(who: Option[String])(n: Int): Future[String] =
+        Future(s"Hi ${who.getOrElse("all")} $n")
     }
     val service = new Service
 
@@ -35,7 +35,7 @@ private[examples] object OptionalParameters {
       remoteApi = client.bind[Api]
 
       // Call the remote API function via a proxy instance
-      result <- remoteApi.hello("world")
+      result <- remoteApi.test("world")
       _ = println(result)
 
       // Call the remote API function dynamically without an API trait

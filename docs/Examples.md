@@ -34,13 +34,13 @@ import scala.concurrent.{Await, Future}
 
 // Define a remote API
 trait Api {
-  def hello(some: String, n: Int): Future[String]
+  def test(n: Int): Future[String]
 }
 
 // Create server implementation of the remote API
 val service = new Api {
-  def hello(some: String, n: Int): Future[String] =
-    Future(s"Hello $some $n!")
+  def test(n: Int): Future[String] =
+    Future(s"Hello world $n")
 }
 
 Await.ready(for {
@@ -52,11 +52,11 @@ Await.ready(for {
   remoteApi = client.bind[Api]
 
   // Call the remote API function via a local proxy
-  result <- remoteApi.hello("world", 1)
+  result <- remoteApi.test(1)
   _ = println(result)
 
   // Call the remote API function dynamically not using the API trait
-  result <- client.call[String]("hello")("some" -> "world", "n" -> 1)
+  result <- client.call[String]("test")("n" -> 1)
   _ = println(result)
 
   // Close the RPC client and server
@@ -85,13 +85,13 @@ import java.net.URI
 
 // Define a remote API
 trait Api {
-  def hello(some: String, n: Int): String
+  def test(n: Int): String
 }
 
 // Create server implementation of the remote API
 val service = new Api {
-  def hello(some: String, n: Int): String =
-    s"Hello $some $n!"
+  def test(n: Int): String =
+    s"Hello world $n"
 }
 
 // Initialize JSON-RPC HTTP & WebSocket server listening on port 9000 for POST requests to '/api'
@@ -103,12 +103,12 @@ val client = Default.rpcClientCustom(IdentitySystem(), new URI("http://localhost
 // Call the remote API function via a local proxy
 val remoteApi = client.bind[Api]
 println(
-  remoteApi.hello("world", 1)
+  remoteApi.test(1)
 )
 
 // Call the remote API function dynamically not using the API trait
 println(
-  client.call[String]("hello")("some" -> "world", "n" -> 1)
+  client.call[String]("test")("n" -> 1)
 )
 
 // Close the RPC client and server
@@ -138,16 +138,16 @@ import scala.concurrent.{Await, Future}
 
 // Define client view of a remote API
 trait Api {
-  def hello(some: String): Future[String]
+  def test(who: String): Future[String]
 }
 
 // Create server implementation of the remote API
 class Service {
-  def hello(some: String, n: Option[Int]): Future[String] =
-    Future(s"Hello $some ${n.getOrElse(0)}!")
+  def test(who: String, n: Option[Int]): Future[String] =
+    Future(s"Hello $who ${n.getOrElse(0)}")
 
-  def hi(some: Option[String])(n: Int): Future[String] =
-    Future(s"Hi ${some.getOrElse("all")} $n!")
+  def hi(who: Option[String])(n: Int): Future[String] =
+    Future(s"Hi ${who.getOrElse("all")} $n")
 }
 val service = new Service
 
@@ -159,11 +159,11 @@ Await.ready(for {
   client <- Default.rpcClient(new URI("http://localhost:9000/api")).init()
   remoteApi = client.bind[Api]
 
-  // Call the remote API function via a local proxy
-  result <- remoteApi.hello("world")
+  // Call the remote API function via a proxy instance
+  result <- remoteApi.test("world")
   _ = println(result)
 
-  // Call the remote API function dynamically not using the API trait
+  // Call the remote API function dynamically without an API trait
   result <- client.call[String]("hi")("n" -> 1)
   _ = println(result)
 
@@ -195,7 +195,7 @@ import scala.concurrent.{Await, Future}
 
 // Define a remote API
 trait Api1 {
-  def hello(some: String, n: Int): Future[String]
+  def test(n: Int): Future[String]
 }
 
 // Define another remote API
@@ -205,8 +205,8 @@ trait Api2 {
 
 // Create server implementation of the first remote API
 val service1 = new Api1 {
-  def hello(some: String, n: Int): Future[String] =
-    Future(s"Hello $some $n!")
+  def test(n: Int): Future[String] =
+    Future(s"Hello world $n")
 }
 
 // Create server implementation of the second remote API
@@ -225,7 +225,7 @@ Await.ready(for {
   remoteApi2 = client.bind[Api2]
 
   // Call the first remote API function
-  result <- remoteApi1.hello("world", 1)
+  result <- remoteApi1.test(1)
   _ = println(result)
 
   // Call the second remote API function
@@ -263,13 +263,13 @@ import zio.{Console, Task, Unsafe, ZIO}
 
 // Define a remote API
 trait Api {
-  def hello(some: String, n: Int): Task[String]
+  def test(n: Int): Task[String]
 }
 
 // Create server implementation of the remote API
 val service = new Api {
-  def hello(some: String, n: Int): Task[String] =
-    ZIO.succeed(s"Hello $some $n!")
+  def test(n: Int): Task[String] =
+    ZIO.succeed(s"Hello world $n")
 }
 
 // Create ZIO effect system plugin
@@ -286,7 +286,7 @@ Unsafe.unsafe { implicit unsafe =>
       remoteApi = client.bind[Api]
 
       // Call the remote API function via a local proxy
-      result <- remoteApi.hello("world", 1)
+      result <- remoteApi.test(1)
       _ <- Console.printLine(result)
 
       // Close the RPC client and server
@@ -331,13 +331,13 @@ implicit def recordRw: messageCodec.custom.ReadWriter[Record] = messageCodec.cus
 
 // Define a remote API
 trait Api {
-  def hello(some: String, n: Int): Future[Record]
+  def test(n: Int): Future[Record]
 }
 
 // Create server implementation of the remote API
 val service = new Api {
-  def hello(some: String, n: Int): Future[Record] =
-    Future(Record(List("Hello", some, n.toString)))
+  def test(n: Int): Future[Record] =
+    Future(Record(List("Data", n.toString)))
 }
 
 // Create a server RPC protocol plugin
@@ -365,7 +365,7 @@ Await.ready(for {
   remoteApi = client.bind[Api]
 
   // Call the remote API function via a local proxy
-  result <- remoteApi.hello("world", 1)
+  result <- remoteApi.test(1)
   _ = println(result)
 
   // Close the RPC client and server
@@ -397,13 +397,13 @@ import scala.concurrent.{Await, Future}
 
 // Define a remote API
 trait Api {
-  def hello(some: String, n: Int): Future[String]
+  def test(n: Int): Future[String]
 }
 
 // Create server implementation of the remote API
 val service = new Api {
-  def hello(some: String, n: Int): Future[String] =
-    Future(s"Hello $some $n!")
+  def test(n: Int): Future[String] =
+    Future(s"Hello world $n")
 }
 
 // Create a server Web-RPC protocol plugin with '/api' as URL path prefix
@@ -431,7 +431,7 @@ Await.ready(for {
   remoteApi = client.bind[Api]
 
   // Call the remote API function via a local proxy
-  result <- remoteApi.hello("world", 1)
+  result <- remoteApi.test(1)
   _ = println(result)
 
   // Close the RPC client and server
@@ -463,13 +463,13 @@ import scala.util.Random
 
 // Define a remote API
 trait Api {
-  def hello(some: String, n: Int): Future[String]
+  def test(n: Int): Future[String]
 }
 
 // Create server implementation of the remote API
 val service = new Api {
-  def hello(some: String, n: Int): Future[String] =
-    Future(s"Hello $some $n!")
+  def test(n: Int): Future[String] =
+    Future(s"Hello world $n")
 }
 
 // Create generic endpoint transport plugin with Unit as RPC request context type
@@ -504,9 +504,8 @@ val requestBody =
     |{
     |  "jsonrpc" : "2.0",
     |  "id" : "1234",
-    |  "method" : "hello",
+    |  "method" : "test",
     |  "params" : {
-    |    "some" : "world",
     |    "n" : 1
     |  }
     |}
@@ -542,13 +541,13 @@ import scala.concurrent.{Await, Future}
 
 // Define a remote API
 trait Api {
-  def hello(some: String, n: Int): Future[String]
+  def test(n: Int): Future[String]
 }
 
 // Create server implementation of the remote API
 val service = new Api {
-  override def hello(some: String, n: Int): Future[String] =
-    Future(s"Hello $some $n!")
+  override def test(n: Int): Future[String] =
+    Future(s"Hello world $n")
 }
 
 // Create standard JRE HTTP client transport sending POST requests to 'http://localhost:9000/api'
@@ -563,7 +562,7 @@ Await.ready(for {
   remoteApi = client.bind[Api]
 
   // Call the remote API function via a local proxy
-  result <- remoteApi.hello("world", 1)
+  result <- remoteApi.test(1)
   _ = println(result)
 
   // Close the RPC client and server
@@ -595,13 +594,13 @@ import scala.concurrent.{Await, Future}
 
 // Define a remote API
 trait Api {
-  def hello(some: String, n: Int): Future[String]
+  def test(n: Int): Future[String]
 }
 
 // Create server implementation of the remote API
 val service = new Api {
-  override def hello(some: String, n: Int): Future[String] =
-    Future(s"Hello $some $n!")
+  override def test(n: Int): Future[String] =
+    Future(s"Hello world $n")
 }
 
 // Create Vert.x HTTP & WebSocket server transport plugin listening on port 9000 for requests to '/api'
@@ -616,7 +615,7 @@ Await.ready(for {
   remoteApi = client.bind[Api]
 
   // Call the remote API function via a local proxy
-  result <- remoteApi.hello("world", 1)
+  result <- remoteApi.test(1)
   _ = println(result)
 
   // Close the RPC client and server
@@ -648,13 +647,13 @@ import scala.concurrent.{Await, Future}
 
 // Define a remote API
 trait Api {
-  def hello(some: String, n: Int): Future[String]
+  def test(n: Int): Future[String]
 }
 
 // Create server implementation of the remote API
 val service = new Api {
-  def hello(some: String, n: Int): Future[String] =
-    Future(s"Hello $some $n!")
+  def test(n: Int): Future[String] =
+    Future(s"Hello world $n")
 }
 
 
@@ -677,7 +676,7 @@ Await.ready(for {
   remoteApi = client.bind[Api]
 
   // Call the remote API function via a local proxy
-  result <- remoteApi.hello("world", 1)
+  result <- remoteApi.test(1)
   _ = println(result)
 
   // Close the RPC client
@@ -710,13 +709,13 @@ import scala.concurrent.{Await, Future}
 
 // Define a remote API
 trait Api {
-  def hello(some: String, n: Int): Future[String]
+  def test(n: Int): Future[String]
 }
 
 // Create server implementation of the remote API
 val service = new Api {
-  def hello(some: String, n: Int): Future[String] =
-    Future(s"Hello $some $n!")
+  def test(n: Int): Future[String] =
+    Future(s"Hello world $n")
 }
 
 Await.ready(for {
@@ -728,7 +727,7 @@ Await.ready(for {
   remoteApi = client.bind[Api]
 
   // Call the remote API function via a local proxy
-  result <- remoteApi.hello("world", 1)
+  result <- remoteApi.test(1)
   _ = println(result)
 
   // Close the RPC client and server
@@ -762,13 +761,13 @@ import scala.concurrent.{Await, Future}
 
 // Define a remote API
 trait Api {
-  def hello(some: String, n: Int): Future[String]
+  def test(n: Int): Future[String]
 }
 
 // Create server implementation of the remote API
 val service = new Api {
-  def hello(some: String, n: Int): Future[String] =
-    Future(s"Hello $some $n!")
+  def test(n: Int): Future[String] =
+    Future(s"Hello world $n")
 }
 
 // Check for the AMQP broker URL configuration
@@ -789,7 +788,7 @@ Option(System.getenv("AMQP_BROKER_URL")).map(new URI(_)).map { url =>
     remoteApi = client.bind[Api]
 
     // Call the remote API function via a local proxy
-    result <- remoteApi.hello("world", 1)
+    result <- remoteApi.test(1)
     _ = println(result)
 
     // Close the RPC client and server
@@ -804,7 +803,7 @@ Option(System.getenv("AMQP_BROKER_URL")).map(new URI(_)).map { url =>
 
 ## Customization
 
-### [Data type serialization](https://automorph.org/examples/src/main/scala/examples/customization/DataStructureSerialization.scala)
+### [Data type serialization](https://automorph.org/examples/src/main/scala/examples/customization/DataTypeSerialization.scala)
 
 **Build**
 
@@ -817,24 +816,15 @@ libraryDependencies ++= Seq(
 **Source**
 
 ```scala
-import automorph.Default
-import io.circe.{Decoder, Encoder}
-import io.circe.generic.auto.*
-import java.net.URI
-import scala.concurrent.ExecutionContext.Implicits.global
-import scala.concurrent.duration.Duration
-import scala.concurrent.{Await, Future}
-
 // Introduce custom data types
 sealed abstract class State
-
 object State {
   case object On extends State
   case object Off extends State
 }
 
 // Product data types will work automatically with most message codecs
-case class Record(
+final case class Record(
   value: String,
   state: State
 )
@@ -851,13 +841,13 @@ implicit val enumDecoder: Decoder[State] = Decoder.decodeInt.map(Map(
 
 // Define a remote API
 trait Api {
-  def hello(some: String, record: Record): Future[Record]
+  def test(record: Record): Future[Record]
 }
 
 // Create server implementation of the remote API
 val service = new Api {
-  def hello(some: String, record: Record): Future[Record] =
-    Future(record.copy(value = s"Hello $some!"))
+  def test(record: Record): Future[Record] =
+    Future(record.copy(value = s"Data ${record.value}"))
 }
 
 Await.ready(for {
@@ -869,7 +859,7 @@ Await.ready(for {
   remoteApi = client.bind[Api]
 
   // Call the remote API function via a local proxy
-  result <- remoteApi.hello("world", Record("test", State.On))
+  result <- remoteApi.test(Record("test", State.On))
   _ = println(result)
 
   // Close the RPC client and server
@@ -898,15 +888,15 @@ import java.net.URI
 
 // Define client view of a remote API
 trait Api {
-  def hello(some: String, n: Int): String
+  def test(n: Int): String
 
-  def hi(some: String, n: Int): String
+  def hi(n: Int): String
 }
 
 // Create server implementation of the remote API
 class Service {
-  def hello(some: String, n: Int): String =
-    s"Hello $some $n!"
+  def test(n: Int): String =
+    s"Hello world $n"
 }
 val service = new Service
 
@@ -918,8 +908,8 @@ val client = Default.rpcClientCustom(IdentitySystem(), new URI("http://localhost
 
 // Customize local proxy API to RPC function name mapping
 val mapName = (name: String) => name match {
-  // Calling 'hi' translates to calling 'hello'
-  case "hi" => "hello"
+  // Calling 'hi' translates to calling 'test'
+  case "hi" => "test"
   
   // Other calls remain unchanged
   case other => other
@@ -928,10 +918,10 @@ val mapName = (name: String) => name match {
 // Call the remote API function via a local proxy
 val remoteApi = client.bind[Api](mapName)
 println(
-  remoteApi.hello("world", 1)
+  remoteApi.test(1)
 )
 println(
-  remoteApi.hi("world", 1)
+  remoteApi.hi(1)
 )
 
 // Close the RPC client and server
@@ -960,15 +950,15 @@ import scala.util.Try
 
 // Define client view of a remote API
 trait Api {
-  def hello(some: String, n: Int): String
+  def test(n: Int): String
 
-  def hi(some: String, n: Int): String
+  def hi(n: Int): String
 }
 
 // Create server implementation of the remote API
 class Service {
-  def hello(some: String, n: Int): String =
-    s"Hello $some $n!"
+  def test(n: Int): String =
+    s"Hello world $n"
 
   def sum(numbers: List[Double]): Double =
     numbers.sum
@@ -980,8 +970,8 @@ val service = new Service
 
 // Customize served API to RPC function name mapping
 val mapName = (name: String) => name match {
-  // 'hello' is exposed both as 'hello' and 'hi'
-  case "hello" => Seq("hello", "hi")
+  // 'test' is exposed both as 'test' and 'hi'
+  case "test" => Seq("test", "hi")
 
   // 'hidden' is not exposed
   case "hidden" => Seq.empty
@@ -999,10 +989,10 @@ val client = Default.rpcClientCustom(IdentitySystem(), new URI("http://localhost
 // Call the remote API function via a local proxy
 val remoteApi = client.bind[Api]
 println(
-  remoteApi.hello("world", 1)
+  remoteApi.test(1)
 )
 println(
-  remoteApi.hi("world", 1)
+  remoteApi.hi(1)
 )
 
 // Call the remote API function dynamically not using the API trait
@@ -1045,13 +1035,13 @@ import scala.util.Try
 // Define client view of a remote API
 trait Api {
   // Accept HTTP request context consumed by the client transport plugin
-  def hello(message: String)(implicit http: ClientContext): String
+  def test(message: String)(implicit http: ClientContext): String
 }
 
 // Create server implementation of the remote API
 class Service {
   // Accept HTTP request context provided by the server message transport plugin
-  def hello(message: String)(implicit httpRequest: ServerContext): String =
+  def test(message: String)(implicit httpRequest: ServerContext): String =
     httpRequest.authorization("Bearer") match {
       case Some("valid") => s"Hello $message!"
       case _ => throw new IllegalAccessException("Authentication failed")
@@ -1073,12 +1063,12 @@ val remoteApi = client.bind[Api]
 
   // Call the remote API function via a local proxy using valid authentication
   println(
-    remoteApi.hello("test")
+    remoteApi.test("test")
   )
 
   // Call the remote API function dynamically using valid authentication
   println(
-    client.call[String]("hello")("message" -> "test")
+    client.call[String]("test")("message" -> "test")
   )
 }
 
@@ -1089,12 +1079,12 @@ val remoteApi = client.bind[Api]
 
   // Call the remote API function via a local proxy using invalid authentication
   println(Try(
-    remoteApi.hello("test")
+    remoteApi.test("test")
   ).failed.get)
 
   // Call the remote API function dynamically using invalid authentication
   println(Try(
-    client.call[String]("hello")("message" -> "test")
+    client.call[String]("test")("message" -> "test")
   ).failed.get)
 }
 
@@ -1126,13 +1116,13 @@ import java.net.URI
 // Define client view of a remote API
 trait Api {
   // Accept HTTP request context consumed by the client transport plugin
-  def hello(message: String)(implicit http: ClientContext): String
+  def test(message: String)(implicit http: ClientContext): String
 }
 
 // Create server implementation of the remote API
 class Service {
   // Accept HTTP request context provided by the server message transport plugin
-  def hello(message: String)(implicit httpRequest: ServerContext): String =
+  def test(message: String)(implicit httpRequest: ServerContext): String =
     Seq(
       Some(message),
       httpRequest.path,
@@ -1157,12 +1147,12 @@ implicit val httpRequest: ClientContext = client.context
 // Call the remote API function via a local proxy using implicitly given HTTP request metadata
 val remoteApi = client.bind[Api]
 println(
-  remoteApi.hello("test")
+  remoteApi.test("test")
 )
 
 // Call the remote API function dynamically using implicitly given HTTP request metadata
 println(
-  client.call[String]("hello")("message" -> "test")
+  client.call[String]("test")("message" -> "test")
 )
 
 // Close the RPC client and server
@@ -1193,13 +1183,13 @@ import java.net.URI
 // Define client view of a remote API
 trait Api {
   // Return HTTP response context provided by the client transport plugin
-  def hello(message: String): RpcResult[String, ClientContext]
+  def test(message: String): RpcResult[String, ClientContext]
 }
 
 // Create server implementation of the remote API
 class Service {
   // Return HTTP response context consumed by the server message transport plugin
-  def hello(message: String): RpcResult[String, ServerContext] = RpcResult(
+  def test(message: String): RpcResult[String, ServerContext] = RpcResult(
     message,
     HttpContext().headers("X-Test" -> "value", "Cache-Control" -> "no-cache").statusCode(200)
   )
@@ -1214,12 +1204,12 @@ val client = Default.rpcClientCustom(IdentitySystem(), new URI("http://localhost
 
 // Call the remote API function via a local proxy retrieving a result with HTTP response metadata
 val remoteApi = client.bind[Api]
-val static = remoteApi.hello("test")
+val static = remoteApi.test("test")
 println(static.result)
 println(static.context.header("X-Test"))
 
 // Call the remote API function dynamically retrieving a result with HTTP response metadata
-val dynamic = client.call[RpcResult[String, ClientContext]]("hello")("message" -> "test")
+val dynamic = client.call[RpcResult[String, ClientContext]]("test")("message" -> "test")
 println(dynamic.result)
 println(dynamic.context.header("X-Test"))
 
@@ -1253,12 +1243,12 @@ import scala.concurrent.{Await, Future}
 
 // Define a remote API
 trait Api {
-  def hello(some: String, n: Int): Future[String]
+  def test(n: Int): Future[String]
 }
 
 // Create server implementation of the remote API
 val service = new Api {
-  def hello(some: String, n: Int): Future[String] =
+  def test(n: Int): Future[String] =
     Future.failed(new IllegalArgumentException("SQL error"))
 }
 
@@ -1284,7 +1274,7 @@ Await.ready(for {
   remoteApi = client.bind[Api]
 
   // Call the remote API function via a local proxy and fail with SQLException
-  error <- remoteApi.hello("world", 1).failed
+  error <- remoteApi.test(1).failed
   _ = println(error)
 
   // Close the RPC client and server
@@ -1318,12 +1308,12 @@ import scala.concurrent.{Await, Future}
 
 // Define a remote API
 trait Api {
-  def hello(some: String, n: Int): Future[String]
+  def test(n: Int): Future[String]
 }
 
 // Create server implementation of the remote API
 val service = new Api {
-  def hello(some: String, n: Int): Future[String] =
+  def test(n: Int): Future[String] =
     if (n >= 0) {
       Future.failed(new SQLException("Invalid request"))
     } else {
@@ -1349,11 +1339,11 @@ Await.ready(for {
   remoteApi = client.bind[Api]
 
   // Call the remote API function via a local proxy and fail with InvalidRequestException
-  error <- remoteApi.hello("world", 1).failed
+  error <- remoteApi.test(1).failed
   _ = println(error)
 
   // Call the remote API function and fail with RuntimeException
-  error <- remoteApi.hello("world", -1).failed
+  error <- remoteApi.test(-1).failed
   _ = println(error)
 
   // Close the RPC client and server
@@ -1386,12 +1376,12 @@ import scala.concurrent.{Await, Future}
 
 // Define a remote API
 trait Api {
-  def hello(some: String, n: Int): Future[String]
+  def test(n: Int): Future[String]
 }
 
 // Create server implementation of the remote API
 val service = new Api {
-  def hello(some: String, n: Int): Future[String] =
+  def test(n: Int): Future[String] =
     Future.failed(new SQLException("Invalid request"))
 }
 
@@ -1410,7 +1400,7 @@ Await.ready(for {
   remoteApi = client.bind[Api]
 
   // Call the remote API function and fail with InvalidRequestException
-  error <- remoteApi.hello("world", 1).failed
+  error <- remoteApi.test(1).failed
   _ = println(error)
 
   // Close the RPC client and server
@@ -1487,34 +1477,17 @@ import scala.concurrent.{Await, Future}
 
 // Define client view of a remote API
 trait Api {
-  def hello(some: String, n: Json): Json
+  def test(who: String, n: Json): Future[Json]
 }
 
 // Create server implementation of the remote API
 class Service {
-  def hello(some: Json, n: Int): Json =
-    if (some.isString) {
-      val value = some.as[String].toTry.get
-      Json.fromString(s"Hello $value $n!")
-    } else {
-      Json.fromValues(Seq(some, Json.fromInt(n)))
-    }
-}
-val service = new Service
-
-// Define client view of a remote API
-trait Api {
-  def hello(some: String, n: Json): Future[Json]
-}
-
-// Create server implementation of the remote API
-class Service {
-  def hello(some: Json, n: Int): Future[Json] =
-    if (some.isString) {
-      val value = some.as[String].toTry.get
+  def test(who: Json, n: Int): Future[Json] =
+    if (who.isString) {
+      val value = who.as[String].toTry.get
       Future(Json.fromString(s"Hello $value $n!"))
     } else {
-      Future(Json.fromValues(Seq(some, Json.fromInt(n))))
+      Future(Json.fromValues(Seq(who, Json.fromInt(n))))
     }
 }
 val service = new Service
@@ -1528,17 +1501,18 @@ Await.ready(for {
   remoteApi = client.bind[Api]
 
   // Call the remote API function a proxy instance
-  result <- remoteApi.hello("world", Json.fromInt(1))
+  result <- remoteApi.test("test", Json.fromInt(1))
   _ = println(result)
 
-  // Call the remote API function dynamically not using the API trait
-  result <- client.call[Seq[Int]]("hello")("some" -> Json.fromInt(0), "n" -> 1)
+  // Call the remote API function dynamically without an API trait
+  result <- client.call[Seq[Int]]("test")("who" -> Json.fromInt(0), "n" -> 1)
   _ = println(result)
 
   // Close the RPC client and server
   _ <- client.close()
   _ <- server.close()
 } yield (), Duration.Inf)
+
 ```
 
 
@@ -1563,13 +1537,13 @@ import scala.concurrent.{Await, Future}
 
 // Define a remote API
 trait Api {
-  def hello(some: String, n: Int): Future[String]
+  def test(n: Int): Future[String]
 }
 
 // Create server implementation of the remote API
 val service = new Api {
-  def hello(some: String, n: Int): Future[String] =
-    Future(s"Hello $some $n!")
+  def test(n: Int): Future[String] =
+    Future(s"Hello world $n")
 }
 
 Await.ready(for {
@@ -1581,7 +1555,7 @@ Await.ready(for {
   remoteApi = client.bind[Api]
 
   // Call the remote API function dynamically without expecting a response
-  _ <- client.tell("hello")("some" -> "world", "n" -> 1)
+  _ <- client.tell("test")("n" -> 1)
 
   // Close the RPC client and server
   _ <- client.close()
@@ -1611,13 +1585,13 @@ import scala.concurrent.{Await, Future}
 
 // Define a remote API
 trait Api {
-  def hello(some: String, n: Int): Future[String]
+  def test(n: Int): Future[String]
 }
 
 // Create server implementation of the remote API
 val service = new Api {
-  def hello(some: String, n: Int): Future[String] =
-    Future(s"Hello $some $n!")
+  def test(n: Int): Future[String] =
+    Future(s"Hello world $n")
 }
 
 // Configure JSON-RPC to pass arguments by position instead of by name
@@ -1635,7 +1609,7 @@ Await.ready(for {
   remoteApi = client.bind[Api]
 
   // Call the remote API function
-  result <- remoteApi.hello("world", 1)
+  result <- remoteApi.test("world", 1)
   _ = println(result)
 
   // Close the RPC client and server
@@ -1667,13 +1641,13 @@ import scala.concurrent.{Await, Future}
 
 // Define a remote API
 trait Api {
-  def hello(some: String, n: Int): Future[String]
+  def test(n: Int): Future[String]
 }
 
 // Create server implementation of the remote API
 val service = new Api {
-  def hello(some: String, n: Int): Future[String] =
-    Future(s"Hello $some $n!")
+  def test(n: Int): Future[String] =
+    Future(s"Hello world $n")
 }
 
 // Create passive JSON-RPC HTTP & WebSocket server on port 9000 for POST requests to '/api'
@@ -1691,7 +1665,7 @@ Await.ready(for {
   remoteApi = client.bind[Api]
 
   // Call the remote API function using the local client
-  result <- remoteApi.hello("world", 1)
+  result <- remoteApi.test("world", 1)
   _ = println(result)
 
   // Close the RPC client

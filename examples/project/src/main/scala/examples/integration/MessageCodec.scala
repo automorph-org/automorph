@@ -24,13 +24,13 @@ private[examples] object MessageCodec {
 
     // Define a remote API
     trait Api {
-      def hello(some: String, n: Int): Future[Record]
+      def test(n: Int): Future[Record]
     }
 
     // Create server implementation of the remote API
     val service = new Api {
-      def hello(some: String, n: Int): Future[Record] =
-        Future(Record(List("Hello", some, n.toString)))
+      def test(n: Int): Future[Record] =
+        Future(Record(List("Data", n.toString)))
     }
 
     // Create a server RPC protocol plugin
@@ -58,7 +58,7 @@ private[examples] object MessageCodec {
       remoteApi = client.bind[Api]
 
       // Call the remote API function via a local proxy
-      result <- remoteApi.hello("world", 1)
+      result <- remoteApi.test(1)
       _ = println(result)
 
       // Close the RPC client and server

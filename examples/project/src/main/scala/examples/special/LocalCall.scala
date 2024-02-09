@@ -14,13 +14,13 @@ private[examples] object LocalCall {
 
     // Define a remote API
     trait Api {
-      def hello(some: String, n: Int): Future[String]
+      def test(n: Int): Future[String]
     }
 
     // Create server implementation of the remote API
     val service = new Api {
-      def hello(some: String, n: Int): Future[String] =
-        Future(s"Hello $some $n!")
+      def test(n: Int): Future[String] =
+        Future(s"Hello world $n")
     }
 
     // Create passive JSON-RPC HTTP & WebSocket server on port 9000 for POST requests to '/api'
@@ -38,7 +38,7 @@ private[examples] object LocalCall {
       remoteApi = client.bind[Api]
 
       // Call the remote API function using the local client
-      result <- remoteApi.hello("world", 1)
+      result <- remoteApi.test(1)
       _ = println(result)
 
       // Close the RPC client
