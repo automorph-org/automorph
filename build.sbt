@@ -68,6 +68,7 @@ lazy val root = project.in(file(".")).settings(
   vertx,
   jetty,
   akkaHttp,
+  pekkoHttp,
 
   // Endpoint transport
   finagle,
@@ -189,7 +190,7 @@ lazy val rabbitmq = source(project, "transport/rabbitmq", core, testTransport % 
 )
 
 // Server transport
-val tapirVersion = "1.9.8"
+val tapirVersion = "1.9.9"
 lazy val tapir = source(project, "transport/tapir", core, catsEffect % Test, testTransport % Test).settings(
   libraryDependencies ++= Seq(
     "com.softwaremill.sttp.tapir" %% "tapir-server" % tapirVersion,
@@ -226,6 +227,19 @@ lazy val akkaHttp = source(project, "transport/akka-http", core, testTransport %
     "com.typesafe.akka" %% "akka-slf4j" % akkaVersion % Test
   )
 )
+val pekkoVersion = "1.0.2"
+lazy val pekkoHttp = source(project, "transport/pekko-http", core, testTransport % Test).settings(
+  Test / fork := true,
+  Test / testForkedParallel := true,
+  Test / javaOptions += s"-Dproject.target=${System.getProperty("project.target")}",
+  libraryDependencies ++= Seq(
+    "org.apache.pekko" %% "pekko-http" % "1.0.0",
+    "org.apache.pekko" %% "pekko-actor-typed" % pekkoVersion,
+    "org.apache.pekko" %% "pekko-stream" % pekkoVersion,
+    "org.apache.pekko" %% "pekko-slf4j" % pekkoVersion % Test
+  )
+)
+
 
 // Endpoint transport
 lazy val finagle = source(project, "transport/finagle", core, testTransport % Test).settings(
@@ -259,8 +273,8 @@ lazy val examples = source(
 ThisBuild / Test / testOptions += Tests.Argument("-f", (target.value / "test.results").getPath, "-oDF")
 lazy val testBase = source(project, "test/base").settings(
   libraryDependencies ++= Seq(
-    "org.scalatest" %% "scalatest" % "3.2.17",
-    "org.scalatestplus" %% "scalacheck-1-17" % "3.2.17.0",
+    "org.scalatest" %% "scalatest" % "3.2.18",
+    "org.scalatestplus" %% "scalacheck-1-17" % "3.2.18.0",
     "org.slf4j" % "jul-to-slf4j" % slf4jVersion,
     "ch.qos.logback" % "logback-classic" % "1.4.14",
     "com.lihaoyi" %% "pprint" % "0.8.1"
@@ -275,7 +289,7 @@ lazy val testTransport = source(project, "test/transport", testSystem, standard)
 
 
 // Compile
-ThisBuild / scalaVersion := "3.3.0"
+ThisBuild / scalaVersion := "3.3.2-RC2"
 ThisBuild / crossScalaVersions += "2.13.12"
 ThisBuild / javacOptions ++= Seq("-source", "11", "-target", "11")
 val commonScalacOptions = Seq(
@@ -322,8 +336,9 @@ ThisBuild / scalacOptions ++= (CrossVersion.partialVersion(scalaVersion.value) m
     "-Wunused:all",
     "-Wvalue-discard",
     "-Xcheck-macros",
-    "-Xmigration",
-    "-Ysafe-init"
+    "-Xmigration"
+// FIXME - restore once https://github.com/lampepfl/dotty/issues/19649 is fixed
+//    "-Ysafe-init"
   )
   case _ => compileScalac2Options
 })
