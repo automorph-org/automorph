@@ -82,7 +82,7 @@ Call the remote API function via the local proxy:
 remoteApi.hello("world", 1)
 ```
 
-Call a remote API function dynamically without an API trait
+Call the remote API function dynamically not using an API trait:
 ```scala
 client.call[String]("hello")("some" -> "world", "n" -> 1)
 ```
@@ -131,7 +131,7 @@ Enables RPC endpoint to integrate with and handle requests from an existing serv
 - Remote API methods must not be [inline](https://docs.scala-lang.org/scala3/guides/macros/inline.html)
 - Remote APIs must not be used from within the [App](https://scala-lang.org/api/3.x/scala/App.html) trait nor from within any other [delayed initialization](https://scala-lang.org/api/3.x/scala/DelayedInit.html) scope
 - JSON-RPC protocol implementation does not support [batch requests](https://www.jsonrpc.org/specification#batch)
-- Maximum number of arguments the RPC client supports for [dynamic remote APIs calls](https://automorph.org/docs/Quickstart#dynamic-client) without an API trait is 9
+- Maximum number of arguments the RPC client supports for [dynamic remote APIs calls](https://automorph.org/docs/Quickstart#dynamic-client) not using an API trait is 9
 - RPC protocol plugin constructors for Scala 2 might require explicitly supplied type parameters due to [type inference](https://docs.scala-lang.org/tour/type-inference.html) constraints
 
 
