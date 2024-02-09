@@ -48,7 +48,7 @@ Call a remote API function dynamically without an API trait
 client.call[String]("hello")("some" -> "world", "n" -> 1)
 ```
 
-*Note*: Mundane parts of the code are omitted and can be found in the [Quickstart](https://automorph.org/docs/Quickstart) example.
+*Note*: Mundane parts of the code are omitted and can be found in the full [example](https://automorph.org/docs/Quickstart).
 
 ---
 
@@ -64,7 +64,7 @@ client.call[String]("hello")("some" -> "world", "n" -> 1)
 
 ---
 
-- [Quick Start](https://automorph.org/docs/Quickstart)
+- [Get Started](https://automorph.org/docs/Quickstart)
 - [Documentation](https://automorph.org)
 - [API](https://automorph.org/api/automorph.html)
 - [Artifacts](https://central.sonatype.com/namespace/org.automorph)
