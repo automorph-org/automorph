@@ -15,27 +15,40 @@ for invoking and exposing remote APIs in a few lines of code.
 ---
 
 **Main interface**
+
+Define a remote API:
 ```scala
-// Define a remote API
 trait Api:
   def hello(some: String, n: Int): Future[String]
+```
 
-// Create server implementation of the remote API
+Create server implementation of the remote API:
+```scala
 val service = new Api:
   def hello(some: String, n: Int): Future[String] = Future(s"Hello $some $n!")
+```
 
-// Expose a server API implementation to be called remotely
+Expose a server API implementation to be called remotely:
+```scala
 val apiServer = server.bind(service)
+```
 
-// Create a type-safe local proxy for the remote API from an API trait
+Create a type-safe local proxy for the remote API from an API trait:
+```scala
 val remoteApi = client.bind[Api]
+```
 
-// Call the remote API function via the local proxy
+Call the remote API function via the local proxy:
+```scala
 remoteApi.hello("world", 1)
+```
 
-// Call a remote API function dynamically without an API trait
+Call a remote API function dynamically without an API trait
+```scala
 client.call[String]("hello")("some" -> "world", "n" -> 1)
 ```
+
+*Note*: Mundane parts are omitted and can be found in the [Quickstart](https://automorph.org/docs/Quickstart) example.
 
 ---
 
