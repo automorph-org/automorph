@@ -7,37 +7,13 @@ sidebar_position: 1
 **Automorph** is a Scala [RPC](https://en.wikipedia.org/wiki/Remote_procedure_call) client and server library
 for calling and serving remote APIs in a few lines of code.
 
-### Goals
+## Goals
 
 - Provide efficient **calling** and **serving** of **remote APIs**
 - Ensure there is **no boilerplate** API code and **minimal dependencies** are required
 - Support manipulation of **transport protocol metadata** and **dynamic message payload**
 - Facilitate **smooth integration** by supporting wide range of **existing technology**
 - Allow for easy **customization** and **extension** of library features
-
-### Main interface
-
-```scala
-// Define a remote API
-trait Api:
-  def hello(some: String, n: Int): Future[String]
-
-// Create server implementation of the remote API
-val service = new Api:
-  def hello(some: String, n: Int): Future[String] = Future(s"Hello $some $n!")
-
-// Expose a server API implementation to be called remotely
-val apiServer = server.bind(service)
-
-// Create a type-safe local proxy for the remote API from an API trait
-val remoteApi = client.bind[Api]
-
-// Call the remote API function via the local proxy
-remoteApi.hello("world", 1)
-
-// Call a remote API function dynamically without an API trait
-client.call[String]("hello")("some" -> "world", "n" -> 1)
-```
 
 
 ## Features
@@ -78,6 +54,29 @@ client.call[String]("hello")("some" -> "world", "n" -> 1)
 - [Java Runtime Environment](https://openjdk.java.net/) 11+
 - [SLF4J](http://www.slf4j.org/) logger implementation (optional)
 
+### Main interface
+
+```scala
+// Define a remote API
+trait Api:
+  def hello(some: String, n: Int): Future[String]
+
+// Create server implementation of the remote API
+val service = new Api:
+  def hello(some: String, n: Int): Future[String] = Future(s"Hello $some $n!")
+
+// Expose a server API implementation to be called remotely
+val apiServer = server.bind(service)
+
+// Create a type-safe local proxy for the remote API from an API trait
+val remoteApi = client.bind[Api]
+
+// Call the remote API function via the local proxy
+remoteApi.hello("world", 1)
+
+// Call a remote API function dynamically without an API trait
+client.call[String]("hello")("some" -> "world", "n" -> 1)
+```
 
 ### [API](https://automorph.org/api/automorph.html)
 
