@@ -21,20 +21,20 @@ for invoking and exposing remote APIs in a few lines of code.
 trait Api:
   def hello(some: String, n: Int): Future[String]
 
-// Create server implementation of the remote API:
+// Create server implementation of the remote API
 val service = new Api:
   def hello(some: String, n: Int): Future[String] = Future(s"Hello $some $n!")
 
-// Expose a server API implementation to be called remotely:
+// Expose a server API implementation to be called remotely
 val apiServer = server.bind(service)
 
-// Create a type-safe local proxy for the remote API from an API trait:
+// Create a type-safe local proxy for the remote API from an API trait
 val remoteApi = client.bind[Api]
 
-// Call the remote API function via the local proxy:
+// Call the remote API function via the local proxy
 remoteApi.hello("world", 1)
 
-// Call the remote API function dynamically not using the API trait:
+// Call the remote API function dynamically not using the API trait
 client.call[String]("hello")("some" -> "world", "n" -> 1)
 ```
 
