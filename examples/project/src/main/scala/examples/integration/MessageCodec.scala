@@ -63,7 +63,7 @@ private[examples] object MessageCodec {
       remoteApi = client.bind[Api]
 
       // Call the remote API function via a local proxy
-      result <- remoteApi.test(1)
+      result <- remoteApi.hello(1)
       _ = println(result)
 
       // Close the RPC client and server
