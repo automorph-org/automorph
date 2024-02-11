@@ -21,7 +21,7 @@ private[examples] object ServerFunctionNames {
 
     // Create server implementation of the remote API
     class ApiImpl {
-      def hello(n: Int): String =
+      def test(n: Int): String =
         s"Hello world $n"
 
       def sum(numbers: List[Double]): Double =
