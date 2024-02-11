@@ -79,7 +79,6 @@ lazy val root = project.in(file(".")).settings(
 
   // Misc
   default,
-  standard,
   examples
 )
 
