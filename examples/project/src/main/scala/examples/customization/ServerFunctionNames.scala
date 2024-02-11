@@ -34,8 +34,8 @@ private[examples] object ServerFunctionNames {
 
     // Customize served API to RPC function name mapping
     val mapName = (name: String) => name match {
-      // 'hello' is exposed both as 'hello' and 'hi'
-      case "hello" => Seq("hello", "hi")
+      // 'test' is exposed both as 'hello' and 'hi'
+      case "test" => Seq("hello", "hi")
 
       // 'hidden' is not exposed
       case "hidden" => Seq.empty
