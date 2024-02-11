@@ -1,3 +1,6 @@
+//> using dep org.automorph::automorph-default:@PROJECT_VERSION@
+//> using dep org.automorph::automorph-rabbitmq:@PROJECT_VERSION@
+//> using dep ch.qos.logback:logback-classic:@LOGGER_VERSION@
 package examples.transport
 
 import automorph.{RpcClient, Default, RpcServer}

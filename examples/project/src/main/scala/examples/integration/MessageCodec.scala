@@ -1,3 +1,6 @@
+//> using dep org.automorph::automorph-default:@PROJECT_VERSION@
+//> using dep org.automorph::automorph-upickle:@PROJECT_VERSION@
+//> using dep ch.qos.logback:logback-classic:@LOGGER_VERSION@
 package examples.integration
 
 import automorph.codec.messagepack.{UpickleMessagePackCodec, UpickleMessagePackCustom}
@@ -6,6 +9,8 @@ import java.net.URI
 import scala.concurrent.ExecutionContext.Implicits.global
 import scala.concurrent.duration.Duration
 import scala.concurrent.{Await, Future}
+
+
 
 // Introduce custom data types
 private[examples] final case class Record(values: List[String])

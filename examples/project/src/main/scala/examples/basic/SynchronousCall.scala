@@ -1,8 +1,9 @@
+//> using dep org.automorph::automorph-default:@PROJECT_VERSION@
+//> using dep ch.qos.logback:logback-classic:@LOGGER_VERSION@
 package examples.basic
 
 import automorph.Default
 import automorph.system.IdentitySystem
-
 import java.net.URI
 
 private[examples] object SynchronousCall {

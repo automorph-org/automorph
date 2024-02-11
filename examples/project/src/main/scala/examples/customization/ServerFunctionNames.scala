@@ -1,3 +1,5 @@
+//> using dep org.automorph::automorph-default:@PROJECT_VERSION@
+//> using dep ch.qos.logback:logback-classic:@LOGGER_VERSION@
 package examples.customization
 
 import automorph.Default
