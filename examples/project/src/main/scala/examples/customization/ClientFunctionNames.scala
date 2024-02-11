@@ -33,8 +33,8 @@ private[examples] object ClientFunctionNames {
 
     // Customize local proxy API to RPC function name mapping
     val mapName = (name: String) => name match {
-      // Calling 'hi' translates to calling 'test'
-      case "hi" => "test"
+      // Calling 'hi' translates to calling 'hello'
+      case "hi" => "hello"
 
       // Other calls remain unchanged
       case other => other
