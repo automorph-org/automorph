@@ -43,7 +43,7 @@ private[examples] object HttpResponseProperties {
     println(static.context.header("X-Test"))
 
     // Call the remote API function dynamically retrieving a result with HTTP response metadata
-    val dynamic = client.call[RpcResult[String, ClientContext]]("test")("message" -> "test")
+    val dynamic = client.call[RpcResult[String, ClientContext]]("hello")("message" -> "test")
     println(dynamic.result)
     println(dynamic.context.header("X-Test"))
 

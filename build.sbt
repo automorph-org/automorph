@@ -261,7 +261,6 @@ lazy val examples = source(
   project, "examples", default, upickle, zio, vertx, sttp, rabbitmq, testBase % Test
 ).settings(
   Test / fork := true,
-  Test / testForkedParallel := true,
   Test / javaOptions += s"-Dproject.target=${System.getProperty("project.target")}",
   libraryDependencies ++= Seq(
     "com.softwaremill.sttp.client3" %% "async-http-client-backend-future" % sttpVersion,

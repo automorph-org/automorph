@@ -14,12 +14,12 @@ private[examples] object UnsupportedServer {
 
     // Define a remote API
     trait Api {
-      def test(n: Int): Future[String]
+      def hello(n: Int): Future[String]
     }
 
     // Create server implementation of the remote API
     val service = new Api {
-      def test(n: Int): Future[String] =
+      def hello(n: Int): Future[String] =
         Future(s"Hello world $n")
     }
 
@@ -51,7 +51,7 @@ private[examples] object UnsupportedServer {
         |{
         |  "jsonrpc" : "2.0",
         |  "id" : "1234",
-        |  "method" : "test",
+        |  "method" : "hello",
         |  "params" : {
         |    "n" : 1
         |  }
