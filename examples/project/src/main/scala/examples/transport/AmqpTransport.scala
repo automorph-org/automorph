@@ -1,3 +1,6 @@
+//> using dep org.automorph::automorph-default:@PROJECT_VERSION@
+//> using dep org.automorph::automorph-rabbitmq:@PROJECT_VERSION@
+//> using dep ch.qos.logback:logback-classic:@LOGGER_VERSION@
 package examples.transport
 
 import automorph.{RpcClient, Default, RpcServer}
@@ -15,13 +18,13 @@ private[examples] object AmqpTransport {
 
     // Define a remote API
     trait Api {
-      def hello(some: String, n: Int): Future[String]
+      def test(n: Int): Future[String]
     }
 
     // Create server implementation of the remote API
     val service = new Api {
-      override def hello(some: String, n: Int): Future[String] =
-        Future(s"Hello $some $n!")
+      override def test(n: Int): Future[String] =
+        Future(s"Hello world $n")
     }
 
     // Check for the AMQP broker URL configuration
@@ -42,7 +45,7 @@ private[examples] object AmqpTransport {
         remoteApi = client.bind[Api]
 
         // Call the remote API function via a local proxy
-        result <- remoteApi.hello("world", 1)
+        result <- remoteApi.test(1)
         _ = println(result)
 
         // Close the RPC client and server

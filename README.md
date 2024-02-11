@@ -19,11 +19,11 @@ for invoking and exposing remote APIs in a few lines of code.
 ```scala
 // Define a remote API
 trait Api:
-  def hello(some: String, n: Int): Future[String]
+  def test(n: Int): Future[String]
 
 // Create server implementation of the remote API
 val service = new Api:
-  def hello(some: String, n: Int): Future[String] = Future(s"Hello $some $n!")
+  def test(n: Int): Future[String] = Future(s"Hello world $n")
 
 // Expose a server API implementation to be called remotely
 val apiServer = server.bind(service)
@@ -32,10 +32,10 @@ val apiServer = server.bind(service)
 val remoteApi = client.bind[Api]
 
 // Call the remote API function via the local proxy
-remoteApi.hello("world", 1)
+remoteApi.test(1)
 
 // Call the remote API function dynamically not using the API trait
-client.call[String]("hello")("some" -> "world", "n" -> 1)
+client.call[String]("test")("n" -> 1)
 ```
 
 *Note*: Mundane parts of the code are omitted and can be found in the [full example](https://automorph.org/docs/Quickstart).

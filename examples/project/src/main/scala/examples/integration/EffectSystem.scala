@@ -1,3 +1,7 @@
+//> using dep org.automorph::automorph-default:@PROJECT_VERSION@
+//> using dep org.automorph::automorph-zio:@PROJECT_VERSION@
+//> using dep com.softwaremill.sttp.client3::async-http-client-backend-zio:3.3.9
+//> using dep ch.qos.logback:logback-classic:@LOGGER_VERSION@
 package examples.integration
 
 import automorph.Default
@@ -12,13 +16,13 @@ private[examples] object EffectSystem {
 
     // Define a remote API
     trait Api {
-      def hello(some: String, n: Int): Task[String]
+      def test(n: Int): Task[String]
     }
 
     // Create server implementation of the remote API
     val service = new Api {
-      def hello(some: String, n: Int): Task[String] =
-        ZIO.succeed(s"Hello $some $n!")
+      def test(n: Int): Task[String] =
+        ZIO.succeed(s"Hello world $n")
     }
 
     // Create ZIO effect system plugin
@@ -35,7 +39,7 @@ private[examples] object EffectSystem {
           remoteApi = client.bind[Api]
 
           // Call the remote API function via a local proxy
-          result <- remoteApi.hello("world", 1)
+          result <- remoteApi.test(1)
           _ <- Console.printLine(result)
 
           // Close the RPC client and server

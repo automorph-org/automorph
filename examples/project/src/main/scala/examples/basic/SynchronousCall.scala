@@ -1,8 +1,9 @@
+//> using dep org.automorph::automorph-default:@PROJECT_VERSION@
+//> using dep ch.qos.logback:logback-classic:@LOGGER_VERSION@
 package examples.basic
 
 import automorph.Default
 import automorph.system.IdentitySystem
-
 import java.net.URI
 
 private[examples] object SynchronousCall {
@@ -12,13 +13,13 @@ private[examples] object SynchronousCall {
 
     // Define a remote API
     trait Api {
-      def hello(some: String, n: Int): String
+      def test(n: Int): String
     }
 
     // Create server implementation of the remote API
     val service = new Api {
-      def hello(some: String, n: Int): String =
-        s"Hello $some $n!"
+      def test(n: Int): String =
+        s"Hello world $n"
     }
 
     // Initialize JSON-RPC HTTP & WebSocket server listening on port 9000 for POST requests to '/api'
@@ -30,12 +31,12 @@ private[examples] object SynchronousCall {
     // Call the remote API function via a proxy instance
     val remoteApi = client.bind[Api]
     println(
-      remoteApi.hello("world", 1)
+      remoteApi.test(1)
     )
 
     // Call the remote API function dynamically without an API trait
     println(
-      client.call[String]("hello")("some" -> "world", "n" -> 1)
+      client.call[String]("test")("n" -> 1)
     )
 
     // Close the RPC client and server

@@ -14,12 +14,12 @@ private[examples] object ClientErrorMapping {
 
     // Define a remote API
     trait Api {
-      def hello(some: String, n: Int): Future[String]
+      def test(n: Int): Future[String]
     }
 
     // Create server implementation of the remote API
     val service = new Api {
-      def hello(some: String, n: Int): Future[String] =
+      def test(n: Int): Future[String] =
         Future.failed(new IllegalArgumentException("SQL error"))
     }
 
@@ -44,7 +44,7 @@ private[examples] object ClientErrorMapping {
       remoteApi = client.bind[Api]
 
       // Call the remote API function via a local proxy and fail with SQLException
-      error <- remoteApi.hello("world", 1).failed
+      error <- remoteApi.test(1).failed
       _ = println(error)
 
       // Close the RPC client and server

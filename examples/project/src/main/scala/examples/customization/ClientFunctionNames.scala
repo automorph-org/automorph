@@ -1,3 +1,5 @@
+//> using dep org.automorph::automorph-default:@PROJECT_VERSION@
+//> using dep ch.qos.logback:logback-classic:@LOGGER_VERSION@
 package examples.customization
 
 import automorph.Default
@@ -11,15 +13,15 @@ private[examples] object ClientFunctionNames {
 
     // Define client view of a remote API
     trait Api {
-      def hello(some: String, n: Int): String
+      def test(n: Int): String
 
-      def hi(some: String, n: Int): String
+      def hi(n: Int): String
     }
 
     // Create server implementation of the remote API
     class Service {
-      def hello(some: String, n: Int): String =
-        s"Hello $some $n!"
+      def test(n: Int): String =
+        s"Hello world $n"
     }
     val service = new Service
 
@@ -31,8 +33,8 @@ private[examples] object ClientFunctionNames {
 
     // Customize local proxy API to RPC function name mapping
     val mapName = (name: String) => name match {
-      // Calling 'hi' translates to calling 'hello'
-      case "hi" => "hello"
+      // Calling 'hi' translates to calling 'test'
+      case "hi" => "test"
 
       // Other calls remain unchanged
       case other => other
@@ -41,10 +43,10 @@ private[examples] object ClientFunctionNames {
     // Call the remote API function via a local proxy
     val remoteApi = client.bind[Api](mapName)
     println(
-      remoteApi.hello("world", 1)
+      remoteApi.test(1)
     )
     println(
-      remoteApi.hi("world", 1)
+      remoteApi.hi(1)
     )
 
     // Close the RPC client and server

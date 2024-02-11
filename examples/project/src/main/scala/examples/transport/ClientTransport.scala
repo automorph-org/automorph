@@ -14,13 +14,13 @@ private[examples] object ClientTransport {
 
     // Define a remote API
     trait Api {
-      def hello(some: String, n: Int): Future[String]
+      def test(n: Int): Future[String]
     }
 
     // Create server implementation of the remote API
     val service = new Api {
-      override def hello(some: String, n: Int): Future[String] =
-        Future(s"Hello $some $n!")
+      override def test(n: Int): Future[String] =
+        Future(s"Hello world $n")
     }
 
     // Create standard JRE HTTP client transport sending POST requests to 'http://localhost:9000/api'
@@ -35,7 +35,7 @@ private[examples] object ClientTransport {
       remoteApi = client.bind[Api]
 
       // Call the remote API function via a local proxy
-      result <- remoteApi.hello("world", 1)
+      result <- remoteApi.test(1)
       _ = println(result)
 
       // Close the RPC client and server

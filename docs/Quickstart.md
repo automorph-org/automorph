@@ -28,13 +28,19 @@ Add the following dependency to project build configuration:
 #### SBT
 
 ```scala
-libraryDependencies += "org.automorph" %% "automorph-default" % "@PROJECT_VERSION@"
+libraryDependencies ++= Seq(
+  "org.automorph" %% "automorph-default" % "@PROJECT_VERSION@",
+  "ch.qos.logback" % "logback-classic" % "@LOGGER_VERSION@",
+)
 ```
 
 #### Gradle
 
 ```yaml
-implementation group: 'org.automorph', name: 'automorph-default_3', version: '@PROJECT_VERSION@'
+dependencies {
+  implementation group: 'org.automorph', name: 'automorph-default_3', version: '@PROJECT_VERSION@'
+  implementation group: 'ch.qos.logback', name: 'logback-classic', version: '@LOGGER_VERSION@'
+}
 ```
 
 ### Server
@@ -51,13 +57,13 @@ import scala.concurrent.{Await, Future}
 
 // Define a remote API
 trait Api {
-  def hello(some: String, n: Int): Future[String]
+  def test(some: String, n: Int): Future[String]
 }
 
 // Create server implementation of the remote API
 class ApiImpl {
-  def hello(some: String, n: Int): Future[String] =
-    Future(s"Hello $some $n!")
+  def test(n: Int): Future[String] =
+    Future(s"Hello world $n")
 }
 val api = new ApiImpl
 
@@ -90,7 +96,7 @@ import scala.concurrent.{Await, Future}
 
 // Define a remote API
 trait Api {
-  def hello(some: String, n: Int): Future[String]
+  def test(n: Int): Future[String] =
 }
 
 // Configure JSON-RPC HTTP client to send POST requests to 'http://localhost:9000/api'
@@ -104,7 +110,7 @@ Await.ready(for {
   activeClient <- client.init()
 
   // Call the remote API function via the local proxy
-  result <- remoteApi.hello("world", 1)
+  result <- remoteApi.test(1)
   _ = println(result)
 
   // Close the JSON-RPC client
@@ -132,7 +138,7 @@ Await.ready(for {
   activeClient <- client.init()
 
   // Call the remote API function dynamically not using an API trait
-  result <- activeClient.call[String]("hello")("some" -> "world", "n" -> 1)
+  result <- activeClient.call[String]("test")("n" -> 1)
   _ = println(result)
 
   // Close the JSON-RPC client

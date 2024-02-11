@@ -13,13 +13,13 @@ private[examples] object HttpRequestProperties {
     // Define client view of a remote API
     trait Api {
       // Accept HTTP request context consumed by the client transport plugin
-      def hello(message: String)(implicit http: ClientContext): String
+      def test(message: String)(implicit http: ClientContext): String
     }
 
     // Create server implementation of the remote API
     class Service {
       // Accept HTTP request context provided by the server message transport plugin
-      def hello(message: String)(implicit httpRequest: ServerContext): String =
+      def test(message: String)(implicit httpRequest: ServerContext): String =
         Seq(
           Some(message),
           httpRequest.path,
@@ -44,12 +44,12 @@ private[examples] object HttpRequestProperties {
     // Call the remote API function via a local proxy using implicitly given HTTP request metadata
     val remoteApi = client.bind[Api]
     println(
-      remoteApi.hello("test")
+      remoteApi.test("test")
     )
 
     // Call the remote API function dynamically using implicitly given HTTP request metadata
     println(
-      client.call[String]("hello")("message" -> "test")
+      client.call[String]("test")("message" -> "test")
     )
 
     // Close the RPC client and server

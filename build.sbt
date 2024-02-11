@@ -18,6 +18,11 @@ ThisBuild / developers := List(Developer(
   url = url(s"https://$projectDomain")
 ))
 ThisBuild / version ~= (_.split("\\+").head)
+val release = settingKey[String]("Release version.")
+ThisBuild / release := IO.readLines((examples / baseDirectory).value / "project/src/main/scala/examples/Quickstart.scala")
+  .filter(_.startsWith(s"//> using dep $projectRoot.$projectName::"))
+  .flatMap(_.split(":").lastOption)
+  .lastOption.getOrElse("")
 Global / onChangedBuildSource := ReloadOnSourceChanges
 
 
@@ -140,7 +145,7 @@ val circeVersion = "0.14.6"
 lazy val circe = source(project, s"codec/circe", core, testCodec % Test).settings(
   libraryDependencies ++= Seq(
     "io.circe" %% "circe-parser" % circeVersion,
-    "io.circe" %% "circe-generic" % circeVersion
+    "io.circe" %% "circe-generic" % circeVersion,
   )
 )
 val jacksonVersion = "2.16.1"
@@ -269,13 +274,14 @@ lazy val examples = source(
 
 
 // Test
+val logbackVersion = "1.4.14"
 ThisBuild / Test / testOptions += Tests.Argument("-f", (target.value / "test.results").getPath, "-oDF")
 lazy val testBase = source(project, "test/base").settings(
   libraryDependencies ++= Seq(
     "org.scalatest" %% "scalatest" % "3.2.18",
     "org.scalatestplus" %% "scalacheck-1-17" % "3.2.18.0",
     "org.slf4j" % "jul-to-slf4j" % slf4jVersion,
-    "ch.qos.logback" % "logback-classic" % "1.4.14",
+    "ch.qos.logback" % "logback-classic" % logbackVersion,
     "com.lihaoyi" %% "pprint" % "0.8.1"
   )
 )
@@ -372,12 +378,8 @@ lazy val allDependencyClasspath = Def.taskDyn(flattenTasks(root.uses.map(_ / Com
 lazy val docs = project.in(file("site")).settings(
   name := projectName,
   mdocVariables := Map(
-    "PROJECT_VERSION" ->
-      IO.readLines((examples / baseDirectory).value / "project/src/main/scala/examples/Quickstart.scala")
-        .filter(_.startsWith(s"//> using dep $projectRoot.$projectName::"))
-        .flatMap(_.split(":").lastOption)
-        .lastOption.getOrElse("")
-    ,
+    "PROJECT_VERSION" -> release.value,
+    "LOGGER_VERSION" -> logbackVersion,
     "SCALADOC_VERSION" -> scalaVersion.value,
     "REPOSITORY_URL" -> repositoryUrl
   ),
@@ -417,23 +419,66 @@ def relativizeScaladocLinks(content: String, path: String): String = {
 // Generate
 val site = taskKey[Unit]("Generates project website.")
 site := {
+  // Generate Markdown documentation
   import scala.sys.process.Process
   (docs / Compile / doc).value
   (docs / mdoc).toTask("").value
-  Process(Seq("yarn", "install"), (docs / baseDirectory).value).!
-  Process(Seq("yarn", "build"), (docs / baseDirectory).value, "SITE_DOCS" -> "docs").!
-  val apiDirectory = (docs / baseDirectory).value / "build/api"
-  val systemDirectory = s"$projectName/system"
+
+  // Insert examples sources into the examples page
+  val docsDirectory = (docs / baseDirectory).value
+  val examplesDirectory = (examples / baseDirectory).value / "project"
+  insertDocumentationExamples(docsDirectory, examplesDirectory, release.value, logbackVersion)
+
+  // Generate website
+  Process(Seq("yarn", "install"), docsDirectory).!
+  Process(Seq("yarn", "build"), docsDirectory, "SITE_DOCS" -> "docs").!
+
+  // Correct API documentation links
+  val apiDirectory = docsDirectory / "build/api"
   Path.allSubpaths((docs / Compile / doc / target).value).filter(_._1.isFile).foreach { case (file, path) =>
     IO.write(apiDirectory / path, relativizeScaladocLinks(IO.read(file), path))
   }
-  Path.allSubpaths(
-    (monix / Compile / doc / target).value / systemDirectory
-  ).filter(_._1.isFile).foreach { case (file, path) =>
+  val systemDirectory = s"$projectName/system"
+  val monixApiDirectory = (monix / Compile / doc / target).value / systemDirectory
+  Path.allSubpaths(monixApiDirectory).filter(_._1.isFile).foreach { case (file, path) =>
     IO.write(apiDirectory / systemDirectory / path, relativizeScaladocLinks(IO.read(file), path))
   }
-  val examplesDirectory = (docs / baseDirectory).value / "build/examples"
-  IO.copyDirectory((examples / baseDirectory).value / "project", examplesDirectory, overwrite = true)
+
+  // Include example sources
+  IO.copyDirectory(examplesDirectory, docsDirectory / "build/examples", overwrite = true)
+}
+def insertDocumentationExamples(
+  docsDirectory: File, sourceDirectory: File, projectVersion: String, loggerVersion: String
+): Unit = {
+  val examplesPage = docsDirectory / "docs/Examples.md"
+  val examples = IO.readLines(examplesPage).flatMap { docLine =>
+    "^###.*https?://[^/]+/[^/]+/([^)]*)\\)".r.findFirstMatchIn(docLine).map(_.group(1)).map { path =>
+      var omittedEmptyLines = 3
+      val source = IO.readLines(sourceDirectory / path).flatMap {
+        case line if line.startsWith("//> ") => Seq(line
+          .replaceFirst("//> using dep ", "  \"")
+          .replaceFirst("::", "\" %% \"")
+          .replaceAll(":", "\" % \"")
+          .replaceFirst("@PROJECT_VERSION@", projectVersion)
+          .replaceFirst("@LOGGER_VERSION@", loggerVersion)
+          .replaceFirst("$", "\",")
+        )
+        case line if line.startsWith("package") => Seq(")\n```\n\n**Source**\n```scala")
+        case line if line.startsWith("private") && line.contains("object") => Seq()
+        case line if line.contains("def main(") => Seq()
+        case line if line.contains("@scala") => Seq()
+        case "  }" => Seq()
+        case "}" => Seq()
+        case "" => if (omittedEmptyLines <= 0) Seq("") else {
+          omittedEmptyLines -= 1
+          Seq()
+        }
+        case line => Seq(line.replaceFirst("    ", "").replaceFirst("^private\\[examples\\] ", ""))
+      }
+      Seq(docLine, "\n", "**Build**\n```scala\nlibraryDependencies ++= Seq(") ++ source ++ Seq("```")
+    }.getOrElse(Seq(docLine))
+  }
+  IO.writeLines(examplesPage, examples)
 }
 
 // Start
