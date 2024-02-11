@@ -17,12 +17,12 @@ private[examples] object Quickstart {
 
     // Define a remote API
     trait Api {
-      def test(n: Int): Future[String]
+      def hello(n: Int): Future[String]
     }
 
     // Create server implementation of the remote API
     class Service {
-      def test(n: Int): Future[String] =
+      def hello(n: Int): Future[String] =
         Future(s"Hello world $n")
     }
     val service = new Service
@@ -47,11 +47,11 @@ private[examples] object Quickstart {
       activeClient <- client.init()
 
       // Call the remote API function via the local proxy
-      result <- remoteApi.test(1)
+      result <- remoteApi.hello(1)
       _ = println(result)
 
       // Call the remote API function dynamically not using the API trait
-      result <- activeClient.call[String]("test")("n" -> 1)
+      result <- activeClient.call[String]("hello")("n" -> 1)
       _ = println(result)
 
       // Close the JSON-RPC client
