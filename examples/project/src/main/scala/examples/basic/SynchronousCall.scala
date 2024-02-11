@@ -13,12 +13,12 @@ private[examples] object SynchronousCall {
 
     // Define a remote API
     trait Api {
-      def test(n: Int): String
+      def hello(n: Int): String
     }
 
     // Create server implementation of the remote API
     val service = new Api {
-      def test(n: Int): String =
+      def hello(n: Int): String =
         s"Hello world $n"
     }
 
@@ -31,12 +31,12 @@ private[examples] object SynchronousCall {
     // Call the remote API function via a proxy instance
     val remoteApi = client.bind[Api]
     println(
-      remoteApi.test(1)
+      remoteApi.hello(1)
     )
 
     // Call the remote API function dynamically without an API trait
     println(
-      client.call[String]("test")("n" -> 1)
+      client.call[String]("hello")("n" -> 1)
     )
 
     // Close the RPC client and server

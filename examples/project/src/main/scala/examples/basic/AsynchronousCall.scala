@@ -16,12 +16,12 @@ private[examples] object AsynchronousCall {
 
     // Define a remote API
     trait Api {
-      def test(n: Int): Future[String]
+      def hello(n: Int): Future[String]
     }
 
     // Create server implementation of the remote API
     val service = new Api {
-      def test(n: Int): Future[String] =
+      def hello(n: Int): Future[String] =
         Future(s"Hello world $n")
     }
 
@@ -34,11 +34,11 @@ private[examples] object AsynchronousCall {
       remoteApi = client.bind[Api]
 
       // Call the remote API function via a proxy instance
-      result <- remoteApi.test(1)
+      result <- remoteApi.hello(1)
       _ = println(result)
 
       // Call the remote API function dynamically without an API trait
-      result <- client.call[String]("test")("n" -> 1)
+      result <- client.call[String]("hello")("n" -> 1)
       _ = println(result)
 
       // Close the RPC client and server

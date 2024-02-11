@@ -38,12 +38,12 @@ private[examples] object DataTypeSerialization {
 
     // Define a remote API
     trait Api {
-      def test(record: Record): Future[Record]
+      def hello(record: Record): Future[Record]
     }
 
     // Create server implementation of the remote API
     val service = new Api {
-      def test(record: Record): Future[Record] =
+      def hello(record: Record): Future[Record] =
         Future(record.copy(value = s"Data ${record.value}"))
     }
 
@@ -56,7 +56,7 @@ private[examples] object DataTypeSerialization {
       remoteApi = client.bind[Api]
 
       // Call the remote API function via a local proxy
-      result <- remoteApi.test(Record("test", State.On))
+      result <- remoteApi.hello(Record("test", State.On))
       _ = println(result)
 
       // Close the RPC client and server

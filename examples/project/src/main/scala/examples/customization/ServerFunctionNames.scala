@@ -14,7 +14,7 @@ private[examples] object ServerFunctionNames {
 
     // Define client view of a remote API
     trait Api {
-      def test(n: Int): String
+      def hello(n: Int): String
 
       def hi(n: Int): String
     }
@@ -34,8 +34,8 @@ private[examples] object ServerFunctionNames {
 
     // Customize served API to RPC function name mapping
     val mapName = (name: String) => name match {
-      // 'test' is exposed both as 'test' and 'hi'
-      case "test" => Seq("test", "hi")
+      // 'test' is exposed both as 'hello' and 'hi'
+      case "test" => Seq("hello", "hi")
 
       // 'hidden' is not exposed
       case "hidden" => Seq.empty
@@ -53,7 +53,7 @@ private[examples] object ServerFunctionNames {
     // Call the remote API function via a local proxy
     val remoteApi = client.bind[Api]
     println(
-      remoteApi.test(1)
+      remoteApi.hello(1)
     )
     println(
       remoteApi.hi(1)

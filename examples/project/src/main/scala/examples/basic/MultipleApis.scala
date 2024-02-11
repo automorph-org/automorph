@@ -13,7 +13,7 @@ private[examples] object MultipleApis {
 
     // Define a remote API
     trait Api1 {
-      def test(n: Int): Future[String]
+      def hello(n: Int): Future[String]
     }
 
     // Define another remote API
@@ -23,7 +23,7 @@ private[examples] object MultipleApis {
 
     // Create server implementation of the first remote API
     val service1 = new Api1 {
-      def test(n: Int): Future[String] =
+      def hello(n: Int): Future[String] =
         Future(s"Hello world $n")
     }
 
@@ -43,7 +43,7 @@ private[examples] object MultipleApis {
       remoteApi2 = client.bind[Api2]
 
       // Call the first remote API function
-      result <- remoteApi1.test(1)
+      result <- remoteApi1.hello(1)
       _ = println(result)
 
       // Call the second remote API function

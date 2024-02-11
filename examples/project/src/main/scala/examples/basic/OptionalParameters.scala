@@ -15,12 +15,12 @@ private[examples] object OptionalParameters {
 
     // Define client view of a remote API
     trait Api {
-      def test(who: String): Future[String]
+      def hello(who: String): Future[String]
     }
 
     // Create server implementation of the remote API
     class Service {
-      def test(who: String, n: Option[Int]): Future[String] =
+      def hello(who: String, n: Option[Int]): Future[String] =
         Future(s"Hello $who ${n.getOrElse(0)}")
 
       def hi(who: Option[String])(n: Int): Future[String] =
@@ -37,7 +37,7 @@ private[examples] object OptionalParameters {
       remoteApi = client.bind[Api]
 
       // Call the remote API function via a proxy instance
-      result <- remoteApi.test("world")
+      result <- remoteApi.hello("world")
       _ = println(result)
 
       // Call the remote API function dynamically without an API trait

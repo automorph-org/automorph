@@ -16,14 +16,14 @@ private[examples] object HttpResponseProperties {
     // Define client view of a remote API
     trait Api {
       // Return HTTP response context provided by the client transport plugin
-      def test(message: String): RpcResult[String, ClientContext]
+      def hello(message: String): RpcResult[String, ClientContext]
     }
 
     // Create server implementation of the remote API
     class Service {
 
       // Return HTTP response context consumed by the server message transport plugin
-      def test(message: String): RpcResult[String, ServerContext] = RpcResult(
+      def hello(message: String): RpcResult[String, ServerContext] = RpcResult(
         message,
         HttpContext().headers("X-Test" -> "value", "Cache-Control" -> "no-cache").statusCode(200)
       )
@@ -38,12 +38,12 @@ private[examples] object HttpResponseProperties {
 
     // Call the remote API function via a local proxy retrieving a result with HTTP response metadata
     val remoteApi = client.bind[Api]
-    val static = remoteApi.test("test")
+    val static = remoteApi.hello("test")
     println(static.result)
     println(static.context.header("X-Test"))
 
     // Call the remote API function dynamically retrieving a result with HTTP response metadata
-    val dynamic = client.call[RpcResult[String, ClientContext]]("test")("message" -> "test")
+    val dynamic = client.call[RpcResult[String, ClientContext]]("hello")("message" -> "test")
     println(dynamic.result)
     println(dynamic.context.header("X-Test"))
 

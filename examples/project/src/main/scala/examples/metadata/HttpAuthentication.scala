@@ -16,13 +16,13 @@ private[examples] object HttpAuthentication {
     // Define client view of a remote API
     trait Api {
       // Accept HTTP request context consumed by the client transport plugin
-      def test(message: String)(implicit http: ClientContext): String
+      def hello(message: String)(implicit http: ClientContext): String
     }
 
     // Create server implementation of the remote API
     class Service {
       // Accept HTTP request context provided by the server message transport plugin
-      def test(message: String)(implicit httpRequest: ServerContext): String =
+      def hello(message: String)(implicit httpRequest: ServerContext): String =
         httpRequest.authorization("Bearer") match {
           case Some("valid") => s"Note: $message!"
           case _ => throw new IllegalAccessException("Authentication failed")
@@ -44,12 +44,12 @@ private[examples] object HttpAuthentication {
 
       // Call the remote API function via a local proxy using valid authentication
       println(
-        remoteApi.test("test")
+        remoteApi.hello("test")
       )
 
       // Call the remote API function dynamically using valid authentication
       println(
-        client.call[String]("test")("message" -> "test")
+        client.call[String]("hello")("message" -> "test")
       )
     }
 
@@ -60,12 +60,12 @@ private[examples] object HttpAuthentication {
 
       // Call the remote API function statically using invalid authentication
       println(Try(
-        remoteApi.test("test")
+        remoteApi.hello("test")
       ).failed.get)
 
       // Call the remote API function dynamically using invalid authentication
       println(Try(
-        client.call[String]("test")("message" -> "test")
+        client.call[String]("hello")("message" -> "test")
       ).failed.get)
     }
 
