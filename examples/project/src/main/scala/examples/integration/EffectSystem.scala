@@ -16,12 +16,12 @@ private[examples] object EffectSystem {
 
     // Define a remote API
     trait Api {
-      def test(n: Int): Task[String]
+      def hello(n: Int): Task[String]
     }
 
     // Create server implementation of the remote API
     val service = new Api {
-      def test(n: Int): Task[String] =
+      def hello(n: Int): Task[String] =
         ZIO.succeed(s"Hello world $n")
     }
 
@@ -39,7 +39,7 @@ private[examples] object EffectSystem {
           remoteApi = client.bind[Api]
 
           // Call the remote API function via a local proxy
-          result <- remoteApi.test(1)
+          result <- remoteApi.hello(1)
           _ <- Console.printLine(result)
 
           // Close the RPC client and server

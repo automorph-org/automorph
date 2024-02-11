@@ -29,12 +29,12 @@ private[examples] object MessageCodec {
 
     // Define a remote API
     trait Api {
-      def test(n: Int): Future[Record]
+      def hello(n: Int): Future[Record]
     }
 
     // Create server implementation of the remote API
     val service = new Api {
-      def test(n: Int): Future[Record] =
+      def hello(n: Int): Future[Record] =
         Future(Record(List("Data", n.toString)))
     }
 

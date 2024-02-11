@@ -17,12 +17,12 @@ private[examples] object HttpStatusCode {
 
     // Define a remote API
     trait Api {
-      def test(n: Int): Future[String]
+      def hello(n: Int): Future[String]
     }
 
     // Create server implementation of the remote API
     val service = new Api {
-      def test(n: Int): Future[String] =
+      def hello(n: Int): Future[String] =
         Future.failed(new SQLException("Bad request"))
     }
 
@@ -41,7 +41,7 @@ private[examples] object HttpStatusCode {
       remoteApi = client.bind[Api]
 
       // Call the remote API function via a local proxy and fail with InvalidRequestException
-      error <- remoteApi.test(1).failed
+      error <- remoteApi.hello(1).failed
       _ = println(error)
 
       // Close the RPC client and server

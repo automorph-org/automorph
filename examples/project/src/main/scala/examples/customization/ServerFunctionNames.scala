@@ -14,14 +14,14 @@ private[examples] object ServerFunctionNames {
 
     // Define client view of a remote API
     trait Api {
-      def test(n: Int): String
+      def hello(n: Int): String
 
       def hi(n: Int): String
     }
 
     // Create server implementation of the remote API
     class ApiImpl {
-      def test(n: Int): String =
+      def hello(n: Int): String =
         s"Hello world $n"
 
       def sum(numbers: List[Double]): Double =
@@ -53,7 +53,7 @@ private[examples] object ServerFunctionNames {
     // Call the remote API function via a local proxy
     val remoteApi = client.bind[Api]
     println(
-      remoteApi.test(1)
+      remoteApi.hello(1)
     )
     println(
       remoteApi.hi(1)

@@ -16,12 +16,12 @@ private[examples] object EndpointTransport {
 
     // Define a remote API
     trait Api {
-      def test(n: Int): Future[String]
+      def hello(n: Int): Future[String]
     }
 
     // Create server implementation of the remote API
     val service = new Api {
-      def test(n: Int): Future[String] =
+      def hello(n: Int): Future[String] =
         Future(s"Hello world $n")
     }
 
@@ -44,7 +44,7 @@ private[examples] object EndpointTransport {
       remoteApi = client.bind[Api]
 
       // Call the remote API function via a local proxy
-      result <- remoteApi.test(1)
+      result <- remoteApi.hello(1)
       _ = println(result)
 
       // Close the RPC client
