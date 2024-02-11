@@ -249,7 +249,7 @@ val logbackVersion = "1.4.14"
 ThisBuild / Test / testOptions += Tests.Argument("-f", (target.value / "test.results").getPath, "-oDF")
 lazy val testBase = source(project, "test/base").settings(
   libraryDependencies ++= Seq(
-    "org.scalatest" %% "scalatest" % "3.2.17",
+    "org.scalatest" %% "scalatest" % "3.2.18",
     "org.scalatestplus" %% "scalacheck-1-17" % "3.2.17.0",
     "org.slf4j" % "jul-to-slf4j" % slf4jVersion,
     "ch.qos.logback" % "logback-classic" % logbackVersion,
@@ -349,6 +349,7 @@ lazy val docs = project.in(file("site")).settings(
   name := projectName,
   mdocVariables := Map(
     "PROJECT_VERSION" -> release.value,
+    "LOGGER_VERSION" -> logbackVersion,
     "SCALADOC_VERSION" -> scalaVersion.value,
     "REPOSITORY_URL" -> repositoryUrl
   ),

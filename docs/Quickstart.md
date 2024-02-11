@@ -28,13 +28,19 @@ Add the following dependency to project build configuration:
 #### SBT
 
 ```scala
-libraryDependencies += "org.automorph" %% "automorph-default" % "@PROJECT_VERSION@"
+libraryDependencies ++= Seq(
+  "org.automorph" %% "automorph-default" % "@PROJECT_VERSION@",
+  "ch.qos.logback" % "logback-classic" % "@LOGGER_VERSION@",
+)
 ```
 
 #### Gradle
 
 ```yaml
-implementation group: 'org.automorph', name: 'automorph-default_3', version: '@PROJECT_VERSION@'
+dependencies {
+  implementation group: 'org.automorph', name: 'automorph-default_3', version: '@PROJECT_VERSION@'
+  implementation group: 'ch.qos.logback', name: 'logback-classic', version: '@LOGGER_VERSION@'
+}
 ```
 
 ### Server
