@@ -2,34 +2,42 @@
 # Create and publish the specified version
 set -eo pipefail
 
-if [ "$#" -ne 1 ]; then
+# Process arguments
+if [ "$#" -lt 1 ]; then
   echo "Missing version"
   exit 1
 fi
+if [ -n "$2" ]; then
+  force=true
+fi
 
-VERSION="$1"
-TAG="v${VERSION}"
-RELEASE_NOTES="release-notes.md"
+# Configure settings
+version="$1"
+tag="v${VERSION}"
+release_notes="release-notes.md"
 
+# Check binary compatibility
+if [ -z "${force}" ]; then
+ # sbt '+ mimaReportBinaryIssues ; tastyMiMaReportIssues'
+ sbt '+ mimaReportBinaryIssues'
+fi
 
 # EXtract a changelog since the last tag
-git log $(git describe --tags --abbrev=0)..HEAD --format='%s' | grep '^-' > "${RELEASE_NOTES}"
+git log $(git describe --tags --abbrev=0)..HEAD --format='%s' | grep '^-' > "${release_notes}"
 
 # Create a new tag
-git tag -a -m "Version: ${VERSION}" "${TAG}"
+git tag -a -m "Version: ${version}" "${tag}"
 git push --follow-tags
 
 # Publish artifacts
-# ./sbt '+ mimaReportBinaryIssues ; tastyMiMaReportIssues ; + publishSigned ; sonatypeBundleRelease'
-# ./sbt '+ mimaReportBinaryIssues ; + publishSigned ; sonatypeBundleRelease'
-./sbt '+ publishSigned ; sonatypeBundleRelease'
+sbt '+ publishSigned ; sonatypeBundleRelease'
 
 # Create a release
-gh release create "${TAG}" -t "${VERSION}" -F "${RELEASE_NOTES}"
-rm -f "${RELEASE_NOTES}"
+gh release create "${tag}" -T "${version}" -f "${release_notes}"
+rm -f "${release_notes}"
 
 # Update examples
-sed -i "s/:automorph-default:.*$/:automorph-default:${VERSION}/" examples/project/src/main/scala/examples/Quickstart.scala
+sed -i "s/:automorph-default:.*$/:automorph-default:${version}/" examples/project/src/main/scala/examples/Quickstart.scala
 git commit -m 'Update examples' examples/project/src/main/scala/examples/Quickstart.scala
 git push
 
