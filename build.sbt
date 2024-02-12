@@ -17,9 +17,8 @@ ThisBuild / developers := List(Developer(
   email = s"$projectDomain@proton.me",
   url = url(s"https://$projectDomain")
 ))
-ThisBuild / version ~= (_.split("\\+").head)
-val release = settingKey[String]("Release version.")
-ThisBuild / release := IO.readLines((examples / baseDirectory).value / "project/src/main/scala/examples/Quickstart.scala")
+val releaseVersion = settingKey[String]("Release version.")
+ThisBuild / releaseVersion := IO.readLines((examples / Compile / scalaSource).value / "examples/Quickstart.scala")
   .filter(_.startsWith(s"//> using dep $projectRoot.$projectName::"))
   .flatMap(_.split(":").lastOption)
   .lastOption.getOrElse("")
@@ -347,8 +346,8 @@ lazy val allDependencyClasspath = Def.taskDyn(flattenTasks(root.uses.map(_ / Com
 lazy val docs = project.in(file("site")).settings(
   name := projectName,
   mdocVariables := Map(
-    "PROJECT_VERSION" -> release.value,
-    "LOGGER_VERSION" -> logbackVersion,
+    "AUTOMORPH_VERSION" -> releaseVersion.value,
+    "LOGBACK_VERSION" -> logbackVersion,
     "SCALADOC_VERSION" -> scalaVersion.value,
     "REPOSITORY_URL" -> repositoryUrl
   ),
@@ -396,7 +395,7 @@ site := {
   // Insert examples sources into the examples page
   val docsDirectory = (docs / baseDirectory).value
   val examplesDirectory = (examples / baseDirectory).value / "project"
-  insertDocumentationExamples(docsDirectory, examplesDirectory, release.value, logbackVersion)
+  insertDocumentationExamples(docsDirectory, examplesDirectory, releaseVersion.value, logbackVersion)
 
   // Generate website
   Process(Seq("yarn", "install"), docsDirectory).!
@@ -417,7 +416,7 @@ site := {
   IO.copyDirectory(examplesDirectory, docsDirectory / "build/examples", overwrite = true)
 }
 def insertDocumentationExamples(
-  docsDirectory: File, sourceDirectory: File, projectVersion: String, loggerVersion: String
+  docsDirectory: File, sourceDirectory: File, releaseVersion: String, logbackVersion: String
 ): Unit = {
   val examplesPage = docsDirectory / "docs/Examples.md"
   val examples = IO.readLines(examplesPage).flatMap { docLine =>
@@ -428,8 +427,8 @@ def insertDocumentationExamples(
           .replaceFirst("//> using dep ", "  \"")
           .replaceFirst("::", "\" %% \"")
           .replaceAll(":", "\" % \"")
-          .replaceFirst("@PROJECT_VERSION@", projectVersion)
-          .replaceFirst("@LOGGER_VERSION@", loggerVersion)
+          .replaceFirst("@AUTOMORPH_VERSION@", releaseVersion)
+          .replaceFirst("@LOGBACK_VERSION@", logbackVersion)
           .replaceFirst("$", "\",")
         )
         case line if line.startsWith("package") => Seq(")\n```\n\n**Source**\n```scala")
@@ -490,4 +489,6 @@ credentials ++= Seq(
 )
 ThisBuild / publishTo := sonatypePublishToBundle.value
 ThisBuild / versionScheme := Some("early-semver")
+ThisBuild / versionPolicyIntention := Compatibility.BinaryCompatible
+
 

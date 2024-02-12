@@ -29,8 +29,8 @@ Add the following dependency to project build configuration:
 
 ```scala
 libraryDependencies ++= Seq(
-  "org.automorph" %% "automorph-default" % "@PROJECT_VERSION@",
-  "ch.qos.logback" % "logback-classic" % "@LOGGER_VERSION@",
+  "org.automorph" %% "automorph-default" % "@AUTOMORPH_VERSION@",
+  "ch.qos.logback" % "logback-classic" % "@LOGBACK_VERSION@",
 )
 ```
 
@@ -38,8 +38,8 @@ libraryDependencies ++= Seq(
 
 ```yaml
 dependencies {
-  implementation group: 'org.automorph', name: 'automorph-default_3', version: '@PROJECT_VERSION@'
-  implementation group: 'ch.qos.logback', name: 'logback-classic', version: '@LOGGER_VERSION@'
+  implementation group: 'org.automorph', name: 'automorph-default_3', version: '@AUTOMORPH_VERSION@'
+  implementation group: 'ch.qos.logback', name: 'logback-classic', version: '@LOGBACK_VERSION@'
 }
 ```
 

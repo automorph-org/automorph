@@ -10,6 +10,6 @@ addSbtPlugin("org.scalameta" % "sbt-mdoc" % "2.5.1" )
 
 addSbtPlugin("com.github.sbt" % "sbt-pgp" % "2.2.1")
 addSbtPlugin("org.xerial.sbt" % "sbt-sonatype" % "3.10.0")
-addSbtPlugin("com.typesafe" % "sbt-mima-plugin" % "1.1.3")
+addSbtPlugin("ch.epfl.scala" % "sbt-version-policy" % "3.2.0")
 addSbtPlugin("ch.epfl.scala" % "sbt-tasty-mima" % "1.1.0")
 
