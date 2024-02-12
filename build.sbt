@@ -291,7 +291,7 @@ lazy val testTransport = source(project, "test/transport", testSystem)
 
 
 // Compile
-ThisBuild / scalaVersion := "3.3.2-RC2"
+ThisBuild / scalaVersion := "3.3.0"
 ThisBuild / crossScalaVersions += "2.13.12"
 ThisBuild / javacOptions ++= Seq("-source", "11", "-target", "11")
 val commonScalacOptions = Seq(
