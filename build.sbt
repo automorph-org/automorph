@@ -119,7 +119,7 @@ lazy val meta = source(project, "meta").settings(
     case Some((2, _)) => Seq("org.scala-lang" % "scala-reflect" % scalaVersion.value)
     case _ => Seq.empty
   }) ++ Seq(
-    "org.slf4j" % "slf4j-api" % slf4jVersion
+    "org.slf4j" % "slf4j-api" % slf4jVersion,
   )
 )
 lazy val core = source(project, "core", meta, testBase % Test)
@@ -156,7 +156,7 @@ lazy val jackson = source(project, "codec/jackson", core, testCodec % Test).sett
 )
 lazy val json4s = source(project, "codec/json4s", core, testCodec % Test).settings(
   libraryDependencies ++= Seq(
-    "org.json4s" %% "json4s-native" % "4.0.7"
+    "org.json4s" %% "json4s-native" % "4.0.7",
   )
 )
 lazy val weepickle = source(project, "codec/weepickle", core, testCodec % Test).settings(
@@ -164,7 +164,7 @@ lazy val weepickle = source(project, "codec/weepickle", core, testCodec % Test).
     "com.rallyhealth" %% "weepickle-v1" % "1.9.1",
     "com.fasterxml.jackson.dataformat" % "jackson-dataformat-smile" % jacksonVersion,
     "com.fasterxml.jackson.dataformat" % "jackson-dataformat-cbor" % jacksonVersion,
-    "com.fasterxml.jackson.dataformat" % "jackson-dataformat-ion" % jacksonVersion
+    "com.fasterxml.jackson.dataformat" % "jackson-dataformat-ion" % jacksonVersion,
   )
 )
 lazy val upickle = source(project, "codec/upickle", core, testCodec % Test).settings(
@@ -182,12 +182,12 @@ lazy val sttp =
     "com.softwaremill.sttp.client3" %% "async-http-client-backend-zio" % sttpVersion % Test,
     "com.softwaremill.sttp.client3" %% "armeria-backend" % sttpVersion % Test,
     "com.softwaremill.sttp.client3" %% "httpclient-backend" % sttpHttpClientVersion % Test,
-    "com.softwaremill.sttp.client3" %% "okhttp-backend" % sttpHttpClientVersion % Test
+    "com.softwaremill.sttp.client3" %% "okhttp-backend" % sttpHttpClientVersion % Test,
   )
 )
 lazy val rabbitmq = source(project, "transport/rabbitmq", core, testTransport % Test).settings(
   libraryDependencies ++= Seq(
-    "com.rabbitmq" % "amqp-client" % "5.20.0"
+    "com.rabbitmq" % "amqp-client" % "5.20.0",
   )
 )
 
@@ -200,7 +200,7 @@ lazy val tapir = source(project, "transport/tapir", core, catsEffect % Test, tes
     "com.softwaremill.sttp.tapir" %% "tapir-http4s-server" % tapirVersion % Test,
     "org.http4s" %% "http4s-ember-server" % "0.23.25" % Test,
     "com.softwaremill.sttp.tapir" %% "tapir-netty-server" % tapirVersion % Test,
-    "com.softwaremill.sttp.tapir" %% "tapir-vertx-server" % tapirVersion % Test
+    "com.softwaremill.sttp.tapir" %% "tapir-vertx-server" % tapirVersion % Test,
   )
 )
 lazy val undertow = source(project, "transport/undertow", core, testTransport % Test).settings(
@@ -214,7 +214,7 @@ lazy val jetty = source(project, "transport/jetty", core, testTransport % Test).
   libraryDependencies ++= Seq(
     "org.eclipse.jetty.websocket" % "websocket-jetty-client" % jettyVersion,
     "org.eclipse.jetty" % "jetty-servlet" % jettyVersion,
-    "org.eclipse.jetty.websocket" % "websocket-jetty-server" % jettyVersion
+    "org.eclipse.jetty.websocket" % "websocket-jetty-server" % jettyVersion,
   )
 )
 val akkaVersion = "2.8.5"
@@ -226,7 +226,7 @@ lazy val akkaHttp = source(project, "transport/akka-http", core, testTransport %
     "com.typesafe.akka" %% "akka-http" % "10.5.3",
     "com.typesafe.akka" %% "akka-actor-typed" % akkaVersion,
     "com.typesafe.akka" %% "akka-stream" % akkaVersion,
-    "com.typesafe.akka" %% "akka-slf4j" % akkaVersion % Test
+    "com.typesafe.akka" %% "akka-slf4j" % akkaVersion % Test,
   )
 )
 val pekkoVersion = "1.0.2"
@@ -238,7 +238,7 @@ lazy val pekkoHttp = source(project, "transport/pekko-http", core, testTransport
     "org.apache.pekko" %% "pekko-http" % "1.0.0",
     "org.apache.pekko" %% "pekko-actor-typed" % pekkoVersion,
     "org.apache.pekko" %% "pekko-stream" % pekkoVersion,
-    "org.apache.pekko" %% "pekko-slf4j" % pekkoVersion % Test
+    "org.apache.pekko" %% "pekko-slf4j" % pekkoVersion % Test,
   )
 )
 
@@ -250,7 +250,7 @@ lazy val finagle = source(project, "transport/finagle", core, testTransport % Te
       .exclude("org.scala-lang.modules", "scala-collection-compat_2.13")
       .exclude("com.fasterxml.jackson.module", "jackson-module-scala_2.13")
       .cross(CrossVersion.for3Use2_13),
-    "com.fasterxml.jackson.module" %% "jackson-module-scala" % jacksonVersion
+    "com.fasterxml.jackson.module" %% "jackson-module-scala" % jacksonVersion,
   )
 )
 
@@ -263,7 +263,7 @@ lazy val examples = source(
   Test / javaOptions += s"-Dproject.target=${System.getProperty("project.target")}",
   libraryDependencies ++= Seq(
     "com.softwaremill.sttp.client3" %% "async-http-client-backend-future" % sttpVersion,
-    "com.softwaremill.sttp.client3" %% "async-http-client-backend-zio" % sttpVersion
+    "com.softwaremill.sttp.client3" %% "async-http-client-backend-zio" % sttpVersion,
   ),
   Compile / scalaSource := baseDirectory.value / "project/src/main/scala",
   Test / scalaSource := baseDirectory.value / "project/src/test/scala"
@@ -279,7 +279,7 @@ lazy val testBase = source(project, "test/base").settings(
     "org.scalatestplus" %% "scalacheck-1-17" % "3.2.18.0",
     "org.slf4j" % "jul-to-slf4j" % slf4jVersion,
     "ch.qos.logback" % "logback-classic" % logbackVersion,
-    "com.lihaoyi" %% "pprint" % "0.8.1"
+    "com.lihaoyi" %% "pprint" % "0.8.1",
   )
 )
 lazy val testCodec = source(project, "test/codec", testBase, meta).settings(
@@ -301,14 +301,14 @@ val commonScalacOptions = Seq(
   "-release",
   "11",
   "-encoding",
-  "utf8"
+  "utf8",
 )
 val compileScalac3Options = commonScalacOptions ++ Seq(
   "-source",
   "3.3",
   "-language:adhocExtensions",
   "-pagewidth",
-  "120"
+  "120",
 )
 val compileScalac2Options = commonScalacOptions ++ Seq(
   "-language:existentials",
@@ -321,15 +321,15 @@ val compileScalac2Options = commonScalacOptions ++ Seq(
   "-Vfree-terms",
   "-Vimplicits",
   "-Ybackend-parallelism",
-  s"${Math.min(java.lang.Runtime.getRuntime.availableProcessors, 16)}"
+  s"${Math.min(java.lang.Runtime.getRuntime.availableProcessors, 16)}",
 )
 val docScalac3Options = compileScalac3Options ++ Seq(
   s"-source-links:src=github://$repositoryPath/master",
-  s"-skip-by-id:$projectName.client.meta,$projectName.handler.meta,examples"
+  s"-skip-by-id:$projectName.client.meta,$projectName.handler.meta,examples",
 )
 val docScalac2Options = compileScalac2Options ++ Seq(
   "-skip-packages",
-  s"$projectName.client.meta:$projectName.handler.meta:examples"
+  s"$projectName.client.meta:$projectName.handler.meta:examples",
 )
 ThisBuild / scalacOptions ++= (CrossVersion.partialVersion(scalaVersion.value) match {
   case Some((3, _)) => compileScalac3Options ++ Seq(
@@ -337,9 +337,7 @@ ThisBuild / scalacOptions ++= (CrossVersion.partialVersion(scalaVersion.value) m
     "-Wunused:all",
     "-Wvalue-discard",
     "-Xcheck-macros",
-    "-Xmigration"
-// FIXME - restore once https://github.com/lampepfl/dotty/issues/19649 is fixed
-//    "-Ysafe-init"
+    "-Xmigration",
   )
   case _ => compileScalac2Options
 })
@@ -383,7 +381,7 @@ lazy val docs = project.in(file("site")).settings(
   mdocExtraArguments := Seq("--no-link-hygiene"),
   mdoc / fileInputs ++= Seq(
     (LocalRootProject / baseDirectory).value.toGlob / "docs" / ** / "*.md",
-    (LocalRootProject / baseDirectory).value.toGlob / "docs" / ** / "*.jpg"
+    (LocalRootProject / baseDirectory).value.toGlob / "docs" / ** / "*.jpg",
   ),
   Compile / doc / scalacOptions := docScalac3Options,
   Compile / doc / sources ++= allSources.value.flatten.filter(_.getName != "MonixSystem.scala"),
