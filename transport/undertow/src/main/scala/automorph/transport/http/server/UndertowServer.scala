@@ -56,8 +56,8 @@ final case class UndertowServer[Effect[_]](
   pathPrefix: String = "/",
   methods: Iterable[HttpMethod] = HttpMethod.values,
   webSocket: Boolean = true,
-  mapException: Throwable => Int = HttpContext.defaultExceptionToStatusCode,
-  builder: Undertow.Builder = UndertowServer.defaultBuilder,
+  mapException: Throwable => Int = HttpContext.toStatusCode,
+  builder: Undertow.Builder = UndertowServer.builder,
   handler: RequestHandler[Effect, Context] = RequestHandler.dummy[Effect, Context],
 ) extends Logging with ServerTransport[Effect, Context] {
 
@@ -130,7 +130,7 @@ object UndertowServer {
    *   - IO threads: 2 * number of CPU cores
    *   - Worker threads: number of CPU cores
    */
-  def defaultBuilder: Undertow.Builder =
+  def builder: Undertow.Builder =
     Undertow.builder().setIoThreads(Runtime.getRuntime.availableProcessors * 2)
       .setWorkerThreads(Runtime.getRuntime.availableProcessors)
 }
