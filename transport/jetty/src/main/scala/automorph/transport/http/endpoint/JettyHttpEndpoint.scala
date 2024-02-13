@@ -38,7 +38,7 @@ import scala.util.Try
  */
 final case class JettyHttpEndpoint[Effect[_]](
   effectSystem: EffectSystem[Effect],
-  mapException: Throwable => Int = HttpContext.defaultExceptionToStatusCode,
+  mapException: Throwable => Int = HttpContext.toStatusCode,
   handler: RequestHandler[Effect, Context] = RequestHandler.dummy[Effect, Context],
 ) extends HttpServlet with Logging with EndpointTransport[Effect, Context, HttpServlet] {
 

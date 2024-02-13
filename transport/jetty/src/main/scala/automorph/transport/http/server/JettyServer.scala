@@ -64,7 +64,7 @@ final case class JettyServer[Effect[_]](
   pathPrefix: String = "/",
   methods: Iterable[HttpMethod] = HttpMethod.values,
   webSocket: Boolean = true,
-  mapException: Throwable => Int = HttpContext.defaultExceptionToStatusCode,
+  mapException: Throwable => Int = HttpContext.toStatusCode,
   threadPool: ThreadPool = new QueuedThreadPool,
   idleTimeout: FiniteDuration = 30.seconds,
   maxFrameSize: Long = 65536,

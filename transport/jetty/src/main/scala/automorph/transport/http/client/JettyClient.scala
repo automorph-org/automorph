@@ -50,7 +50,7 @@ final case class JettyClient[Effect[_]](
   effectSystem: EffectSystem[Effect],
   url: URI,
   method: HttpMethod = HttpMethod.Post,
-  httpClient: HttpClient = JettyClient.defaultClient,
+  httpClient: HttpClient = new HttpClient,
 ) extends ClientTransport[Effect, Context] with Logging {
 
   private type Response = (Array[Byte], Option[Int], Seq[(String, String)])
@@ -334,10 +334,6 @@ object JettyClient {
 
   /** Request context type. */
   type Context = HttpContext[Message]
-
-  /** Default Jetty HTTP client. */
-  def defaultClient: HttpClient =
-    new HttpClient()
 
   /** Message properties. */
   final case class Message(request: Request)
