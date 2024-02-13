@@ -590,6 +590,6 @@ object HttpContext {
    * @return
    *   HTTP status code
    */
-  def defaultExceptionToStatusCode(exception: Throwable): Int =
+  def toStatusCode(exception: Throwable): Int =
     exceptionToStatusCode(exception.getClass)
 }

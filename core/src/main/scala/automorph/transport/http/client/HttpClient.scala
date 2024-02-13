@@ -50,7 +50,7 @@ final case class HttpClient[Effect[_]](
   effectSystem: EffectSystem[Effect],
   url: URI,
   method: HttpMethod = HttpMethod.Post,
-  builder: Builder = HttpClient.defaultBuilder,
+  builder: Builder = HttpClient.builder,
 ) extends ClientTransport[Effect, Context] with Logging {
 
   private val contentTypeHeader = "Content-Type"
@@ -319,7 +319,7 @@ object HttpClient {
   type Context = HttpContext[TransportContext]
 
   /** Default HTTP client builder. */
-  val defaultBuilder: Builder = java.net.http.HttpClient.newBuilder
+  val builder: Builder = java.net.http.HttpClient.newBuilder
 
   /** Transport context. */
   final case class TransportContext(request: HttpRequest.Builder)

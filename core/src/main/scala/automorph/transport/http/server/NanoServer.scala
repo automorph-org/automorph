@@ -58,7 +58,7 @@ final case class NanoServer[Effect[_]] (
   pathPrefix: String = "/",
   methods: Iterable[HttpMethod] = HttpMethod.values,
   webSocket: Boolean = true,
-  mapException: Throwable => Int = HttpContext.defaultExceptionToStatusCode,
+  mapException: Throwable => Int = HttpContext.toStatusCode,
   readTimeout: FiniteDuration = 30.seconds,
   threads: Int = Runtime.getRuntime.availableProcessors * 2,
 ) extends NanoWSD(port, threads) with Logging with ServerTransport[Effect, Context] {
