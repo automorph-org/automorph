@@ -286,7 +286,6 @@ lazy val testCodec = source(project, "test/codec", testBase, meta).settings(
   libraryDependencies += "com.fasterxml.jackson.core" % "jackson-databind" % jacksonVersion
 )
 lazy val testSystem = source(project, "test/system", testCodec, core, circe, jackson, json4s, weepickle, upickle)
-//lazy val testSystem = source(project, "test/system", testCodec, core, circe, jackson, weepickle, upickle)
 lazy val testTransport = source(project, "test/transport", testSystem)
 
 
