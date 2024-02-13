@@ -6,7 +6,7 @@ import automorph.system.FutureSystem
 import automorph.transport.http.client.HttpClient
 import automorph.transport.http.endpoint.UndertowHttpEndpoint
 import automorph.transport.http.server.UndertowServer
-import automorph.transport.http.server.UndertowServer.defaultBuilder
+import automorph.transport.http.server.UndertowServer.builder
 import automorph.transport.http.{HttpContext, HttpMethod}
 import io.undertow.Undertow
 import java.net.URI
@@ -106,8 +106,8 @@ object Default extends DefaultRpcProtocol with DefaultTransport {
     path: String = "/",
     methods: Iterable[HttpMethod] = HttpMethod.values,
     webSocket: Boolean = true,
-    mapException: Throwable => Int = HttpContext.defaultExceptionToStatusCode,
-    builder: Undertow.Builder = defaultBuilder,
+    mapException: Throwable => Int = HttpContext.toStatusCode,
+    builder: Undertow.Builder = builder,
   )(implicit executionContext: ExecutionContext): RpcServer[Node, Codec, Effect, ServerContext] =
     rpcServerCustom(effectSystem, port, path, methods, webSocket, mapException, builder)
 
@@ -145,8 +145,8 @@ object Default extends DefaultRpcProtocol with DefaultTransport {
     path: String = "/",
     methods: Iterable[HttpMethod] = HttpMethod.values,
     webSocket: Boolean = true,
-    mapException: Throwable => Int = HttpContext.defaultExceptionToStatusCode,
-    builder: Undertow.Builder = defaultBuilder,
+    mapException: Throwable => Int = HttpContext.toStatusCode,
+    builder: Undertow.Builder = builder,
   )(implicit
     executionContext: ExecutionContext
   ): UndertowServer[Effect] =
@@ -172,7 +172,7 @@ object Default extends DefaultRpcProtocol with DefaultTransport {
    * @return
    *   RPC endpoint
    */
-  def rpcEndpoint(mapException: Throwable => Int = HttpContext.defaultExceptionToStatusCode)(implicit
+  def rpcEndpoint(mapException: Throwable => Int = HttpContext.toStatusCode)(implicit
     executionContext: ExecutionContext
   ): RpcEndpoint[Node, Codec, Effect, ServerContext, Adapter] =
     rpcEndpointCustom(effectSystem, mapException)
@@ -196,7 +196,7 @@ object Default extends DefaultRpcProtocol with DefaultTransport {
    * @return
    *   endpoint transport plugin
    */
-  def endpointTransport(mapException: Throwable => Int = HttpContext.defaultExceptionToStatusCode)(implicit
+  def endpointTransport(mapException: Throwable => Int = HttpContext.toStatusCode)(implicit
     executionContext: ExecutionContext
   ): UndertowHttpEndpoint[Effect] =
     endpointTransportCustom(effectSystem, mapException)

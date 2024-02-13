@@ -6,7 +6,7 @@ import automorph.transport.http.{HttpContext, HttpMethod}
 import automorph.transport.http.client.HttpClient
 import automorph.transport.http.endpoint.UndertowHttpEndpoint
 import automorph.transport.http.server.UndertowServer
-import automorph.transport.http.server.UndertowServer.defaultBuilder
+import automorph.transport.http.server.UndertowServer.builder
 import io.undertow.Undertow
 import io.undertow.server.HttpHandler
 import java.net.URI
@@ -123,8 +123,8 @@ private[automorph] trait DefaultTransport {
     path: String = "/",
     methods: Iterable[HttpMethod] = HttpMethod.values,
     webSocket: Boolean = true,
-    mapException: Throwable => Int = HttpContext.defaultExceptionToStatusCode,
-    builder: Undertow.Builder = defaultBuilder,
+    mapException: Throwable => Int = HttpContext.toStatusCode,
+    builder: Undertow.Builder = builder,
   ): RpcServer[Node, Codec, EffectType, ServerContext] =
     RpcServer(
       serverTransportCustom(effectSystem, port, path, methods, webSocket, mapException, builder), rpcProtocol
@@ -167,8 +167,8 @@ private[automorph] trait DefaultTransport {
     path: String = "/",
     methods: Iterable[HttpMethod] = HttpMethod.values,
     webSocket: Boolean = true,
-    mapException: Throwable => Int = HttpContext.defaultExceptionToStatusCode,
-    builder: Undertow.Builder = defaultBuilder,
+    mapException: Throwable => Int = HttpContext.toStatusCode,
+    builder: Undertow.Builder = builder,
   ): UndertowServer[EffectType] =
     UndertowServer(effectSystem, port, path, methods, webSocket, mapException, builder)
 
@@ -196,7 +196,7 @@ private[automorph] trait DefaultTransport {
    */
   def rpcEndpointCustom[EffectType[_]](
     effectSystem: EffectSystem[EffectType],
-    mapException: Throwable => Int = HttpContext.defaultExceptionToStatusCode,
+    mapException: Throwable => Int = HttpContext.toStatusCode,
   ): RpcEndpoint[Node, Codec, EffectType, ServerContext, Adapter] =
     RpcEndpoint(endpointTransportCustom(effectSystem, mapException), rpcProtocol)
 
@@ -221,7 +221,7 @@ private[automorph] trait DefaultTransport {
    */
   def endpointTransportCustom[EffectType[_]](
     effectSystem: EffectSystem[EffectType],
-    mapException: Throwable => Int = HttpContext.defaultExceptionToStatusCode,
+    mapException: Throwable => Int = HttpContext.toStatusCode,
   ): UndertowHttpEndpoint[EffectType] =
     UndertowHttpEndpoint(effectSystem, mapException)
 }
