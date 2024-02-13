@@ -29,7 +29,7 @@ private[examples] object HttpStatusCode {
     // Customize remote API server exception to HTTP status code mapping
     val mapException = (error: Throwable) => error match {
       case _: SQLException => 400
-      case e => HttpContext.defaultExceptionToStatusCode(e)
+      case e => HttpContext.toStatusCode(e)
     }
 
     Await.ready(for {
