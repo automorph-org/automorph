@@ -44,7 +44,7 @@ final case class RabbitMqClient[Effect[_]](
   effectSystem: AsyncEffectSystem[Effect],
   url: URI,
   routingKey: String,
-  exchange: String = RabbitMq.defaultDirectExchange,
+  exchange: String = RabbitMq.directExchange,
   addresses: Seq[Address] = Seq.empty,
   connectionFactory: ConnectionFactory = new ConnectionFactory,
 ) extends Logging with ClientTransport[Effect, Context] {

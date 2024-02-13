@@ -46,7 +46,7 @@ import scala.util.Try
  */
 final case class AkkaHttpEndpoint[Effect[_]](
   effectSystem: EffectSystem[Effect],
-  mapException: Throwable => Int = HttpContext.defaultExceptionToStatusCode,
+  mapException: Throwable => Int = HttpContext.toStatusCode,
   readTimeout: FiniteDuration = 30.seconds,
   handler: RequestHandler[Effect, Context] = RequestHandler.dummy[Effect, Context],
 ) extends Logging with EndpointTransport[Effect, Context, Route] {

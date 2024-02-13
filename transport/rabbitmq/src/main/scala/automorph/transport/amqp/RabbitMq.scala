@@ -27,7 +27,7 @@ object RabbitMq extends Logging {
   private[automorph] final case class Session(connection: Connection, consumer: ThreadLocal[DefaultConsumer])
 
   /** Default direct AMQP message exchange name. */
-  private[automorph] val defaultDirectExchange: String = ""
+  private[automorph] val directExchange: String = ""
 
   /** Routing key property. */
   private[automorph] val routingKeyProperty = "Routing Key"
@@ -76,7 +76,7 @@ object RabbitMq extends Logging {
    *   nothing
    */
   private[automorph] def declareExchange(exchange: String, connection: Connection): Unit =
-    Option.when(exchange != defaultDirectExchange) {
+    Option.when(exchange != directExchange) {
       Using(connection.createChannel()) { channel =>
         channel.exchangeDeclare(exchange, BuiltinExchangeType.DIRECT, false)
         ()

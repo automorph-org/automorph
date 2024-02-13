@@ -50,7 +50,7 @@ final case class TapirHttpEndpoint[Effect[_]](
   effectSystem: EffectSystem[Effect],
   pathPrefix: String = "/",
   method: Option[HttpMethod] = None,
-  mapException: Throwable => Int = HttpContext.defaultExceptionToStatusCode,
+  mapException: Throwable => Int = HttpContext.toStatusCode,
   handler: RequestHandler[Effect, Context] = RequestHandler.dummy[Effect, Context],
 ) extends Logging with EndpointTransport[
   Effect,

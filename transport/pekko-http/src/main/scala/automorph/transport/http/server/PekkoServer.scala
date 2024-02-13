@@ -59,7 +59,7 @@ final case class PekkoServer[Effect[_]](
   port: Int,
   pathPrefix: String = "/",
   methods: Iterable[HttpMethod] = HttpMethod.values,
-  mapException: Throwable => Int = HttpContext.defaultExceptionToStatusCode,
+  mapException: Throwable => Int = HttpContext.toStatusCode,
   readTimeout: FiniteDuration = 30.seconds,
   serverSettings: ServerSettings = ServerSettings(""),
   config: Config = ConfigFactory.empty(),

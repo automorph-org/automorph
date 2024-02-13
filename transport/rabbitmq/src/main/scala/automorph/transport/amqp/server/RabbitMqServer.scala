@@ -49,7 +49,7 @@ final case class RabbitMqServer[Effect[_]](
   handler: RequestHandler[Effect, Context] = RequestHandler.dummy[Effect, Context],
 ) extends Logging with ServerTransport[Effect, Context] {
 
-  private val exchange = RabbitMq.defaultDirectExchange
+  private val exchange = RabbitMq.directExchange
   private var session = Option.empty[RabbitMq.Session]
   private val serverId = RabbitMq.applicationId(getClass.getName)
   private val urlText = url.toString
