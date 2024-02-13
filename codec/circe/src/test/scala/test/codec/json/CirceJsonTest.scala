@@ -7,8 +7,9 @@ import automorph.codec.json.CirceJsonCodec
 import org.scalacheck.{Arbitrary, Gen}
 import test.api.Generators.arbitraryRecord
 import test.api.{Enum, Record, Structure}
+import test.codec.MessageCodecTest
 
-class CirceJsonTest extends JsonMessageCodecTest {
+class CirceJsonTest extends MessageCodecTest with JsonMessageCodecTest {
 
   type Node = Json
   type ActualCodec = CirceJsonCodec

@@ -6,14 +6,20 @@ import com.fasterxml.jackson.databind.deser.std.StdDeserializer
 import com.fasterxml.jackson.databind.module.SimpleModule
 import com.fasterxml.jackson.databind.node.*
 import com.fasterxml.jackson.databind.ser.std.StdSerializer
-import com.fasterxml.jackson.databind.{DeserializationContext, JsonNode, SerializerProvider}
+import com.fasterxml.jackson.databind.{DeserializationContext, JsonNode, ObjectMapper, SerializerProvider}
 import org.scalacheck.{Arbitrary, Gen}
-import test.api.Enum
+import test.api.{Enum, Record}
+import test.api.Generators.arbitraryRecord
 import scala.jdk.CollectionConverters.{MapHasAsJava, SeqHasAsJava}
 
-object JacksonTest {
+trait JacksonTest extends MessageCodecTest {
 
-  val arbitraryNode: Arbitrary[JsonNode] = {
+  type Node = JsonNode
+  type ActualCodec = JacksonCodec
+
+  override lazy val codec: ActualCodec = JacksonCodec(objectMapper)
+
+  override lazy val arbitraryNode: Arbitrary[JsonNode] = {
     val nodeFactory = JacksonCodec.jsonMapper.getNodeFactory
     Arbitrary(Gen.recursive[JsonNode] { recurse =>
       Gen.oneOf(
@@ -28,6 +34,8 @@ object JacksonTest {
       )
     })
   }
+
+  def objectMapper: ObjectMapper
 
   val enumModule: SimpleModule = new SimpleModule().addSerializer(
     classOf[Enum.Enum],
@@ -44,4 +52,14 @@ object JacksonTest {
         Enum.fromOrdinal(parser.getIntValue)
     },
   )
+
+  "" - {
+    "Encode & Decode" in {
+      forAll { (record: Record) =>
+        val encoded = codec.encode(record)
+        val decoded = codec.decode[Record](encoded)
+        decoded.shouldEqual(record)
+      }
+    }
+  }
 }

@@ -1,13 +1,21 @@
 package test.codec
 
+import automorph.codec.WeepickleCodec
+import com.fasterxml.jackson.core.JsonFactory
 import com.rallyhealth.weejson.v1.{Arr, Bool, Null, Num, Obj, Str, Value}
 import com.rallyhealth.weepickle.v1.WeePickle.{FromInt, FromTo, ToInt, macroFromTo}
 import org.scalacheck.{Arbitrary, Gen}
 import test.api.{Enum, Record, Structure}
+import test.api.Generators.arbitraryRecord
 
-object WeepickleTest {
+trait WeepickleTest extends MessageCodecTest {
 
-  val arbitraryNode: Arbitrary[Value] = Arbitrary(Gen.recursive[Value] { recurse =>
+  type Node = Value
+  type ActualCodec = WeepickleCodec
+
+  override lazy val codec: ActualCodec = WeepickleCodec(jsonFactory)
+
+  override lazy val arbitraryNode: Arbitrary[Value] = Arbitrary(Gen.recursive[Value] { recurse =>
     Gen.oneOf(
       Gen.const(Null),
       Gen.resultOf[String, Value](Str.apply),
@@ -18,10 +26,22 @@ object WeepickleTest {
     )
   })
 
-  val recordFromTo: FromTo[Record] = {
+  def jsonFactory: JsonFactory
+
+  private implicit val recordFromTo: FromTo[Record] = {
     implicit val enumFromTo: FromTo[Enum.Enum] = FromTo.join(ToInt, FromInt).bimap(Enum.toOrdinal, Enum.fromOrdinal)
     implicit val structureFromTo: FromTo[Structure] = macroFromTo
     Seq(structureFromTo, enumFromTo)
     macroFromTo
+  }
+
+  "" - {
+    "Encode & Decode" in {
+      forAll { (record: Record) =>
+        val encoded = codec.encode(record)
+        val decoded = codec.decode[Record](encoded)
+        decoded.shouldEqual(record)
+      }
+    }
   }
 }

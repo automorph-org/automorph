@@ -4,9 +4,10 @@ import automorph.codec.json.{UpickleJsonCodec, UpickleJsonConfig}
 import org.scalacheck.{Arbitrary, Gen}
 import test.api.Generators.arbitraryRecord
 import test.api.{Enum, Record, Structure}
+import test.codec.MessageCodecTest
 import ujson.{Arr, Bool, Null, Num, Obj, Str, Value}
 
-class UpickleJsonTest extends JsonMessageCodecTest {
+class UpickleJsonTest extends MessageCodecTest with JsonMessageCodecTest {
 
   type Node = Value
   type ActualCodec = UpickleJsonCodec[UpickleJsonTest.type]

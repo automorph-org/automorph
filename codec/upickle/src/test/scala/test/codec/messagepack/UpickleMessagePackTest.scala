@@ -30,7 +30,6 @@ class UpickleMessagePackTest extends MessageCodecTest {
 
   private lazy val config = codec.config
   private implicit lazy val recordRw: config.ReadWriter[Record] = config.macroRW
-  Seq(recordRw)
 
   "" - {
     "Encode & Decode" in {
