@@ -1,29 +1,38 @@
 package test.codec.json
 
+import automorph.spi.MessageCodec
 import com.fasterxml.jackson.databind.ObjectMapper
-import test.codec.MessageCodecTest
+import org.scalacheck.Arbitrary
+import test.base.BaseTest
 
 /**
  * JSON message codec test.
  *
  * Checks message serialization.
  */
-trait JsonMessageCodecTest extends MessageCodecTest {
+trait JsonMessageCodecTest extends BaseTest {
 
-  private val objectMapper = new ObjectMapper()
+  type Node
+  type ActualCodec <: MessageCodec[Node]
+
+  def codec: ActualCodec
+
+  implicit def arbitraryNode: Arbitrary[Node]
+
+  private val jsonObjectMapper = new ObjectMapper()
 
   "" - {
     "JSON" - {
       "Serialize" in {
         forAll { (node: Node) =>
           val serialized = codec.serialize(node)
-          objectMapper.readTree(serialized)
+          jsonObjectMapper.readTree(serialized)
         }
       }
       "Text" in {
         forAll { (node: Node) =>
           val text = codec.text(node)
-          objectMapper.readTree(text)
+          jsonObjectMapper.readTree(text)
         }
       }
     }
