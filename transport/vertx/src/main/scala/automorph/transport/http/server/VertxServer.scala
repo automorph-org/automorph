@@ -54,8 +54,8 @@ final case class VertxServer[Effect[_]](
   pathPrefix: String = "/",
   methods: Iterable[HttpMethod] = HttpMethod.values,
   webSocket: Boolean = true,
-  mapException: Throwable => Int = HttpContext.defaultExceptionToStatusCode,
-  vertxOptions: VertxOptions = VertxServer.defaultVertxOptions,
+  mapException: Throwable => Int = HttpContext.toStatusCode,
+  vertxOptions: VertxOptions = VertxServer.vertxOptions,
   httpServerOptions: HttpServerOptions = new HttpServerOptions,
   handler: RequestHandler[Effect, Context] = RequestHandler.dummy[Effect, Context],
 ) extends Logging with ServerTransport[Effect, Context] {
@@ -135,7 +135,7 @@ object VertxServer {
    * - Event loop threads: 2 * number of CPU cores
    * - Worker threads: number of CPU cores
    */
-  def defaultVertxOptions: VertxOptions =
+  def vertxOptions: VertxOptions =
     new VertxOptions().setEventLoopPoolSize(Runtime.getRuntime.availableProcessors * 2)
       .setWorkerPoolSize(Runtime.getRuntime.availableProcessors)
 }

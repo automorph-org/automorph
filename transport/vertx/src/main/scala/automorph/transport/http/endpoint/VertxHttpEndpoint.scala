@@ -39,7 +39,7 @@ import scala.util.Try
  */
 final case class VertxHttpEndpoint[Effect[_]](
   effectSystem: EffectSystem[Effect],
-  mapException: Throwable => Int = HttpContext.defaultExceptionToStatusCode,
+  mapException: Throwable => Int = HttpContext.toStatusCode,
   handler: RequestHandler[Effect, Context] = RequestHandler.dummy[Effect, Context],
 ) extends Handler[HttpServerRequest] with Logging with EndpointTransport[Effect, Context, Handler[HttpServerRequest]] {
 
