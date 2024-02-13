@@ -37,7 +37,6 @@ class Json4sNativeJsonTest extends JsonMessageCodecTest {
   "" - {
     "Encode & Decode" in {
       forAll { (record: Record) =>
-        implicit val formats: Formats = this.formats
         val encoded = codec.encode(record)
         val decoded = codec.decode[Record](encoded)
         decoded.shouldEqual(record)
