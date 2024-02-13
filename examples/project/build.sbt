@@ -25,7 +25,7 @@ libraryDependencies ++= {
     "com.softwaremill.sttp.client3" %% "async-http-client-backend-zio" % sttpVersion,
 
     // Test
-    "org.scalatest" %% "scalatest" % "3.2.18" % Test
+    "org.scalatest" %% "scalatest" % "3.2.18" % Test,
   )
 }
 
@@ -38,7 +38,7 @@ val initializeAtBuildTime = Seq(
   "ch.qos.logback.classic.spi.LogbackServiceProvider",
   "ch.qos.logback.classic.util.LogbackMDCAdapter",
   "ch.qos.logback.core.status.InfoStatus",
-  "ch.qos.logback.core.util.Duration"
+  "ch.qos.logback.core.util.Duration",
 )
 enablePlugins(NativeImagePlugin)
 Compile / mainClass := Some("examples.Quickstart")
@@ -51,7 +51,7 @@ nativeImageOptions ++= Seq(
   "--report-unsupported-elements-at-runtime",
   s"-H:ConfigurationFileDirectories=${(Compile / resourceDirectory).value}",
   s"--initialize-at-build-time=${initializeAtBuildTime.mkString(",")}",
-  s"--parallelism=${java.lang.Runtime.getRuntime.availableProcessors}"
+  s"--parallelism=${java.lang.Runtime.getRuntime.availableProcessors}",
 )
 
 
