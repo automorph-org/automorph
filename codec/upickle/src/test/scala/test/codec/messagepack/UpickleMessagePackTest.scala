@@ -28,9 +28,6 @@ class UpickleMessagePackTest extends MessageCodecTest {
     )
   })
 
-  private lazy val config = codec.config
-  private implicit lazy val recordRw: config.ReadWriter[Record] = config.macroRW
-
   "" - {
     "Encode & Decode" in {
       forAll { (record: Record) =>
@@ -44,10 +41,12 @@ class UpickleMessagePackTest extends MessageCodecTest {
 
 object UpickleMessagePackTest extends UpickleMessagePackConfig {
 
-  implicit lazy val enumRw: ReadWriter[Enum.Enum] = readwriter[Int].bimap[Enum.Enum](
-    value => Enum.toOrdinal(value),
-    number => Enum.fromOrdinal(number)
-  )
-
-  implicit lazy val structureRw: ReadWriter[Structure] = macroRW
+  implicit lazy val recordRw: ReadWriter[Record] = {
+    implicit val enumRw: ReadWriter[Enum.Enum] = readwriter[Int].bimap[Enum.Enum](
+      value => Enum.toOrdinal(value),
+      number => Enum.fromOrdinal(number)
+    )
+    implicit val structureRw: ReadWriter[Structure] = macroRW
+    macroRW
+  }
 }
