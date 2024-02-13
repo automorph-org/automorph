@@ -38,7 +38,7 @@ object Json4sNativeJsonCodec {
   /** Message node type. */
   type Node = JValue
 
-  implicit val formats: Formats = DefaultFormats.strict
+  implicit val formats: Formats = DefaultFormats.strict.withBigDecimal
 
 //  implicit lazy val jsonRpcMessageEncoder: Encoder[Json4sJsonRpc.RpcMessage] = Json4sJsonRpc.encoder
 //  implicit lazy val jsonRpcMessageDecoder: Decoder[Json4sJsonRpc.RpcMessage] = Json4sJsonRpc.decoder
