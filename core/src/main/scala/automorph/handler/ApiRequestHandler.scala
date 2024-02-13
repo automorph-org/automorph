@@ -66,7 +66,7 @@ final case class ApiRequestHandler[Node, Codec <: MessageCodec[Node], Effect[_],
       rpcRequest => {
         // Invoke requested RPC function
         lazy val requestProperties = ListMap(LogProperties.requestId -> id) ++ rpcRequest.message.properties
-        lazy val allProperties = requestProperties ++ rpcRequest.message.text.map(LogProperties.messageBody -> _)
+        lazy val allProperties = requestProperties ++ getMessageBody(rpcRequest.message)
         logger.trace(s"Received ${rpcProtocol.name} request", allProperties)
         callFunction(rpcRequest, context, requestProperties)
       },
@@ -291,13 +291,16 @@ final case class ApiRequestHandler[Node, Codec <: MessageCodec[Node], Effect[_],
       rpcResponse => {
         val responseBody = rpcResponse.message.body
         lazy val allProperties = rpcResponse.message.properties ++ requestProperties ++
-          rpcResponse.message.text.map(LogProperties.messageBody -> _)
+          getMessageBody(rpcResponse.message)
         logger.trace(s"Sending ${rpcProtocol.name} response", allProperties)
         effectSystem.successful(
           Some(Result(responseBody, result.failed.toOption, result.toOption.flatMap(_._2)))
         )
       },
     )
+
+  private def getMessageBody(message: Message[?]): Option[(String, String)] =
+    message.text.map(LogProperties.messageBody -> _)
 
   private def apiSchemaBindings: ListMap[String, HandlerBinding[Node, Effect, Context]] =
     ListMap(rpcProtocol.apiSchemas.map { apiSchema =>
