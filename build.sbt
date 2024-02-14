@@ -317,7 +317,7 @@ val compileScalac2Options = commonScalacOptions ++ Seq(
   "-language:existentials",
   "-Xsource:3",
   "-Xlint:_,-byname-implicit",
-  "-Wconf:cat=other-non-cooperative-equals:silent,msg=constructor modifiers are assumed:silent",
+  "-Wconf:cat=other-non-cooperative-equals:silent,msg=modifiers are assumed:silent,msg=not suppress any:silent",
   "-Wextra-implicit",
   "-Wnumeric-widen",
   "-Wunused:imports,patvars,privates,locals,params",
@@ -337,7 +337,7 @@ val docScalac2Options = compileScalac2Options ++ Seq(
 ThisBuild / scalacOptions ++= (if (scala3.value) {
   compileScalac3Options ++ Seq(
     "-indent",
-//    "-Wconf:msg=suppress anything:silent",
+    "-Wconf:msg=not suppress any:silent",
     "-Wunused:all",
     "-Wvalue-discard",
     "-Xcheck-macros",
