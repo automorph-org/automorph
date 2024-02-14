@@ -17,7 +17,7 @@ import scala.util.Try
  * Finagle HTTP endpoint message transport plugin.
  *
  * Interprets HTTP request body as a RPC request and processes it with the specified RPC handler.
- * - The response returned by the RPC handler is used as HTTP response body.
+ *   - The response returned by the RPC handler is used as HTTP response body.
  *
  * @see
  *   [[https://en.wikipedia.org/wiki/HTTP Transport protocol]]
@@ -43,7 +43,7 @@ final case class FinagleHttpEndpoint[Effect[_]](
 ) extends Service[Request, Response] with Logging with EndpointTransport[Effect, Context, Service[Request, Response]] {
 
   private val log = MessageLog(logger, Protocol.Http.name)
-  private implicit val system: EffectSystem[Effect] = effectSystem
+  implicit private val system: EffectSystem[Effect] = effectSystem
 
   override def adapter: Service[Request, Response] =
     this
@@ -107,7 +107,9 @@ final case class FinagleHttpEndpoint[Effect[_]](
 
     // Send the response
     val response = Response(
-      request.version, responseStatus, Reader.fromBuf(Buf.ByteArray.Owned(responseBody))
+      request.version,
+      responseStatus,
+      Reader.fromBuf(Buf.ByteArray.Owned(responseBody)),
     )
     setResponseContext(response, responseContext)
     response.contentType = handler.mediaType
