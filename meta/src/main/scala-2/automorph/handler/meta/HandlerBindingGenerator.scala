@@ -73,7 +73,7 @@ object HandlerBindingGenerator {
     """)
   }
 
-  @nowarn("msg=used")
+  @nowarn("msg=never used")
   private def generateBinding[
     C <: blackbox.Context,
     Node: ref.c.WeakTypeTag,
@@ -145,7 +145,7 @@ object HandlerBindingGenerator {
     ref.c.Expr[Map[String, Option[Node] => Any]](q"Map(..$argumentDecoders)")
   }
 
-  @nowarn("msg=used")
+  @nowarn("msg=never used")
   private def generateEncodeResult[C <: blackbox.Context, Node, Codec <: MessageCodec[Node], Effect[_], Context](
     ref: ClassReflection[C]
   )(method: ref.RefMethod, codec: ref.c.Expr[Codec])(implicit
@@ -181,7 +181,7 @@ object HandlerBindingGenerator {
     )
   }
 
-  @nowarn("msg=used")
+  @nowarn("msg=never used")
   private def generateCall[C <: blackbox.Context, Effect[_], Context: ref.c.WeakTypeTag, Api](ref: ClassReflection[C])(
     method: ref.RefMethod, api: ref.c.Expr[Api]
   )(implicit

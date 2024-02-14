@@ -491,7 +491,7 @@ object RemoteInvoke {
     """)
   }
 
-  @scala.annotation.nowarn("msg=used")
+  @scala.annotation.nowarn("msg=never used")
   def decodeResultMacro[Node: c.WeakTypeTag, Codec, Context: c.WeakTypeTag, Result: c.WeakTypeTag](
     c: blackbox.Context
   )(codec: c.Expr[Codec])(codecBound: c.Expr[Codec <:< MessageCodec[Node]]): c.Expr[(Node, Context) => Result] = {

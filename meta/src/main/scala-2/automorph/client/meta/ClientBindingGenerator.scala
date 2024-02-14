@@ -71,7 +71,7 @@ object ClientBindingGenerator {
     """)
   }
 
-  @nowarn("msg=used")
+  @nowarn("msg=never used")
   private def generateBinding[C <: blackbox.Context, Node, Codec <: MessageCodec[Node], Effect[_], Context, Api](
     ref: ClassReflection[C]
   )(method: ref.RefMethod, codec: ref.c.Expr[Codec])(implicit
