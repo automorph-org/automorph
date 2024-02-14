@@ -2,9 +2,11 @@ package automorph.transport.http.endpoint
 
 import org.apache.pekko.http.scaladsl.model.StatusCodes.InternalServerError
 import org.apache.pekko.http.scaladsl.model.headers.RawHeader
-import org.apache.pekko.http.scaladsl.model.{ContentType, HttpRequest, HttpResponse, RemoteAddress, StatusCode, StatusCodes}
+import org.apache.pekko.http.scaladsl.model.{
+  ContentType, HttpRequest, HttpResponse, RemoteAddress, StatusCode, StatusCodes,
+}
 import org.apache.pekko.http.scaladsl.server.Directives.{
-  complete, extractClientIP, extractExecutionContext, extractMaterializer, extractRequest, onComplete
+  complete, extractClientIP, extractExecutionContext, extractMaterializer, extractRequest, onComplete,
 }
 import org.apache.pekko.http.scaladsl.server.Route
 import org.apache.pekko.stream.Materializer
@@ -55,7 +57,7 @@ final case class PekkoHttpEndpoint[Effect[_]](
     new IllegalStateException(s"Invalid message content type: ${errors.mkString("\n")}")
   }.swap.toTry.get
   private val log = MessageLog(logger, Protocol.Http.name)
-  private implicit val system: EffectSystem[Effect] = effectSystem
+  implicit private val system: EffectSystem[Effect] = effectSystem
 
   def adapter: Route =
     extractRequest { httpRequest =>
@@ -85,7 +87,7 @@ final case class PekkoHttpEndpoint[Effect[_]](
   private def handleRequest(request: HttpRequest, remoteAddress: RemoteAddress)(
     implicit
     materializer: Materializer,
-    executionContext: ExecutionContext
+    executionContext: ExecutionContext,
   ): Future[(HttpResponse, ListMap[String, String])] = {
 
     // Log the request

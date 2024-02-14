@@ -89,7 +89,7 @@ final case class PekkoServer[Effect[_]](
         "Listening for connections",
         ListMap(
           "Protocol" -> Protocol.Http,
-          "Port" -> serverBinding.localAddress.getPort.toString
+          "Port" -> serverBinding.localAddress.getPort.toString,
         ),
       )
       server = Some((actorSystem, serverBinding))
