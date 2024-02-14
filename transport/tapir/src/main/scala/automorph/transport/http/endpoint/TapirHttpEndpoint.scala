@@ -4,7 +4,7 @@ import automorph.log.{LogProperties, Logging, MessageLog}
 import automorph.spi.{EffectSystem, EndpointTransport, RequestHandler}
 import automorph.transport.http.endpoint.TapirHttpEndpoint.{
   Context, MessageFormat, Request, clientAddress, getRequestContext, getRequestProperties, pathComponents,
-  pathEndpointInput
+  pathEndpointInput,
 }
 import automorph.transport.http.{HttpContext, HttpMethod, Protocol}
 import automorph.util.Extensions.{EffectOps, StringOps, ThrowableOps, TryOps}
@@ -16,7 +16,7 @@ import sttp.tapir.Codec.id
 import sttp.tapir.server.ServerEndpoint
 import sttp.tapir.{
   CodecFormat, EndpointIO, EndpointInput, RawBodyType, Schema, endpoint, headers, paths, queryParams, statusCode,
-  stringToPath
+  stringToPath,
 }
 
 /**
@@ -52,24 +52,27 @@ final case class TapirHttpEndpoint[Effect[_]](
   method: Option[HttpMethod] = None,
   mapException: Throwable => Int = HttpContext.toStatusCode,
   handler: RequestHandler[Effect, Context] = RequestHandler.dummy[Effect, Context],
-) extends Logging with EndpointTransport[
-  Effect,
-  Context,
-  ServerEndpoint.Full[Unit, Unit, Request, Unit, (Array[Byte], StatusCode), Any, Effect]
-] {
+) extends Logging
+  with EndpointTransport[
+    Effect,
+    Context,
+    ServerEndpoint.Full[Unit, Unit, Request, Unit, (Array[Byte], StatusCode), Any, Effect],
+  ] {
 
   private val allowedMethod = method.map(httpMethod => Method(httpMethod.name))
   private val prefixPaths = pathComponents(pathPrefix)
   private lazy val mediaType = MediaType.parse(handler.mediaType).fold(
-    error => throw new IllegalStateException(
-      s"Invalid message content type: ${handler.mediaType}", new IllegalArgumentException(error)
-    ),
+    error =>
+      throw new IllegalStateException(
+        s"Invalid message content type: ${handler.mediaType}",
+        new IllegalArgumentException(error),
+      ),
     identity,
   )
   private lazy val codec = id[Array[Byte], MessageFormat](MessageFormat(mediaType), Schema.schemaForByteArray)
   private lazy val body = EndpointIO.Body(RawBodyType.ByteArrayBody, codec, EndpointIO.Info.empty)
   private val log = MessageLog(logger, Protocol.Http.name)
-  private implicit val system: EffectSystem[Effect] = effectSystem
+  implicit private val system: EffectSystem[Effect] = effectSystem
 
   override def adapter: ServerEndpoint.Full[Unit, Unit, Request, Unit, (Array[Byte], StatusCode), Any, Effect] = {
     // Define server endpoint inputs & outputs
@@ -151,7 +154,7 @@ object TapirHttpEndpoint {
   /** Endpoint request type. */
   type Request = (Array[Byte], List[String], QueryParams, List[Header])
 
-  private[automorph] final case class MessageFormat(mediaType: MediaType) extends CodecFormat
+  final private[automorph] case class MessageFormat(mediaType: MediaType) extends CodecFormat
 
   private val leadingSlashPattern = "^/+".r
   private val trailingSlashPattern = "/+$".r
@@ -160,7 +163,7 @@ object TapirHttpEndpoint {
   private[automorph] def pathComponents(path: String): List[String] = {
     val canonicalPath = multiSlashPattern.replaceAllIn(
       trailingSlashPattern.replaceAllIn(leadingSlashPattern.replaceAllIn(path, ""), ""),
-      "/"
+      "/",
     )
     canonicalPath.split("/") match {
       case Array(head) if head.isEmpty => List.empty
@@ -202,7 +205,6 @@ object TapirHttpEndpoint {
   private[automorph] def clientAddress(clientIp: Option[String]): String =
     clientIp.getOrElse("")
 
-  private def urlPath(paths: List[String]): String = {
+  private def urlPath(paths: List[String]): String =
     s"/${paths.mkString("/")}"
-  }
 }
