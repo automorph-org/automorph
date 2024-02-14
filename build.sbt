@@ -22,7 +22,7 @@ ThisBuild / releaseVersion := IO.readLines((examples / Compile / scalaSource).va
   .filter(_.startsWith(s"//> using dep $projectRoot.$projectName::"))
   .flatMap(_.split(":").lastOption)
   .lastOption.getOrElse("")
-val scala3 = settingKey[Boolean]("Uses Scala 3.")
+val scala3 = settingKey[Boolean]("Uses Scala 3 platform.")
 ThisBuild / scala3 := CrossVersion.partialVersion(scalaVersion.value).exists(_._1 == 3)
 Global / onChangedBuildSource := ReloadOnSourceChanges
 
@@ -35,7 +35,6 @@ ThisBuild / scmInfo := Some(ScmInfo(url(repositoryUrl), s"scm:$repositoryShell")
 apiURL := Some(url(apiUrl))
 onLoadMessage := {
   System.setProperty("project.target", s"${target.value}")
-  System.setProperty("scala3", s"${scala3.value}")
   ""
 }
 
@@ -155,6 +154,7 @@ lazy val jackson = source(project, "codec/jackson", core, testCodec % Test).sett
 )
 lazy val json4s = source(project, "codec/json4s", core, testCodec % Test).settings(
   publish / skip := scala3.value,
+  Test / skip := scala3.value,
   libraryDependencies ++= Seq(
     "org.json4s" %% "json4s-native" % "4.0.7",
   )
@@ -289,7 +289,6 @@ lazy val testSystem = source(project, "test/system", testCodec, core, circe, jac
 lazy val testTransport = source(project, "test/transport", testSystem)
 def testJavaOptions: Seq[String] = Seq(
   s"-Dproject.target=${System.getProperty("project.target")}",
-  s"-Dscala3=${System.getProperty("scala3")}",
 )
 
 
@@ -354,13 +353,11 @@ scalastyleFailOnError := true
 
 
 // Test
-lazy val setScala3Property = taskKey[Unit]("Sets Scala 3 property value.")
-setScala3Property := System.setProperty("scala3", scala3.value.toString)
 lazy val testScalastyle = taskKey[Unit]("testScalastyle")
 testScalastyle := (Test / scalastyle).toTask("").value
 val testEnvironment = taskKey[Unit]("Prepares testing environment.")
 testEnvironment := IO.delete(target.value / "lock")
-Test / test := (Test / test).dependsOn(testScalastyle, setScala3Property).dependsOn(testEnvironment).value
+Test / test := (Test / test).dependsOn(testScalastyle).dependsOn(testEnvironment).value
 
 
 // Documentation
