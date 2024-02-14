@@ -39,9 +39,14 @@ object Json4sNativeJsonCodec {
   /** Message node type. */
   type Node = JValue
 
-  val formats: Formats = DefaultFormats.strict.withBigDecimal + new CustomSerializer[Unit](_ => ({
-    case JObject(values) if values.isEmpty => ()
-  }, {
-    case value: Unit => JObject()
-  }))
+  val formats: Formats = DefaultFormats.strict.withBigDecimal + new CustomSerializer[Unit](_ =>
+    (
+      {
+        case JObject(values) if values.isEmpty => ()
+      },
+      {
+        case value: Unit => JObject()
+      },
+    )
+  )
 }
