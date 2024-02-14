@@ -45,7 +45,7 @@ final case class UndertowHttpEndpoint[Effect[_]](
 ) extends HttpHandler with Logging with EndpointTransport[Effect, Context, HttpHandler] {
 
   private val log = MessageLog(logger, Protocol.Http.name)
-  private implicit val system: EffectSystem[Effect] = effectSystem
+  implicit private val system: EffectSystem[Effect] = effectSystem
 
   override def adapter: HttpHandler =
     this

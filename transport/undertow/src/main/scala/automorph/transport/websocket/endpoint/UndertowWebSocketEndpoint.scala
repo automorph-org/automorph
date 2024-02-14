@@ -10,7 +10,7 @@ import automorph.util.{Network, Random}
 import io.undertow.server.{HttpHandler, HttpServerExchange}
 import io.undertow.util.Headers
 import io.undertow.websockets.core.{
-  AbstractReceiveListener, BufferedBinaryMessage, BufferedTextMessage, WebSocketCallback, WebSocketChannel, WebSockets
+  AbstractReceiveListener, BufferedBinaryMessage, BufferedTextMessage, WebSocketCallback, WebSocketChannel, WebSockets,
 }
 import io.undertow.websockets.spi.WebSocketHttpExchange
 import io.undertow.websockets.{WebSocketConnectionCallback, WebSocketProtocolHandshakeHandler}
@@ -22,7 +22,7 @@ import scala.util.Try
  * Undertow WebSocket endpoint transport plugin.
  *
  * Interprets WebSocket request message as an RPC request and processes it using the specified RPC request handler.
- * - The response returned by the RPC request handler is used as WebSocket response message.
+ *   - The response returned by the RPC request handler is used as WebSocket response message.
  *
  * @see
  *   [[https://en.wikipedia.org/wiki/WebSocket Transport protocol]]
@@ -79,14 +79,14 @@ object UndertowWebSocketEndpoint {
   /** Request context type. */
   type Context = HttpContext[Either[HttpServerExchange, WebSocketHttpExchange]]
 
-  private final case class ConnectionListener[Effect[_]](
+  final private case class ConnectionListener[Effect[_]](
     effectSystem: EffectSystem[Effect],
     handler: RequestHandler[Effect, Context] = RequestHandler.dummy[Effect, Context],
     log: MessageLog,
     exchange: WebSocketHttpExchange,
   ) extends AbstractReceiveListener {
 
-    private implicit val system: EffectSystem[Effect] = effectSystem
+    implicit private val system: EffectSystem[Effect] = effectSystem
 
     override def onFullTextMessage(channel: WebSocketChannel, message: BufferedTextMessage): Unit =
       handle(exchange, message.getData.toByteArray, channel, () => ())
@@ -148,7 +148,7 @@ object UndertowWebSocketEndpoint {
       // Log the response
       lazy val responseProperties = ListMap(
         LogProperties.requestId -> requestId,
-        LogProperties.client -> clientAddress(exchange)
+        LogProperties.client -> clientAddress(exchange),
       )
       log.sendingResponse(responseProperties)
 
@@ -177,7 +177,7 @@ object UndertowWebSocketEndpoint {
     }
   }
 
-  private final case class ResponseCallback(
+  final private case class ResponseCallback(
     log: MessageLog,
     responseProperties: ListMap[String, String],
   ) extends WebSocketCallback[Unit] {
