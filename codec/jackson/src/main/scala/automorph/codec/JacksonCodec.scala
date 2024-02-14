@@ -19,9 +19,9 @@ import scala.util.{Failure, Try}
  * Jackson message codec plugin.
  *
  * Specific message format depends on the supplied object mapper with the following options:
- * - JSON (default) - JacksonCodec.jsonMapper
- * - CBOR - JacksonCodec.cborMapper
- * - Smile - JacksonCodec.smileMapper
+ *   - JSON (default) - JacksonCodec.jsonMapper
+ *   - CBOR - JacksonCodec.cborMapper
+ *   - Smile - JacksonCodec.smileMapper
  *
  * @see
  *   [[https://www.json.org JSON message format]]
@@ -103,8 +103,8 @@ object JacksonCodec {
       override def deserialize(parser: JsonParser, context: DeserializationContext): BigDecimal =
         parser.readValueAsTree[TreeNode]() match {
           case value: NumericNode => Try(BigDecimal(value.decimalValue)).recoverWith { case error =>
-            Failure(new JsonParseException(parser, "Invalid numeric value", parser.getCurrentLocation, error))
-          }.get
+              Failure(new JsonParseException(parser, "Invalid numeric value", parser.getCurrentLocation, error))
+            }.get
           case _ => throw new JsonParseException(parser, "Invalid numeric value", parser.getCurrentLocation)
         }
     },
