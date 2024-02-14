@@ -16,8 +16,8 @@ import scala.util.Try
  *
  * Used to perform type-safe remote API calls or send one-way messages.
  *
- * Remote APIs can be invoked via proxy instances automatically created from specified API trait
- * or without an API trait by supplying the required type information on invocation.
+ * Remote APIs can be invoked via proxy instances automatically created from specified API trait or without an API trait
+ * by supplying the required type information on invocation.
  *
  * @constructor
  *   Creates a RPC client with specified protocol and transport plugins providing corresponding message context type.
@@ -39,7 +39,7 @@ final case class RpcClient[Node, Codec <: MessageCodec[Node], Effect[_], Context
   rpcProtocol: RpcProtocol[Node, Codec, Context],
 ) extends ClientBase[Node, Codec, Effect, Context] with Logging {
 
-  private implicit val system: EffectSystem[Effect] = transport.effectSystem
+  implicit private val system: EffectSystem[Effect] = transport.effectSystem
 
   /**
    * Creates a remote API function one-way message proxy.
@@ -88,13 +88,12 @@ final case class RpcClient[Node, Codec <: MessageCodec[Node], Effect[_], Context
       "rpcProtocol" -> rpcProtocol,
       "transport" -> transport,
     ).map { case (name, plugin) =>
-      s"$name = ${plugin.getClass.getName}" }.mkString(", ")
+      s"$name = ${plugin.getClass.getName}"
+    }.mkString(", ")
     s"${this.getClass.getName}($plugins)"
   }
 
-  /**
-   * This method must never be used and should be considered private.
-   */
+  /** This method must never be used and should be considered private. */
   override def performCall[Result](
     function: String,
     arguments: Seq[(String, Node)],
@@ -167,7 +166,8 @@ final case class RpcClient[Node, Codec <: MessageCodec[Node], Effect[_], Context
   }
 
   private def getRequestProperties(
-    rpcRequest: Request[Node, rpcProtocol.Metadata, Context], requestId: String
+    rpcRequest: Request[Node, rpcProtocol.Metadata, Context],
+    requestId: String,
   ): Map[String, String] =
     ListMap(LogProperties.requestId -> requestId) ++ rpcRequest.message.properties
 
@@ -240,6 +240,21 @@ final case class RpcClient[Node, Codec <: MessageCodec[Node], Effect[_], Context
 object RpcClient {
 
   /**
+   * Creates an RPC client builder with specified effect transport plugin.
+   *
+   * @param transport
+   *   transport protocol plugin
+   * @tparam Effect
+   *   effect type
+   * @tparam Context
+   *   RPC message context type
+   * @return
+   *   RPC client builder
+   */
+  def transport[Effect[_], Context](transport: ClientTransport[Effect, Context]): ClientBuilder[Effect, Context] =
+    ClientBuilder(transport)
+
+  /**
    * RPC client builder.
    *
    * @constructor
@@ -270,19 +285,4 @@ object RpcClient {
     ): RpcClient[Node, Codec, Effect, Context] =
       RpcClient(transport, rpcProtocol)
   }
-
-  /**
-   * Creates an RPC client builder with specified effect transport plugin.
-   *
-   * @param transport
-   *   transport protocol plugin
-   * @tparam Effect
-   *   effect type
-   * @tparam Context
-   *   RPC message context type
-   * @return
-   *   RPC client builder
-   */
-  def transport[Effect[_], Context](transport: ClientTransport[Effect, Context]): ClientBuilder[Effect, Context] =
-    ClientBuilder(transport)
 }
