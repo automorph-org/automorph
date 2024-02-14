@@ -20,9 +20,9 @@ import scala.reflect.ClassTag
  * weePickle message codec plugin.
  *
  * Specific message format depends on the supplied format factory with the following options:
- * - JSON (default) - WeepickleCodec.jsonFactory
- * - CBOR - WeepickleCodec.cborFactory
- * - Smile - WeepickleCodec.smileFactory
+ *   - JSON (default) - WeepickleCodec.jsonFactory
+ *   - CBOR - WeepickleCodec.cborFactory
+ *   - Smile - WeepickleCodec.smileFactory
  *
  * @see
  *   [[https://www.json.org JSON message format]]
