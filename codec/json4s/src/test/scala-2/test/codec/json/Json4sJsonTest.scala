@@ -1,7 +1,7 @@
 package test.codec.json
 
 import automorph.codec.json.Json4sNativeJsonCodec
-import org.json4s.{CustomSerializer, DefaultFormats, Formats, JArray, JBool, JDouble, JInt, JNull, JObject, JString, JValue}
+import org.json4s.{CustomSerializer, Formats, JArray, JBool, JDouble, JInt, JNull, JObject, JString, JValue}
 import org.scalacheck.{Arbitrary, Gen}
 import test.api.Generators.arbitraryRecord
 import test.api.{Enum, Record}
@@ -24,15 +24,13 @@ class Json4sNativeJsonTest extends JsonMessageCodecTest {
     )
   })
 
-  private val enumSerializer = new CustomSerializer[Enum.Enum](_ => (
-    {
-      case JInt(value) => Enum.fromOrdinal(value.toInt)
-    }, {
-      case value: Enum.Enum => JInt(Enum.toOrdinal(value))
-    }
-  ))
+  private val enumSerializer = new CustomSerializer[Enum.Enum](_ => ({
+    case JInt(value) => Enum.fromOrdinal(value.toInt)
+  }, {
+     case value: Enum.Enum => JInt(Enum.toOrdinal(value))
+  }))
 
-  implicit val formats: Formats = DefaultFormats + enumSerializer
+  implicit val formats: Formats = Json4sNativeJsonCodec.formats + enumSerializer
 
   "" - {
     "Encode & Decode" in {
