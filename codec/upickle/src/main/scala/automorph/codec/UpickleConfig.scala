@@ -8,10 +8,13 @@ trait UpickleConfig extends AttributeTagged {
 
   /** Serialize None as null. */
   implicit override def OptionWriter[T: Writer]: Writer[Option[T]] =
-    new Writer.MapWriter(implicitly[Writer[T]], {
-      case Some(value) => value
-      case None => null.asInstanceOf[T]
-    })
+    new Writer.MapWriter(
+      implicitly[Writer[T]],
+      {
+        case Some(value) => value
+        case None => null.asInstanceOf[T]
+      },
+    )
 
   /** Deserialize null as None. */
   implicit override def OptionReader[T: Reader]: Reader[Option[T]] =
@@ -26,6 +29,7 @@ trait UpickleConfig extends AttributeTagged {
 
   // Serialize Unit as an empty object
   implicit override val UnitWriter: Writer[Unit] = new Writer[Unit] {
+
     def write0[R](out: Visitor[?, R], v: Unit): R =
       out.visitObject(0, jsonableKeys = true, -1).visitEnd(-1)
   }
@@ -98,12 +102,22 @@ trait UpickleConfig extends AttributeTagged {
       ParseUtils.parseIntegralNum(s, decIndex, expIndex, index).toInt
 
     override def visitFloat64ByteParts(
-      s: Array[Byte], arrOffset: Int, arrLength: Int, decIndex: Int, expIndex: Int, index: Int
+      s: Array[Byte],
+      arrOffset: Int,
+      arrLength: Int,
+      decIndex: Int,
+      expIndex: Int,
+      index: Int,
     ): Int =
       ByteUtils.parseIntegralNum(s, arrOffset, arrLength, decIndex, expIndex).toInt
 
     override def visitFloat64CharParts(
-      s: Array[Char], arrOffset: Int, arrLength: Int, decIndex: Int, expIndex: Int, index: Int
+      s: Array[Char],
+      arrOffset: Int,
+      arrLength: Int,
+      decIndex: Int,
+      expIndex: Int,
+      index: Int,
     ): Int =
       CharUtils.parseIntegralNum(s, arrOffset, arrLength, decIndex, expIndex).toInt
 
@@ -163,12 +177,22 @@ trait UpickleConfig extends AttributeTagged {
       ParseUtils.parseIntegralNum(s, decIndex, expIndex, index).toShort
 
     override def visitFloat64ByteParts(
-      s: Array[Byte], arrOffset: Int, arrLength: Int, decIndex: Int, expIndex: Int, index: Int
+      s: Array[Byte],
+      arrOffset: Int,
+      arrLength: Int,
+      decIndex: Int,
+      expIndex: Int,
+      index: Int,
     ): Short =
       ByteUtils.parseIntegralNum(s, arrOffset, arrLength, decIndex, expIndex).toShort
 
     override def visitFloat64CharParts(
-      s: Array[Char], arrOffset: Int, arrLength: Int, decIndex: Int, expIndex: Int, index: Int
+      s: Array[Char],
+      arrOffset: Int,
+      arrLength: Int,
+      decIndex: Int,
+      expIndex: Int,
+      index: Int,
     ): Short =
       CharUtils.parseIntegralNum(s, arrOffset, arrLength, decIndex, expIndex).toShort
 
@@ -199,12 +223,22 @@ trait UpickleConfig extends AttributeTagged {
       ParseUtils.parseIntegralNum(s, decIndex, expIndex, index).toByte
 
     override def visitFloat64ByteParts(
-      s: Array[Byte], arrOffset: Int, arrLength: Int, decIndex: Int, expIndex: Int, index: Int
+      s: Array[Byte],
+      arrOffset: Int,
+      arrLength: Int,
+      decIndex: Int,
+      expIndex: Int,
+      index: Int,
     ): Byte =
       ByteUtils.parseIntegralNum(s, arrOffset, arrLength, decIndex, expIndex).toByte
 
     override def visitFloat64CharParts(
-      s: Array[Char], arrOffset: Int, arrLength: Int, decIndex: Int, expIndex: Int, index: Int
+      s: Array[Char],
+      arrOffset: Int,
+      arrLength: Int,
+      decIndex: Int,
+      expIndex: Int,
+      index: Int,
     ): Byte =
       CharUtils.parseIntegralNum(s, arrOffset, arrLength, decIndex, expIndex).toByte
 
@@ -264,12 +298,22 @@ trait UpickleConfig extends AttributeTagged {
       ParseUtils.parseIntegralNum(s, decIndex, expIndex, index)
 
     override def visitFloat64ByteParts(
-      s: Array[Byte], arrOffset: Int, arrLength: Int, decIndex: Int, expIndex: Int, index: Int
+      s: Array[Byte],
+      arrOffset: Int,
+      arrLength: Int,
+      decIndex: Int,
+      expIndex: Int,
+      index: Int,
     ): Long =
       ByteUtils.parseIntegralNum(s, arrOffset, arrLength, decIndex, expIndex)
 
     override def visitFloat64CharParts(
-      s: Array[Char], arrOffset: Int, arrLength: Int, decIndex: Int, expIndex: Int, index: Int
+      s: Array[Char],
+      arrOffset: Int,
+      arrLength: Int,
+      decIndex: Int,
+      expIndex: Int,
+      index: Int,
     ): Long =
       CharUtils.parseIntegralNum(s, arrOffset, arrLength, decIndex, expIndex)
 

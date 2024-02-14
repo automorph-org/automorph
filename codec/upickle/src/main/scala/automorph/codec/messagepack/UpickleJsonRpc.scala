@@ -28,16 +28,16 @@ private[automorph] object UpickleJsonRpc {
     implicit val paramsRw: ReadWriter[Option[Message.Params[Msg]]] = readwriter[Msg].bimap[Option[Message.Params[Msg]]](
       {
         case Some(Right(params)) => Obj(LinkedHashMap[Msg, Msg](params.map { case (key, value) =>
-          Str(key) -> value
-        }))
-        case Some(Left(params)) => Arr(params *)
+            Str(key) -> value
+          }))
+        case Some(Left(params)) => Arr(params*)
         case None => Null
       },
       {
         case Obj(params) => Some(Right(params.toMap.map {
-          case (Str(key), value) => key -> value
-          case _ => throw Abort(s"Invalid request parameters: $params")
-        }))
+            case (Str(key), value) => key -> value
+            case _ => throw Abort(s"Invalid request parameters: $params")
+          }))
         case Arr(params) => Some(Left(params.toList))
         case Null => None
         case params => throw Abort(s"Invalid request parameters: $params")
