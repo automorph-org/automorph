@@ -22,6 +22,8 @@ ThisBuild / releaseVersion := IO.readLines((examples / Compile / scalaSource).va
   .filter(_.startsWith(s"//> using dep $projectRoot.$projectName::"))
   .flatMap(_.split(":").lastOption)
   .lastOption.getOrElse("")
+val scala3 = settingKey[Boolean]("Uses Scala 3.")
+ThisBuild / scala3 := CrossVersion.partialVersion(scalaVersion.value).exists(_._1 == 3)
 Global / onChangedBuildSource := ReloadOnSourceChanges
 
 
@@ -33,6 +35,7 @@ ThisBuild / scmInfo := Some(ScmInfo(url(repositoryUrl), s"scm:$repositoryShell")
 apiURL := Some(url(apiUrl))
 onLoadMessage := {
   System.setProperty("project.target", s"${target.value}")
+  System.setProperty("scala3", s"${scala3.value}")
   ""
 }
 
@@ -51,9 +54,9 @@ lazy val root = project.in(file(".")).settings(
   // Message codec
   circe,
   jackson,
-  json4s,
   weepickle,
   upickle,
+  json4s,
 
   // Effect system
   zio,
@@ -85,10 +88,7 @@ lazy val root = project.in(file(".")).settings(
 // Dependencies
 def source(project: Project, path: String, dependsOn: ClasspathDep[ProjectReference]*): Project = {
   val subProject = project.in(file(path)).dependsOn(dependsOn: _*).settings(
-    Compile / doc / scalacOptions := (CrossVersion.partialVersion(scalaVersion.value) match {
-      case Some((3, _)) => docScalac3Options
-      case _ => docScalac2Options
-    }),
+    Compile / doc / scalacOptions := (if (scala3.value) docScalac3Options else docScalac2Options)
   )
   val directories = path.split('/').toSeq
   directories.headOption.map(Set("examples", "test").contains) match {
@@ -115,9 +115,8 @@ def source(project: Project, path: String, dependsOn: ClasspathDep[ProjectRefere
 // Core
 val slf4jVersion = "1.7.36"
 lazy val meta = source(project, "meta").settings(
-  libraryDependencies ++= (CrossVersion.partialVersion(scalaVersion.value) match {
-    case Some((2, _)) => Seq("org.scala-lang" % "scala-reflect" % scalaVersion.value)
-    case _ => Seq.empty
+  libraryDependencies ++= (if (scala3.value) Seq() else {
+    Seq("org.scala-lang" % "scala-reflect" % scalaVersion.value)
   }) ++ Seq(
     "org.slf4j" % "slf4j-api" % slf4jVersion,
   )
@@ -155,6 +154,7 @@ lazy val jackson = source(project, "codec/jackson", core, testCodec % Test).sett
   )
 )
 lazy val json4s = source(project, "codec/json4s", core, testCodec % Test).settings(
+  publish / skip := scala3.value,
   libraryDependencies ++= Seq(
     "org.json4s" %% "json4s-native" % "4.0.7",
   )
@@ -221,7 +221,7 @@ val akkaVersion = "2.8.5"
 lazy val akkaHttp = source(project, "transport/akka-http", core, testTransport % Test).settings(
   Test / fork := true,
   Test / testForkedParallel := true,
-  Test / javaOptions += s"-Dproject.target=${System.getProperty("project.target")}",
+  Test / javaOptions ++= testJavaOptions,
   libraryDependencies ++= Seq(
     "com.typesafe.akka" %% "akka-http" % "10.5.3",
     "com.typesafe.akka" %% "akka-actor-typed" % akkaVersion,
@@ -233,7 +233,7 @@ val pekkoVersion = "1.0.2"
 lazy val pekkoHttp = source(project, "transport/pekko-http", core, testTransport % Test).settings(
   Test / fork := true,
   Test / testForkedParallel := true,
-  Test / javaOptions += s"-Dproject.target=${System.getProperty("project.target")}",
+  Test / javaOptions ++= testJavaOptions,
   libraryDependencies ++= Seq(
     "org.apache.pekko" %% "pekko-http" % "1.0.0",
     "org.apache.pekko" %% "pekko-actor-typed" % pekkoVersion,
@@ -260,7 +260,7 @@ lazy val examples = source(
   project, "examples", default, upickle, zio, vertx, sttp, rabbitmq, testBase % Test
 ).settings(
   Test / fork := true,
-  Test / javaOptions += s"-Dproject.target=${System.getProperty("project.target")}",
+  Test / javaOptions ++= testJavaOptions,
   libraryDependencies ++= Seq(
     "com.softwaremill.sttp.client3" %% "async-http-client-backend-future" % sttpVersion,
     "com.softwaremill.sttp.client3" %% "async-http-client-backend-zio" % sttpVersion,
@@ -287,6 +287,10 @@ lazy val testCodec = source(project, "test/codec", testBase, meta).settings(
 )
 lazy val testSystem = source(project, "test/system", testCodec, core, circe, jackson, json4s, weepickle, upickle)
 lazy val testTransport = source(project, "test/transport", testSystem)
+def testJavaOptions: Seq[String] = Seq(
+  s"-Dproject.target=${System.getProperty("project.target")}",
+  s"-Dscala3=${System.getProperty("scala3")}",
+)
 
 
 // Compile
@@ -314,7 +318,7 @@ val compileScalac2Options = commonScalacOptions ++ Seq(
   "-language:existentials",
   "-Xsource:3",
   "-Xlint:_,-byname-implicit",
-  "-Wconf:site=[^.]+\\.codec\\.json\\..*:silent,cat=other-non-cooperative-equals:silent,msg=constructor modifiers are assumed:silent",
+  "-Wconf:cat=other-non-cooperative-equals:silent,msg=constructor modifiers are assumed:silent",
   "-Wextra-implicit",
   "-Wnumeric-widen",
   "-Wunused:imports,patvars,privates,locals,params",
@@ -331,16 +335,16 @@ val docScalac2Options = compileScalac2Options ++ Seq(
   "-skip-packages",
   s"$projectName.client.meta:$projectName.handler.meta:examples",
 )
-ThisBuild / scalacOptions ++= (CrossVersion.partialVersion(scalaVersion.value) match {
-  case Some((3, _)) => compileScalac3Options ++ Seq(
+ThisBuild / scalacOptions ++= (if (scala3.value) {
+  compileScalac3Options ++ Seq(
     "-indent",
+//    "-Wconf:msg=suppress anything:silent",
     "-Wunused:all",
     "-Wvalue-discard",
     "-Xcheck-macros",
     "-Xmigration",
   )
-  case _ => compileScalac2Options
-})
+} else compileScalac2Options)
 
 
 // Analyze
@@ -350,13 +354,13 @@ scalastyleFailOnError := true
 
 
 // Test
+lazy val setScala3Property = taskKey[Unit]("Sets Scala 3 property value.")
+setScala3Property := System.setProperty("scala3", scala3.value.toString)
 lazy val testScalastyle = taskKey[Unit]("testScalastyle")
 testScalastyle := (Test / scalastyle).toTask("").value
 val testEnvironment = taskKey[Unit]("Prepares testing environment.")
-testEnvironment := {
-  IO.delete(target.value / "lock")
-}
-Test / test := (Test / test).dependsOn(testScalastyle).dependsOn(testEnvironment).value
+testEnvironment := IO.delete(target.value / "lock")
+Test / test := (Test / test).dependsOn(testScalastyle, setScala3Property).dependsOn(testEnvironment).value
 
 
 // Documentation
