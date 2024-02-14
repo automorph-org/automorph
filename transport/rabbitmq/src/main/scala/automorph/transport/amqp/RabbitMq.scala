@@ -24,7 +24,7 @@ object RabbitMq extends Logging {
     implicit val defaultContext: AmqpContext[Message] = AmqpContext()
   }
 
-  private[automorph] final case class Session(connection: Connection, consumer: ThreadLocal[DefaultConsumer])
+  final private[automorph] case class Session(connection: Connection, consumer: ThreadLocal[DefaultConsumer])
 
   /** Default direct AMQP message exchange name. */
   private[automorph] val directExchange: String = ""
@@ -53,7 +53,7 @@ object RabbitMq extends Logging {
     url: URI,
     addresses: Seq[Address],
     name: String,
-    connectionFactory: ConnectionFactory
+    connectionFactory: ConnectionFactory,
   ): Connection = {
     val urlText = url.toString
     connectionFactory.setUri(url)
@@ -90,11 +90,11 @@ object RabbitMq extends Logging {
    *   AMQP broker session
    */
   private[automorph] def close(session: Option[Session]): Unit =
-      session.fold(
-        throw new IllegalStateException(s"${getClass.getSimpleName} already closed")
-      ) { activeSession =>
-        activeSession.connection.close(AMQP.CONNECTION_FORCED, "Terminated")
-      }
+    session.fold(
+      throw new IllegalStateException(s"${getClass.getSimpleName} already closed")
+    ) { activeSession =>
+      activeSession.connection.close(AMQP.CONNECTION_FORCED, "Terminated")
+    }
 
   /**
    * Returns application identifier combining the local host name with specified application name.
@@ -121,7 +121,7 @@ object RabbitMq extends Logging {
    */
   private[automorph] def threadLocalConsumer[T <: DefaultConsumer](
     connection: Connection,
-    createConsumer: Channel => T
+    createConsumer: Channel => T,
   ): ThreadLocal[T] =
     ThreadLocal.withInitial { () =>
       val channel = connection.createChannel()
@@ -221,6 +221,6 @@ object RabbitMq extends Logging {
   ): Map[String, String] =
     ListMap() ++ requestId.map(LogProperties.requestId -> _) ++ ListMap(
       routingKeyProperty -> routingKey,
-      "URL" -> url
+      "URL" -> url,
     ) ++ consumerTag.map("Consumer Tag" -> _)
 }

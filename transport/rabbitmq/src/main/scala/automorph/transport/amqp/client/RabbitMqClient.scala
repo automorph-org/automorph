@@ -16,8 +16,8 @@ import scala.util.Try
  * RabbitMQ client message transport plugin.
  *
  * Uses the supplied RPC request as AMQP request message body and returns AMQP response message body as a result.
- * - AMQP request messages are published to the specified exchange using ``direct reply-to``mechanism.
- * - AMQP response messages are consumed using ``direct reply-to``mechanism and automatically acknowledged.
+ *   - AMQP request messages are published to the specified exchange using ``direct reply-to``mechanism.
+ *   - AMQP response messages are consumed using ``direct reply-to``mechanism and automatically acknowledged.
  *
  * @see
  *   [[https://www.rabbitmq.com/java-client.html Documentation]]
@@ -54,7 +54,7 @@ final case class RabbitMqClient[Effect[_]](
   private val urlText = url.toString
   private val responseHandlers = TrieMap[String, Completable[Effect, Response]]()
   private val log = MessageLog(logger, RabbitMq.protocol)
-  private implicit val system: EffectSystem[Effect] = effectSystem
+  implicit private val system: EffectSystem[Effect] = effectSystem
 
   override def call(
     requestBody: Array[Byte],
@@ -125,7 +125,7 @@ final case class RabbitMqClient[Effect[_]](
           true,
           false,
           amqpProperties,
-          requestBody
+          requestBody,
         )
         log.sentRequest(requestProperties)
       }.onError { error =>

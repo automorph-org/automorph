@@ -54,7 +54,7 @@ final case class RabbitMqServer[Effect[_]](
   private val serverId = RabbitMq.applicationId(getClass.getName)
   private val urlText = url.toString
   private val log = MessageLog(logger, RabbitMq.protocol)
-  private implicit val system: EffectSystem[Effect] = effectSystem
+  implicit private val system: EffectSystem[Effect] = effectSystem
 
   override def withHandler(handler: RequestHandler[Effect, Context]): RabbitMqServer[Effect] =
     copy(handler = handler)
@@ -88,7 +88,7 @@ final case class RabbitMqServer[Effect[_]](
         consumerTag: String,
         envelope: Envelope,
         amqpProperties: BasicProperties,
-        requestBody: Array[Byte]
+        requestBody: Array[Byte],
       ): Unit = {
         // Log the request
         val requestId = Option(amqpProperties.getCorrelationId)
@@ -108,7 +108,7 @@ final case class RabbitMqServer[Effect[_]](
                     // Send the response
                     val responseBody = result.map(_.responseBody).getOrElse(Array.emptyByteArray)
                     sendResponse(responseBody, replyTo, result.flatMap(_.context), requestProperties, actualRequestId)
-                  }
+                  },
                 )
               ).runAsync
             }.foldError { error =>
@@ -133,7 +133,7 @@ final case class RabbitMqServer[Effect[_]](
     replyTo: String,
     responseContext: Option[Context],
     requestProperties: => Map[String, String],
-    requestId: String
+    requestId: String,
   ): Unit = {
     // Log the response
     val actualReplyTo = responseContext.flatMap { context =>
@@ -151,7 +151,8 @@ final case class RabbitMqServer[Effect[_]](
         responseContext,
         mediaType,
         actualReplyTo,
-        requestId, serverId,
+        requestId,
+        serverId,
         useDefaultRequestId = true,
       )
       session.get.consumer.get.getChannel.basicPublish(
@@ -172,7 +173,7 @@ final case class RabbitMqServer[Effect[_]](
     error: Throwable,
     replyTo: String,
     requestProperties: => Map[String, String],
-    requestId: String
+    requestId: String,
   ): Unit = {
     log.failedProcessRequest(error, requestProperties)
     val message = error.description.toByteArray
