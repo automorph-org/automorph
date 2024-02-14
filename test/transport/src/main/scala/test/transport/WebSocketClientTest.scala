@@ -2,8 +2,8 @@ package test.transport
 
 import automorph.spi.ServerTransport
 import automorph.transport.http.server.NanoServer
-import java.net.URI
 import test.core.ClientServerTest
+import java.net.URI
 
 trait WebSocketClientTest extends ClientServerTest {
 

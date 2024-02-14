@@ -12,6 +12,7 @@ import scala.util.{Failure, Try}
 import test.api.Generators.arbitraryRecord
 import test.api.{ComplexApi, ComplexApiImpl, InvalidApi, Record, SimpleApi, SimpleApiImpl}
 import test.base.BaseTest
+import test.core.Fixtures.Fixture
 
 /**
  * Main client -> server remote API function invocation test.
@@ -28,32 +29,10 @@ trait CoreTest extends BaseTest {
   type SimpleApiType = SimpleApi[Effect]
   type ComplexApiType = ComplexApi[Effect, Context]
   type InvalidApiType = InvalidApi[Effect]
+  type TestFixture = Fixture[Effect, Context]
   private type GenericServer[E[_], C] = RpcServer[Any, MessageCodec[Any], E, C]
   private type GenericClient[E[_], C] = RpcClient[Any, MessageCodec[Any], E, C]
   private lazy val testFixtures: Seq[TestFixture] = fixtures
-
-  case class TestApis(
-    simpleApi: SimpleApiType,
-    complexApi: ComplexApiType,
-    invalidApi: InvalidApiType,
-  )
-
-  case class TestCalls(
-    callOpenApi: String => Effect[OpenApi],
-    callString: (String, (String, String)) => Effect[String],
-    tell: (String, (String, String)) => Effect[Unit],
-  )
-
-  case class TestFixture(
-    id: String,
-    client: RpcClient[?, ?, Effect, Context],
-    server: RpcServer[?, ?, Effect, Context],
-    apis: TestApis,
-    functions: TestCalls,
-  ) {
-    val genericClient: GenericClient[Effect, Context] = client.asInstanceOf[GenericClient[Effect, Context]]
-    val genericServer: GenericServer[Effect, Context] = server.asInstanceOf[GenericServer[Effect, Context]]
-  }
 
   val logger: Logger = LoggerFactory.getLogger(getClass)
   val simpleApi: SimpleApiType = SimpleApiImpl(system)
@@ -76,7 +55,7 @@ trait CoreTest extends BaseTest {
     testFixtures.foreach { fixture =>
       fixture.id - {
         // Standard tests
-        if (basic || BaseTest.testStandard) {
+        if (basic || Fixtures.standard) {
           "Standard" - {
             "Simple API" - {
               val apis = (fixture.apis.simpleApi, simpleApi)
@@ -98,7 +77,7 @@ trait CoreTest extends BaseTest {
         }
 
         // Generative tests
-        if (BaseTest.testGenerative) {
+        if (Fixtures.generative) {
           "Static" - {
             "Simple API" - {
               val apis = (fixture.apis.simpleApi, simpleApi)

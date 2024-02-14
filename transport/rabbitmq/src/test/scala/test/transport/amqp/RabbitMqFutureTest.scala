@@ -9,7 +9,6 @@ import org.scalacheck.Arbitrary
 import scala.concurrent.ExecutionContext.Implicits.global
 import scala.concurrent.Future
 import test.base.Mutex
-import test.core.ClientServerTest
 import test.transport.local.LocalServer
 import java.net.URI
 

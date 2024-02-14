@@ -3,8 +3,8 @@ package test.transport
 import automorph.spi.ClientTransport
 import automorph.transport.http.HttpMethod
 import automorph.transport.http.client.HttpClient
-import java.net.URI
 import test.core.HttpClientServerTest
+import java.net.URI
 
 trait HttpServerTest extends HttpClientServerTest {
 

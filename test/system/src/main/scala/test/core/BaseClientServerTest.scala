@@ -17,15 +17,13 @@ import com.rallyhealth.weepickle.v1.WeePickle.{FromInt, FromTo, ToInt, macroFrom
 import io.circe.generic.auto.*
 import io.circe.{Decoder, Encoder}
 import test.api.{Enum, Record, Structure}
-import test.base.BaseTest
-import scala.annotation.nowarn
+import test.core.Fixtures.{Apis, Fixture, Functions}
 
-@nowarn("msg=used")
-trait ProtocolCodecTest extends CoreTest {
+trait BaseClientServerTest extends CoreTest {
 
   override def fixtures: Seq[TestFixture] = {
     implicit val context: Context = arbitraryContext.arbitrary.sample.get
-    Seq(circeJsonRpcJsonFixture()) ++ Option.when(basic || BaseTest.testAll)(Seq(
+    Seq(circeJsonRpcJsonFixture()) ++ Option.when(basic || Fixtures.all)(Seq(
       jacksonJsonRpcJsonFixture(),
       jacksonJsonRpcSmileFixture(),
       jacksonJsonRpcCborFixture(),
@@ -70,29 +68,14 @@ trait ProtocolCodecTest extends CoreTest {
     val server = RpcServer.transport(serverTransport(id)).rpcProtocol(protocol).discovery(true)
       .bind(simpleApi, mapName).bind(complexApi)
     val client = RpcClient.transport(typedClientTransport(id)).rpcProtocol(protocol)
-    TestFixture(
+    Fixture(
       id, client, server,
-      TestApis(client.bind[SimpleApiType], client.bind[ComplexApiType], client.bind[InvalidApiType]),
-      TestCalls(f => client.call(f)(), (f, a0) => client.call(f)(a0), (f, a0) => client.tell(f)(a0)),
+      Apis(client.bind[SimpleApiType], client.bind[ComplexApiType], client.bind[InvalidApiType]),
+      Functions(f => client.call(f)(), (f, a0) => client.call(f)(a0), (f, a0) => client.tell(f)(a0)),
     )
   }
 
   private def jacksonJsonRpcJsonFixture()(implicit context: Context): TestFixture = {
-    val enumModule = new SimpleModule().addSerializer(
-      classOf[Enum.Enum],
-      new StdSerializer[Enum.Enum](classOf[Enum.Enum]) {
-
-        override def serialize(value: Enum.Enum, generator: JsonGenerator, provider: SerializerProvider): Unit =
-          generator.writeNumber(Enum.toOrdinal(value))
-      },
-    ).addDeserializer(
-      classOf[Enum.Enum],
-      new StdDeserializer[Enum.Enum](classOf[Enum.Enum]) {
-
-        override def deserialize(parser: JsonParser, context: DeserializationContext): Enum.Enum =
-          Enum.fromOrdinal(parser.getIntValue)
-      },
-    )
     val codec = JacksonCodec(JacksonCodec.jsonMapper.registerModule(enumModule))
     val protocol = JsonRpcProtocol[JacksonCodec.Node, codec.type, Context](codec)
     RpcEndpoint.transport(endpointTransport).rpcProtocol(protocol).bind(simpleApi, mapName).bind(complexApi)
@@ -100,10 +83,10 @@ trait ProtocolCodecTest extends CoreTest {
     val server = RpcServer.transport(serverTransport(id)).rpcProtocol(protocol).discovery(true)
       .bind(simpleApi, mapName).bind(complexApi)
     val client = RpcClient.transport(typedClientTransport(id)).rpcProtocol(protocol)
-    TestFixture(
+    Fixture(
       id, client, server,
-      TestApis(client.bind[SimpleApiType], client.bind[ComplexApiType], client.bind[InvalidApiType]),
-      TestCalls(f => client.call(f)(), (f, a0) => client.call(f)(a0), (f, a0) => client.tell(f)(a0)),
+      Apis(client.bind[SimpleApiType], client.bind[ComplexApiType], client.bind[InvalidApiType]),
+      Functions(f => client.call(f)(), (f, a0) => client.call(f)(a0), (f, a0) => client.tell(f)(a0)),
     )
   }
 
@@ -115,10 +98,10 @@ trait ProtocolCodecTest extends CoreTest {
     val server = RpcServer.transport(serverTransport(id)).rpcProtocol(protocol).discovery(true)
       .bind(simpleApi, mapName).bind(complexApi)
     val client = RpcClient.transport(typedClientTransport(id)).rpcProtocol(protocol)
-    TestFixture(
+    Fixture(
       id, client, server,
-      TestApis(client.bind[SimpleApiType], client.bind[ComplexApiType], client.bind[InvalidApiType]),
-      TestCalls(f => client.call(f)(), (f, a0) => client.call(f)(a0), (f, a0) => client.tell(f)(a0)),
+      Apis(client.bind[SimpleApiType], client.bind[ComplexApiType], client.bind[InvalidApiType]),
+      Functions(f => client.call(f)(), (f, a0) => client.call(f)(a0), (f, a0) => client.tell(f)(a0)),
     )
   }
 
@@ -130,10 +113,10 @@ trait ProtocolCodecTest extends CoreTest {
     val server = RpcServer.transport(serverTransport(id)).rpcProtocol(protocol).discovery(true)
       .bind(simpleApi, mapName).bind(complexApi)
     val client = RpcClient.transport(typedClientTransport(id)).rpcProtocol(protocol)
-    TestFixture(
+    Fixture(
       id, client, server,
-      TestApis(client.bind[SimpleApiType], client.bind[ComplexApiType], client.bind[InvalidApiType]),
-      TestCalls(f => client.call(f)(), (f, a0) => client.call(f)(a0), (f, a0) => client.tell(f)(a0)),
+      Apis(client.bind[SimpleApiType], client.bind[ComplexApiType], client.bind[InvalidApiType]),
+      Functions(f => client.call(f)(), (f, a0) => client.call(f)(a0), (f, a0) => client.tell(f)(a0)),
     )
   }
 
@@ -145,10 +128,10 @@ trait ProtocolCodecTest extends CoreTest {
     val server = RpcServer.transport(serverTransport(id)).rpcProtocol(protocol).discovery(true)
       .bind(simpleApi, mapName).bind(complexApi)
     val client = RpcClient.transport(typedClientTransport(id)).rpcProtocol(protocol)
-    TestFixture(
+    Fixture(
       id, client, server,
-      TestApis(client.bind[SimpleApiType], client.bind[ComplexApiType], client.bind[InvalidApiType]),
-      TestCalls(f => client.call(f)(), (f, a0) => client.call(f)(a0), (f, a0) => client.tell(f)(a0)),
+      Apis(client.bind[SimpleApiType], client.bind[ComplexApiType], client.bind[InvalidApiType]),
+      Functions(f => client.call(f)(), (f, a0) => client.call(f)(a0), (f, a0) => client.tell(f)(a0)),
     )
   }
 
@@ -160,10 +143,10 @@ trait ProtocolCodecTest extends CoreTest {
     val server = RpcServer.transport(serverTransport(id)).rpcProtocol(protocol).discovery(true)
       .bind(simpleApi, mapName).bind(complexApi)
     val client = RpcClient.transport(typedClientTransport(id)).rpcProtocol(protocol)
-    TestFixture(
+    Fixture(
       id, client, server,
-      TestApis(client.bind[SimpleApiType], client.bind[ComplexApiType], client.bind[InvalidApiType]),
-      TestCalls(f => client.call(f)(), (f, a0) => client.call(f)(a0), (f, a0) => client.tell(f)(a0)),
+      Apis(client.bind[SimpleApiType], client.bind[ComplexApiType], client.bind[InvalidApiType]),
+      Functions(f => client.call(f)(), (f, a0) => client.call(f)(a0), (f, a0) => client.tell(f)(a0)),
     )
   }
 
@@ -175,10 +158,10 @@ trait ProtocolCodecTest extends CoreTest {
     val server = RpcServer.transport(serverTransport(id)).rpcProtocol(protocol).discovery(true)
       .bind(simpleApi, mapName).bind(complexApi)
     val client = RpcClient.transport(typedClientTransport(id)).rpcProtocol(protocol)
-    TestFixture(
+    Fixture(
       id, client, server,
-      TestApis(client.bind[SimpleApiType], client.bind[ComplexApiType], client.bind[InvalidApiType]),
-      TestCalls(f => client.call(f)(), (f, a0) => client.call(f)(a0), (f, a0) => client.tell(f)(a0)),
+      Apis(client.bind[SimpleApiType], client.bind[ComplexApiType], client.bind[InvalidApiType]),
+      Functions(f => client.call(f)(), (f, a0) => client.call(f)(a0), (f, a0) => client.tell(f)(a0)),
     )
   }
 
@@ -190,10 +173,10 @@ trait ProtocolCodecTest extends CoreTest {
     val server = RpcServer.transport(serverTransport(id)).rpcProtocol(protocol).discovery(true)
       .bind(simpleApi, mapName).bind(complexApi)
     val client = RpcClient.transport(typedClientTransport(id)).rpcProtocol(protocol)
-    TestFixture(
+    Fixture(
       id, client, server,
-      TestApis(client.bind[SimpleApiType], client.bind[ComplexApiType], client.bind[InvalidApiType]),
-      TestCalls(f => client.call(f)(), (f, a0) => client.call(f)(a0), (f, a0) => client.tell(f)(a0)),
+      Apis(client.bind[SimpleApiType], client.bind[ComplexApiType], client.bind[InvalidApiType]),
+      Functions(f => client.call(f)(), (f, a0) => client.call(f)(a0), (f, a0) => client.tell(f)(a0)),
     )
   }
 
@@ -212,10 +195,10 @@ trait ProtocolCodecTest extends CoreTest {
     val server = RpcServer.transport(serverTransport(id)).rpcProtocol(protocol).discovery(true)
       .bind(simpleApi, mapName).bind(complexApi)
     val client = RpcClient.transport(typedClientTransport(id)).rpcProtocol(protocol)
-    TestFixture(
+    Fixture(
       id, client, server,
-      TestApis(client.bind[SimpleApiType], client.bind[ComplexApiType], client.bind[InvalidApiType]),
-      TestCalls(f => client.call(f)(), (f, a0) => client.call(f)(a0), (f, a0) => client.tell(f)(a0)),
+      Apis(client.bind[SimpleApiType], client.bind[ComplexApiType], client.bind[InvalidApiType]),
+      Functions(f => client.call(f)(), (f, a0) => client.call(f)(a0), (f, a0) => client.tell(f)(a0)),
     )
   }
 
@@ -234,10 +217,10 @@ trait ProtocolCodecTest extends CoreTest {
     val server = RpcServer.transport(serverTransport(id)).rpcProtocol(protocol).discovery(true)
       .bind(simpleApi, mapName).bind(complexApi)
     val client = RpcClient.transport(typedClientTransport(id)).rpcProtocol(protocol)
-    TestFixture(
+    Fixture(
       id, client, server,
-      TestApis(client.bind[SimpleApiType], client.bind[ComplexApiType], client.bind[InvalidApiType]),
-      TestCalls(f => client.call[OpenApi](f)(), (f, a0) => client.call[String](f)(a0), (f, a0) => client.tell(f)(a0)),
+      Apis(client.bind[SimpleApiType], client.bind[ComplexApiType], client.bind[InvalidApiType]),
+      Functions(f => client.call[OpenApi](f)(), (f, a0) => client.call[String](f)(a0), (f, a0) => client.tell(f)(a0)),
     )
   }
 

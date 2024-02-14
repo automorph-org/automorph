@@ -2,8 +2,8 @@ package test.transport
 
 import automorph.spi.ServerTransport
 import automorph.transport.http.server.NanoServer
-import java.net.URI
 import test.core.HttpClientServerTest
+import java.net.URI
 
 trait HttpClientTest extends HttpClientServerTest {
 
