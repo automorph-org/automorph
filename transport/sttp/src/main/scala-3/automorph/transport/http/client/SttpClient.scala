@@ -39,10 +39,9 @@ final case class SttpClient[Effect[_]] private (
   url: URI,
   method: HttpMethod,
   webSocket: Boolean,
-) extends SttpClientBase[Effect] {
-}
+) extends SttpClientBase[Effect] {}
 
-object SttpClient {
+object SttpClient:
 
   /** Request context type. */
   type Context = HttpContext[TransportContext]
@@ -89,14 +88,12 @@ object SttpClient {
       '{ true }
     else
       '{ false }
-    '{ SttpClient(${effectSystem}, ${backend}, ${url}, ${method}, webSocket = ${webSocket}) }
+    '{ SttpClient(${ effectSystem }, ${ backend }, ${ url }, ${ method }, webSocket = ${ webSocket }) }
 
   /** Transport context. */
   final case class TransportContext(request: PartialRequest[Either[String, String], Any])
 
-  object TransportContext {
+  object TransportContext:
 
     /** Implicit default context value. */
     implicit val defaultContext: HttpContext[TransportContext] = HttpContext()
-  }
-}

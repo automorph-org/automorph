@@ -18,7 +18,7 @@ private[automorph] trait SttpClientBase[Effect[_]] extends ClientTransport[Effec
   private val webSocketsSchemePrefix = "ws"
   private val defaultUrl = Uri(url).toJavaUri
   private val log = MessageLog(logger, Protocol.Http.name)
-  private implicit val system: EffectSystem[Effect] = effectSystem
+  implicit private val system: EffectSystem[Effect] = effectSystem
 
   def url: URI
 
@@ -40,7 +40,7 @@ private[automorph] trait SttpClientBase[Effect[_]] extends ClientTransport[Effec
       send(sttpRequest, requestId, protocol).either.flatMap { result =>
         lazy val responseProperties = ListMap(
           LogProperties.requestId -> requestId,
-          "URL" -> sttpRequest.uri.toString
+          "URL" -> sttpRequest.uri.toString,
         )
 
         // Process the response
@@ -88,7 +88,7 @@ private[automorph] trait SttpClientBase[Effect[_]] extends ClientTransport[Effec
     // Log the request
     lazy val requestProperties = ListMap(
       LogProperties.requestId -> requestId,
-      "URL" -> sttpRequest.uri.toString
+      "URL" -> sttpRequest.uri.toString,
     ) ++ Option.when(protocol == Protocol.Http)("Method" -> sttpRequest.method.toString)
     log.sendingRequest(requestProperties, protocol.name)
 
