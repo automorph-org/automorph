@@ -4,7 +4,7 @@ import akka.http.scaladsl.model.StatusCodes.InternalServerError
 import akka.http.scaladsl.model.headers.RawHeader
 import akka.http.scaladsl.model.{ContentType, HttpRequest, HttpResponse, RemoteAddress, StatusCode, StatusCodes}
 import akka.http.scaladsl.server.Directives.{
-  complete, extractClientIP, extractExecutionContext, extractMaterializer, extractRequest, onComplete
+  complete, extractClientIP, extractExecutionContext, extractMaterializer, extractRequest, onComplete,
 }
 import akka.http.scaladsl.server.Route
 import akka.stream.Materializer
@@ -55,7 +55,7 @@ final case class AkkaHttpEndpoint[Effect[_]](
     new IllegalStateException(s"Invalid message content type: ${errors.mkString("\n")}")
   }.swap.toTry.get
   private val log = MessageLog(logger, Protocol.Http.name)
-  private implicit val system: EffectSystem[Effect] = effectSystem
+  implicit private val system: EffectSystem[Effect] = effectSystem
 
   def adapter: Route =
     extractRequest { httpRequest =>
@@ -85,7 +85,7 @@ final case class AkkaHttpEndpoint[Effect[_]](
   private def handleRequest(request: HttpRequest, remoteAddress: RemoteAddress)(
     implicit
     materializer: Materializer,
-    executionContext: ExecutionContext
+    executionContext: ExecutionContext,
   ): Future[(HttpResponse, ListMap[String, String])] = {
 
     // Log the request
