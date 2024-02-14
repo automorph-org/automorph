@@ -18,7 +18,7 @@ import scala.util.Try
  * Vert.x WebSocket endpoint message transport plugin.
  *
  * Interprets WebSocket request message as an RPC request and processes it using the specified RPC request handler.
- * - The response returned by the RPC request handler is used as WebSocket response message.
+ *   - The response returned by the RPC request handler is used as WebSocket response message.
  *
  * @see
  *   [[https://en.wikipedia.org/wiki/WebSocket Transport protocol]]
@@ -41,7 +41,7 @@ final case class VertxWebSocketEndpoint[Effect[_]](
 ) extends Handler[ServerWebSocket] with Logging with EndpointTransport[Effect, Context, Handler[ServerWebSocket]] {
 
   private val log = MessageLog(logger, Protocol.WebSocket.name)
-  private implicit val system: EffectSystem[Effect] = effectSystem
+  implicit private val system: EffectSystem[Effect] = effectSystem
 
   override def adapter: Handler[ServerWebSocket] =
     this

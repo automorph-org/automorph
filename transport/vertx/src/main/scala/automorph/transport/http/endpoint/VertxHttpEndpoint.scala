@@ -46,7 +46,7 @@ final case class VertxHttpEndpoint[Effect[_]](
   private val statusOk = 200
   private val statusInternalServerError = 500
   private val log = MessageLog(logger, Protocol.Http.name)
-  private implicit val system: EffectSystem[Effect] = effectSystem
+  implicit private val system: EffectSystem[Effect] = effectSystem
 
   override def adapter: Handler[HttpServerRequest] =
     this

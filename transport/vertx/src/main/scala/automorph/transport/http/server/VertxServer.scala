@@ -71,24 +71,25 @@ final case class VertxServer[Effect[_]](
   override def withHandler(handler: RequestHandler[Effect, Context]): VertxServer[Effect] =
     copy(handler = handler)
 
-  override def init(): Effect[Unit] = {
+  override def init(): Effect[Unit] =
     effectSystem.evaluate(this.synchronized {
       val server = httpServer.listen().toCompletionStage.toCompletableFuture.get()
       (Seq(Protocol.Http) ++ Option.when(webSocket)(Protocol.WebSocket)).foreach { protocol =>
-        logger.info("Listening for connections", ListMap(
-          "Protocol" -> protocol,
-          "Port" -> server.actualPort.toString
-        ))
+        logger.info(
+          "Listening for connections",
+          ListMap(
+            "Protocol" -> protocol,
+            "Port" -> server.actualPort.toString,
+          ),
+        )
       }
     })
-  }
 
-  override def close(): Effect[Unit] = {
+  override def close(): Effect[Unit] =
     effectSystem.evaluate(this.synchronized {
       httpServer.close().toCompletionStage.toCompletableFuture.get()
       ()
     })
-  }
 
   private def createServer(): HttpServer = {
     // HTTP
@@ -132,8 +133,8 @@ object VertxServer {
 
   /**
    * Default Vert.x server options providing the following settings.
-   * - Event loop threads: 2 * number of CPU cores
-   * - Worker threads: number of CPU cores
+   *   - Event loop threads: 2 * number of CPU cores
+   *   - Worker threads: number of CPU cores
    */
   def vertxOptions: VertxOptions =
     new VertxOptions().setEventLoopPoolSize(Runtime.getRuntime.availableProcessors * 2)
