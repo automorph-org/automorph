@@ -16,24 +16,15 @@ import com.fasterxml.jackson.databind.{DeserializationContext, SerializerProvide
 import com.rallyhealth.weepickle.v1.WeePickle.{FromInt, FromTo, ToInt, macroFromTo}
 import io.circe.generic.auto.*
 import io.circe.{Decoder, Encoder}
-import scala.util.{Failure, Try}
 import test.api.{Enum, Record, Structure}
 import test.base.BaseTest
 import scala.annotation.nowarn
 
 @nowarn("msg=used")
 trait ProtocolCodecTest extends CoreTest {
-  private lazy val testFixtures: Seq[TestFixture] = {
-    implicit val context: Context = arbitraryContext.arbitrary.sample.get
-    createFixtures
-  }
-  implicit private lazy val recordFromTo: FromTo[Record] = {
-    implicit val enumFromTo: FromTo[Enum.Enum] = FromTo.join(ToInt, FromInt).bimap(Enum.toOrdinal, Enum.fromOrdinal)
-    implicit val structureFromTo: FromTo[Structure] = macroFromTo
-    macroFromTo
-  }
 
-  def createFixtures(implicit context: Context): Seq[TestFixture] = {
+  override def fixtures: Seq[TestFixture] = {
+    implicit val context: Context = arbitraryContext.arbitrary.sample.get
     Seq(circeJsonRpcJsonFixture()) ++ Option.when(basic || BaseTest.testAll)(Seq(
       jacksonJsonRpcJsonFixture(),
       jacksonJsonRpcSmileFixture(),
@@ -67,30 +58,6 @@ trait ProtocolCodecTest extends CoreTest {
     val codecName = rpcProtocol.messageCodec.getClass.getSimpleName.replaceAll("MessageCodec$", "")
     val suffix = format.map(" / " + _).getOrElse("")
     s"${rpcProtocol.name} / $codecName$suffix"
-  }
-
-  override def fixtures: Seq[TestFixture] =
-    testFixtures
-
-  override def beforeAll(): Unit = {
-    super.beforeAll()
-    val message = "Failed to initialize"
-    fixtures.foreach(fixture => Try(run(fixture.genericServer.init())).recoverWith {
-      case error => Failure(new IllegalStateException(s"$message server: ${getClass.getName} / ${fixture.id}", error))
-    }.get)
-    fixtures.foreach(fixture => Try(run(fixture.genericClient.init())).recoverWith {
-      case error => Failure(new IllegalStateException(s"$message client: ${getClass.getName} / ${fixture.id}", error))
-    }.get)
-  }
-
-  override def afterAll(): Unit = {
-    fixtures.foreach { fixture =>
-      run(fixture.genericClient.close())
-    }
-    fixtures.foreach { fixture =>
-      run(fixture.genericServer.close())
-    }
-    super.afterAll()
   }
 
   private def circeJsonRpcJsonFixture()(implicit context: Context): TestFixture = {
@@ -284,4 +251,10 @@ trait ProtocolCodecTest extends CoreTest {
       override def deserialize(parser: JsonParser, context: DeserializationContext): Enum.Enum =
         Enum.fromOrdinal(parser.getIntValue)
     })
+
+  implicit private lazy val recordFromTo: FromTo[Record] = {
+    implicit val enumFromTo: FromTo[Enum.Enum] = FromTo.join(ToInt, FromInt).bimap(Enum.toOrdinal, Enum.fromOrdinal)
+    implicit val structureFromTo: FromTo[Structure] = macroFromTo
+    macroFromTo
+  }
 }

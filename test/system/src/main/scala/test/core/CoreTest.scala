@@ -8,7 +8,7 @@ import automorph.spi.{EffectSystem, MessageCodec}
 import automorph.{RpcClient, RpcServer}
 import org.scalacheck.Arbitrary
 import org.slf4j.{Logger, LoggerFactory}
-import scala.util.{Failure, Success, Try}
+import scala.util.{Failure, Try}
 import test.api.Generators.arbitraryRecord
 import test.api.{ComplexApi, ComplexApiImpl, InvalidApi, Record, SimpleApi, SimpleApiImpl}
 import test.base.BaseTest
@@ -30,6 +30,7 @@ trait CoreTest extends BaseTest {
   type InvalidApiType = InvalidApi[Effect]
   private type GenericServer[E[_], C] = RpcServer[Any, MessageCodec[Any], E, C]
   private type GenericClient[E[_], C] = RpcClient[Any, MessageCodec[Any], E, C]
+  private lazy val testFixtures: Seq[TestFixture] = fixtures
 
   case class TestApis(
     simpleApi: SimpleApiType,
@@ -72,7 +73,7 @@ trait CoreTest extends BaseTest {
     false
 
   "" - {
-    fixtures.foreach { fixture =>
+    testFixtures.foreach { fixture =>
       fixture.id - {
         // Standard tests
         if (basic || BaseTest.testStandard) {
@@ -194,13 +195,13 @@ trait CoreTest extends BaseTest {
                 check { (a0: String) =>
                   val expected = run(simpleApi.method(a0))
                   execute(
-                    "Dynamic / Simple API / Call", fixture.functions.callString("method", "argument" -> a0)
+                    "Dynamic / Simple API / Call", fixture.id, fixture.functions.callString("method", "argument" -> a0)
                   ) == expected
                 }
               }
               "Tell" in {
                 check { (a0: String) =>
-                  execute("Dynamic / Simple API / Tell", fixture.functions.tell("method", "argument" -> a0))
+                  execute("Dynamic / Simple API / Tell", fixture.id, fixture.functions.tell("method", "argument" -> a0))
                   true
                 }
               }
@@ -208,7 +209,7 @@ trait CoreTest extends BaseTest {
                 check { (a0: String) =>
                   val expected = run(simpleApi.method(a0))
                   execute(
-                    "Dynamic / Simple API / Alias", fixture.functions.callString("function", "argument" -> a0)
+                    "Dynamic / Simple API / Alias", fixture.id, fixture.functions.callString("function", "argument" -> a0)
                   ) == expected
                 }
               }
@@ -219,18 +220,22 @@ trait CoreTest extends BaseTest {
     }
   }
 
+  override def beforeAll(): Unit = {
+    super.beforeAll()
+    testFixtures.foreach(fixture => execute("Failed to initialize server", fixture.id, fixture.genericServer.init()))
+    testFixtures.foreach(fixture => execute("Failed to initialize client", fixture.id, fixture.genericClient.init()))
+  }
+
   override def afterAll(): Unit = {
-    fixtures.foreach(_.genericClient.close())
+    testFixtures.foreach(fixture => execute("Failed to close client", fixture.id, fixture.genericClient.close()))
+    testFixtures.foreach(fixture => execute("Failed to close server", fixture.id, fixture.genericServer.close()))
     super.afterAll()
   }
 
-  private def execute[T](description: String, value: => Effect[T]): T =
-    Try(run(value)) match {
-      case Success(result) => result
-      case Failure(error) =>
-        logger.error(description, error)
-        throw error
-    }
+  private def execute[T](description: String, fixtureId: String, value: => Effect[T]): T =
+    Try(run(value)).recoverWith {
+      case error => Failure(new IllegalStateException(s"$description: ${getClass.getName} / ${fixtureId}", error))
+    }.get
 
   private def consistent[Api, Result](apis: (Api, Api))(function: Api => Effect[Result]): Boolean =
     Try {
@@ -242,10 +247,8 @@ trait CoreTest extends BaseTest {
         logger.error(s"Actual API call result not equal to the expected result: $result != $expected")
       }
       outcome
-    } match {
-      case Success(result) => result
-      case Failure(error) =>
-        logger.error("API call failed", error)
-        false
-    }
+    }.recover { case error =>
+      logger.error("API call failed", error)
+      false
+    }.get
 }

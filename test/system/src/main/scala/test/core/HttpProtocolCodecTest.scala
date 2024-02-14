@@ -11,13 +11,14 @@ import test.api.Enum
 trait HttpProtocolCodecTest extends ProtocolCodecTest {
   type Context <: HttpContext[?]
 
-  override def createFixtures(implicit context: Context): Seq[TestFixture] =
-    Seq(circeWebRpcJsonFixture()) ++ super.createFixtures
+  override def fixtures: Seq[TestFixture] = {
+    implicit val context: Context = arbitraryContext.arbitrary.sample.get
+    Seq(circeWebRpcJsonFixture()) ++ super.fixtures
+  }
 
   private def circeWebRpcJsonFixture()(implicit context: Context): TestFixture = {
     implicit val enumEncoder: Encoder[Enum.Enum] = Encoder.encodeInt.contramap[Enum.Enum](Enum.toOrdinal)
     implicit val enumDecoder: Decoder[Enum.Enum] = Decoder.decodeInt.map(Enum.fromOrdinal)
-    Seq(enumEncoder, enumDecoder)
     val codec = CirceJsonCodec()
     val protocol = WebRpcProtocol[CirceJsonCodec.Node, codec.type, Context](codec, "/")
     RpcEndpoint.transport(endpointTransport).rpcProtocol(protocol).bind(simpleApi, mapName).bind(complexApi)
