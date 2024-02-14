@@ -21,9 +21,10 @@ import test.core.Fixtures.Fixture
  */
 trait CoreTest extends BaseTest {
 
+  implicit def arbitraryContext: Arbitrary[Context]
+
   /** Effect type. */
   type Effect[_]
-
   /** Request context type. */
   type Context
   type SimpleApiType = SimpleApi[Effect]
@@ -33,7 +34,6 @@ trait CoreTest extends BaseTest {
   private type GenericServer[E[_], C] = RpcServer[Any, MessageCodec[Any], E, C]
   private type GenericClient[E[_], C] = RpcClient[Any, MessageCodec[Any], E, C]
   private lazy val testFixtures: Seq[TestFixture] = fixtures
-
   val logger: Logger = LoggerFactory.getLogger(getClass)
   val simpleApi: SimpleApiType = SimpleApiImpl(system)
   val complexApi: ComplexApiType = ComplexApiImpl(system, arbitraryContext.arbitrary.sample.get)
@@ -43,8 +43,6 @@ trait CoreTest extends BaseTest {
   def system: EffectSystem[Effect]
 
   def run[T](effect: Effect[T]): T
-
-  implicit def arbitraryContext: Arbitrary[Context]
 
   def fixtures: Seq[TestFixture]
 
@@ -117,11 +115,13 @@ trait CoreTest extends BaseTest {
                 }
               }
               "method8" in {
-                check((a0: Record, a1: String, a2: Option[Double]) => consistent(apis) { api =>
-                  system.map(api.method8(a0, a1, a2)) { result =>
-                    s"${result.result} - ${result.context.getClass.getName}"
+                check((a0: Record, a1: String, a2: Option[Double]) =>
+                  consistent(apis) { api =>
+                    system.map(api.method8(a0, a1, a2)) { result =>
+                      s"${result.result} - ${result.context.getClass.getName}"
+                    }
                   }
-                })
+                )
               }
               "method9" in {
                 check { (a0: String) =>
@@ -174,7 +174,9 @@ trait CoreTest extends BaseTest {
                 check { (a0: String) =>
                   val expected = run(simpleApi.method(a0))
                   execute(
-                    "Dynamic / Simple API / Call", fixture.id, fixture.functions.callString("method", "argument" -> a0)
+                    "Dynamic / Simple API / Call",
+                    fixture.id,
+                    fixture.functions.callString("method", "argument" -> a0),
                   ) == expected
                 }
               }
@@ -188,7 +190,9 @@ trait CoreTest extends BaseTest {
                 check { (a0: String) =>
                   val expected = run(simpleApi.method(a0))
                   execute(
-                    "Dynamic / Simple API / Alias", fixture.id, fixture.functions.callString("function", "argument" -> a0)
+                    "Dynamic / Simple API / Alias",
+                    fixture.id,
+                    fixture.functions.callString("function", "argument" -> a0),
                   ) == expected
                 }
               }
@@ -213,7 +217,7 @@ trait CoreTest extends BaseTest {
 
   private def execute[T](description: String, fixtureId: String, value: => Effect[T]): T =
     Try(run(value)).recoverWith {
-      case error => Failure(new IllegalStateException(s"$description: ${getClass.getName} / ${fixtureId}", error))
+      case error => Failure(new IllegalStateException(s"$description: ${getClass.getName} / $fixtureId", error))
     }.get
 
   private def consistent[Api, Result](apis: (Api, Api))(function: Api => Effect[Result]): Boolean =

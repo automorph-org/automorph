@@ -21,6 +21,12 @@ import test.core.Fixtures.{Apis, Fixture, Functions}
 
 trait BaseClientServerTest extends CoreTest {
 
+  implicit private lazy val recordFromTo: FromTo[Record] = {
+    implicit val enumFromTo: FromTo[Enum.Enum] = FromTo.join(ToInt, FromInt).bimap(Enum.toOrdinal, Enum.fromOrdinal)
+    implicit val structureFromTo: FromTo[Structure] = macroFromTo
+    macroFromTo
+  }
+
   override def fixtures: Seq[TestFixture] = {
     implicit val context: Context = arbitraryContext.arbitrary.sample.get
     Seq(circeJsonRpcJsonFixture) ++ Option.when(basic || Fixtures.all)(Seq(
@@ -69,7 +75,9 @@ trait BaseClientServerTest extends CoreTest {
       .bind(simpleApi, mapName).bind(complexApi)
     val client = RpcClient.transport(typedClientTransport(id)).rpcProtocol(protocol)
     Fixture(
-      id, client, server,
+      id,
+      client,
+      server,
       Apis(client.bind[SimpleApiType], client.bind[ComplexApiType], client.bind[InvalidApiType]),
       Functions(f => client.call(f)(), (f, a0) => client.call(f)(a0), (f, a0) => client.tell(f)(a0)),
     )
@@ -84,7 +92,9 @@ trait BaseClientServerTest extends CoreTest {
       .bind(simpleApi, mapName).bind(complexApi)
     val client = RpcClient.transport(typedClientTransport(id)).rpcProtocol(protocol)
     Fixture(
-      id, client, server,
+      id,
+      client,
+      server,
       Apis(client.bind[SimpleApiType], client.bind[ComplexApiType], client.bind[InvalidApiType]),
       Functions(f => client.call(f)(), (f, a0) => client.call(f)(a0), (f, a0) => client.tell(f)(a0)),
     )
@@ -99,7 +109,9 @@ trait BaseClientServerTest extends CoreTest {
       .bind(simpleApi, mapName).bind(complexApi)
     val client = RpcClient.transport(typedClientTransport(id)).rpcProtocol(protocol)
     Fixture(
-      id, client, server,
+      id,
+      client,
+      server,
       Apis(client.bind[SimpleApiType], client.bind[ComplexApiType], client.bind[InvalidApiType]),
       Functions(f => client.call(f)(), (f, a0) => client.call(f)(a0), (f, a0) => client.tell(f)(a0)),
     )
@@ -114,7 +126,9 @@ trait BaseClientServerTest extends CoreTest {
       .bind(simpleApi, mapName).bind(complexApi)
     val client = RpcClient.transport(typedClientTransport(id)).rpcProtocol(protocol)
     Fixture(
-      id, client, server,
+      id,
+      client,
+      server,
       Apis(client.bind[SimpleApiType], client.bind[ComplexApiType], client.bind[InvalidApiType]),
       Functions(f => client.call(f)(), (f, a0) => client.call(f)(a0), (f, a0) => client.tell(f)(a0)),
     )
@@ -129,7 +143,9 @@ trait BaseClientServerTest extends CoreTest {
       .bind(simpleApi, mapName).bind(complexApi)
     val client = RpcClient.transport(typedClientTransport(id)).rpcProtocol(protocol)
     Fixture(
-      id, client, server,
+      id,
+      client,
+      server,
       Apis(client.bind[SimpleApiType], client.bind[ComplexApiType], client.bind[InvalidApiType]),
       Functions(f => client.call(f)(), (f, a0) => client.call(f)(a0), (f, a0) => client.tell(f)(a0)),
     )
@@ -144,7 +160,9 @@ trait BaseClientServerTest extends CoreTest {
       .bind(simpleApi, mapName).bind(complexApi)
     val client = RpcClient.transport(typedClientTransport(id)).rpcProtocol(protocol)
     Fixture(
-      id, client, server,
+      id,
+      client,
+      server,
       Apis(client.bind[SimpleApiType], client.bind[ComplexApiType], client.bind[InvalidApiType]),
       Functions(f => client.call(f)(), (f, a0) => client.call(f)(a0), (f, a0) => client.tell(f)(a0)),
     )
@@ -159,7 +177,9 @@ trait BaseClientServerTest extends CoreTest {
       .bind(simpleApi, mapName).bind(complexApi)
     val client = RpcClient.transport(typedClientTransport(id)).rpcProtocol(protocol)
     Fixture(
-      id, client, server,
+      id,
+      client,
+      server,
       Apis(client.bind[SimpleApiType], client.bind[ComplexApiType], client.bind[InvalidApiType]),
       Functions(f => client.call(f)(), (f, a0) => client.call(f)(a0), (f, a0) => client.tell(f)(a0)),
     )
@@ -174,7 +194,9 @@ trait BaseClientServerTest extends CoreTest {
       .bind(simpleApi, mapName).bind(complexApi)
     val client = RpcClient.transport(typedClientTransport(id)).rpcProtocol(protocol)
     Fixture(
-      id, client, server,
+      id,
+      client,
+      server,
       Apis(client.bind[SimpleApiType], client.bind[ComplexApiType], client.bind[InvalidApiType]),
       Functions(f => client.call(f)(), (f, a0) => client.call(f)(a0), (f, a0) => client.tell(f)(a0)),
     )
@@ -196,7 +218,9 @@ trait BaseClientServerTest extends CoreTest {
       .bind(simpleApi, mapName).bind(complexApi)
     val client = RpcClient.transport(typedClientTransport(id)).rpcProtocol(protocol)
     Fixture(
-      id, client, server,
+      id,
+      client,
+      server,
       Apis(client.bind[SimpleApiType], client.bind[ComplexApiType], client.bind[InvalidApiType]),
       Functions(f => client.call(f)(), (f, a0) => client.call(f)(a0), (f, a0) => client.tell(f)(a0)),
     )
@@ -218,26 +242,28 @@ trait BaseClientServerTest extends CoreTest {
       .bind(simpleApi, mapName).bind(complexApi)
     val client = RpcClient.transport(typedClientTransport(id)).rpcProtocol(protocol)
     Fixture(
-      id, client, server,
+      id,
+      client,
+      server,
       Apis(client.bind[SimpleApiType], client.bind[ComplexApiType], client.bind[InvalidApiType]),
       Functions(f => client.call[OpenApi](f)(), (f, a0) => client.call[String](f)(a0), (f, a0) => client.tell(f)(a0)),
     )
   }
 
   private def enumModule =
-    new SimpleModule().addSerializer(classOf[Enum.Enum], new StdSerializer[Enum.Enum](classOf[Enum.Enum]) {
+    new SimpleModule().addSerializer(
+      classOf[Enum.Enum],
+      new StdSerializer[Enum.Enum](classOf[Enum.Enum]) {
 
-      override def serialize(value: Enum.Enum, generator: JsonGenerator, provider: SerializerProvider): Unit =
-        generator.writeNumber(Enum.toOrdinal(value))
-    }).addDeserializer(classOf[Enum.Enum], new StdDeserializer[Enum.Enum](classOf[Enum.Enum]) {
+        override def serialize(value: Enum.Enum, generator: JsonGenerator, provider: SerializerProvider): Unit =
+          generator.writeNumber(Enum.toOrdinal(value))
+      },
+    ).addDeserializer(
+      classOf[Enum.Enum],
+      new StdDeserializer[Enum.Enum](classOf[Enum.Enum]) {
 
-      override def deserialize(parser: JsonParser, context: DeserializationContext): Enum.Enum =
-        Enum.fromOrdinal(parser.getIntValue)
-    })
-
-  implicit private lazy val recordFromTo: FromTo[Record] = {
-    implicit val enumFromTo: FromTo[Enum.Enum] = FromTo.join(ToInt, FromInt).bimap(Enum.toOrdinal, Enum.fromOrdinal)
-    implicit val structureFromTo: FromTo[Structure] = macroFromTo
-    macroFromTo
-  }
+        override def deserialize(parser: JsonParser, context: DeserializationContext): Enum.Enum =
+          Enum.fromOrdinal(parser.getIntValue)
+      },
+    )
 }
