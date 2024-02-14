@@ -43,7 +43,7 @@ final case class JettyHttpEndpoint[Effect[_]](
 ) extends HttpServlet with Logging with EndpointTransport[Effect, Context, HttpServlet] {
 
   private val log = MessageLog(logger, Protocol.Http.name)
-  private implicit val system: EffectSystem[Effect] = effectSystem
+  implicit private val system: EffectSystem[Effect] = effectSystem
 
   override def adapter: HttpServlet =
     this
@@ -134,13 +134,19 @@ final case class JettyHttpEndpoint[Effect[_]](
       request.getHeaders(name).asScala.map(value => name -> value)
     }.toSeq
     HttpContext(
-      transportContext = Some(request), method = Some(HttpMethod.valueOf(request.getMethod)), headers = headers
+      transportContext = Some(request),
+      method = Some(HttpMethod.valueOf(request.getMethod)),
+      headers = headers,
     ).url(request.getRequestURI)
   }
 
   private def getRequestProperties(request: HttpServletRequest, requestId: String): Map[String, String] =
     requestProperties(
-      request.getRequestURI, request.getQueryString, request.getMethod, clientAddress(request), requestId
+      request.getRequestURI,
+      request.getQueryString,
+      request.getMethod,
+      clientAddress(request),
+      requestId,
     )
 
   private def clientAddress(request: HttpServletRequest): String = {
@@ -160,7 +166,7 @@ object JettyHttpEndpoint {
     queryString: String,
     method: String,
     client: String,
-    requestId: String
+    requestId: String,
   ): Map[String, String] = {
     val query = Option(queryString).filter(_.nonEmpty).map("?" + _).getOrElse("")
     val url = s"$uri$query"

@@ -58,7 +58,7 @@ final case class JettyClient[Effect[_]](
   private val webSocketsSchemePrefix = "ws"
   private val webSocketClient = new WebSocketClient(httpClient)
   private val log = MessageLog(logger, Protocol.Http.name)
-  private implicit val system: EffectSystem[Effect] = effectSystem
+  implicit private val system: EffectSystem[Effect] = effectSystem
 
   override def call(
     requestBody: Array[Byte],
@@ -150,22 +150,22 @@ final case class JettyClient[Effect[_]](
         // Send WebSocket request
         {
           case (webSocketEffect, resultEffect, requestBody) => withCompletable(completableSystem =>
-            completableSystem.completable[Unit].flatMap { completableRequestSent =>
-              webSocketEffect.flatMap { webSocket =>
-                webSocket.getRemote.sendBytes(
-                  requestBody.toByteBuffer,
-                  new WriteCallback {
-                    override def writeSuccess(): Unit =
-                      completableRequestSent.succeed {}.runAsync
+              completableSystem.completable[Unit].flatMap { completableRequestSent =>
+                webSocketEffect.flatMap { webSocket =>
+                  webSocket.getRemote.sendBytes(
+                    requestBody.toByteBuffer,
+                    new WriteCallback {
+                      override def writeSuccess(): Unit =
+                        completableRequestSent.succeed {}.runAsync
 
-                    override def writeFailed(error: Throwable): Unit =
-                      completableRequestSent.fail(error).runAsync
-                  },
-                )
-                completableRequestSent.effect.flatMap(_ => resultEffect)
+                      override def writeFailed(error: Throwable): Unit =
+                        completableRequestSent.fail(error).runAsync
+                    },
+                  )
+                  completableRequestSent.effect.flatMap(_ => resultEffect)
+                }
               }
-            }
-          )
+            )
         },
       ),
     )
@@ -204,9 +204,9 @@ final case class JettyClient[Effect[_]](
       case completableSystem: AsyncEffectSystem[?] =>
         function(completableSystem.asInstanceOf[AsyncEffectSystem[Effect]])
       case _ => effectSystem.failed(new IllegalArgumentException(
-        s"""${Protocol.WebSocket} not available for effect system
-           | not supporting completable effects: ${effectSystem.getClass.getName}""".stripMargin
-      ))
+          s"""${Protocol.WebSocket} not available for effect system
+            | not supporting completable effects: ${effectSystem.getClass.getName}""".stripMargin
+        ))
     }
 
   private def createRequest(

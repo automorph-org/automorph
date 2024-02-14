@@ -18,7 +18,7 @@ import scala.util.Try
  * Jetty WebSocket endpoint message transport plugin.
  *
  * Interprets WebSocket request message as an RPC request and processes it using the specified RPC request handler.
- * - The response returned by the RPC request handler is used as WebSocket response message.
+ *   - The response returned by the RPC request handler is used as WebSocket response message.
  *
  * @see
  *   [[https://en.wikipedia.org/wiki/Hypertext Transport protocol]]
@@ -47,7 +47,7 @@ final case class JettyWebSocketEndpoint[Effect[_]](
   with EndpointTransport[Effect, Context, WebSocketAdapter] {
 
   private val log = MessageLog(logger, Protocol.Http.name)
-  private implicit val system: EffectSystem[Effect] = effectSystem
+  implicit private val system: EffectSystem[Effect] = effectSystem
 
   /** Jetty WebSocket creator. */
   def creator: JettyWebSocketCreator =
@@ -127,7 +127,11 @@ final case class JettyWebSocketEndpoint[Effect[_]](
   private def getRequestProperties(session: Session, requestId: String): Map[String, String] = {
     val request = session.getUpgradeRequest
     requestProperties(
-      request.getRequestURI.toString, request.getQueryString, request.getMethod, clientAddress(session), requestId
+      request.getRequestURI.toString,
+      request.getQueryString,
+      request.getMethod,
+      clientAddress(session),
+      requestId,
     )
   }
 
@@ -143,10 +147,11 @@ object JettyWebSocketEndpoint {
   /** Request context type. */
   type Context = JettyHttpEndpoint.Context
 
-  private final case class ResponseCallback(
+  final private case class ResponseCallback(
     log: MessageLog,
     responseProperties: ListMap[String, String],
   ) extends WriteCallback {
+
     override def writeFailed(error: Throwable): Unit =
       log.failedSendResponse(error, responseProperties)
 
