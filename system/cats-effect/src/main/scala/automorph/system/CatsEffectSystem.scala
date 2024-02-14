@@ -41,7 +41,7 @@ final case class CatsEffectSystem()(implicit val runtime: IORuntime) extends Asy
   override def completable[T]: IO[Completable[IO, T]] =
     map(Queue.dropping[IO, Either[Throwable, T]](1))(CompletableIO.apply)
 
-  private sealed case class CompletableIO[T](private val queue: Queue[IO, Either[Throwable, T]])
+  sealed private case class CompletableIO[T](private val queue: Queue[IO, Either[Throwable, T]])
     extends Completable[IO, T]() {
 
     override def effect: IO[T] =

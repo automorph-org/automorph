@@ -47,7 +47,7 @@ final case class ZioSystem[Environment]()(implicit val runtime: Runtime[Environm
   override def completable[T]: RIO[Environment, Completable[({ type Effect[A] = RIO[Environment, A] })#Effect, T]] =
     map(Queue.dropping[Either[Throwable, T]](1))(CompletableRIO.apply)
 
-  private sealed case class CompletableRIO[T](private val queue: Queue[Either[Throwable, T]])
+  sealed private case class CompletableRIO[T](private val queue: Queue[Either[Throwable, T]])
     extends Completable[({ type Effect[A] = RIO[Environment, A] })#Effect, T]() {
 
     override def effect: RIO[Environment, T] =
