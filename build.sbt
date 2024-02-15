@@ -11,13 +11,15 @@ ThisBuild / description := projectDescription
 ThisBuild / organization := s"$projectRoot.$projectName"
 ThisBuild / organizationName := projectName
 ThisBuild / organizationHomepage := Some(url(siteUrl))
+
 ThisBuild / developers := List(Developer(
   id = "m",
   name = "Martin Ockajak",
   email = s"$projectDomain@proton.me",
-  url = url(s"https://$projectDomain")
+  url = url(s"https://$projectDomain"),
 ))
 val releaseVersion = settingKey[String]("Release version.")
+
 ThisBuild / releaseVersion := IO.readLines((examples / Compile / scalaSource).value / "examples/Quickstart.scala")
   .filter(_.startsWith(s"//> using dep $projectRoot.$projectName::"))
   .flatMap(_.split(":").lastOption)
@@ -26,25 +28,24 @@ val scala3 = settingKey[Boolean]("Uses Scala 3 platform.")
 ThisBuild / scala3 := CrossVersion.partialVersion(scalaVersion.value).exists(_._1 == 3)
 Global / onChangedBuildSource := ReloadOnSourceChanges
 
-
 // Repository
 val repositoryPath = s"$projectName-$projectRoot/$projectName"
 val repositoryUrl = s"https://github.com/$repositoryPath"
 val repositoryShell = s"git@github.com:$repositoryPath.git"
 ThisBuild / scmInfo := Some(ScmInfo(url(repositoryUrl), s"scm:$repositoryShell"))
 apiURL := Some(url(apiUrl))
+
 onLoadMessage := {
   System.setProperty("project.target", s"${target.value}")
   ""
 }
-
 
 // Structure
 lazy val root = project.in(file(".")).settings(
   name := projectName,
   publish / skip := true,
   mimaReportBinaryIssues := {},
-  tastyMiMaReportIssues := {}
+  tastyMiMaReportIssues := {},
 ).aggregate(
   // Core
   meta,
@@ -53,6 +54,7 @@ lazy val root = project.in(file(".")).settings(
   // Message codec
   circe,
   jackson,
+  playJson,
   weepickle,
   upickle,
   json4s,
@@ -84,7 +86,6 @@ lazy val root = project.in(file(".")).settings(
   examples,
 )
 
-
 // Dependencies
 def source(project: Project, path: String, dependsOn: ClasspathDep[ProjectReference]*): Project = {
   val subProject = project.in(file(path)).dependsOn(dependsOn: _*).settings(
@@ -93,11 +94,11 @@ def source(project: Project, path: String, dependsOn: ClasspathDep[ProjectRefere
   val directories = path.split('/').toSeq
   directories.headOption.map(Set("examples", "test").contains) match {
     case Some(true) => subProject.settings(
-      name := s"$projectName-${directories.mkString("-")}",
-      publish / skip := true,
-      mimaReportBinaryIssues := {},
-      tastyMiMaReportIssues := {}
-    )
+        name := s"$projectName-${directories.mkString("-")}",
+        publish / skip := true,
+        mimaReportBinaryIssues := {},
+        tastyMiMaReportIssues := {},
+      )
     case _ => {
       val nameDirectories = directories match {
         case Seq(_) => directories
@@ -106,7 +107,7 @@ def source(project: Project, path: String, dependsOn: ClasspathDep[ProjectRefere
       subProject.settings(
         name := s"$projectName-${nameDirectories.mkString("-")}",
         mimaPreviousArtifacts := Set(organization.value %% name.value % version.value.split("\\+").head),
-        tastyMiMaPreviousArtifacts := mimaPreviousArtifacts.value
+        tastyMiMaPreviousArtifacts := mimaPreviousArtifacts.value,
       )
     }
   }
@@ -115,10 +116,11 @@ def source(project: Project, path: String, dependsOn: ClasspathDep[ProjectRefere
 // Core
 val slf4jVersion = "1.7.36"
 lazy val meta = source(project, "meta").settings(
-  libraryDependencies ++= (if (scala3.value) Seq() else {
-    Seq("org.scala-lang" % "scala-reflect" % scalaVersion.value)
-  }) ++ Seq(
-    "org.slf4j" % "slf4j-api" % slf4jVersion,
+  libraryDependencies ++= (if (scala3.value) Seq()
+                           else {
+                             Seq("org.scala-lang" % "scala-reflect" % scalaVersion.value)
+                           }) ++ Seq(
+    "org.slf4j" % "slf4j-api" % slf4jVersion
   )
 )
 lazy val core = source(project, "core", meta, testBase % Test)
@@ -150,14 +152,19 @@ lazy val jackson = source(project, "codec/jackson", core, testCodec % Test).sett
   libraryDependencies ++= Seq(
     "com.fasterxml.jackson.module" %% "jackson-module-scala" % jacksonVersion,
     "com.fasterxml.jackson.dataformat" % "jackson-dataformat-smile" % jacksonVersion,
-    "com.fasterxml.jackson.dataformat" % "jackson-dataformat-cbor" % jacksonVersion
+    "com.fasterxml.jackson.dataformat" % "jackson-dataformat-cbor" % jacksonVersion,
   )
 )
 lazy val json4s = source(project, "codec/json4s", core, testCodec % Test).settings(
   publish / skip := scala3.value,
-  Test / skip := scala3.value,
   libraryDependencies ++= Seq(
-    "org.json4s" %% "json4s-native" % "4.0.7",
+    "org.json4s" %% "json4s-native" % "4.0.7"
+  ),
+)
+lazy val playJson = source(project, "codec/play-json", core, testCodec % Test).settings(
+  publish / skip := scala3.value,
+  libraryDependencies ++= Seq(
+    "org.playframework" %% "play-json" % "3.0.2"
   )
 )
 lazy val weepickle = source(project, "codec/weepickle", core, testCodec % Test).settings(
@@ -177,18 +184,18 @@ val sttpVersion = "3.9.2"
 val sttpHttpClientVersion = "3.5.2"
 lazy val sttp =
   source(project, "transport/sttp", core, catsEffect % Test, zio % Test, testPlugin % Test).settings(
-  libraryDependencies ++= Seq(
-    "com.softwaremill.sttp.client3" %% "core" % sttpVersion,
-    "com.softwaremill.sttp.client3" %% "async-http-client-backend-future" % sttpVersion % Test,
-    "com.softwaremill.sttp.client3" %% "async-http-client-backend-zio" % sttpVersion % Test,
-    "com.softwaremill.sttp.client3" %% "armeria-backend" % sttpVersion % Test,
-    "com.softwaremill.sttp.client3" %% "httpclient-backend" % sttpHttpClientVersion % Test,
-    "com.softwaremill.sttp.client3" %% "okhttp-backend" % sttpHttpClientVersion % Test,
+    libraryDependencies ++= Seq(
+      "com.softwaremill.sttp.client3" %% "core" % sttpVersion,
+      "com.softwaremill.sttp.client3" %% "async-http-client-backend-future" % sttpVersion % Test,
+      "com.softwaremill.sttp.client3" %% "async-http-client-backend-zio" % sttpVersion % Test,
+      "com.softwaremill.sttp.client3" %% "armeria-backend" % sttpVersion % Test,
+      "com.softwaremill.sttp.client3" %% "httpclient-backend" % sttpHttpClientVersion % Test,
+      "com.softwaremill.sttp.client3" %% "okhttp-backend" % sttpHttpClientVersion % Test,
+    )
   )
-)
 lazy val rabbitmq = source(project, "transport/rabbitmq", core, testPlugin % Test).settings(
   libraryDependencies ++= Seq(
-    "com.rabbitmq" % "amqp-client" % "5.20.0",
+    "com.rabbitmq" % "amqp-client" % "5.20.0"
   )
 )
 
@@ -228,7 +235,7 @@ lazy val akkaHttp = source(project, "transport/akka-http", core, testPlugin % Te
     "com.typesafe.akka" %% "akka-actor-typed" % akkaVersion,
     "com.typesafe.akka" %% "akka-stream" % akkaVersion,
     "com.typesafe.akka" %% "akka-slf4j" % akkaVersion % Test,
-  )
+  ),
 )
 val pekkoVersion = "1.0.2"
 lazy val pekkoHttp = source(project, "transport/pekko-http", core, testPlugin % Test).settings(
@@ -240,9 +247,8 @@ lazy val pekkoHttp = source(project, "transport/pekko-http", core, testPlugin % 
     "org.apache.pekko" %% "pekko-actor-typed" % pekkoVersion,
     "org.apache.pekko" %% "pekko-stream" % pekkoVersion,
     "org.apache.pekko" %% "pekko-slf4j" % pekkoVersion % Test,
-  )
+  ),
 )
-
 
 // Endpoint transport
 lazy val finagle = source(project, "transport/finagle", core, testPlugin % Test).settings(
@@ -258,7 +264,15 @@ lazy val finagle = source(project, "transport/finagle", core, testPlugin % Test)
 // Miscellaneous
 lazy val default = source(project, "default", circe, undertow, testPlugin % Test)
 lazy val examples = source(
-  project, "examples", default, upickle, zio, vertx, sttp, rabbitmq, testBase % Test
+  project,
+  "examples",
+  default,
+  upickle,
+  zio,
+  vertx,
+  sttp,
+  rabbitmq,
+  testBase % Test,
 ).settings(
   Test / fork := true,
   Test / javaOptions ++= testJavaOptions,
@@ -267,9 +281,8 @@ lazy val examples = source(
     "com.softwaremill.sttp.client3" %% "async-http-client-backend-zio" % sttpVersion,
   ),
   Compile / scalaSource := baseDirectory.value / "project/src/main/scala",
-  Test / scalaSource := baseDirectory.value / "project/src/test/scala"
+  Test / scalaSource := baseDirectory.value / "project/src/test/scala",
 )
-
 
 // Test
 val logbackVersion = "1.4.14"
@@ -286,12 +299,14 @@ lazy val testBase = source(project, "test/base").settings(
 lazy val testCodec = source(project, "test/codec", testBase, meta).settings(
   libraryDependencies += "com.fasterxml.jackson.core" % "jackson-databind" % jacksonVersion
 )
-lazy val testPlugin = source(project, "test/plugin", testCodec, core, circe, jackson, json4s, weepickle, upickle)
+lazy val testPlugin =
+  source(project, "test/plugin", testCodec, core, circe, jackson, playJson, json4s, weepickle, upickle)
 lazy val testStandard = source(project, "test/standard", testPlugin, core, testPlugin % Test)
-def testJavaOptions: Seq[String] = Seq(
-  s"-Dproject.target=${System.getProperty("project.target")}",
-)
 
+def testJavaOptions: Seq[String] =
+  Seq(
+    s"-Dproject.target=${System.getProperty("project.target")}"
+  )
 
 // Compile
 ThisBuild / scalaVersion := "3.3.0"
@@ -339,23 +354,22 @@ val docScalac2Options = compileScalac2Options ++ Seq(
   "-skip-packages",
   s"$projectName.client.meta:$projectName.handler.meta:examples",
 )
-ThisBuild / scalacOptions ++= (if (scala3.value) {
-  compileScalac3Options ++ Seq(
-    "-indent",
-    "-Wconf:msg=not suppress any:silent",
-    "-Wunused:all",
-    "-Wvalue-discard",
-    "-Xcheck-macros",
-    "-Xmigration",
-  )
-} else compileScalac2Options)
 
+ThisBuild / scalacOptions ++= (if (scala3.value) {
+                                 compileScalac3Options ++ Seq(
+                                   "-indent",
+                                   "-Wconf:msg=not suppress any:silent",
+                                   "-Wunused:all",
+                                   "-Wvalue-discard",
+                                   "-Xcheck-macros",
+                                   "-Xmigration",
+                                 )
+                               } else compileScalac2Options)
 
 // Analyze
 scalastyleConfig := baseDirectory.value / "project/scalastyle-config.sbt.xml"
 Compile / scalastyleSources ++= (Compile / unmanagedSourceDirectories).value
 scalastyleFailOnError := true
-
 
 // Test
 lazy val testScalastyle = taskKey[Unit]("testScalastyle")
@@ -363,7 +377,6 @@ testScalastyle := (Test / scalastyle).toTask("").value
 val testEnvironment = taskKey[Unit]("Prepares testing environment.")
 testEnvironment := IO.delete(target.value / "lock")
 Test / test := (Test / test).dependsOn(testScalastyle).dependsOn(testEnvironment).value
-
 
 // Documentation
 def flattenTasks[A](tasks: Seq[Def.Initialize[Task[A]]]): Def.Initialize[Task[Seq[A]]] =
@@ -381,7 +394,7 @@ lazy val docs = project.in(file("site")).settings(
     "AUTOMORPH_VERSION" -> releaseVersion.value,
     "LOGBACK_VERSION" -> logbackVersion,
     "SCALADOC_VERSION" -> scalaVersion.value,
-    "REPOSITORY_URL" -> repositoryUrl
+    "REPOSITORY_URL" -> repositoryUrl,
   ),
   mdocOut := baseDirectory.value / "docs",
   mdocExtraArguments := Seq("--no-link-hygiene"),
@@ -393,9 +406,8 @@ lazy val docs = project.in(file("site")).settings(
   Compile / doc / sources ++= allSources.value.flatten.filter(_.getName != "MonixSystem.scala"),
   Compile / doc / tastyFiles ++= allTastyFiles.value.flatten.filter(_.getName != "MonixSystem.tasty"),
   Compile / doc / dependencyClasspath ++=
-    allDependencyClasspath.value.flatten.filter(!_.data.getName.startsWith("cats-effect_3-2"))
+    allDependencyClasspath.value.flatten.filter(!_.data.getName.startsWith("cats-effect_3-2")),
 ).enablePlugins(MdocPlugin)
-
 
 // Site
 def relativizeScaladocLinks(content: String, path: String): String = {
@@ -418,6 +430,7 @@ def relativizeScaladocLinks(content: String, path: String): String = {
 
 // Generate
 val site = taskKey[Unit]("Generates project website.")
+
 site := {
   // Generate Markdown documentation
   import scala.sys.process.Process
@@ -447,32 +460,37 @@ site := {
   // Include example sources
   IO.copyDirectory(examplesDirectory, docsDirectory / "build/examples", overwrite = true)
 }
+
 def insertDocumentationExamples(
-  docsDirectory: File, sourceDirectory: File, releaseVersion: String, logbackVersion: String
+  docsDirectory: File,
+  sourceDirectory: File,
+  releaseVersion: String,
+  logbackVersion: String,
 ): Unit = {
   val examplesPage = docsDirectory / "docs/Examples.md"
   val examples = IO.readLines(examplesPage).flatMap { docLine =>
     "^###.*https?://[^/]+/[^/]+/([^)]*)\\)".r.findFirstMatchIn(docLine).map(_.group(1)).map { path =>
       var omittedEmptyLines = 3
       val source = IO.readLines(sourceDirectory / path).flatMap {
-        case line if line.startsWith("//> ") => Seq(line
-          .replaceFirst("//> using dep ", "  \"")
-          .replaceFirst("::", "\" %% \"")
-          .replaceAll(":", "\" % \"")
-          .replaceFirst("@AUTOMORPH_VERSION@", releaseVersion)
-          .replaceFirst("@LOGBACK_VERSION@", logbackVersion)
-          .replaceFirst("$", "\",")
-        )
+        case line if line.startsWith("//> ") =>
+          Seq(line
+            .replaceFirst("//> using dep ", "  \"")
+            .replaceFirst("::", "\" %% \"")
+            .replaceAll(":", "\" % \"")
+            .replaceFirst("@AUTOMORPH_VERSION@", releaseVersion)
+            .replaceFirst("@LOGBACK_VERSION@", logbackVersion)
+            .replaceFirst("$", "\","))
         case line if line.startsWith("package") => Seq(")\n```\n\n**Source**\n```scala")
         case line if line.startsWith("private") && line.contains("object") => Seq()
         case line if line.contains("def main(") => Seq()
         case line if line.contains("@scala") => Seq()
         case "  }" => Seq()
         case "}" => Seq()
-        case "" => if (omittedEmptyLines <= 0) Seq("") else {
-          omittedEmptyLines -= 1
-          Seq()
-        }
+        case "" => if (omittedEmptyLines <= 0) Seq("")
+          else {
+            omittedEmptyLines -= 1
+            Seq()
+          }
         case line => Seq(line.replaceFirst("    ", "").replaceFirst("^private\\[examples\\] ", ""))
       }
       Seq(docLine, "\n", "**Build**\n```scala\nlibraryDependencies ++= Seq(") ++ source ++ Seq("```")
@@ -483,6 +501,7 @@ def insertDocumentationExamples(
 
 // Start
 val startSite = taskKey[Unit]("Continuously generates project website.")
+
 startSite := {
   import scala.sys.process.Process
   Process(Seq("yarn", "install"), (docs / baseDirectory).value).!
@@ -492,6 +511,7 @@ startSite := startSite.dependsOn(site).value
 
 // Serve
 val serveSite = taskKey[Unit]("Serve generated project website.")
+
 serveSite := {
   import scala.sys.process.Process
   Process(Seq("yarn", "install"), (docs / baseDirectory).value).!
@@ -502,25 +522,29 @@ serveSite := serveSite.dependsOn(site).value
 cleanFiles ++= Seq(
   (docs / baseDirectory).value / "build",
   (docs / baseDirectory).value / "docs",
-  (docs / baseDirectory).value / "static/examples"
+  (docs / baseDirectory).value / "static/examples",
 )
-
 
 // Publish
 def environment(name: String): String =
   Option(System.getenv(name)).getOrElse("")
 sonatypeRepository := "https://s01.oss.sonatype.org/service/local"
 sonatypeCredentialHost := "s01.oss.sonatype.org"
+
 credentials ++= Seq(
   Credentials(
-    "GnuPG Key ID", "gpg", environment("ARTIFACT_GPG_KEY_ID"), ""
+    "GnuPG Key ID",
+    "gpg",
+    environment("ARTIFACT_GPG_KEY_ID"),
+    "",
   ),
   Credentials(
-    "Sonatype Nexus Repository Manager", "s01.oss.sonatype.org", projectDomain, environment("SONATYPE_PASSWORD")
-  )
+    "Sonatype Nexus Repository Manager",
+    "s01.oss.sonatype.org",
+    projectDomain,
+    environment("SONATYPE_PASSWORD"),
+  ),
 )
 ThisBuild / publishTo := sonatypePublishToBundle.value
 ThisBuild / versionScheme := Some("early-semver")
 ThisBuild / versionPolicyIntention := Compatibility.BinaryCompatible
-
-

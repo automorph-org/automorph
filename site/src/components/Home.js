@@ -75,6 +75,9 @@ const integrations = [
     title: 'Jackson',
     link: 'docs/Plugins#message-codec',
   }, {
+    title: 'PlayJson',
+    link: 'docs/Plugins#message-codec',
+  }, {
     title: 'Json4s',
     link: 'docs/Plugins#message-codec',
   }, {

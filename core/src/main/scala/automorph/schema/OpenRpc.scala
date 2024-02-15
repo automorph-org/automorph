@@ -35,7 +35,7 @@ object OpenRpc {
    * @return
    *   OpenRPC schema
    */
-  def apply(functions: Iterable[RpcFunction]): OpenRpc = {
+  def fromRpcFunctions(functions: Iterable[RpcFunction]): OpenRpc = {
     val methods = functions.map { function =>
       // Parameters
       val parameterSchemas = Schema.parameters(function)

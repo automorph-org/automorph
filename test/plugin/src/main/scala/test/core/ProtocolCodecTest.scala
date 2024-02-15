@@ -30,7 +30,7 @@ trait ProtocolCodecTest extends CoreTest {
 
   override def fixtures: Seq[TestFixture] = {
     implicit val context: Context = arbitraryContext.arbitrary.sample.get
-    Seq(circeJsonRpcJsonFixture) ++ Option.when(basic || Fixtures.all)(Seq(
+    Seq(circeJsonRpcFixture) ++ Option.when(basic || Fixtures.all)(Seq(
       jacksonJsonRpcJsonFixture,
       jacksonJsonRpcSmileFixture,
       jacksonJsonRpcCborFixture,
@@ -66,7 +66,7 @@ trait ProtocolCodecTest extends CoreTest {
   }
 
   @scala.annotation.nowarn("msg=never used")
-  private def circeJsonRpcJsonFixture(implicit context: Context): TestFixture = {
+  private def circeJsonRpcFixture(implicit context: Context): TestFixture = {
     implicit val enumEncoder: Encoder[Enum.Enum] = Encoder.encodeInt.contramap[Enum.Enum](Enum.toOrdinal)
     implicit val enumDecoder: Decoder[Enum.Enum] = Decoder.decodeInt.map(Enum.fromOrdinal)
     val codec = CirceJsonCodec()

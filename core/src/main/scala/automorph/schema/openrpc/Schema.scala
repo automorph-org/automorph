@@ -25,7 +25,7 @@ case object Schema {
 
   private[automorph] def parameters(function: RpcFunction): Map[String, Schema] =
     function.parameters.map { parameter =>
-      // TODO - convert data type to JSON type
+      // FIXME - convert data type to JSON type
       parameter.name -> Schema(
         Some(parameter.`type`),
         Some(parameter.name),

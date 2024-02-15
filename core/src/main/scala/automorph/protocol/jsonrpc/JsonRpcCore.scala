@@ -248,13 +248,13 @@ private[automorph] trait JsonRpcCore[Node, Codec <: MessageCodec[Node], Context]
     copy(mapOpenApi = mapOpenApi)
 
   private def openRpc(functions: Iterable[RpcFunction]): OpenRpc =
-    mapOpenRpc(OpenRpc(functions))
+    mapOpenRpc(OpenRpc.fromRpcFunctions(functions))
 
   private def openApi(functions: Iterable[RpcFunction]): OpenApi = {
     val functionSchemas = functions.map { function =>
       function -> RpcSchema(requestSchema(function), resultSchema(function), errorSchema)
     }
-    mapOpenApi(OpenApi(functionSchemas))
+    mapOpenApi(OpenApi.fromRpcFunctions(functionSchemas))
   }
 
   private def requestSchema(function: RpcFunction): Schema =
