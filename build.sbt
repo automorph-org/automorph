@@ -80,7 +80,8 @@ lazy val root = project.in(file(".")).settings(
 
   // Misc
   default,
-  examples
+  testStandard,
+  examples,
 )
 
 
@@ -286,6 +287,7 @@ lazy val testCodec = source(project, "test/codec", testBase, meta).settings(
   libraryDependencies += "com.fasterxml.jackson.core" % "jackson-databind" % jacksonVersion
 )
 lazy val testSystem = source(project, "test/system", testCodec, core, circe, jackson, json4s, weepickle, upickle)
+lazy val testStandard = source(project, "test/standard", testSystem, core, testSystem % Test)
 lazy val testTransport = source(project, "test/transport", testSystem)
 def testJavaOptions: Seq[String] = Seq(
   s"-Dproject.target=${System.getProperty("project.target")}",
