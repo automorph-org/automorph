@@ -48,31 +48,31 @@ sbt -client + test
 ### Simple standard API tests for all transport plugins and default codec plugin only
 
 ```shell
-TEST_LEVEL=standard sbt -client + test
+TEST_LEVEL=simple sbt + test
 ```
 
 ### Complex generative API tests for all transport plugins and default codec plugin only
 
 ```shell
-TEST_LEVEL=generative sbt -client + test
+TEST_LEVEL=complex sbt + test
 ```
 
 ### Complex generative API tests for all transport plugins and all codec plugins
 
 ```shell
-TEST_LEVEL=all sbt -client + test
+TEST_LEVEL=all sbt + test
 ```
 
 ### Console log level
 
 ```shell
-LOG_LEVEL=DEBUG sbt -client + test
+LOG_LEVEL=DEBUG sbt + test
 ```
 
 ### Generated code logging
 
 ```shell
-LOG_CODE=true sbt -client + test
+LOG_CODE=true sbt + test
 ```
 
 ### Test log file

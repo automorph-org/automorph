@@ -273,7 +273,8 @@ lazy val examples = source(
 
 // Test
 val logbackVersion = "1.4.14"
-ThisBuild / Test / testOptions += Tests.Argument("-f", (target.value / "test.results").getPath, "-oDF")
+ThisBuild / Test / testOptions += Tests.Argument("-f", (target.value / "test.results").getPath, "-oDS")
+ThisBuild / Test / logBuffered := false
 lazy val testBase = source(project, "test/base").settings(
   libraryDependencies ++= Seq(
     "org.scalatest" %% "scalatest" % "3.2.18",

@@ -36,22 +36,22 @@ object Fixtures {
   /** Test level environment variable. */
   private val testLevelEnvironment = "TEST_LEVEL"
 
-  /** Standard tests environment value. */
-  private val testStandardValue = "standard"
+  /** Simple tests environment value. */
+  private val testSimpleValue = "complex"
 
-  /** Generative tests environment value. */
-  private val testGenerativeValue = "generative"
+  /** Complex tests environment value. */
+  private val testComplexValue = "complex"
 
   /** All tests environment value. */
   private val testAllValue = "all"
 
   /** Execute simple standard remote API tests for all transport plugins and default codec plugin only. */
   def standard: Boolean =
-    generative || Option(System.getenv(testLevelEnvironment)).exists(_.toLowerCase == testStandardValue)
+    generative || Option(System.getenv(testLevelEnvironment)).exists(_.toLowerCase == testSimpleValue)
 
   /** Execute complex generative remote API tests for all transport plugins and default codec plugin only. */
   def generative: Boolean =
-    all || Option(System.getenv(testLevelEnvironment)).exists(_.toLowerCase == testGenerativeValue)
+    all || Option(System.getenv(testLevelEnvironment)).exists(_.toLowerCase == testComplexValue)
 
   /** Execute complex generative remote API tests for all transport plugins and all codec plugins. */
   def all: Boolean =
