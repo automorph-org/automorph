@@ -31,28 +31,27 @@ private[examples] object DynamicPayload {
     }
     val service = new Service
 
-    Await.result(
-      for {
-        // Initialize JSON-RPC HTTP client for sending POST requests to 'http://localhost:9000/api'
-        server <- Default.rpcServer(9000, "/api").bind(service).init()
+    val run = for {
+      // Initialize JSON-RPC HTTP client sending POST requests to 'http://localhost:9000/api'
+      server <- Default.rpcServer(9000, "/api").bind(service).init()
 
-        // Initialize JSON-RPC HTTP client for sending POST requests to 'http://localhost:9000/api'
-        client <- Default.rpcClient(new URI("http://localhost:9000/api")).init()
-        remoteApi = client.bind[Api]
+      // Initialize JSON-RPC HTTP client sending POST requests to 'http://localhost:9000/api'
+      client <- Default.rpcClient(new URI("http://localhost:9000/api")).init()
+      remoteApi = client.bind[Api]
 
-        // Call the remote API function a proxy instance
-        result <- remoteApi.hello("test", Json.fromInt(1))
-        _ = println(result)
+      // Call the remote API function a proxy instance
+      result <- remoteApi.hello("test", Json.fromInt(1))
+      _ = println(result)
 
-        // Call the remote API function dynamically without an API trait
-        result <- client.call[Seq[Int]]("hello")("who" -> Json.fromInt(0), "n" -> 1)
-        _ = println(result)
+      // Call the remote API function dynamically without an API trait
+      result <- client.call[Seq[Int]]("hello")("who" -> Json.fromInt(0), "n" -> 1)
+      _ = println(result)
 
-        // Close the RPC client and server
-        _ <- client.close()
-        _ <- server.close()
-      } yield (),
-      Duration.Inf,
-    )
+      // Close the RPC client and server
+      _ <- client.close()
+      _ <- server.close()
+    } yield ()
+    Await.result(run, Duration.Inf)
+
   }
 }

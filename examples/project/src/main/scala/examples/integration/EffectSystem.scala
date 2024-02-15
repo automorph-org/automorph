@@ -28,25 +28,24 @@ private[examples] object EffectSystem {
     // Create ZIO effect system plugin
     val effectSystem = ZioSystem.default
 
+    val run = for {
+      // Initialize JSON-RPC HTTP & WebSocket server listening on port 9000 for requests to '/api'
+      server <- Default.rpcServerCustom(effectSystem, 9000, "/api").bind(service).init()
+
+      // Initialize JSON-RPC HTTP client sending POST requests to 'http://localhost:9000/api'
+      client <- Default.rpcClientCustom(effectSystem, new URI("http://localhost:9000/api")).init()
+      remoteApi = client.bind[Api]
+
+      // Call the remote API function via a local proxy
+      result <- remoteApi.hello(1)
+      _ <- Console.printLine(result)
+
+      // Close the RPC client and server
+      _ <- client.close()
+      _ <- server.close()
+    } yield ()
     Unsafe.unsafe { implicit unsafe =>
-      ZioSystem.defaultRuntime.unsafe.run(
-        for {
-          // Initialize JSON-RPC HTTP & WebSocket server listening on port 9000 for requests to '/api'
-          server <- Default.rpcServerCustom(effectSystem, 9000, "/api").bind(service).init()
-
-          // Initialize JSON-RPC HTTP client for sending POST requests to 'http://localhost:9000/api'
-          client <- Default.rpcClientCustom(effectSystem, new URI("http://localhost:9000/api")).init()
-          remoteApi = client.bind[Api]
-
-          // Call the remote API function via a local proxy
-          result <- remoteApi.hello(1)
-          _ <- Console.printLine(result)
-
-          // Close the RPC client and server
-          _ <- client.close()
-          _ <- server.close()
-        } yield ()
-      )
+      ZioSystem.defaultRuntime.unsafe.run(run)
     }
   }
 }

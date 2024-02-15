@@ -28,7 +28,7 @@ private[examples] object ClientFunctionNames {
     // Initialize JSON-RPC HTTP & WebSocket server listening on port 9000 for requests to '/api'
     val server = Default.rpcServerCustom(IdentitySystem(), 9000, "/api").bind(service).init()
 
-    // Initialize JSON-RPC HTTP client for sending POST requests to 'http://localhost:9000/api'
+    // Initialize JSON-RPC HTTP client sending POST requests to 'http://localhost:9000/api'
     val client = Default.rpcClientCustom(IdentitySystem(), new URI("http://localhost:9000/api")).init()
 
     // Customize local proxy API to RPC function name mapping
@@ -46,6 +46,7 @@ private[examples] object ClientFunctionNames {
     println(
       remoteApi.hello(1)
     )
+
     println(
       remoteApi.hi(1)
     )

@@ -24,23 +24,22 @@ private[examples] object OneWayMessage {
         Future(s"Hello world $n")
     }
 
-    Await.result(
-      for {
-        // Initialize JSON-RPC HTTP & WebSocket server listening on port 9000 for requests to '/api'
-        server <- Default.rpcServer(9000, "/api").bind(service).init()
+    val run = for {
+      // Initialize JSON-RPC HTTP & WebSocket server listening on port 9000 for requests to '/api'
+      server <- Default.rpcServer(9000, "/api").bind(service).init()
 
-        // Initialize JSON-RPC HTTP client for sending POST requests to 'http://localhost:9000/api'
-        client <- Default.rpcClient(new URI("http://localhost:9000/api")).init()
-        remoteApi = client.bind[Api]
+      // Initialize JSON-RPC HTTP client sending POST requests to 'http://localhost:9000/api'
+      client <- Default.rpcClient(new URI("http://localhost:9000/api")).init()
+      remoteApi = client.bind[Api]
 
-        // Call the remote API function dynamically without expecting a response
-        _ <- client.tell("hello")("n" -> 1)
+      // Call the remote API function dynamically without expecting a response
+      _ <- client.tell("hello")("n" -> 1)
 
-        // Close the RPC client and server
-        _ <- client.close()
-        _ <- server.close()
-      } yield (),
-      Duration.Inf,
-    )
+      // Close the RPC client and server
+      _ <- client.close()
+      _ <- server.close()
+    } yield ()
+    Await.result(run, Duration.Inf)
+
   }
 }

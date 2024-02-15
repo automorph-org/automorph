@@ -38,21 +38,19 @@ private[examples] object EndpointTransport {
     // Start the Undertow server
     apiServer.start()
 
-    Await.result(
-      for {
-        // Initialize JSON-RPC HTTP client for sending POST requests to 'http://localhost:9000/api'
-        client <- Default.rpcClient(new URI("http://localhost:9000/api")).init()
-        remoteApi = client.bind[Api]
+    val run = for {
+      // Initialize JSON-RPC HTTP client sending POST requests to 'http://localhost:9000/api'
+      client <- Default.rpcClient(new URI("http://localhost:9000/api")).init()
+      remoteApi = client.bind[Api]
 
-        // Call the remote API function via a local proxy
-        result <- remoteApi.hello(1)
-        _ = println(result)
+      // Call the remote API function via a local proxy
+      result <- remoteApi.hello(1)
+      _ = println(result)
 
-        // Close the RPC client
-        _ <- client.close()
-      } yield (),
-      Duration.Inf,
-    )
+      // Close the RPC client
+      _ <- client.close()
+    } yield ()
+    Await.result(run, Duration.Inf)
 
     // Stop the Undertow server
     apiServer.stop()

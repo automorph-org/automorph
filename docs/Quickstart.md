@@ -73,13 +73,14 @@ val server = Default.rpcServer(9000, "/api")
 // Expose the server API implementation to be called remotely
 val apiServer = server.bind(api)
 
-Await.ready(for {
+val run = for {
   // Start the JSON-RPC server
   activeServer <- apiServer.init()
 
   // Stop the JSON-RPC server
   _ <- activeServer.close()
-} yield (), Duration.Inf)
+} yield ()
+Await.result(run, Duration.Inf)
 ```
 
 ### Client
@@ -105,7 +106,7 @@ val client = Default.rpcClient(new URI("http://localhost:9000/api"))
 // Create a type-safe local proxy for the remote API from the API trait
 val remoteApi = client.bind[Api]
 
-Await.ready(for {
+val run = for {
   // Initialize the JSON-RPC client
   activeClient <- client.init()
 
@@ -115,7 +116,8 @@ Await.ready(for {
 
   // Close the JSON-RPC client
   _ <- activeClient.close()
-} yield (), Duration.Inf)
+} yield ()
+Await.result(run, Duration.Inf)
 ```
 
 ### Dynamic client
@@ -133,7 +135,7 @@ import scala.concurrent.{Await, Future}
 // Configure JSON-RPC HTTP client to send POST requests to 'http://localhost:9000/api'
 val client = Default.rpcClient(new URI("http://localhost:9000/api"))
 
-Await.ready(for {
+val run = for {
   // Initialize the JSON-RPC client
   activeClient <- client.init()
 
@@ -143,7 +145,8 @@ Await.ready(for {
 
   // Close the JSON-RPC client
   _ <- activeClient.close()
-} yield (), Duration.Inf)
+} yield ()
+Await.result(run, Duration.Inf)
 ```
 
 
