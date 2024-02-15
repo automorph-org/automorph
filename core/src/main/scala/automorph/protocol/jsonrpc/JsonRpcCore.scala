@@ -79,10 +79,11 @@ private[automorph] trait JsonRpcCore[Node, Codec <: MessageCodec[Node], Context]
   ): Either[ParseError[Metadata], protocol.Request[Node, Metadata, Context]] =
     // Deserialize request
     Try(decodeMessage(messageCodec.deserialize(requestBody))).fold(
-      error => Left(ParseError(
-        JsonRpcException("Malformed request", ErrorType.ParseError.code, None, error),
-        protocol.Message(None, requestBody)
-      )),
+      error =>
+        Left(ParseError(
+          JsonRpcException("Malformed request", ErrorType.ParseError.code, None, error),
+          protocol.Message(None, requestBody),
+        )),
       requestMessage => {
         // Validate request
         val messageText = () => Some(messageCodec.text(encodeMessage(requestMessage)))
@@ -93,7 +94,12 @@ private[automorph] trait JsonRpcCore[Node, Codec <: MessageCodec[Node], Context]
             val requestArguments = request.params
               .fold(_.map(Left.apply[Node, (String, Node)]), _.map(Right.apply[Node, (String, Node)]).toSeq)
             Right(protocol.Request(
-              message, request.method, requestArguments, request.id.isDefined, requestId, requestContext
+              message,
+              request.method,
+              requestArguments,
+              request.id.isDefined,
+              requestId,
+              requestContext,
             ))
           },
         )
@@ -136,10 +142,11 @@ private[automorph] trait JsonRpcCore[Node, Codec <: MessageCodec[Node], Context]
   ): Either[ParseError[Metadata], protocol.Response[Node, Metadata]] =
     // Deserialize response
     Try(decodeMessage(messageCodec.deserialize(responseBody))).fold(
-      error => Left(ParseError(
-        JsonRpcException("Malformed response", ErrorType.ParseError.code, None, error),
-        protocol.Message(None, responseBody)
-      )),
+      error =>
+        Left(ParseError(
+          JsonRpcException("Malformed response", ErrorType.ParseError.code, None, error),
+          protocol.Message(None, responseBody),
+        )),
       responseMessage => {
         // Validate response
         val messageText = () => Some(messageCodec.text(encodeMessage(responseMessage)))
@@ -169,7 +176,7 @@ private[automorph] trait JsonRpcCore[Node, Codec <: MessageCodec[Node], Context]
       ApiSchema(
         RpcFunction(JsonRpcProtocol.openRpcFunction, Seq(), OpenRpc.getClass.getSimpleName, None),
         functions => encodeOpenRpc(openRpc(functions)),
-      )
+      ),
     )
 
   /**
@@ -249,7 +256,6 @@ private[automorph] trait JsonRpcCore[Node, Codec <: MessageCodec[Node], Context]
     }
     mapOpenApi(OpenApi(functionSchemas))
   }
-
 
   private def requestSchema(function: RpcFunction): Schema =
     Schema(

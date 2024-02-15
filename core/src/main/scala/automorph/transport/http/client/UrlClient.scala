@@ -42,7 +42,7 @@ final case class UrlClient[Effect[_]](
   private val acceptHeader = "Accept"
   private val httpMethods = HttpMethod.values.map(_.name).toSet
   private val log = MessageLog(logger, Protocol.Http.name)
-  private implicit val system: EffectSystem[Effect] = effectSystem
+  implicit private val system: EffectSystem[Effect] = effectSystem
   System.setProperty("sun.net.http.allowRestrictedHeaders", "true")
 
   override def call(
@@ -56,7 +56,7 @@ final case class UrlClient[Effect[_]](
       effectSystem.evaluate {
         lazy val responseProperties = ListMap(
           LogProperties.requestId -> requestId,
-          "URL" -> connection.getURL.toExternalForm
+          "URL" -> connection.getURL.toExternalForm,
         )
 
         // Process the response
@@ -100,7 +100,7 @@ final case class UrlClient[Effect[_]](
       lazy val requestProperties = ListMap(
         LogProperties.requestId -> requestId,
         "URL" -> connection.getURL.toExternalForm,
-        "Method" -> httpMethod
+        "Method" -> httpMethod,
       )
       log.sendingRequest(requestProperties)
 

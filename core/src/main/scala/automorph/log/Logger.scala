@@ -17,7 +17,7 @@ import scala.annotation.nowarn
  *   underlying [[https://www.javadoc.io/doc/org.slf4j/slf4j-api/1.7.30/org/slf4j/Logger.html SLF4J logger]]
  */
 @SerialVersionUID(782158461L)
-private[automorph] final case class Logger private (private val underlying: slf4j.Logger) {
+final private[automorph] case class Logger private (private val underlying: slf4j.Logger) {
 
   type Not[T] = T => Nothing
   type Or[T, U] = Not[Not[T] & Not[U]]

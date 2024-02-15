@@ -16,7 +16,7 @@ import automorph.protocol.jsonrpc.Response.mandatory
  * @tparam Node
  *   message node type
  */
-private[automorph] final case class ResponseError[Node](message: String, code: Int, data: Option[Node]) {
+final private[automorph] case class ResponseError[Node](message: String, code: Int, data: Option[Node]) {
 
   def formed: MessageError[Node] =
     MessageError[Node](message = Some(message), code = Some(code), data = data)

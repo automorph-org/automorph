@@ -455,9 +455,9 @@ final case class HttpContext[TransportContext](
     headers(headerSetCookie).flatMap { header =>
       header.split(";") match {
         case Array(cookie, attributes*) => cookie.split("=", 2).map(_.trim) match {
-          case Array(name, value) => Some(name -> SetCookie(value, attributes))
-          case _ => None
-        }
+            case Array(name, value) => Some(name -> SetCookie(value, attributes))
+            case _ => None
+          }
         case _ => None
       }
     }.toMap
@@ -569,8 +569,10 @@ object HttpContext {
   /**
    * Set-Cookie value.
    *
-   * @param value cookie value
-   * @param attributes cookie attributes
+   * @param value
+   *   cookie value
+   * @param attributes
+   *   cookie attributes
    */
   final case class SetCookie(value: String, attributes: Seq[String] = Seq.empty)
 

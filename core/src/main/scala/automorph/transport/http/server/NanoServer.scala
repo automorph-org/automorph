@@ -52,7 +52,7 @@ import scala.util.Try
  * @tparam Effect
  *   effect type
  */
-final case class NanoServer[Effect[_]] (
+final case class NanoServer[Effect[_]](
   effectSystem: EffectSystem[Effect],
   port: Int,
   pathPrefix: String = "/",
@@ -67,7 +67,7 @@ final case class NanoServer[Effect[_]] (
   private val headerXForwardedFor = "X-Forwarded-For"
   private val log = MessageLog(logger, Protocol.Http.name)
   private val allowedMethods = methods.map(_.name).toSet
-  private implicit val system: EffectSystem[Effect] = effectSystem
+  implicit private val system: EffectSystem[Effect] = effectSystem
 
   override def withHandler(handler: RequestHandler[Effect, Context]): NanoServer[Effect] = {
     this.handler = handler
@@ -78,10 +78,13 @@ final case class NanoServer[Effect[_]] (
     effectSystem.evaluate(this.synchronized {
       super.start(readTimeout.toMillis.toInt)
       (Seq(Protocol.Http) ++ Option.when(webSocket)(Protocol.WebSocket)).foreach { protocol =>
-        logger.info("Listening for connections", ListMap(
-          "Protocol" -> protocol,
-          "Port" -> port.toString
-        ))
+        logger.info(
+          "Listening for connections",
+          ListMap(
+            "Protocol" -> protocol,
+            "Port" -> port.toString,
+          ),
+        )
       }
     })
 
@@ -231,10 +234,10 @@ final case class NanoServer[Effect[_]] (
     val responseStatus = responseContext.flatMap(_.statusCode.map(Status.lookup)).getOrElse(status)
     lazy val responseProperties =
       Map(LogProperties.requestId -> requestId, LogProperties.client -> clientAddress(session)) ++
-      (protocol match {
-        case Protocol.Http => Some("Status" -> responseStatus.toString)
-        case _ => None
-      })
+        (protocol match {
+          case Protocol.Http => Some("Status" -> responseStatus.toString)
+          case _ => None
+        })
     log.sendingResponse(responseProperties, protocol.name)
     HttpResponse(responseBody, responseStatus, responseContext, responseProperties)
   }
@@ -283,10 +286,10 @@ object NanoServer {
   /** Request context type. */
   type Context = HttpContext[IHTTPSession]
 
-  private final case class HttpResponse(
+  final private case class HttpResponse(
     body: Array[Byte],
     status: IStatus,
     context: Option[Context],
-    properties: Map[String, String]
+    properties: Map[String, String],
   )
 }

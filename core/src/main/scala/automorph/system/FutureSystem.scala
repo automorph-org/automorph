@@ -17,8 +17,7 @@ import scala.util.Success
  * @param executionContext
  *   execution context
  */
-final case class FutureSystem()(implicit val executionContext: ExecutionContext)
-  extends AsyncEffectSystem[Future] {
+final case class FutureSystem()(implicit val executionContext: ExecutionContext) extends AsyncEffectSystem[Future] {
 
   override def evaluate[T](value: => T): Future[T] =
     Future(value)
@@ -41,7 +40,7 @@ final case class FutureSystem()(implicit val executionContext: ExecutionContext)
   override def completable[T]: Future[Completable[Future, T]] =
     Future.successful(CompletableFuture())
 
-  private sealed case class CompletableFuture[T]() extends Completable[Future, T]() {
+  sealed private case class CompletableFuture[T]() extends Completable[Future, T]() {
     private val promise: Promise[T] = Promise()
 
     override def effect: Future[T] =

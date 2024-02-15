@@ -8,7 +8,7 @@ package automorph.log
  * @param defaultProtocol
  *   transport protocol
  */
-private[automorph] final case class MessageLog(logger: Logger, defaultProtocol: String) {
+final private[automorph] case class MessageLog(logger: Logger, defaultProtocol: String) {
 
   def sendingRequest(requestProperties: => Map[String, String], protocol: String = defaultProtocol): Unit =
     logger.trace(s"Sending $protocol request", requestProperties)

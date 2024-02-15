@@ -102,7 +102,7 @@ object JsonRpcProtocol extends ErrorMapping:
     mapException: Throwable => ErrorType = defaultMapException,
     namedArguments: Boolean = true,
     mapOpenApi: OpenApi => OpenApi = identity,
-    mapOpenRpc: OpenRpc => OpenRpc =  identity,
+    mapOpenRpc: OpenRpc => OpenRpc = identity,
   ): JsonRpcProtocol[Node, Codec, Context] =
     val encodeMessage = (message: Message[Node]) => messageCodec.encode[Message[Node]](message)
     val decodeMessage = (messageNode: Node) => messageCodec.decode[Message[Node]](messageNode)

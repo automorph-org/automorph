@@ -15,8 +15,8 @@ import automorph.spi.RequestHandler.Result
 trait RequestHandler[Effect[_], Context] {
 
   /**
-   * Processes an RPC request by invoking a bound remote function based on the specified RPC request
-   * along with request context and return an RPC response.
+   * Processes an RPC request by invoking a bound remote function based on the specified RPC request along with request
+   * context and return an RPC response.
    *
    * @param requestBody
    *   request message body
@@ -32,12 +32,16 @@ trait RequestHandler[Effect[_], Context] {
   /**
    * Enable or disable automatic provision of service discovery via RPC functions returning bound API schema.
    *
-   * @param discovery service discovery enabled
-   * @return RPC request handler
+   * @param discovery
+   *   service discovery enabled
+   * @return
+   *   RPC request handler
    */
   def discovery(discovery: Boolean): RequestHandler[Effect, Context]
 
-  /** * Automatic provision of service discovery via RPC functions returning bound API schema. */
+  /**
+   * * Automatic provision of service discovery via RPC functions returning bound API schema.
+   */
   def discovery: Boolean
 
   /** Message format media (MIME) type. */
@@ -64,7 +68,8 @@ object RequestHandler {
     context: Option[Context],
   )
 
-  private final case class DummyRequestHandler[Effect[_], Context]() extends RequestHandler[Effect, Context] {
+  final private case class DummyRequestHandler[Effect[_], Context]() extends RequestHandler[Effect, Context] {
+
     def processRequest(requestBody: Array[Byte], context: Context, id: String): Effect[Option[Result[Context]]] =
       error
 

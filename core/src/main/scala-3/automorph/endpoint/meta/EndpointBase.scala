@@ -37,12 +37,12 @@ private[automorph] trait EndpointBind[Node, Codec <: MessageCodec[Node], Effect[
    *   - has type parameters
    *   - is inline
    *
-   * Bindings API methods using the names identical to already existing bindings replaces * the existing bindings
-   * with the new bindings.
+   * Bindings API methods using the names identical to already existing bindings replaces * the existing bindings with
+   * the new bindings.
    *
-   * If the last parameter of bound method is of `Context` type or returns a context function accepting
-   * the `Context` type the endpoint-supplied ''request context'' is passed to the bound method or
-   * the returned context function as its last argument.
+   * If the last parameter of bound method is of `Context` type or returns a context function accepting the `Context`
+   * type the endpoint-supplied ''request context'' is passed to the bound method or the returned context function as
+   * its last argument.
    *
    * @param api
    *   API instance
@@ -65,12 +65,12 @@ private[automorph] trait EndpointBind[Node, Codec <: MessageCodec[Node], Effect[
    *   - has type parameters
    *   - is inline
    *
-   * Bindings API methods using the names identical to already existing bindings replaces the existing bindings
-   * with the new bindings.
+   * Bindings API methods using the names identical to already existing bindings replaces the existing bindings with the
+   * new bindings.
    *
-   * If the last parameter of bound method is of `Context` type or returns a context function accepting
-   * the `Context` type the endpoint-supplied ''request context'' is passed to the bound method or
-   * the returned context function as its last argument.
+   * If the last parameter of bound method is of `Context` type or returns a context function accepting the `Context`
+   * type the endpoint-supplied ''request context'' is passed to the bound method or the returned context function as
+   * its last argument.
    *
    * Bound API methods are exposed as RPC functions with their names transformed via the `mapName` function.
    *
@@ -86,14 +86,16 @@ private[automorph] trait EndpointBind[Node, Codec <: MessageCodec[Node], Effect[
    *   if invalid public methods are found in the API type
    */
   inline def bind[Api <: AnyRef](
-    api: Api, mapName: String => Iterable[String]
+    api: Api,
+    mapName: String => Iterable[String],
   ): RpcEndpoint[Node, Codec, Effect, Context, Adapter] =
     val apiBindings = handler match
       case apiHandler: ApiRequestHandler[?, ?, ?, ?] =>
         apiHandler.asInstanceOf[ApiRequestHandler[Node, Codec, Effect, Context]].apiBindings
       case _ => ListMap.empty
     val newApiBindings = HandlerBindingGenerator.generate[Node, Codec, Effect, Context, Api](
-      rpcProtocol.messageCodec, api
+      rpcProtocol.messageCodec,
+      api,
     ).flatMap { binding =>
       mapName(binding.function.name).map(_ -> binding)
     }

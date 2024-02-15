@@ -41,6 +41,7 @@ object GenericEndpoint {
    *   RPC message context type
    */
   final case class GenericEndpointBuilder[Context]() {
+
     /**
      * Creates a new generic endpoint transport plugin with specified effect system.
      *

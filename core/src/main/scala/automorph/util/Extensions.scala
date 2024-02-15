@@ -86,7 +86,7 @@ private[automorph] object Extensions {
       } finally {
         data.close()
       }
-    }
+  }
 
   implicit class StringOps(data: String) {
 

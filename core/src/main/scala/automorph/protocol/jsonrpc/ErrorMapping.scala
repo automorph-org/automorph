@@ -1,9 +1,6 @@
 package automorph.protocol.jsonrpc
 
-import automorph.RpcException.{
-  ApplicationError, FunctionNotFound, InvalidArguments, InvalidRequest,
-  ServerError,
-}
+import automorph.RpcException.{ApplicationError, FunctionNotFound, InvalidArguments, InvalidRequest, ServerError}
 
 /** JSON-RPC protocol errors. */
 private[automorph] trait ErrorMapping {

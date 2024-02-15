@@ -10,7 +10,7 @@ import automorph.protocol.webrpc.Response.mandatory
  * @param code
  *   error code
  */
-private[automorph] final case class ResponseError(message: String, code: Option[Int]) {
+final private[automorph] case class ResponseError(message: String, code: Option[Int]) {
 
   def formed: MessageError =
     MessageError(message = Some(message), code = code)

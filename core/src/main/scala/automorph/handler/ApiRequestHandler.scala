@@ -18,8 +18,8 @@ import scala.util.{Failure, Success, Try}
  * Note: Consider this class to be private and do not use it. It remains public only due to Scala 2 macro limitations.
  *
  * @constructor
- *   Creates a new RPC request handler using specified effect system and RPC protocol plugins
- *   with corresponding message context type.
+ *   Creates a new RPC request handler using specified effect system and RPC protocol plugins with corresponding message
+ *   context type.
  * @param rpcProtocol
  *   RPC protocol plugin
  * @param effectSystem
@@ -46,7 +46,7 @@ final case class ApiRequestHandler[Node, Codec <: MessageCodec[Node], Effect[_],
 ) extends RequestHandler[Effect, Context] with Logging {
 
   private val bindings = Option.when(discovery)(apiSchemaBindings).getOrElse(ListMap.empty) ++ apiBindings
-  private implicit val system: EffectSystem[Effect] = effectSystem
+  implicit private val system: EffectSystem[Effect] = effectSystem
 
   /** Bound RPC functions. */
   lazy val functions: Seq[RpcFunction] = bindings.map { case (name, binding) =>

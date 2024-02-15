@@ -28,7 +28,7 @@ final case class LocalClient[Effect[_], Context](
   handler: RequestHandler[Effect, Context],
 ) extends ClientTransport[Effect, Context] {
 
-  private implicit val system: EffectSystem[Effect] = effectSystem
+  implicit private val system: EffectSystem[Effect] = effectSystem
 
   override def call(
     requestBody: Array[Byte],

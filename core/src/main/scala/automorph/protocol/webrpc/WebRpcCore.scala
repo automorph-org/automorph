@@ -119,9 +119,10 @@ private[automorph] trait WebRpcCore[Node, Codec <: MessageCodec[Node], Context <
     }.getOrElse {
       // Other HTTP methods - deserialize request
       Try(decodeRequest(messageCodec.deserialize(requestBody))).fold(
-        error => Left(
-          ParseError(InvalidRequest("Malformed request", error), protocol.Message((), requestBody))
-        ),
+        error =>
+          Left(
+            ParseError(InvalidRequest("Malformed request", error), protocol.Message((), requestBody))
+          ),
         request => Right(request),
       )
     }
@@ -160,9 +161,10 @@ private[automorph] trait WebRpcCore[Node, Codec <: MessageCodec[Node], Context <
   ): Either[ParseError[Metadata], protocol.Response[Node, Metadata]] =
     // Deserialize response
     Try(decodeResponse(messageCodec.deserialize(responseBody))).fold(
-      error => Left(
-        ParseError(InvalidResponse("Malformed response", error), protocol.Message((), responseBody))
-      ),
+      error =>
+        Left(
+          ParseError(InvalidResponse("Malformed response", error), protocol.Message((), responseBody))
+        ),
       responseMessage => {
         // Validate response
         val messageText = () => Some(messageCodec.text(encodeResponse(responseMessage)))
@@ -182,14 +184,13 @@ private[automorph] trait WebRpcCore[Node, Codec <: MessageCodec[Node], Context <
       },
     )
 
-  override def apiSchemas: Seq[ApiSchema[Node]] = {
+  override def apiSchemas: Seq[ApiSchema[Node]] =
     Seq(
       ApiSchema(
         RpcFunction(WebRpcProtocol.openApiFunction, Seq(), OpenApi.getClass.getSimpleName, None),
         functions => encodeOpenApi(openApi(functions)),
       )
     )
-  }
 
   /**
    * Creates a copy of this protocol with specified message contex type.

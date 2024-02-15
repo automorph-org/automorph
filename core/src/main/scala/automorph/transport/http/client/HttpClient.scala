@@ -60,7 +60,7 @@ final case class HttpClient[Effect[_]](
   private val webSocketsSchemePrefix = "ws"
   private val httpClient = builder.build
   private val log = MessageLog(logger, Protocol.Http.name)
-  private implicit val system: EffectSystem[Effect] = effectSystem
+  implicit private val system: EffectSystem[Effect] = effectSystem
 
   override def call(
     requestBody: Array[Byte],
@@ -103,10 +103,10 @@ final case class HttpClient[Effect[_]](
     TransportContext.defaultContext.url(url).method(method)
 
   override def init(): Effect[Unit] =
-    effectSystem.successful{}
+    effectSystem.successful {}
 
   override def close(): Effect[Unit] =
-    effectSystem.successful{}
+    effectSystem.successful {}
 
   private def getResponseContext(response: Response): Context =
     response.statusCode.map(context.statusCode).getOrElse(context).headers(response.headers*)
@@ -119,7 +119,7 @@ final case class HttpClient[Effect[_]](
   ): Effect[Response] = {
     lazy val requestProperties = ListMap(
       LogProperties.requestId -> requestId,
-      "URL" -> requestUrl.toString
+      "URL" -> requestUrl.toString,
     ) ++ request.swap.toOption.map(httpRequest => "Method" -> httpRequest.method)
     log.sendingRequest(requestProperties, protocol.name)
     request.fold(
@@ -174,9 +174,9 @@ final case class HttpClient[Effect[_]](
       case completableSystem: AsyncEffectSystem[?] =>
         function(completableSystem.asInstanceOf[AsyncEffectSystem[Effect]])
       case _ => effectSystem.failed(new IllegalArgumentException(
-        s"""WebSocket protocol not available for effect system
-           | not supporting completable effects: ${effectSystem.getClass.getName}""".stripMargin
-      ))
+          s"""WebSocket protocol not available for effect system
+            | not supporting completable effects: ${effectSystem.getClass.getName}""".stripMargin
+        ))
     }
 
   private def effect[T](
@@ -205,9 +205,9 @@ final case class HttpClient[Effect[_]](
     requestContext: Context,
   ): Effect[(Either[HttpRequest, (Effect[WebSocket], Effect[Response], Array[Byte])], URI)] = {
     val requestUrl = requestContext.overrideUrl {
-       requestContext.transportContext.flatMap { transport =>
-         Try(transport.request.build).toOption
-       }.map(_.uri).getOrElse(url)
+      requestContext.transportContext.flatMap { transport =>
+        Try(transport.request.build).toOption
+      }.map(_.uri).getOrElse(url)
     }
     requestUrl.getScheme.toLowerCase match {
       case scheme if scheme.startsWith(webSocketsSchemePrefix) =>
@@ -216,7 +216,7 @@ final case class HttpClient[Effect[_]](
           effectSystem.evaluate {
             val completableResponse = completableSystem.completable[Response]
             val response = completableResponse.flatMap(_.effect)
-            val webSocketBuilder = createWebSocketBuilder( requestContext)
+            val webSocketBuilder = createWebSocketBuilder(requestContext)
             val webSocket = connectWebSocket(webSocketBuilder, requestUrl, completableResponse, completableSystem)
             Right((webSocket, response, requestBody)) -> requestUrl
           }
@@ -224,7 +224,7 @@ final case class HttpClient[Effect[_]](
       case _ =>
         // Create HTTP request
         effectSystem.evaluate {
-          val httpRequest = createHttpRequest(requestBody, requestUrl, mediaType,  requestContext)
+          val httpRequest = createHttpRequest(requestBody, requestUrl, mediaType, requestContext)
           Left(httpRequest) -> httpRequest.uri
         }
     }
@@ -330,9 +330,9 @@ object HttpClient {
     implicit val defaultContext: HttpContext[TransportContext] = HttpContext()
   }
 
-  private final case class Response(
+  final private case class Response(
     body: Array[Byte],
     statusCode: Option[Int],
-    headers: Seq[(String, String)]
+    headers: Seq[(String, String)],
   )
 }
