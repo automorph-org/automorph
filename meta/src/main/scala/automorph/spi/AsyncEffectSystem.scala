@@ -5,8 +5,8 @@ import automorph.spi.AsyncEffectSystem.Completable
 /**
  * Asynchronous computational effect system plugin.
  *
- * The underlying runtime must support monadic composition of effectful values
- * and creation of externally completable effects.
+ * The underlying runtime must support monadic composition of effectful values and creation of externally completable
+ * effects.
  *
  * @tparam Effect
  *   effect type (similar to IO Monad in Haskell)
@@ -35,10 +35,12 @@ object AsyncEffectSystem {
    *   effectful value type
    */
   trait Completable[Effect[_], T] {
+
     /**
      * Effect containing an externally supplied result value or an exception.
      *
-     * @return effect containing an externally supplied result value or an exception
+     * @return
+     *   effect containing an externally supplied result value or an exception
      */
     def effect: Effect[T]
 

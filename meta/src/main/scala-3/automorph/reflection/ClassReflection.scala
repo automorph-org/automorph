@@ -8,7 +8,7 @@ import scala.quoted.{quotes, Expr, Quotes, Type}
  * @param q
  *   quotation context
  */
-private[automorph] final case class ClassReflection(q: Quotes):
+final private[automorph] case class ClassReflection(q: Quotes):
 
   // All meta-programming data types are path-dependent on the compiler-generated reflection context
   import q.reflect.{Flags, MethodType, Printer, Symbol, TypeRepr}

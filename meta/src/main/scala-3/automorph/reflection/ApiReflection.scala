@@ -25,7 +25,10 @@ private[automorph] object ApiReflection:
       override def apply(v: RpcFunction)(using Quotes): Expr[RpcFunction] =
         '{
           RpcFunction(
-            ${ Expr(v.name) }, ${ Expr(v.parameters) }, ${ Expr(v.resultType) }, ${ Expr(v.documentation) }
+            ${ Expr(v.name) },
+            ${ Expr(v.parameters) },
+            ${ Expr(v.resultType) },
+            ${ Expr(v.documentation) },
           )
         }
 
@@ -95,12 +98,11 @@ private[automorph] object ApiReflection:
   ): Option[q.reflect.TypeRepr] =
     import q.reflect.{AppliedType, TypeRepr}
 
-    someType.dealias match {
+    someType.dealias match
       case appliedType: AppliedType
         if appliedType.tycon <:< TypeRepr.of[RpcResult] && appliedType.args.size > 1 &&
         appliedType.args(1) =:= TypeRepr.of[Context] => Some(appliedType.args(0))
       case _ => None
-    }
 
   /**
    * Extracts type wrapped in a wrapper type.
@@ -220,11 +222,10 @@ private[automorph] object ApiReflection:
         case _ => true
       if !matchingResultType then
         Left(s"Bound API method must return ${effectType.show}: $signature")
+      else if methodNameCount.getOrElse(method.name, 0) > 1 then
+        Left(s"Bound API method must not have overloaded alternatives: $signature")
       else
-        if methodNameCount.getOrElse(method.name, 0) > 1 then
-          Left(s"Bound API method must not have overloaded alternatives: $signature")
-        else
-          Right(method)
+        Right(method)
 
   /**
    * Determines result type if the specified type is a lambda type.

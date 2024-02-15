@@ -38,7 +38,7 @@ trait RpcProtocol[Node, Codec <: MessageCodec[Node], Context] {
    * @param responseRequired
    *   true if the request mandates a response, false if there should be no response
    * @param requestContext
-   * request context
+   *   request context
    * @param requestId
    *   request correlation identifier
    * @return

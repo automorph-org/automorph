@@ -20,7 +20,7 @@ package automorph.spi.protocol
  * @tparam Metadata
  *   protocol-specific message metadata type
  * @tparam Context
- * message context type
+ *   message context type
  */
 final case class Request[Node, Metadata, Context](
   message: Message[Metadata],

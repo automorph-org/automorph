@@ -8,9 +8,7 @@ import automorph.reflection.{ApiReflection, ClassReflection}
 import automorph.spi.MessageCodec
 import scala.quoted.{Expr, Quotes, Type}
 
-/**
- * RPC client API bindings generator.
- */
+/** RPC client API bindings generator. */
 private[automorph] object ClientBindingGenerator:
 
   /**
@@ -41,7 +39,7 @@ private[automorph] object ClientBindingGenerator:
     Codec <: MessageCodec[Node],
     Effect[_]: Type,
     Context: Type,
-    Api <: AnyRef: Type
+    Api <: AnyRef: Type,
   ](codec: Expr[Codec])(using quotes: Quotes): Expr[Seq[ClientBinding[Node, Context]]] =
     val ref = ClassReflection(quotes)
 
@@ -101,14 +99,17 @@ private[automorph] object ClientBindingGenerator:
         Option.when(offset + index != lastArgumentIndex || !ApiReflection.acceptsContext[Context](ref)(method)) {
           parameter.dataType.asType match
             case '[parameterType] => '{
-                ${ Expr(parameter.name) } -> ((argument: Any) => ${
-                  ApiReflection.call(
-                    ref.q,
-                    codec.asTerm,
-                    MessageCodec.encodeMethod,
-                    List(parameter.dataType),
-                    List(List('{ argument.asInstanceOf[parameterType]}.asTerm))).asExprOf[Node]
-                })
+                ${ Expr(parameter.name) } -> ((argument: Any) =>
+                  ${
+                    ApiReflection.call(
+                      ref.q,
+                      codec.asTerm,
+                      MessageCodec.encodeMethod,
+                      List(parameter.dataType),
+                      List(List('{ argument.asInstanceOf[parameterType] }.asTerm)),
+                    ).asExprOf[Node]
+                  }
+                )
               }
         }
       }

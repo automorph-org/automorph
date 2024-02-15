@@ -36,6 +36,7 @@ object RpcFunction {
    *   type
    */
   final case class Parameter(name: String, `type`: String) {
+
     override def toString =
       s"$name: ${`type`}"
   }

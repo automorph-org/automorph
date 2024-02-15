@@ -20,7 +20,7 @@ import automorph.spi.MessageCodec
  * @tparam Context
  *   RPC message context type
  */
-private[automorph] final case class RemoteTell[Node, Codec <: MessageCodec[Node], Effect[_], Context] private (
+final private[automorph] case class RemoteTell[Node, Codec <: MessageCodec[Node], Effect[_], Context] private (
   functionName: String,
   codec: Codec,
   private val sendMessage: (String, Seq[(String, Node)], Option[Context]) => Effect[Unit],

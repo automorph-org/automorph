@@ -20,7 +20,7 @@ import automorph.RpcFunction
  * @param documentation
  *   documentation (Scaladoc)
  */
-private[automorph] final case class Method(
+final private[automorph] case class Method(
   name: String,
   resultType: String,
   parameters: Seq[Seq[Parameter]],
@@ -60,4 +60,4 @@ private[automorph] final case class Method(
  * @param contextual
  *   true if this parameter is implicit
  */
-private[automorph] final case class Parameter(name: String, dataType: String, contextual: Boolean)
+final private[automorph] case class Parameter(name: String, dataType: String, contextual: Boolean)

@@ -8,9 +8,7 @@ import automorph.reflection.{ApiReflection, ClassReflection}
 import automorph.spi.MessageCodec
 import scala.quoted.{Expr, Quotes, Type}
 
-/**
- * RPC handler API bindings generator.
- */
+/** RPC handler API bindings generator. */
 private[automorph] object HandlerBindingGenerator:
 
   /**
@@ -44,7 +42,7 @@ private[automorph] object HandlerBindingGenerator:
     Codec <: MessageCodec[Node],
     Effect[_]: Type,
     Context: Type,
-    Api <: AnyRef: Type
+    Api <: AnyRef: Type,
   ](codec: Expr[Codec], api: Expr[Api])(
     using quotes: Quotes
   ): Expr[Seq[HandlerBinding[Node, Effect, Context]]] =
@@ -67,7 +65,8 @@ private[automorph] object HandlerBindingGenerator:
   private def generateBinding[Node: Type, Codec <: MessageCodec[Node], Effect[_]: Type, Context: Type, Api: Type](
     ref: ClassReflection
   )(method: ref.RefMethod, codec: Expr[Codec], api: Expr[Api]): Expr[HandlerBinding[Node, Effect, Context]] =
-    given Quotes = ref.q
+    given Quotes =
+      ref.q
 
     val argumentDecoders = generateArgumentDecoders[Node, Codec, Context](ref)(method, codec)
     val encodeResult = generateEncodeResult[Node, Codec, Effect, Context](ref)(method, codec)
@@ -82,7 +81,7 @@ private[automorph] object HandlerBindingGenerator:
         $argumentDecoders,
         $encodeResult,
         $call,
-        ${ Expr(ApiReflection.acceptsContext[Context](ref)(method)) }
+        ${ Expr(ApiReflection.acceptsContext[Context](ref)(method)) },
       )
     }
 
@@ -90,11 +89,12 @@ private[automorph] object HandlerBindingGenerator:
     ref: ClassReflection
   )(method: ref.RefMethod, codec: Expr[Codec]): Expr[Map[String, Option[Node] => Any]] =
     import ref.q.reflect.{Term, TypeRepr, asTerm}
-    given Quotes = ref.q
+    given Quotes =
+      ref.q
 
     // Map multiple parameter lists to flat argument node list offsets
     val parameterListOffsets = method.parameters.map(_.size).foldLeft(Seq(0)) { (indices, size) =>
-      indices :+ (indices.last + size)
+      indices :+ indices.last + size
     }
     val lastArgumentIndex = method.parameters.map(_.size).sum - 1
 
@@ -105,7 +105,7 @@ private[automorph] object HandlerBindingGenerator:
       codec.asTerm,
       MessageCodec.encodeMethod,
       List(TypeRepr.of[None.type]),
-      List(List('{ None }.asTerm))
+      List(List('{ None }.asTerm)),
     )
 
     // Create a map of method parameter names to functions decoding method argument node into a value
@@ -116,10 +116,10 @@ private[automorph] object HandlerBindingGenerator:
     //   ): Map[String, Node => Any]
     val argumentDecoders = method.parameters.toList.zip(parameterListOffsets).flatMap((parameters, offset) =>
       parameters.toList.zipWithIndex.flatMap { (parameter, index) =>
-        Option.when((offset + index) != lastArgumentIndex || !ApiReflection.acceptsContext[Context](ref)(method)) {
+        Option.when(offset + index != lastArgumentIndex || !ApiReflection.acceptsContext[Context](ref)(method)) {
           '{
-            ${ Expr(parameter.name) } -> (
-              (argumentNode: Option[Node]) => ${
+            ${ Expr(parameter.name) } -> ((argumentNode: Option[Node]) =>
+              ${
                 // Decode an argument node if present or empty node if missing into a value
                 val decodeArguments = List(List('{
                   argumentNode.getOrElse(${ encodeNoneCall.asExprOf[Node] })
@@ -129,7 +129,7 @@ private[automorph] object HandlerBindingGenerator:
                   codec.asTerm,
                   MessageCodec.decodeMethod,
                   List(parameter.dataType),
-                  decodeArguments
+                  decodeArguments,
                 ).asExprOf[Any]
               }
             )
@@ -143,7 +143,8 @@ private[automorph] object HandlerBindingGenerator:
     ref: ClassReflection
   )(method: ref.RefMethod, codec: Expr[Codec]): Expr[Any => (Node, Option[Context])] =
     import ref.q.reflect.asTerm
-    given Quotes = ref.q
+    given Quotes =
+      ref.q
 
     // Create a result encoding function
     //   (result: Any) =>
@@ -157,41 +158,44 @@ private[automorph] object HandlerBindingGenerator:
     ApiReflection.contextualResult[Context, RpcResult](ref.q)(resultType).map { contextualResultType =>
       contextualResultType.asType match
         case '[resultValueType] => '{
-          (result: Any) => ${
-            ApiReflection.call(
-              ref.q,
-              codec.asTerm,
-              MessageCodec.encodeMethod,
-              List(contextualResultType),
-              List(List('{ result.asInstanceOf[RpcResult[resultValueType, Context]].result }.asTerm))
-            ).asExprOf[Node]
-          } -> Some(result.asInstanceOf[RpcResult[resultValueType, Context]].context)
-        }
+            (result: Any) =>
+              ${
+                ApiReflection.call(
+                  ref.q,
+                  codec.asTerm,
+                  MessageCodec.encodeMethod,
+                  List(contextualResultType),
+                  List(List('{ result.asInstanceOf[RpcResult[resultValueType, Context]].result }.asTerm)),
+                ).asExprOf[Node]
+              } -> Some(result.asInstanceOf[RpcResult[resultValueType, Context]].context)
+          }
     }.getOrElse {
       resultType.asType match
         case '[resultValueType] => '{
-          (result: Any) => ${
-            ApiReflection.call(
-              ref.q,
-              codec.asTerm,
-              MessageCodec.encodeMethod,
-              List(resultType),
-              List(List('{ result.asInstanceOf[resultValueType] }.asTerm))
-            ).asExprOf[Node]
-          } -> Option.empty[Context]
-        }
+            (result: Any) =>
+              ${
+                ApiReflection.call(
+                  ref.q,
+                  codec.asTerm,
+                  MessageCodec.encodeMethod,
+                  List(resultType),
+                  List(List('{ result.asInstanceOf[resultValueType] }.asTerm)),
+                ).asExprOf[Node]
+              } -> Option.empty[Context]
+          }
     }
 
   private def generateCall[Effect[_]: Type, Context: Type, Api](ref: ClassReflection)(
     method: ref.RefMethod,
-    api: Expr[Api]
+    api: Expr[Api],
   ): Expr[(Seq[Any], Context) => Any] =
     import ref.q.reflect.{Select, asTerm}
-    given Quotes = ref.q
+    given Quotes =
+      ref.q
 
     // Map multiple parameter lists to flat argument node list offsets
     val parameterListOffsets = method.parameters.map(_.size).foldLeft(Seq(0)) { (indices, size) =>
-      indices :+ (indices.last + size)
+      indices :+ indices.last + size
     }
     val lastArgumentIndex = method.parameters.map(_.size).sum - 1
 
@@ -215,8 +219,8 @@ private[automorph] object HandlerBindingGenerator:
                   // Coerce the argument type
                   parameter.dataType.asType match
                     case '[parameterType] => '{
-                      arguments(${ Expr(argumentIndex) }).asInstanceOf[parameterType]
-                    }.asTerm
+                        arguments(${ Expr(argumentIndex) }).asInstanceOf[parameterType]
+                      }.asTerm
               }
             )
 
