@@ -46,11 +46,11 @@ object Fixtures {
   private val testAllValue = "all"
 
   /** Execute simple standard remote API tests for all transport plugins and default codec plugin only. */
-  def standard: Boolean =
-    generative || Option(System.getenv(testLevelEnvironment)).exists(_.toLowerCase == testSimpleValue)
+  def simple: Boolean =
+    complex || Option(System.getenv(testLevelEnvironment)).exists(_.toLowerCase == testSimpleValue)
 
   /** Execute complex generative remote API tests for all transport plugins and default codec plugin only. */
-  def generative: Boolean =
+  def complex: Boolean =
     all || Option(System.getenv(testLevelEnvironment)).exists(_.toLowerCase == testComplexValue)
 
   /** Execute complex generative remote API tests for all transport plugins and all codec plugins. */

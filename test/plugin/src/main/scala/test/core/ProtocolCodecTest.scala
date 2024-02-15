@@ -19,7 +19,7 @@ import io.circe.{Decoder, Encoder}
 import test.api.{Enum, Record, Structure}
 import test.core.Fixtures.{Apis, Fixture, Functions}
 
-trait BaseClientServerTest extends CoreTest {
+trait ProtocolCodecTest extends CoreTest {
 
   @scala.annotation.nowarn("msg=never used")
   implicit private lazy val recordFromTo: FromTo[Record] = {

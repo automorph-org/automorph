@@ -1,3 +1,0 @@
-package test.core
-
-trait PlatformClientServerTest extends BaseClientServerTest

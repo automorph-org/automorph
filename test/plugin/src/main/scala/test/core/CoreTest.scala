@@ -13,7 +13,7 @@ import test.base.BaseTest
 import test.core.Fixtures.Fixture
 
 /**
- * Main client -> server remote API function invocation test.
+ * Main remote API function invocation test.
  *
  * Checks the results of remote RPC function invocations against identical local invocations.
  */
@@ -49,8 +49,8 @@ trait CoreTest extends BaseTest {
   "" - {
     testFixtures.foreach { fixture =>
       fixture.id - {
-        // Standard tests
-        if (basic || Fixtures.standard) {
+        // Simple tests
+        if (basic || Fixtures.simple) {
           "Standard" - {
             "Simple API" - {
               val apis = (fixture.apis.simpleApi, simpleApi)
@@ -71,8 +71,8 @@ trait CoreTest extends BaseTest {
           }
         }
 
-        // Generative tests
-        if (Fixtures.generative) {
+        // Complex tests
+        if (basic || Fixtures.complex) {
           "Static" - {
             "Simple API" - {
               val apis = (fixture.apis.simpleApi, simpleApi)

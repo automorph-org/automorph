@@ -7,7 +7,7 @@ import org.json4s.{CustomSerializer, JInt}
 import test.api.Enum
 import test.core.Fixtures.{Apis, Fixture, Functions}
 
-trait PlatformClientServerTest extends BaseClientServerTest {
+trait PlatformSpecificTest extends ProtocolCodecTest {
   override def fixtures: Seq[TestFixture] = {
     implicit val context: Context = arbitraryContext.arbitrary.sample.get
     super.fixtures ++ Seq(json4sNativeJsonRpcJsonFixture)
