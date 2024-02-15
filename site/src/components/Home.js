@@ -117,7 +117,7 @@ const features = [
     link: 'docs/Examples#basic',
     description: (
       <>
-        Generate optimized <a
+        Generate type-safe <a
         href='https://en.wikipedia.org/wiki/Remote_procedure_call'>RPC</a> <a
         href='docs/Quickstart#static-client'>client</a> or <a
         href='docs/Quickstart#server'>server</a> bindings from existing

@@ -10,7 +10,7 @@ https://central.sonatype.com/namespace/org.automorph)
 https://github.com/automorph-org/automorph/actions/workflows/build.yml)
 
 **Automorph** is a Scala [RPC](https://en.wikipedia.org/wiki/Remote_procedure_call) client and server library
-for invoking and exposing remote APIs in a few lines of code.
+for type-safely calling and serving remote APIs in a few lines of code.
 
 ---
 
@@ -42,7 +42,7 @@ client.call[String]("hello")("n" -> 1)
 
 ---
 
-- **Seamless** - Generate optimized [RPC](https://en.wikipedia.org/wiki/Remote_procedure_call) [client](https://automorph.org/docs/Quickstart#static-client) or [server](https://automorph.org/docs/Quickstart#server) bindings from existing public API methods at compile time.
+- **Seamless** - Generate type-safe [RPC](https://en.wikipedia.org/wiki/Remote_procedure_call) [client](https://automorph.org/docs/Quickstart#static-client) or [server](https://automorph.org/docs/Quickstart#server) bindings from existing public API methods at compile time.
 - **Flexible** - Customize [data serialization](https://automorph.org/docs/Examples#data-type-serialization), remote API [function names](https://automorph.org/docs/Examples#client-function-names), RPC protocol [errors](https://automorph.org/docs/Examples#client-exceptions) and [authentication](https://automorph.org/docs/Examples#http-authentication).
 - **Modular** - Freely combine [RPC protocol](https://automorph.org/docs/Plugins#rpc-protocol), [message format](https://automorph.org/docs/Plugins#message-codec), [transport protocol](https://automorph.org/docs/Plugins#client-transport) and [effect handling](https://automorph.org/docs/Plugins#effect-system) layers.
 - **Permissive** - Consume or create [dynamic message payload](https://automorph.org/docs/Examples#dynamic-payload) and access or modify [transport protocol metadata](https://automorph.org/docs/Examples#metadata).

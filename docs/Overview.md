@@ -5,7 +5,7 @@ sidebar_position: 1
 # Overview
 
 **Automorph** is a Scala [RPC](https://en.wikipedia.org/wiki/Remote_procedure_call) client and server library
-for calling and serving remote APIs in a few lines of code.
+for type-safely calling and serving remote APIs in a few lines of code.
 
 ## Goals
 
@@ -20,14 +20,14 @@ for calling and serving remote APIs in a few lines of code.
 
 ### Client
 
-- Transparently generates optimized [RPC client](https://automorph.org/docs/Quickstart#static-client) bindings at compile time.
+- Transparently generates optimized type-safe [RPC client](https://automorph.org/docs/Quickstart#static-client) bindings at compile time.
 - Calls remote APIs using a supported transport protocol by selecting a [client transport](https://automorph.org/docs/Plugins#client-transport) layer.
 - Allows changing the [local to remote RPC function names mapping](https://automorph.org/docs/Examples#client-function-names).
 - Allows changing the [RPC errors to exceptions mapping](https://automorph.org/docs/Examples#client-error-mapping).
 
 ### Server
 
-- Transparently generates optimized [RPC server](https://automorph.org/docs/Quickstart#server) bindings at compile time.
+- Transparently generates optimized type-safe [RPC server](https://automorph.org/docs/Quickstart#server) bindings at compile time.
 - Serves remote APIs using a standalone server by selecting a [server transport](https://automorph.org/docs/Plugins#server-transport) layer.
 - Embeds remote API into an existing server via a suitable [endpoint transport](https://automorph.org/docs/Plugins#endpoint-transport).
 - Automatically generates RPC API discovery functions providing [OpenRPC](https://spec.open-rpc.org) 1.3+ and [OpenAPI](https://www.openapis.org) 3.1+ schemas.
