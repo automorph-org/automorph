@@ -7,7 +7,7 @@ import scala.concurrent.ExecutionContext.Implicits.global
 import scala.concurrent.Future
 import scala.util.Random
 
-private[examples] object UnsupportedServer {
+private[examples] object CustomServer {
 
   @scala.annotation.nowarn
   def main(arguments: Array[String]): Unit = {

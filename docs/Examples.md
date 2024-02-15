@@ -35,7 +35,7 @@ but will work with any other plugins or feature combinations.
 ### [RPC protocol](https://automorph.org/examples/src/main/scala/examples/integration/RpcProtocol.scala)
 
 
-### [Unsupported server](https://automorph.org/examples/src/main/scala/examples/integration/UnsupportedServer.scala)
+### [Custom server](https://automorph.org/examples/src/main/scala/examples/integration/CustomServer.scala)
 
 **Test**
 
