@@ -35,10 +35,13 @@ object Fixtures {
 
   /** Test level environment variable. */
   private val testLevelEnvironment = "TEST_LEVEL"
+
   /** Standard tests environment value. */
   private val testStandardValue = "standard"
+
   /** Generative tests environment value. */
   private val testGenerativeValue = "generative"
+
   /** All tests environment value. */
   private val testAllValue = "all"
 

@@ -25,6 +25,7 @@ trait CoreTest extends BaseTest {
 
   /** Effect type. */
   type Effect[_]
+
   /** Request context type. */
   type Context
   type SimpleApiType = SimpleApi[Effect]

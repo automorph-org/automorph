@@ -12,7 +12,7 @@ object Generators {
     value <- Gen.alphaNumStr
   } yield Structure(value))
 
-  implicit val arbitraryRecord: Arbitrary[Record] = {
+  implicit val arbitraryRecord: Arbitrary[Record] =
     Arbitrary(for {
       string <- Gen.alphaNumStr
       boolean <- arbitrary[Boolean]
@@ -28,5 +28,4 @@ object Generators {
       structure <- arbitrary[Option[Structure]]
       none <- Gen.option(Gen.alphaNumStr)
     } yield Record(string, boolean, byte, short, int, long, float, double, enumeration, list, map, structure, none))
-  }
 }

@@ -4,7 +4,7 @@ import automorph.spi.{EffectSystem, RequestHandler, ServerTransport}
 import automorph.transport.generic.endpoint.GenericEndpoint
 
 final case class LocalServer[Effect[_], Context](
-  effectSystem: EffectSystem[Effect],
+  effectSystem: EffectSystem[Effect]
 ) extends ServerTransport[Effect, Context] {
   private var endpoint: GenericEndpoint[Effect, Context] = GenericEndpoint(effectSystem)
 

@@ -7,7 +7,8 @@ import test.base.BaseTest
 /**
  * Effect system test.
  *
- * @tparam Effect effect type
+ * @tparam Effect
+ *   effect type
  */
 trait EffectSystemTest[Effect[_]] extends BaseTest {
 
