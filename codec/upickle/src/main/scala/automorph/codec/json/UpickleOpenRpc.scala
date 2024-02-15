@@ -8,6 +8,7 @@ import upickle.core.Abort
 /** OpenRPC schema support for uPickle message codec plugin using JSON format. */
 private[automorph] object UpickleOpenRpc {
 
+  @scala.annotation.nowarn("msg=never used")
   def readWriter[Config <: UpickleJsonConfig](config: Config): config.ReadWriter[OpenRpc] = {
     import config.*
 

@@ -8,11 +8,11 @@ private[automorph] case object UpickleWebRpc {
 
   type RpcMessage = Message[Msg]
 
+  @scala.annotation.nowarn("msg=never used")
   def readWriter[Config <: UpickleMessagePackConfig](config: Config): config.ReadWriter[Message[Msg]] = {
     import config.*
 
     implicit val messageErrorRw: config.ReadWriter[MessageError] = config.macroRW
-    Seq(messageErrorRw)
     config.macroRW[Message[Msg]]
   }
 }

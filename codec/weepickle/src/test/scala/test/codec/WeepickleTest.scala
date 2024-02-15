@@ -28,6 +28,7 @@ trait WeepickleTest extends MessageCodecTest {
 
   def jsonFactory: JsonFactory
 
+  @scala.annotation.nowarn("msg=never used")
   private implicit val recordFromTo: FromTo[Record] = {
     implicit val enumFromTo: FromTo[Enum.Enum] = FromTo.join(ToInt, FromInt).bimap(Enum.toOrdinal, Enum.fromOrdinal)
     implicit val structureFromTo: FromTo[Structure] = macroFromTo

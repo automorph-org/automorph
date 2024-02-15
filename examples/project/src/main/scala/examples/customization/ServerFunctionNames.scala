@@ -69,8 +69,7 @@ private[examples] object ServerFunctionNames {
     // Call the remote API function dynamically and fail with FunctionNotFoundException
     println(Try(
       client.call[String]("hidden")()
-        .failed.get
-    ))
+    ).failed.get)
 
     // Close the RPC client and server
     client.close()

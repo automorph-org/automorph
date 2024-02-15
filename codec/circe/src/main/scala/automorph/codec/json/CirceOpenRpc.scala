@@ -8,6 +8,7 @@ import io.circe.{ACursor, Decoder, DecodingFailure, Encoder, HCursor, Json}
 /** OpenRPC schema support for Circe message codec plugin using JSON format. */
 private[automorph] object CirceOpenRpc {
 
+  @scala.annotation.nowarn("msg=never used")
   def encoder: Encoder[OpenRpc] = {
     implicit val schemaEncoder: Encoder[Schema] = new Encoder[Schema] {
 
@@ -42,6 +43,7 @@ private[automorph] object CirceOpenRpc {
     deriveEncoder[OpenRpc]
   }
 
+  @scala.annotation.nowarn("msg=never used")
   def decoder: Decoder[OpenRpc] = {
     implicit val schemaDecoder: Decoder[Schema] = new Decoder[Schema] {
 

@@ -45,7 +45,7 @@ object Json4sNativeJsonCodec {
         case JObject(values) if values.isEmpty => ()
       },
       {
-        case value: Unit => JObject()
+        case () => JObject()
       },
     )
   )

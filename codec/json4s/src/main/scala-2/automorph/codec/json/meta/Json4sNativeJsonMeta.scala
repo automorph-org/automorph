@@ -17,8 +17,8 @@ private[automorph] trait Json4sNativeJsonMeta extends MessageCodec[JValue] {
 
 private[automorph] object Json4sNativeJsonMeta {
 
-  def encodeMacro[T: c.WeakTypeTag](c: blackbox.Context)(value: c.Expr[T]): c.Expr[JValue] = {
-    import c.universe.{Quasiquote, weakTypeOf}
+  def encodeMacro[T](c: blackbox.Context)(value: c.Expr[T]): c.Expr[JValue] = {
+    import c.universe.Quasiquote
 
     c.Expr[JValue](q"""
       import org.json4s.{Extraction, Formats}

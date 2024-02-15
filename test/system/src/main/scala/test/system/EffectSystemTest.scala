@@ -10,6 +10,7 @@ import test.base.BaseTest
  * @tparam Effect
  *   effect type
  */
+@scala.annotation.nowarn("msg=dead code")
 trait EffectSystemTest[Effect[_]] extends BaseTest {
 
   sealed case class TestException(message: String) extends RuntimeException(message)

@@ -8,6 +8,7 @@ import io.circe.{ACursor, Decoder, DecodingFailure, Encoder, HCursor, Json}
 /** OpenAPI schema support for Circe message codec plugin using JSON format. */
 private[automorph] object CirceOpenApi {
 
+  @scala.annotation.nowarn("msg=never used")
   def encoder: Encoder[OpenApi] = {
     implicit val schemaEncoder: Encoder[Schema] = new Encoder[Schema] {
 
@@ -51,6 +52,7 @@ private[automorph] object CirceOpenApi {
     deriveEncoder[OpenApi]
   }
 
+  @scala.annotation.nowarn("msg=never used")
   def decoder: Decoder[OpenApi] = {
     implicit val schemaDecoder: Decoder[Schema] = new Decoder[Schema] {
 

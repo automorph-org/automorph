@@ -91,6 +91,7 @@ object UndertowWebSocketEndpoint {
     override def onFullTextMessage(channel: WebSocketChannel, message: BufferedTextMessage): Unit =
       handle(exchange, message.getData.toByteArray, channel, () => ())
 
+    @scala.annotation.nowarn("msg=deprecated")
     override def onFullBinaryMessage(channel: WebSocketChannel, message: BufferedBinaryMessage): Unit = {
       val data = message.getData
       val requestBody = WebSockets.mergeBuffers(data.getResource*)

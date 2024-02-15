@@ -8,6 +8,7 @@ import upickle.core.{Abort, LinkedHashMap}
 /** JSON-RPC protocol support for Circe message codec plugin using JSON format. */
 private[automorph] object UpickleOpenRpc {
 
+  @scala.annotation.nowarn("msg=never used")
   def readWriter[Config <: UpickleMessagePackConfig](config: Config): config.ReadWriter[OpenRpc] = {
     import config.*
 

@@ -9,6 +9,7 @@ private[automorph] object WeepickleWebRpc {
 
   type RpcMessage = Message[Value]
 
+  @scala.annotation.nowarn("msg=never used")
   def fromTo: FromTo[RpcMessage] = {
     implicit val messageErrorFromTo: FromTo[MessageError] = macroFromTo
     macroFromTo[RpcMessage]

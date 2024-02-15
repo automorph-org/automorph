@@ -23,7 +23,7 @@ trait UpickleJsonMeta[Config <: UpickleJsonConfig] extends MessageCodec[Value] {
 
 object UpickleJsonMeta {
 
-  def encodeMacro[T: c.WeakTypeTag](c: blackbox.Context)(value: c.Expr[T]): c.Expr[Value] = {
+  def encodeMacro[T](c: blackbox.Context)(value: c.Expr[T]): c.Expr[Value] = {
     import c.universe.Quasiquote
 
     c.Expr[Value](q"""

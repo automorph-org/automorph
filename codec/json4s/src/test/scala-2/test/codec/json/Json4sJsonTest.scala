@@ -11,7 +11,7 @@ class Json4sNativeJsonTest extends JsonMessageCodecTest {
   type Node = JValue
   type ActualCodec = Json4sNativeJsonCodec
 
-  override lazy val codec: ActualCodec = Json4sNativeJsonCodec()
+  override lazy val codec: ActualCodec = Json4sNativeJsonCodec(formats)
 
   override lazy val arbitraryNode: Arbitrary[Node] = Arbitrary(Gen.recursive[Node] { recurse =>
     Gen.oneOf(
@@ -29,8 +29,7 @@ class Json4sNativeJsonTest extends JsonMessageCodecTest {
   }, {
      case value: Enum.Enum => JInt(Enum.toOrdinal(value))
   }))
-
-  implicit val formats: Formats = Json4sNativeJsonCodec.formats + enumSerializer
+  private val formats: Formats = Json4sNativeJsonCodec.formats + enumSerializer
 
   "" - {
     "Encode & Decode" in {

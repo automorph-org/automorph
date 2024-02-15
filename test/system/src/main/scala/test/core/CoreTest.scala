@@ -3,9 +3,7 @@ package test.core
 import automorph.RpcException.{FunctionNotFound, InvalidArguments, InvalidResponse}
 import automorph.protocol.JsonRpcProtocol.{openApiFunction, openRpcFunction}
 import automorph.protocol.WebRpcProtocol
-import automorph.schema.OpenApi
-import automorph.spi.{EffectSystem, MessageCodec}
-import automorph.{RpcClient, RpcServer}
+import automorph.spi.EffectSystem
 import org.scalacheck.Arbitrary
 import org.slf4j.{Logger, LoggerFactory}
 import scala.util.{Failure, Try}
@@ -32,8 +30,6 @@ trait CoreTest extends BaseTest {
   type ComplexApiType = ComplexApi[Effect, Context]
   type InvalidApiType = InvalidApi[Effect]
   type TestFixture = Fixture[Effect, Context]
-  private type GenericServer[E[_], C] = RpcServer[Any, MessageCodec[Any], E, C]
-  private type GenericClient[E[_], C] = RpcClient[Any, MessageCodec[Any], E, C]
   private lazy val testFixtures: Seq[TestFixture] = fixtures
   val logger: Logger = LoggerFactory.getLogger(getClass)
   val simpleApi: SimpleApiType = SimpleApiImpl(system)

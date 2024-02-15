@@ -9,6 +9,7 @@ private[automorph] object CirceJsonRpc {
 
   type RpcMessage = Message[Json]
 
+  @scala.annotation.nowarn("msg=never used")
   def encoder: Encoder[Message[Json]] = {
     implicit val idEncoder: Encoder[Message.Id] = Encoder.encodeJson.contramap[Message.Id] {
       case Right(id) => Json.fromString(id)
@@ -22,6 +23,7 @@ private[automorph] object CirceJsonRpc {
     deriveEncoder[Message[Json]]
   }
 
+  @scala.annotation.nowarn("msg=never used")
   def decoder: Decoder[Message[Json]] = {
     implicit val idDecoder: Decoder[Message.Id] = Decoder.decodeJson.map(
       _.fold(

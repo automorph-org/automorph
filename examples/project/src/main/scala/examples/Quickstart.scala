@@ -4,7 +4,6 @@
 package examples
 
 import automorph.Default
-import io.circe.generic.auto.*
 import java.net.URI
 import scala.concurrent.ExecutionContext.Implicits.global
 import scala.concurrent.duration.Duration
@@ -14,6 +13,7 @@ private[examples] object Quickstart {
 
   @scala.annotation.nowarn
   def main(arguments: Array[String]): Unit = {
+    import io.circe.generic.auto.*
 
     // Define a remote API
     trait Api {
