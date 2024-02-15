@@ -23,7 +23,7 @@ private[examples] object HttpRequestProperties {
         Seq(
           Some(message),
           httpRequest.path,
-          httpRequest.header("X-Test")
+          httpRequest.header("X-Test"),
         ).flatten.mkString(",")
     }
     val service = new Service

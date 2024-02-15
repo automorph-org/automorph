@@ -39,27 +39,29 @@ private[examples] object Quickstart {
     // Create a type-safe local proxy for the remote API from the API trait
     val remoteApi = client.bind[Api]
 
-    Await.ready(for {
-      // Start the JSON-RPC server
-      activeServer <- apiServer.init()
+    Await.result(
+      for {
+        // Start the JSON-RPC server
+        activeServer <- apiServer.init()
 
-      // Initialize the JSON-RPC client
-      activeClient <- client.init()
+        // Initialize the JSON-RPC client
+        activeClient <- client.init()
 
-      // Call the remote API function via the local proxy
-      result <- remoteApi.hello(1)
-      _ = println(result)
+        // Call the remote API function via the local proxy
+        result <- remoteApi.hello(1)
+        _ = println(result)
 
-      // Call the remote API function dynamically not using the API trait
-      result <- activeClient.call[String]("hello")("n" -> 1)
-      _ = println(result)
+        // Call the remote API function dynamically not using the API trait
+        result <- activeClient.call[String]("hello")("n" -> 1)
+        _ = println(result)
 
-      // Close the JSON-RPC client
-      _ <- activeClient.close()
+        // Close the JSON-RPC client
+        _ <- activeClient.close()
 
-      // Stop the JSON-RPC server
-      _ <- activeServer.close()
-    } yield (), Duration.Inf)
-    ()
+        // Stop the JSON-RPC server
+        _ <- activeServer.close()
+      } yield (),
+      Duration.Inf,
+    )
   }
 }

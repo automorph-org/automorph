@@ -24,21 +24,24 @@ private[examples] object WebSocketTransport {
         Future(s"Hello world $n")
     }
 
-    Await.ready(for {
-      // Initialize JSON-RPC HTTP & WebSocket server listening on port 9000 for requests to '/api'
-      server <- Default.rpcServer(9000, "/api").bind(service).init()
+    Await.result(
+      for {
+        // Initialize JSON-RPC HTTP & WebSocket server listening on port 9000 for requests to '/api'
+        server <- Default.rpcServer(9000, "/api").bind(service).init()
 
-      // Initialize JSON-RPC HTTP & WebSocket client for sending requests to 'ws://localhost:9000/api'
-      client <- Default.rpcClient(new URI("ws://localhost:9000/api")).init()
-      remoteApi = client.bind[Api]
+        // Initialize JSON-RPC HTTP & WebSocket client for sending requests to 'ws://localhost:9000/api'
+        client <- Default.rpcClient(new URI("ws://localhost:9000/api")).init()
+        remoteApi = client.bind[Api]
 
-      // Call the remote API function via a local proxy
-      result <- remoteApi.hello(1)
-      _ = println(result)
+        // Call the remote API function via a local proxy
+        result <- remoteApi.hello(1)
+        _ = println(result)
 
-      // Close the RPC client and server
-      _ <- client.close()
-      _ <- server.close()
-    } yield (), Duration.Inf)
+        // Close the RPC client and server
+        _ <- client.close()
+        _ <- server.close()
+      } yield (),
+      Duration.Inf,
+    )
   }
 }

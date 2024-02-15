@@ -27,7 +27,8 @@ private[examples] object RpcProtocol {
 
     // Create a server Web-RPC protocol plugin with '/api' as URL path prefix
     val serverRpcProtocol = WebRpcProtocol[Default.Node, Default.Codec, Default.ServerContext](
-      Default.messageCodec, "/api"
+      Default.messageCodec,
+      "/api",
     )
 
     // Create HTTP & WebSocket server transport listening on port 9000 for requests to '/api'
@@ -35,27 +36,31 @@ private[examples] object RpcProtocol {
 
     // Create a client Web-RPC protocol plugin with '/api' path prefix
     val clientRpcProtocol = WebRpcProtocol[Default.Node, Default.Codec, Default.ClientContext](
-      Default.messageCodec, "/api"
+      Default.messageCodec,
+      "/api",
     )
 
     // Create HTTP & WebSocket client transport sending POST requests to 'http://localhost:9000/api'
     val clientTransport = Default.clientTransport(new URI("http://localhost:9000/api"))
 
-    Await.ready(for {
-      // Initialize custom JSON-RPC HTTP & WebSocket server
-      server <- RpcServer.transport(serverTransport).rpcProtocol(serverRpcProtocol).bind(service).init()
+    Await.result(
+      for {
+        // Initialize custom JSON-RPC HTTP & WebSocket server
+        server <- RpcServer.transport(serverTransport).rpcProtocol(serverRpcProtocol).bind(service).init()
 
-      // Initialize custom JSON-RPC HTTP client
-      client <- RpcClient.transport(clientTransport).rpcProtocol(clientRpcProtocol).init()
-      remoteApi = client.bind[Api]
+        // Initialize custom JSON-RPC HTTP client
+        client <- RpcClient.transport(clientTransport).rpcProtocol(clientRpcProtocol).init()
+        remoteApi = client.bind[Api]
 
-      // Call the remote API function via a local proxy
-      result <- remoteApi.hello(1)
-      _ = println(result)
+        // Call the remote API function via a local proxy
+        result <- remoteApi.hello(1)
+        _ = println(result)
 
-      // Close the RPC client and server
-      _ <- client.close()
-      _ <- server.close()
-    } yield (), Duration.Inf)
+        // Close the RPC client and server
+        _ <- client.close()
+        _ <- server.close()
+      } yield (),
+      Duration.Inf,
+    )
   }
 }

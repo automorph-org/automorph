@@ -38,25 +38,28 @@ private[examples] object ServerErrorMapping {
     // Create HTTP & WebSocket server transport listening on port 9000 for requests to '/api'
     val serverTransport = Default.serverTransport(9000, "/api")
 
-    Await.ready(for {
-      // Initialize custom JSON-RPC HTTP & WebSocket server
-      server <- RpcServer.transport(serverTransport).rpcProtocol(rpcProtocol).bind(service).init()
+    Await.result(
+      for {
+        // Initialize custom JSON-RPC HTTP & WebSocket server
+        server <- RpcServer.transport(serverTransport).rpcProtocol(rpcProtocol).bind(service).init()
 
-      // Initialize JSON-RPC HTTP client for sending POST requests to 'http://localhost:9000/api'
-      client <- Default.rpcClient(new URI("http://localhost:9000/api")).init()
-      remoteApi = client.bind[Api]
+        // Initialize JSON-RPC HTTP client for sending POST requests to 'http://localhost:9000/api'
+        client <- Default.rpcClient(new URI("http://localhost:9000/api")).init()
+        remoteApi = client.bind[Api]
 
-      // Call the remote API function via a local proxy an fail with InvalidRequestException
-      error <- remoteApi.hello(1).failed
-      _ = println(error)
+        // Call the remote API function via a local proxy an fail with InvalidRequestException
+        error <- remoteApi.hello(1).failed
+        _ = println(error)
 
-      // Call the remote API function via a local proxy and fail with RuntimeException
-      error <- remoteApi.hello(-1).failed
-      _ = println(error)
+        // Call the remote API function via a local proxy and fail with RuntimeException
+        error <- remoteApi.hello(-1).failed
+        _ = println(error)
 
-      // Close the RPC client and server
-      _ <- client.close()
-      _ <- server.close()
-    } yield (), Duration.Inf)
+        // Close the RPC client and server
+        _ <- client.close()
+        _ <- server.close()
+      } yield (),
+      Duration.Inf,
+    )
   }
 }

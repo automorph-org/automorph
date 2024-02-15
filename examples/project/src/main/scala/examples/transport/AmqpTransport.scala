@@ -29,29 +29,31 @@ private[examples] object AmqpTransport {
 
     // Check for the AMQP broker URL configuration
     Option(System.getenv("AMQP_BROKER_URL")).map(new URI(_)).map { url =>
-
       // Create RabbitMQ AMQP server transport consuming requests from the 'api' queue
       val serverTransport = RabbitMqServer(Default.effectSystem, url, Seq("api"))
 
       // Create RabbitMQ AMQP client transport publishing requests to the 'api' queue
       val clientTransport = RabbitMqClient(Default.effectSystem, url, "api")
 
-      Await.ready(for {
-        // Initialize custom JSON-RPC AMQP server
-        server <- RpcServer.transport(serverTransport).rpcProtocol(Default.rpcProtocol).bind(service).init()
+      Await.result(
+        for {
+          // Initialize custom JSON-RPC AMQP server
+          server <- RpcServer.transport(serverTransport).rpcProtocol(Default.rpcProtocol).bind(service).init()
 
-        // Initialize custom JSON-RPC AMQP client
-        client <- RpcClient.transport(clientTransport).rpcProtocol(Default.rpcProtocol).init()
-        remoteApi = client.bind[Api]
+          // Initialize custom JSON-RPC AMQP client
+          client <- RpcClient.transport(clientTransport).rpcProtocol(Default.rpcProtocol).init()
+          remoteApi = client.bind[Api]
 
-        // Call the remote API function via a local proxy
-        result <- remoteApi.hello(1)
-        _ = println(result)
+          // Call the remote API function via a local proxy
+          result <- remoteApi.hello(1)
+          _ = println(result)
 
-        // Close the RPC client and server
-        _ <- client.close()
-        _ <- server.close()
-      } yield (), Duration.Inf)
+          // Close the RPC client and server
+          _ <- client.close()
+          _ <- server.close()
+        } yield (),
+        Duration.Inf,
+      )
     }.getOrElse {
       println("Enable AMQP example by setting AMQP_BROKER_URL environment variable to 'amqp://{host}:{port}'.")
     }

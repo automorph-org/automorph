@@ -23,17 +23,17 @@ private[examples] object DataTypeSerialization {
     // Product data types will work automatically with most message codecs
     final case class Record(
       value: String,
-      state: State
+      state: State,
     )
 
     // Provide custom data type serialization and deserialization logic as needed
     implicit val enumEncoder: Encoder[State] = Encoder.encodeInt.contramap[State](Map(
       State.Off -> 0,
-      State.On -> 1
+      State.On -> 1,
     ))
     implicit val enumDecoder: Decoder[State] = Decoder.decodeInt.map(Map(
       0 -> State.Off,
-      1 -> State.On
+      1 -> State.On,
     ))
 
     // Define a remote API
@@ -47,21 +47,24 @@ private[examples] object DataTypeSerialization {
         Future(record.copy(value = s"Data ${record.value}"))
     }
 
-    Await.ready(for {
-      // Initialize JSON-RPC HTTP & WebSocket server listening on port 9000 for requests to '/api'
-      server <- Default.rpcServer(9000, "/api").bind(service).init()
+    Await.result(
+      for {
+        // Initialize JSON-RPC HTTP & WebSocket server listening on port 9000 for requests to '/api'
+        server <- Default.rpcServer(9000, "/api").bind(service).init()
 
-      // Initialize JSON-RPC HTTP client for sending POST requests to 'http://localhost:9000/api'
-      client <- Default.rpcClient(new URI("http://localhost:9000/api")).init()
-      remoteApi = client.bind[Api]
+        // Initialize JSON-RPC HTTP client for sending POST requests to 'http://localhost:9000/api'
+        client <- Default.rpcClient(new URI("http://localhost:9000/api")).init()
+        remoteApi = client.bind[Api]
 
-      // Call the remote API function via a local proxy
-      result <- remoteApi.hello(Record("test", State.On))
-      _ = println(result)
+        // Call the remote API function via a local proxy
+        result <- remoteApi.hello(Record("test", State.On))
+        _ = println(result)
 
-      // Close the RPC client and server
-      _ <- client.close()
-      _ <- server.close()
-    } yield (), Duration.Inf)
+        // Close the RPC client and server
+        _ <- client.close()
+        _ <- server.close()
+      } yield (),
+      Duration.Inf,
+    )
   }
 }

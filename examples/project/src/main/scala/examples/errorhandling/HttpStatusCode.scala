@@ -27,26 +27,30 @@ private[examples] object HttpStatusCode {
     }
 
     // Customize remote API server exception to HTTP status code mapping
-    val mapException = (error: Throwable) => error match {
-      case _: SQLException => 400
-      case e => HttpContext.toStatusCode(e)
-    }
+    val mapException = (error: Throwable) =>
+      error match {
+        case _: SQLException => 400
+        case e => HttpContext.toStatusCode(e)
+      }
 
-    Await.ready(for {
-      // Initialize custom JSON-RPC HTTP & WebSocket server listening on port 9000 for requests to '/api'
-      server <- Default.rpcServer(9000, "/api", mapException = mapException).bind(service).init()
+    Await.result(
+      for {
+        // Initialize custom JSON-RPC HTTP & WebSocket server listening on port 9000 for requests to '/api'
+        server <- Default.rpcServer(9000, "/api", mapException = mapException).bind(service).init()
 
-      // Initialize JSON-RPC HTTP client for sending POST requests to 'http://localhost:9000/api'
-      client <- Default.rpcClient(new URI("http://localhost:9000/api")).init()
-      remoteApi = client.bind[Api]
+        // Initialize JSON-RPC HTTP client for sending POST requests to 'http://localhost:9000/api'
+        client <- Default.rpcClient(new URI("http://localhost:9000/api")).init()
+        remoteApi = client.bind[Api]
 
-      // Call the remote API function via a local proxy and fail with InvalidRequestException
-      error <- remoteApi.hello(1).failed
-      _ = println(error)
+        // Call the remote API function via a local proxy and fail with InvalidRequestException
+        error <- remoteApi.hello(1).failed
+        _ = println(error)
 
-      // Close the RPC client and server
-      _ <- client.close()
-      _ <- server.close()
-    } yield (), Duration.Inf)
+        // Close the RPC client and server
+        _ <- client.close()
+        _ <- server.close()
+      } yield (),
+      Duration.Inf,
+    )
   }
 }

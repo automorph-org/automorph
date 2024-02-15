@@ -33,16 +33,17 @@ private[examples] object ServerFunctionNames {
     val service = new ApiImpl
 
     // Customize served API to RPC function name mapping
-    val mapName = (name: String) => name match {
-      // 'test' is exposed both as 'hello' and 'hi'
-      case "test" => Seq("hello", "hi")
+    val mapName = (name: String) =>
+      name match {
+        // 'test' is exposed both as 'hello' and 'hi'
+        case "test" => Seq("hello", "hi")
 
-      // 'hidden' is not exposed
-      case "hidden" => Seq.empty
+        // 'hidden' is not exposed
+        case "hidden" => Seq.empty
 
-      // 'sum' is exposed as 'test.sum'
-      case other => Seq(s"test.$other")
-    }
+        // 'sum' is exposed as 'test.sum'
+        case other => Seq(s"test.$other")
+      }
 
     // Initialize JSON-RPC HTTP & WebSocket server listening on port 9000 for requests to '/api'
     val server = Default.rpcServerCustom(IdentitySystem(), 9000, "/api").bind(service, mapName).init()

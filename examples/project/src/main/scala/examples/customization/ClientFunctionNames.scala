@@ -32,13 +32,14 @@ private[examples] object ClientFunctionNames {
     val client = Default.rpcClientCustom(IdentitySystem(), new URI("http://localhost:9000/api")).init()
 
     // Customize local proxy API to RPC function name mapping
-    val mapName = (name: String) => name match {
-      // Calling 'hi' translates to calling 'hello'
-      case "hi" => "hello"
+    val mapName = (name: String) =>
+      name match {
+        // Calling 'hi' translates to calling 'hello'
+        case "hi" => "hello"
 
-      // Other calls remain unchanged
-      case other => other
-    }
+        // Other calls remain unchanged
+        case other => other
+      }
 
     // Call the remote API function via a local proxy
     val remoteApi = client.bind[Api](mapName)

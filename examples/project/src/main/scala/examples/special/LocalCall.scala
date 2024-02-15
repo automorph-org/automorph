@@ -32,17 +32,20 @@ private[examples] object LocalCall {
     // Create local client transport which passes requests directly to RPC server request handler
     val clientTransport = LocalClient(Default.effectSystem, defaultRequestContext, server.handler)
 
-    Await.ready(for {
-      // Initialize local JSON-RPC client
-      client <- RpcClient.transport(clientTransport).rpcProtocol(Default.rpcProtocol).init()
-      remoteApi = client.bind[Api]
+    Await.result(
+      for {
+        // Initialize local JSON-RPC client
+        client <- RpcClient.transport(clientTransport).rpcProtocol(Default.rpcProtocol).init()
+        remoteApi = client.bind[Api]
 
-      // Call the remote API function using the local client
-      result <- remoteApi.hello(1)
-      _ = println(result)
+        // Call the remote API function using the local client
+        result <- remoteApi.hello(1)
+        _ = println(result)
 
-      // Close the RPC client
-      _ <- client.close()
-    } yield (), Duration.Inf)
+        // Close the RPC client
+        _ <- client.close()
+      } yield (),
+      Duration.Inf,
+    )
   }
 }

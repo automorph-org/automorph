@@ -23,10 +23,11 @@ private[examples] object HttpResponseProperties {
     class Service {
 
       // Return HTTP response context consumed by the server message transport plugin
-      def hello(message: String): RpcResult[String, ServerContext] = RpcResult(
-        message,
-        HttpContext().headers("X-Test" -> "value", "Cache-Control" -> "no-cache").statusCode(200)
-      )
+      def hello(message: String): RpcResult[String, ServerContext] =
+        RpcResult(
+          message,
+          HttpContext().headers("X-Test" -> "value", "Cache-Control" -> "no-cache").statusCode(200),
+        )
     }
     val service = new Service
 

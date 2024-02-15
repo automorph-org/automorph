@@ -10,10 +10,8 @@ import scala.concurrent.ExecutionContext.Implicits.global
 import scala.concurrent.duration.Duration
 import scala.concurrent.{Await, Future}
 
-
-
 // Introduce custom data types
-private[examples] final case class Record(values: List[String])
+final private[examples] case class Record(values: List[String])
 
 private[examples] object MessageCodec {
 
@@ -25,7 +23,8 @@ private[examples] object MessageCodec {
 
     // Provide custom data type serialization and deserialization logic as needed
     import messageCodec.config.*
-    implicit def recordRw: messageCodec.config.ReadWriter[Record] = messageCodec.config.macroRW
+    implicit def recordRw: messageCodec.config.ReadWriter[Record] =
+      messageCodec.config.macroRW
 
     // Define a remote API
     trait Api {
@@ -40,7 +39,9 @@ private[examples] object MessageCodec {
 
     // Create a server RPC protocol plugin
     val serverRpcProtocol = Default.rpcProtocol[
-      UpickleMessagePackCodec.Node, messageCodec.type, Default.ServerContext
+      UpickleMessagePackCodec.Node,
+      messageCodec.type,
+      Default.ServerContext,
     ](messageCodec)
 
     // Create HTTP & WebSocket server transport listening on port 9000 for requests to '/api'
@@ -48,27 +49,32 @@ private[examples] object MessageCodec {
 
     // Create a client RPC protocol plugin
     val clientRpcProtocol = Default.rpcProtocol[
-      UpickleMessagePackCodec.Node, messageCodec.type, Default.ClientContext
+      UpickleMessagePackCodec.Node,
+      messageCodec.type,
+      Default.ClientContext,
     ](messageCodec)
 
     // Create HTTP client transport sending POST requests to 'http://localhost:9000/api'
     val clientTransport = Default.clientTransport(new URI("http://localhost:9000/api"))
 
-    Await.ready(for {
-      // Initialize custom JSON-RPC HTTP & WebSocket server
-      server <- RpcServer.transport(serverTransport).rpcProtocol(serverRpcProtocol).bind(service).init()
+    Await.result(
+      for {
+        // Initialize custom JSON-RPC HTTP & WebSocket server
+        server <- RpcServer.transport(serverTransport).rpcProtocol(serverRpcProtocol).bind(service).init()
 
-      // Initialize custom JSON-RPC HTTP client
-      client <- RpcClient.transport(clientTransport).rpcProtocol(clientRpcProtocol).init()
-      remoteApi = client.bind[Api]
+        // Initialize custom JSON-RPC HTTP client
+        client <- RpcClient.transport(clientTransport).rpcProtocol(clientRpcProtocol).init()
+        remoteApi = client.bind[Api]
 
-      // Call the remote API function via a local proxy
-      result <- remoteApi.hello(1)
-      _ = println(result)
+        // Call the remote API function via a local proxy
+        result <- remoteApi.hello(1)
+        _ = println(result)
 
-      // Close the RPC client and server
-      _ <- client.close()
-      _ <- server.close()
-    } yield (), Duration.Inf)
+        // Close the RPC client and server
+        _ <- client.close()
+        _ <- server.close()
+      } yield (),
+      Duration.Inf,
+    )
   }
 }
