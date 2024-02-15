@@ -308,8 +308,10 @@ val commonScalacOptions = Seq(
   "11",
   "-encoding",
   "utf8",
+  "-Werror",
 )
 val compileScalac3Options = commonScalacOptions ++ Seq(
+//  "-explain",
   "-source",
   "3.3",
   "-language:adhocExtensions",
@@ -317,10 +319,12 @@ val compileScalac3Options = commonScalacOptions ++ Seq(
   "120",
 )
 val compileScalac2Options = commonScalacOptions ++ Seq(
+//  "-explaintypes",
   "-language:existentials",
   "-Xsource:3",
   "-Xlint:_,-byname-implicit",
   "-Wconf:cat=other-non-cooperative-equals:silent,msg=modifiers are assumed:silent,msg=not suppress any:silent",
+  "-Wdead-code",
   "-Wextra-implicit",
   "-Wnumeric-widen",
   "-Wunused:imports,patvars,privates,locals,params",
