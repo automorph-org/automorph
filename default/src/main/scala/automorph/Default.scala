@@ -19,8 +19,8 @@ object Default extends DefaultRpcProtocol with DefaultTransport {
   type Effect[T] = Future[T]
 
   /**
-   * Creates a standard JRE JSON-RPC over HTTP & WebSocket client using default RPC protocol with
-   * 'Future' as an effect type.
+   * Creates a standard JRE JSON-RPC over HTTP & WebSocket client using default RPC protocol with 'Future' as an effect
+   * type.
    *
    * The client can be used to perform type-safe remote API calls or send one-way messages.
    *
@@ -47,8 +47,7 @@ object Default extends DefaultRpcProtocol with DefaultTransport {
     rpcClientCustom(effectSystem, url, method)
 
   /**
-   * Creates a standard JRE HTTP & WebSocket client transport plugin with
-   * 'Future' as an effect type.
+   * Creates a standard JRE HTTP & WebSocket client transport plugin with 'Future' as an effect type.
    *
    * @see
    *   [[https://en.wikipedia.org/wiki/HTTP Transport protocol]]
@@ -73,8 +72,8 @@ object Default extends DefaultRpcProtocol with DefaultTransport {
     clientTransportCustom(Default.effectSystem, url, method)
 
   /**
-   * Creates an Undertow JSON-RPC server over HTTP & WebSocket using default RPC protocol with
-   * 'Future' as an effect type.
+   * Creates an Undertow JSON-RPC server over HTTP & WebSocket using default RPC protocol with 'Future' as an effect
+   * type.
    *
    * The server can be used to serve remote API requests and invoke bound API methods to process them.
    *
@@ -112,8 +111,7 @@ object Default extends DefaultRpcProtocol with DefaultTransport {
     rpcServerCustom(effectSystem, port, path, methods, webSocket, mapException, builder)
 
   /**
-   * Creates an Undertow RPC over HTTP & WebSocket server transport plugin with
-   * 'Future' as an effect type.
+   * Creates an Undertow RPC over HTTP & WebSocket server transport plugin with 'Future' as an effect type.
    *
    * @see
    *   [[https://en.wikipedia.org/wiki/HTTP Transport protocol]]
@@ -153,11 +151,10 @@ object Default extends DefaultRpcProtocol with DefaultTransport {
     serverTransportCustom(effectSystem, port, path, methods, webSocket, mapException, builder)
 
   /**
-   * Creates an Undertow RPC over HTTP endpoint using default RPC protocol with
-   * 'Future' as an effect type.
+   * Creates an Undertow RPC over HTTP endpoint using default RPC protocol with 'Future' as an effect type.
    *
-   * The endpoint can be integrated into an existing server to receive remote API requests using
-   * specific transport protocol and invoke bound API methods to process them.
+   * The endpoint can be integrated into an existing server to receive remote API requests using specific transport
+   * protocol and invoke bound API methods to process them.
    *
    * @see
    *   [[https://en.wikipedia.org/wiki/HTTP Transport protocol]]
@@ -178,8 +175,7 @@ object Default extends DefaultRpcProtocol with DefaultTransport {
     rpcEndpointCustom(effectSystem, mapException)
 
   /**
-   * Creates an Undertow RPC over HTTP & WebSocket endpoint transport plugin with
-   * 'Future' as an effect type.
+   * Creates an Undertow RPC over HTTP & WebSocket endpoint transport plugin with 'Future' as an effect type.
    *
    * @see
    *   [[https://en.wikipedia.org/wiki/HTTP Transport protocol]]
@@ -202,8 +198,7 @@ object Default extends DefaultRpcProtocol with DefaultTransport {
     endpointTransportCustom(effectSystem, mapException)
 
   /**
-   * Creates an asynchronous effect system plugin with
-   * 'Future' as an effect type.
+   * Creates an asynchronous effect system plugin with 'Future' as an effect type.
    *
    * @see
    *   [[https://docs.scala-lang.org/overviews/core/futures.html Library documentation]]

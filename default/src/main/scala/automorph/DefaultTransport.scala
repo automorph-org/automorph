@@ -23,8 +23,8 @@ private[automorph] trait DefaultTransport {
   type Adapter = HttpHandler
 
   /**
-   * Creates a standard JRE JSON-RPC over HTTP & WebSocket client using default RPC protocol with
-   * specified effect system plugin.
+   * Creates a standard JRE JSON-RPC over HTTP & WebSocket client using default RPC protocol with specified effect
+   * system plugin.
    *
    * The client can be used to perform type-safe remote API calls or send one-way messages.
    *
@@ -55,8 +55,7 @@ private[automorph] trait DefaultTransport {
     RpcClient(clientTransportCustom(effectSystem, url, method), rpcProtocol)
 
   /**
-   * Creates a standard JRE HTTP & WebSocket client transport protocol plugin with
-   * specified effect system plugin.
+   * Creates a standard JRE HTTP & WebSocket client transport protocol plugin with specified effect system plugin.
    *
    * @see
    *   [[https://en.wikipedia.org/wiki/HTTP Transport protocol]]
@@ -85,8 +84,7 @@ private[automorph] trait DefaultTransport {
     HttpClient(effectSystem, url, method)
 
   /**
-   * Creates an Undertow RPC over HTTP & WebSocket server using default RPC protocol with
-   * specified effect system.
+   * Creates an Undertow RPC over HTTP & WebSocket server using default RPC protocol with specified effect system.
    *
    * The server can be used to serve remote API requests and invoke bound API methods to process them.
    *
@@ -127,12 +125,12 @@ private[automorph] trait DefaultTransport {
     builder: Undertow.Builder = builder,
   ): RpcServer[Node, Codec, EffectType, ServerContext] =
     RpcServer(
-      serverTransportCustom(effectSystem, port, path, methods, webSocket, mapException, builder), rpcProtocol
+      serverTransportCustom(effectSystem, port, path, methods, webSocket, mapException, builder),
+      rpcProtocol,
     )
 
   /**
-   * Creates an Undertow RPC over HTTP & WebSocket server transport protocol plugin with
-   * specified effect system.
+   * Creates an Undertow RPC over HTTP & WebSocket server transport protocol plugin with specified effect system.
    *
    * @see
    *   [[https://en.wikipedia.org/wiki/HTTP Transport protocol]]
@@ -173,11 +171,10 @@ private[automorph] trait DefaultTransport {
     UndertowServer(effectSystem, port, path, methods, webSocket, mapException, builder)
 
   /**
-   * Creates an Undertow RPC over HTTP endpoint using default RPC protocol with
-   * specified effect system.
+   * Creates an Undertow RPC over HTTP endpoint using default RPC protocol with specified effect system.
    *
-   * The endpoint can be integrated into an existing server to receive remote API requests using
-   * specific transport protocol and invoke bound API methods to process them.
+   * The endpoint can be integrated into an existing server to receive remote API requests using specific transport
+   * protocol and invoke bound API methods to process them.
    *
    * @see
    *   [[https://en.wikipedia.org/wiki/HTTP Transport protocol]]
@@ -201,8 +198,7 @@ private[automorph] trait DefaultTransport {
     RpcEndpoint(endpointTransportCustom(effectSystem, mapException), rpcProtocol)
 
   /**
-   * Creates an Undertow RPC over HTTP & WebSocket endpoint transport plugin with
-   * specified effect system.
+   * Creates an Undertow RPC over HTTP & WebSocket endpoint transport plugin with specified effect system.
    *
    * @see
    *   [[https://en.wikipedia.org/wiki/HTTP Transport protocol]]
