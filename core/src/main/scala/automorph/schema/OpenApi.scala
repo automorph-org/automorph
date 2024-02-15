@@ -50,7 +50,7 @@ object OpenApi {
    * @return
    *   OpenAPI schema
    */
-  def fromRpcFunctions(functionSchemas: Iterable[(RpcFunction, RpcSchema)]): OpenApi = {
+  def from(functionSchemas: Iterable[(RpcFunction, RpcSchema)]): OpenApi = {
     val paths = functionSchemas.map { case (function, schema) =>
       // Request
       val requestMediaType = MediaType(schema = Some(schema.request))

@@ -240,7 +240,7 @@ private[automorph] trait WebRpcCore[Node, Codec <: MessageCodec[Node], Context <
     val functionSchemas = functions.map { function =>
       function -> RpcSchema(requestSchema(function), resultSchema(function), errorSchema)
     }
-    mapOpenApi(OpenApi.fromRpcFunctions(functionSchemas))
+    mapOpenApi(OpenApi.from(functionSchemas))
   }
 
   private def requestSchema(function: RpcFunction): Schema =
