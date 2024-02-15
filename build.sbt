@@ -1,43 +1,45 @@
 // Project
-val projectRoot = "org"
-val projectName = "automorph"
-val projectDomain = s"$projectName.$projectRoot"
-val projectDescription = "RPC client and server library for Scala"
-val siteUrl = s"https://$projectDomain"
-val apiUrl = s"$siteUrl/api"
-ThisBuild / homepage := Some(url(siteUrl))
-ThisBuild / licenses := Seq("Apache-2.0" -> url("https://www.apache.org/licenses/LICENSE-2.0"))
-ThisBuild / description := projectDescription
-ThisBuild / organization := s"$projectRoot.$projectName"
-ThisBuild / organizationName := projectName
-ThisBuild / organizationHomepage := Some(url(siteUrl))
+{
+  val projectRoot = "org"
+  val projectName = "automorph"
+  val projectDomain = s"$projectName.$projectRoot"
+  val projectDescription = "RPC client and server library for Scala"
+  val siteUrl = s"https://$projectDomain"
+  val apiUrl = s"$siteUrl/api"
+  ThisBuild / homepage := Some(url(siteUrl))
+  ThisBuild / licenses := Seq("Apache-2.0" -> url("https://www.apache.org/licenses/LICENSE-2.0"))
+  ThisBuild / description := projectDescription
+  ThisBuild / organization := s"$projectRoot.$projectName"
+  ThisBuild / organizationName := projectName
+  ThisBuild / organizationHomepage := Some(url(siteUrl))
 
-ThisBuild / developers := List(Developer(
-  id = "m",
-  name = "Martin Ockajak",
-  email = s"$projectDomain@proton.me",
-  url = url(s"https://$projectDomain"),
-))
-val releaseVersion = settingKey[String]("Release version.")
+  ThisBuild / developers := List(Developer(
+    id = "m",
+    name = "Martin Ockajak",
+    email = s"$projectDomain@proton.me",
+    url = url(s"https://$projectDomain"),
+  ))
+  val releaseVersion = settingKey[String]("Release version.")
 
-ThisBuild / releaseVersion := IO.readLines((examples / Compile / scalaSource).value / "examples/Quickstart.scala")
-  .filter(_.startsWith(s"//> using dep $projectRoot.$projectName::"))
-  .flatMap(_.split(":").lastOption)
-  .lastOption.getOrElse("")
-val scala3 = settingKey[Boolean]("Uses Scala 3 platform.")
-ThisBuild / scala3 := CrossVersion.partialVersion(scalaVersion.value).exists(_._1 == 3)
-Global / onChangedBuildSource := ReloadOnSourceChanges
+  ThisBuild / releaseVersion := IO.readLines((examples / Compile / scalaSource).value / "examples/Quickstart.scala")
+    .filter(_.startsWith(s"//> using dep $projectRoot.$projectName::"))
+    .flatMap(_.split(":").lastOption)
+    .lastOption.getOrElse("")
+  val scala3 = settingKey[Boolean]("Uses Scala 3 platform.")
+  ThisBuild / scala3 := CrossVersion.partialVersion(scalaVersion.value).exists(_._1 == 3)
+  Global / onChangedBuildSource := ReloadOnSourceChanges
 
-// Repository
-val repositoryPath = s"$projectName-$projectRoot/$projectName"
-val repositoryUrl = s"https://github.com/$repositoryPath"
-val repositoryShell = s"git@github.com:$repositoryPath.git"
-ThisBuild / scmInfo := Some(ScmInfo(url(repositoryUrl), s"scm:$repositoryShell"))
-apiURL := Some(url(apiUrl))
+  // Repository
+  val repositoryPath = s"$projectName-$projectRoot/$projectName"
+  val repositoryUrl = s"https://github.com/$repositoryPath"
+  val repositoryShell = s"git@github.com:$repositoryPath.git"
+  ThisBuild / scmInfo := Some(ScmInfo(url(repositoryUrl), s"scm:$repositoryShell"))
+  apiURL := Some(url(apiUrl))
 
-onLoadMessage := {
-  System.setProperty("project.target", s"${target.value}")
-  ""
+  onLoadMessage := {
+    System.setProperty("project.target", s"${target.value}")
+    ""
+  }
 }
 
 // Structure
