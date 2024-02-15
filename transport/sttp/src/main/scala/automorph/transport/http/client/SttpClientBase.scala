@@ -151,11 +151,9 @@ private[automorph] trait SttpClientBase[Effect[_]] extends ClientTransport[Effec
       if (webSocket) {
         effectSystem.successful(Protocol.WebSocket)
       } else {
-        effectSystem.failed(
-          throw new IllegalArgumentException(
-            s"Selected STTP backend does not support WebSocket: ${backend.getClass.getSimpleName}"
-          )
-        )
+        effectSystem.failed(new IllegalArgumentException(
+          s"Selected STTP backend does not support WebSocket: ${backend.getClass.getSimpleName}"
+        ))
       }
     } else {
       effectSystem.successful(Protocol.Http)

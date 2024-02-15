@@ -93,9 +93,7 @@ object SttpClient {
     """)
   }
 
-  /**
-   * This method must never be used and should be considered private.
-   */
+  /** This method must never be used and should be considered private. */
   def create[Effect[_]](
     effectSystem: EffectSystem[Effect],
     backend: SttpBackend[Effect, ?],
