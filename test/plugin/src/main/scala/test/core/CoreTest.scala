@@ -8,7 +8,7 @@ import org.scalacheck.Arbitrary
 import org.slf4j.{Logger, LoggerFactory}
 import scala.util.{Failure, Try}
 import test.api.Generators.arbitraryRecord
-import test.api.{ComplexApi, ComplexApiImpl, InvalidApi, Record, SimpleApi, SimpleApiImpl}
+import test.api.{ComplexApi, ComplexApiImpl, InvalidApi, Record, SimpleApi, SimpleApiImpl, TestLevel}
 import test.base.BaseTest
 import test.core.Fixtures.Fixture
 
@@ -50,7 +50,7 @@ trait CoreTest extends BaseTest {
     testFixtures.foreach { fixture =>
       fixture.id - {
         // Simple tests
-        if (basic || Fixtures.simple) {
+        if (basic || TestLevel.simple) {
           "Standard" - {
             "Simple API" - {
               val apis = (fixture.apis.simpleApi, simpleApi)
@@ -72,7 +72,7 @@ trait CoreTest extends BaseTest {
         }
 
         // Complex tests
-        if (basic || Fixtures.complex) {
+        if (basic || TestLevel.complex) {
           "Static" - {
             "Simple API" - {
               val apis = (fixture.apis.simpleApi, simpleApi)

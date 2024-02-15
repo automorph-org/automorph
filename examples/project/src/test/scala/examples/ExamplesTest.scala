@@ -7,6 +7,7 @@ import examples.customization.{ClientFunctionNames, DataTypeSerialization, Serve
 import examples.errorhandling.{ClientErrorMapping, HttpStatusCode, ServerErrorMapping}
 import examples.integration.{CustomServer, EffectSystem, MessageCodec, RpcProtocol}
 import examples.transport.{AmqpTransport, ClientTransport, EndpointTransport, ServerTransport, WebSocketTransport}
+import test.api.TestLevel
 import test.base.{BaseTest, Mutex}
 
 class ExamplesTest extends BaseTest with Mutex {
@@ -15,93 +16,95 @@ class ExamplesTest extends BaseTest with Mutex {
     "Quickstart" in {
       runTest(Quickstart)
     }
-    "Basic" - {
-      Seq[Any](
-        AsynchronousCall,
-        SynchronousCall,
-        OptionalParameters,
-        MultipleApis,
-      ).foreach { instance =>
-        testName(instance) in {
-          runTest(instance)
+    if (TestLevel.simple || Option(System.getProperty("project.target")).isEmpty) {
+      "Basic" - {
+        Seq[Any](
+          AsynchronousCall,
+          SynchronousCall,
+          OptionalParameters,
+          MultipleApis,
+        ).foreach { instance =>
+          testName(instance) in {
+            runTest(instance)
+          }
         }
       }
-    }
-    "Integration" - {
-      Seq[Any](
-        CustomServer,
-        EffectSystem,
-        MessageCodec,
-        RpcProtocol,
-      ).foreach { instance =>
-        testName(instance) in {
-          runTest(instance)
+      "Integration" - {
+        Seq[Any](
+          CustomServer,
+          EffectSystem,
+          MessageCodec,
+          RpcProtocol,
+        ).foreach { instance =>
+          testName(instance) in {
+            runTest(instance)
+          }
         }
       }
-    }
-    "Transport" - {
-      Seq[Any](
-        ClientTransport,
-        ServerTransport,
-        EndpointTransport,
-        WebSocketTransport,
-      ).foreach { instance =>
-        testName(instance) in {
-          runTest(instance)
+      "Transport" - {
+        Seq[Any](
+          ClientTransport,
+          ServerTransport,
+          EndpointTransport,
+          WebSocketTransport,
+        ).foreach { instance =>
+          testName(instance) in {
+            runTest(instance)
+          }
+        }
+        testName(AmqpTransport) in {
+          lock()
+          try {
+            AmqpTransport.main(Array())
+          } finally {
+            unlock()
+          }
         }
       }
-      testName(AmqpTransport) in {
-        lock()
-        try {
-          AmqpTransport.main(Array())
-        } finally {
-          unlock()
+      "Customization" - {
+        Seq[Any](
+          DataTypeSerialization,
+          ClientFunctionNames,
+          ServerFunctionNames,
+        ).foreach { instance =>
+          testName(instance) in {
+            runTest(instance)
+          }
         }
       }
-    }
-    "Customization" - {
-      Seq[Any](
-        DataTypeSerialization,
-        ClientFunctionNames,
-        ServerFunctionNames,
-      ).foreach { instance =>
-        testName(instance) in {
-          runTest(instance)
+      "Metadata" - {
+        Seq[Any](
+          HttpAuthentication,
+          HttpRequestProperties,
+          HttpResponseProperties,
+        ).foreach { instance =>
+          testName(instance) in {
+            runTest(instance)
+          }
         }
       }
-    }
-    "Metadata" - {
-      Seq[Any](
-        HttpAuthentication,
-        HttpRequestProperties,
-        HttpResponseProperties,
-      ).foreach { instance =>
-        testName(instance) in {
-          runTest(instance)
+      "Error handling" - {
+        Seq[Any](
+          ClientErrorMapping,
+          ServerErrorMapping,
+          HttpStatusCode,
+        ).foreach { instance =>
+          testName(instance) in {
+            runTest(instance)
+          }
         }
       }
-    }
-    "Error handling" - {
-      Seq[Any](
-        ClientErrorMapping,
-        ServerErrorMapping,
-        HttpStatusCode,
-      ).foreach { instance =>
-        testName(instance) in {
-          runTest(instance)
-        }
-      }
-    }
-    "Special" - {
-      Seq[Any](
-        ApiDiscovery,
-        DynamicPayload,
-        LocalCall,
-        OneWayMessage,
-        PositionalArguments,
-      ).foreach { instance =>
-        testName(instance) in {
-          runTest(instance)
+      "Special" - {
+        Seq[Any](
+          ApiDiscovery,
+          DynamicPayload,
+          LocalCall,
+          OneWayMessage,
+          PositionalArguments,
+        ).foreach { instance =>
+          testName(instance) in {
+            runTest(instance)
+          }
         }
       }
     }

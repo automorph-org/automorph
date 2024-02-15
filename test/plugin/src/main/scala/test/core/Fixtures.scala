@@ -32,28 +32,4 @@ object Fixtures {
     val genericClient: GenericClient[Effect, Context] = client.asInstanceOf[GenericClient[Effect, Context]]
     val genericServer: GenericServer[Effect, Context] = server.asInstanceOf[GenericServer[Effect, Context]]
   }
-
-  /** Test level environment variable. */
-  private val testLevelEnvironment = "TEST_LEVEL"
-
-  /** Simple tests environment value. */
-  private val testSimpleValue = "complex"
-
-  /** Complex tests environment value. */
-  private val testComplexValue = "complex"
-
-  /** All tests environment value. */
-  private val testAllValue = "all"
-
-  /** Execute simple standard remote API tests for all transport plugins and default codec plugin only. */
-  def simple: Boolean =
-    complex || Option(System.getenv(testLevelEnvironment)).exists(_.toLowerCase == testSimpleValue)
-
-  /** Execute complex generative remote API tests for all transport plugins and default codec plugin only. */
-  def complex: Boolean =
-    all || Option(System.getenv(testLevelEnvironment)).exists(_.toLowerCase == testComplexValue)
-
-  /** Execute complex generative remote API tests for all transport plugins and all codec plugins. */
-  def all: Boolean =
-    Option(System.getenv(testLevelEnvironment)).exists(_.toLowerCase == testAllValue)
 }

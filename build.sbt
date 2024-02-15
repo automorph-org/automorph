@@ -99,7 +99,7 @@ def source(project: Project, path: String, dependsOn: ClasspathDep[ProjectRefere
         mimaReportBinaryIssues := {},
         tastyMiMaReportIssues := {},
       )
-    case _ => {
+    case _ =>
       val nameDirectories = directories match {
         case Seq(_) => directories
         case _ => directories.tail
@@ -109,7 +109,6 @@ def source(project: Project, path: String, dependsOn: ClasspathDep[ProjectRefere
         mimaPreviousArtifacts := Set(organization.value %% name.value % version.value.split("\\+").head),
         tastyMiMaPreviousArtifacts := mimaPreviousArtifacts.value,
       )
-    }
   }
 }
 
@@ -165,7 +164,7 @@ lazy val playJson = source(project, "codec/play-json", core, testCodec % Test).s
   publish / skip := scala3.value,
   libraryDependencies ++= Seq(
     "org.playframework" %% "play-json" % "3.0.2"
-  )
+  ),
 )
 lazy val weepickle = source(project, "codec/weepickle", core, testCodec % Test).settings(
   libraryDependencies ++= Seq(
@@ -304,9 +303,7 @@ lazy val testPlugin =
 lazy val testStandard = source(project, "test/standard", testPlugin, core, testPlugin % Test)
 
 def testJavaOptions: Seq[String] =
-  Seq(
-    s"-Dproject.target=${System.getProperty("project.target")}"
-  )
+  Seq(s"-Dproject.target=${System.getProperty("project.target")}")
 
 // Compile
 ThisBuild / scalaVersion := "3.3.0"
@@ -355,16 +352,18 @@ val docScalac2Options = compileScalac2Options ++ Seq(
   s"$projectName.client.meta:$projectName.handler.meta:examples",
 )
 
-ThisBuild / scalacOptions ++= (if (scala3.value) {
-                                 compileScalac3Options ++ Seq(
-                                   "-indent",
-                                   "-Wconf:msg=not suppress any:silent",
-                                   "-Wunused:all",
-                                   "-Wvalue-discard",
-                                   "-Xcheck-macros",
-                                   "-Xmigration",
-                                 )
-                               } else compileScalac2Options)
+ThisBuild / scalacOptions ++= (
+  if (scala3.value) {
+    compileScalac3Options ++ Seq(
+      "-indent",
+      "-Wconf:msg=not suppress any:silent",
+      "-Wunused:all",
+      "-Wvalue-discard",
+      "-Xcheck-macros",
+      "-Xmigration",
+    )
+  } else compileScalac2Options
+)
 
 // Analyze
 scalastyleConfig := baseDirectory.value / "project/scalastyle-config.sbt.xml"
@@ -384,7 +383,6 @@ def flattenTasks[A](tasks: Seq[Def.Initialize[Task[A]]]): Def.Initialize[Task[Se
     case Seq() => Def.task(Seq())
     case Seq(head, tail @ _*) => Def.taskDyn(flattenTasks(tail).map(_.+:(head.value)))
   }
-
 lazy val allSources = Def.taskDyn(flattenTasks(root.uses.map(_ / Compile / doc / sources)))
 lazy val allTastyFiles = Def.taskDyn(flattenTasks(root.uses.map(_ / Compile / doc / tastyFiles)))
 lazy val allDependencyClasspath = Def.taskDyn(flattenTasks(root.uses.map(_ / Compile / doc / dependencyClasspath)))

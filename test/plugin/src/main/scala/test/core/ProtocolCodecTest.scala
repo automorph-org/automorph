@@ -16,7 +16,7 @@ import com.fasterxml.jackson.databind.{DeserializationContext, SerializerProvide
 import com.rallyhealth.weepickle.v1.WeePickle.{FromInt, FromTo, ToInt, macroFromTo}
 import io.circe.generic.auto.*
 import io.circe.{Decoder, Encoder}
-import test.api.{Enum, Record, Structure}
+import test.api.{Enum, Record, Structure, TestLevel}
 import test.core.Fixtures.{Apis, Fixture, Functions}
 
 trait ProtocolCodecTest extends CoreTest {
@@ -30,7 +30,7 @@ trait ProtocolCodecTest extends CoreTest {
 
   override def fixtures: Seq[TestFixture] = {
     implicit val context: Context = arbitraryContext.arbitrary.sample.get
-    Seq(circeJsonRpcFixture) ++ Option.when(basic || Fixtures.all)(Seq(
+    Seq(circeJsonRpcFixture) ++ Option.when(basic || TestLevel.all)(Seq(
       jacksonJsonRpcJsonFixture,
       jacksonJsonRpcSmileFixture,
       jacksonJsonRpcCborFixture,
