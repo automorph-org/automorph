@@ -77,6 +77,7 @@ lazy val root = project.in(file(".")).settings(
   zioHttp,
   akkaHttp,
   pekkoHttp,
+  play,
 
   // Endpoint transport
   finagle,
@@ -244,6 +245,16 @@ lazy val pekkoHttp = source(project, "transport/pekko-http", core, testPlugin % 
     "org.apache.pekko" %% "pekko-actor-typed" % pekkoVersion,
     "org.apache.pekko" %% "pekko-stream" % pekkoVersion,
     "org.apache.pekko" %% "pekko-slf4j" % pekkoVersion % Test,
+  ),
+)
+val playVersion = "3.0.1"
+lazy val play = source(project, "transport/play", core, testPlugin % Test).settings(
+  Test / fork := true,
+  Test / testForkedParallel := true,
+  Test / javaOptions ++= testJavaOptions,
+  libraryDependencies ++= Seq(
+    "org.playframework" %% "play-server" % playVersion,
+    "org.playframework" %% "play-pekko-http-server" % playVersion % Test,
   ),
 )
 
