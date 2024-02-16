@@ -14,7 +14,7 @@ class ZioHttpEndpointWebSocketZioTest extends WebSocketServerTest {
   type Effect[T] = Task[T]
   type Context = ZioHttpWebSocketEndpoint.Context
 
-  override lazy val system: ZioSystem[Throwable] = ZioSystem.withTask
+  override lazy val system: ZioSystem[Throwable] = ZioSystem.apply
 
   override def run[T](effect: Effect[T]): T =
     Unsafe.unsafe { implicit unsafe =>

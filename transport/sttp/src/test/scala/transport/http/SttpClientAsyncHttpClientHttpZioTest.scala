@@ -8,14 +8,17 @@ import org.scalacheck.Arbitrary
 import sttp.client3.asynchttpclient.zio.AsyncHttpClientZioBackend
 import test.transport.HttpClientTest
 import test.transport.http.HttpContextGenerator
-import zio.{Task, Unsafe}
+import zio.{Runtime, Task, Unsafe}
 
 class SttpClientAsyncHttpClientHttpZioTest extends HttpClientTest {
 
   type Effect[T] = Task[T]
   type Context = SttpClient.Context
 
-  override lazy val system: ZioSystem[Any, Throwable] = ZioSystem.withTask
+  override lazy val system: ZioSystem[Throwable] = {
+    implicit val runtime: Runtime[Any] = Runtime.default
+    ZioSystem.apply
+  }
 
   override def run[T](effect: Effect[T]): T =
     Unsafe.unsafe { implicit unsafe =>

@@ -25,9 +25,8 @@ import zio.{IO, Queue, Runtime, Trace, Unsafe, ZIO}
 final case class ZioSystem[Fault](
   mapException: Throwable => Fault,
   mapError: (Fault, Trace) => Throwable = ZioSystem.mapError,
-)(
-  implicit val runtime: Runtime[Any]
-) extends AsyncEffectSystem[({ type Effect[A] = IO[Fault, A] })#Effect] {
+)(implicit val runtime: Runtime[Any])
+  extends AsyncEffectSystem[({ type Effect[A] = IO[Fault, A] })#Effect] {
 
   override def evaluate[T](value: => T): IO[Fault, T] =
     ZIO.attempt(value).mapError(mapException)
@@ -99,7 +98,7 @@ object ZioSystem {
    * @return
    *   ZIO effect system plugin
    */
-  def withTask(implicit runtime: Runtime[Any] = Runtime.default): ZioSystem[Throwable] =
+  def apply(implicit runtime: Runtime[Any]): ZioSystem[Throwable] =
     ZioSystem[Throwable](identity, (error: Throwable, _: Trace) => error)
 
   /**
@@ -112,6 +111,7 @@ object ZioSystem {
    * @tparam Fault
    *   ZIO error type
    * @return
+   *   exception created from a ZIO trace
    */
   def mapError[Fault](error: Fault, trace: Trace): Throwable =
     new RuntimeException(s"$error\n$trace")

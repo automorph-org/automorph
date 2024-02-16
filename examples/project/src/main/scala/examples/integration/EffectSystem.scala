@@ -7,7 +7,7 @@ package examples.integration
 import automorph.Default
 import automorph.system.ZioSystem
 import java.net.URI
-import zio.{Console, Task, Unsafe, ZIO}
+import zio.{Console, Runtime, Task, Unsafe, ZIO}
 
 private[examples] object EffectSystem {
 
@@ -26,7 +26,8 @@ private[examples] object EffectSystem {
     }
 
     // Create ZIO effect system plugin
-    val effectSystem = ZioSystem.withTask
+    implicit val runtime: Runtime[Any] = Runtime.default
+    val effectSystem = ZioSystem.apply
 
     val run = for {
       // Initialize JSON-RPC HTTP & WebSocket server listening on port 9000 for requests to '/api'
