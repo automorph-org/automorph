@@ -38,44 +38,47 @@ import scala.util.Try
 final case class VertxWebSocketEndpoint[Effect[_]](
   effectSystem: EffectSystem[Effect],
   handler: RequestHandler[Effect, Context] = RequestHandler.dummy[Effect, Context],
-) extends Handler[ServerWebSocket] with Logging with EndpointTransport[Effect, Context, Handler[ServerWebSocket]] {
+) extends EndpointTransport[Effect, Context, Handler[ServerWebSocket]] with Logging {
+
+  private lazy val requestHandler = new Handler[ServerWebSocket] {
+
+    override def handle(session: ServerWebSocket): Unit = {
+      // Log the request
+      val requestId = Random.id
+      lazy val requestProperties = getRequestProperties(session, requestId)
+      log.receivingRequest(requestProperties)
+      session.binaryMessageHandler { buffer =>
+        // Process the request
+        Try {
+          val requestBody = buffer.getBytes
+          log.receivedRequest(requestProperties)
+          val handlerResult = handler.processRequest(requestBody, getRequestContext(session), requestId)
+          handlerResult.either.map(
+            _.fold(
+              error => sendErrorResponse(error, session, requestId, requestProperties),
+              result => {
+                // Send the response
+                val responseBody = result.map(_.responseBody).getOrElse(Array.emptyByteArray)
+                sendResponse(responseBody, session, requestId)
+              },
+            )
+          ).runAsync
+        }.failed.foreach { error =>
+          sendErrorResponse(error, session, requestId, requestProperties)
+        }
+      }
+      ()
+    }
+  }
 
   private val log = MessageLog(logger, Protocol.WebSocket.name)
   implicit private val system: EffectSystem[Effect] = effectSystem
 
   override def adapter: Handler[ServerWebSocket] =
-    this
+    requestHandler
 
   override def withHandler(handler: RequestHandler[Effect, Context]): VertxWebSocketEndpoint[Effect] =
     copy(handler = handler)
-
-  override def handle(session: ServerWebSocket): Unit = {
-    // Log the request
-    val requestId = Random.id
-    lazy val requestProperties = getRequestProperties(session, requestId)
-    log.receivingRequest(requestProperties)
-    session.binaryMessageHandler { buffer =>
-      // Process the request
-      Try {
-        val requestBody = buffer.getBytes
-        log.receivedRequest(requestProperties)
-        val handlerResult = handler.processRequest(requestBody, getRequestContext(session), requestId)
-        handlerResult.either.map(
-          _.fold(
-            error => sendErrorResponse(error, session, requestId, requestProperties),
-            result => {
-              // Send the response
-              val responseBody = result.map(_.responseBody).getOrElse(Array.emptyByteArray)
-              sendResponse(responseBody, session, requestId)
-            },
-          )
-        ).runAsync
-      }.failed.foreach { error =>
-        sendErrorResponse(error, session, requestId, requestProperties)
-      }
-    }
-    ()
-  }
 
   private def sendErrorResponse(
     error: Throwable,

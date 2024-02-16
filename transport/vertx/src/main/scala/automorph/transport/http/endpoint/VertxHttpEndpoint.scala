@@ -41,7 +41,38 @@ final case class VertxHttpEndpoint[Effect[_]](
   effectSystem: EffectSystem[Effect],
   mapException: Throwable => Int = HttpContext.toStatusCode,
   handler: RequestHandler[Effect, Context] = RequestHandler.dummy[Effect, Context],
-) extends Handler[HttpServerRequest] with EndpointTransport[Effect, Context, Handler[HttpServerRequest]] with Logging {
+) extends EndpointTransport[Effect, Context, Handler[HttpServerRequest]] with Logging {
+  private lazy val requestHandler = new Handler[HttpServerRequest] {
+
+    override def handle(request: HttpServerRequest): Unit = {
+      // Log the request
+      val requestId = Random.id
+      lazy val requestProperties = getRequestProperties(request, requestId)
+      log.receivingRequest(requestProperties)
+      request.bodyHandler { buffer =>
+        // Process the request
+        Try {
+          val requestBody = buffer.getBytes
+          log.receivedRequest(requestProperties)
+          val handlerResult = handler.processRequest(requestBody, getRequestContext(request), requestId)
+          handlerResult.either.map(
+            _.fold(
+              error => sendErrorResponse(error, request, requestId, requestProperties),
+              result => {
+                // Send the response
+                val responseBody = result.map(_.responseBody).getOrElse(Array.emptyByteArray)
+                val status = result.flatMap(_.exception).map(mapException).getOrElse(statusOk)
+                sendResponse(responseBody, status, result.flatMap(_.context), request, requestId)
+              },
+            )
+          ).runAsync
+        }.failed.foreach { error =>
+          sendErrorResponse(error, request, requestId, requestProperties)
+        }
+      }
+      ()
+    }
+  }
 
   private val statusOk = 200
   private val statusInternalServerError = 500
@@ -49,39 +80,10 @@ final case class VertxHttpEndpoint[Effect[_]](
   implicit private val system: EffectSystem[Effect] = effectSystem
 
   override def adapter: Handler[HttpServerRequest] =
-    this
+    requestHandler
 
   override def withHandler(handler: RequestHandler[Effect, Context]): VertxHttpEndpoint[Effect] =
     copy(handler = handler)
-
-  override def handle(request: HttpServerRequest): Unit = {
-    // Log the request
-    val requestId = Random.id
-    lazy val requestProperties = getRequestProperties(request, requestId)
-    log.receivingRequest(requestProperties)
-    request.bodyHandler { buffer =>
-      // Process the request
-      Try {
-        val requestBody = buffer.getBytes
-        log.receivedRequest(requestProperties)
-        val handlerResult = handler.processRequest(requestBody, getRequestContext(request), requestId)
-        handlerResult.either.map(
-          _.fold(
-            error => sendErrorResponse(error, request, requestId, requestProperties),
-            result => {
-              // Send the response
-              val responseBody = result.map(_.responseBody).getOrElse(Array.emptyByteArray)
-              val status = result.flatMap(_.exception).map(mapException).getOrElse(statusOk)
-              sendResponse(responseBody, status, result.flatMap(_.context), request, requestId)
-            },
-          )
-        ).runAsync
-      }.failed.foreach { error =>
-        sendErrorResponse(error, request, requestId, requestProperties)
-      }
-    }
-    ()
-  }
 
   private def sendErrorResponse(
     error: Throwable,

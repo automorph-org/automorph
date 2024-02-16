@@ -116,7 +116,7 @@ final case class VertxServer[Effect[_]](
       server.webSocketHandler { request =>
         // Validate URL path
         if (request.path.startsWith(pathPrefix)) {
-          webSocketHandler.handle(request)
+          webSocketHandler.adapter.handle(request)
         } else {
           request.close((statusWebSocketApplication + statusNotFound).toShort, messageNotFound)
           ()
