@@ -27,7 +27,7 @@ private[examples] object EffectSystem {
 
     // Create ZIO effect system plugin
     implicit val runtime: Runtime[Any] = Runtime.default
-    val effectSystem = ZioSystem.apply
+    val effectSystem = ZioSystem()
 
     val run = for {
       // Initialize JSON-RPC HTTP & WebSocket server listening on port 9000 for requests to '/api'
