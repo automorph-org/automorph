@@ -9,9 +9,7 @@ import automorph.util.Extensions.{ByteArrayOps, ByteBufferOps, EffectOps, String
 import automorph.util.{Network, Random}
 import io.undertow.server.{HttpHandler, HttpServerExchange}
 import io.undertow.util.Headers
-import io.undertow.websockets.core.{
-  AbstractReceiveListener, BufferedBinaryMessage, BufferedTextMessage, WebSocketCallback, WebSocketChannel, WebSockets,
-}
+import io.undertow.websockets.core.{AbstractReceiveListener, BufferedBinaryMessage, BufferedTextMessage, WebSocketCallback, WebSocketChannel, WebSockets}
 import io.undertow.websockets.spi.WebSocketHttpExchange
 import io.undertow.websockets.{WebSocketConnectionCallback, WebSocketProtocolHandshakeHandler}
 import scala.collection.immutable.ListMap
@@ -42,10 +40,16 @@ import scala.util.Try
 final case class UndertowWebSocketEndpoint[Effect[_]](
   effectSystem: EffectSystem[Effect],
   handler: RequestHandler[Effect, Context] = RequestHandler.dummy[Effect, Context],
-) extends WebSocketConnectionCallback
-  with EndpointTransport[Effect, Context, WebSocketConnectionCallback]
-  with Logging {
+) extends EndpointTransport[Effect, Context, WebSocketConnectionCallback] with Logging {
 
+  private lazy val webSocketConnectionCallback = new WebSocketConnectionCallback {
+
+    override def onConnect(exchange: WebSocketHttpExchange, channel: WebSocketChannel): Unit = {
+      val receiveListener = ConnectionListener(effectSystem, handler, log, exchange)
+      channel.getReceiveSetter.set(receiveListener)
+      channel.resumeReceives()
+    }
+  }
   private val log = MessageLog(logger, Protocol.WebSocket.name)
 
   /**
@@ -58,16 +62,11 @@ final case class UndertowWebSocketEndpoint[Effect[_]](
     new WebSocketProtocolHandshakeHandler(adapter, next)
 
   override def adapter: WebSocketConnectionCallback =
-    this
+    webSocketConnectionCallback
 
   override def withHandler(handler: RequestHandler[Effect, Context]): UndertowWebSocketEndpoint[Effect] =
     copy(handler = handler)
 
-  override def onConnect(exchange: WebSocketHttpExchange, channel: WebSocketChannel): Unit = {
-    val receiveListener = ConnectionListener(effectSystem, handler, log, exchange)
-    channel.getReceiveSetter.set(receiveListener)
-    channel.resumeReceives()
-  }
 }
 
 object UndertowWebSocketEndpoint {
@@ -77,7 +76,7 @@ object UndertowWebSocketEndpoint {
 
   final private case class ConnectionListener[Effect[_]](
     effectSystem: EffectSystem[Effect],
-    handler: RequestHandler[Effect, Context] = RequestHandler.dummy[Effect, Context],
+    handler: RequestHandler[Effect, Context],
     log: MessageLog,
     exchange: WebSocketHttpExchange,
   ) extends AbstractReceiveListener {
