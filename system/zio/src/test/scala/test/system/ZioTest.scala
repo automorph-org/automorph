@@ -4,8 +4,7 @@ import automorph.system.ZioSystem
 import zio.{Task, Unsafe}
 
 class ZioTest extends AsyncEffectSystemTest[Task] {
-
-  lazy val system: ZioSystem[Any] = ZioSystem.default
+  override lazy val system: ZioSystem[Any, Throwable] = ZioSystem.withTask
 
   def run[T](effect: Task[T]): Either[Throwable, T] =
     Unsafe.unsafe { implicit unsafe =>

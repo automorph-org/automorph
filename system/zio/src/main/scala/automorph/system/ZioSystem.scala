@@ -2,7 +2,7 @@ package automorph.system
 
 import automorph.spi.AsyncEffectSystem
 import automorph.spi.AsyncEffectSystem.Completable
-import zio.{Queue, RIO, Runtime, Trace, Unsafe, ZIO}
+import zio.{Queue, Runtime, Trace, Unsafe, ZIO}
 
 /**
  * ZIO effect system plugin using `RIO` as an effect type.
@@ -10,33 +10,42 @@ import zio.{Queue, RIO, Runtime, Trace, Unsafe, ZIO}
  * @see
  *   [[https://zio.dev Library documentation]]
  * @see
- *   [[https://javadoc.io/doc/dev.zio/zio_3/latest/zio.html#RIO-0 Effect type]]
+ *   [[https://javadoc.io/doc/dev.zio/zio_3/latest/zio.html Effect type]]
  * @constructor
  *   Creates a ZIO effect system plugin using `RIO` as an effect type.
+ * @param mapException
+ *   maps an exception to a corresponding ZIO error
+ * @param mapError
+ *   maps a ZIO error to a corresponding exception
  * @param runtime
- *   runtime system
+ *   ZIO runtime
  * @tparam Environment
  *   ZIO environment type
+ * @tparam Fault
+ *   ZIO error type
  */
-final case class ZioSystem[Environment]()(implicit val runtime: Runtime[Environment])
-  extends AsyncEffectSystem[({ type Effect[A] = RIO[Environment, A] })#Effect] {
+final case class ZioSystem[Environment, Fault](mapException: Throwable => Fault, mapError: Fault => Throwable)(
+  implicit val runtime: Runtime[Environment]
+) extends AsyncEffectSystem[({ type Effect[A] = ZIO[Environment, Fault, A] })#Effect] {
 
-  override def evaluate[T](value: => T): RIO[Environment, T] =
-    ZIO.attempt(value)
+  override def evaluate[T](value: => T): ZIO[Environment, Fault, T] =
+    ZIO.attempt(value).mapError(mapException)
 
-  override def successful[T](value: T): RIO[Environment, T] =
+  override def successful[T](value: T): ZIO[Environment, Fault, T] =
     ZIO.succeed(value)
 
-  override def failed[T](exception: Throwable): RIO[Environment, T] =
-    ZIO.fail(exception)
+  override def failed[T](exception: Throwable): ZIO[Environment, Fault, T] =
+    ZIO.fail(exception).mapError(mapException)
 
-  override def either[T](effect: => RIO[Environment, T]): RIO[Environment, Either[Throwable, T]] =
-    effect.either
+  override def either[T](effect: => ZIO[Environment, Fault, T]): ZIO[Environment, Fault, Either[Throwable, T]] =
+    effect.either.map(_.fold(error => Left(mapError(error)), value => Right(value)))
 
-  override def flatMap[T, R](effect: RIO[Environment, T])(function: T => RIO[Environment, R]): RIO[Environment, R] =
+  override def flatMap[T, R](effect: ZIO[Environment, Fault, T])(
+    function: T => ZIO[Environment, Fault, R]
+  ): ZIO[Environment, Fault, R] =
     effect.flatMap(function)
 
-  override def runAsync[T](effect: RIO[Environment, T]): Unit = {
+  override def runAsync[T](effect: ZIO[Environment, Fault, T]): Unit = {
     implicit val trace: Trace = Trace.empty
     Unsafe.unsafe { implicit unsafe =>
       runtime.unsafe.fork(effect)
@@ -44,23 +53,24 @@ final case class ZioSystem[Environment]()(implicit val runtime: Runtime[Environm
     }
   }
 
-  override def completable[T]: RIO[Environment, Completable[({ type Effect[A] = RIO[Environment, A] })#Effect, T]] =
-    map(Queue.dropping[Either[Throwable, T]](1))(CompletableRIO.apply)
+  override def completable[T]
+    : ZIO[Environment, Fault, Completable[({ type Effect[A] = ZIO[Environment, Fault, A] })#Effect, T]] =
+    map(Queue.dropping[Either[Fault, T]](1))(CompletableZIO.apply)
 
-  sealed private case class CompletableRIO[T](private val queue: Queue[Either[Throwable, T]])
-    extends Completable[({ type Effect[A] = RIO[Environment, A] })#Effect, T]() {
+  sealed private case class CompletableZIO[T](private val queue: Queue[Either[Fault, T]])
+    extends Completable[({ type Effect[A] = ZIO[Environment, Fault, A] })#Effect, T]() {
 
-    override def effect: RIO[Environment, T] =
+    override def effect: ZIO[Environment, Fault, T] =
       queue.take.flatMap {
         case Right(value) => successful(value)
-        case Left(exception) => failed(exception)
+        case Left(error) => failed(mapError(error))
       }
 
-    override def succeed(value: T): RIO[Environment, Unit] =
+    override def succeed(value: T): ZIO[Environment, Fault, Unit] =
       map(queue.offer(Right(value)))(_ => ())
 
-    override def fail(exception: Throwable): RIO[Environment, Unit] =
-      map(queue.offer(Left(exception)))(_ => ())
+    override def fail(exception: Throwable): ZIO[Environment, Fault, Unit] =
+      map(queue.offer(Left(mapException(exception))))(_ => ())
   }
 }
 
@@ -72,24 +82,41 @@ object ZioSystem {
    * @tparam T
    *   effectful value type
    * @tparam Environment
-   *   effectful ZIO environment type
+   *   ZIO environment type
+   * @tparam Fault
+   *   ZIO error type
    */
-  type Effect[T, Environment] = RIO[Environment, T]
+  type Effect[T, Fault, Environment] = ZIO[Environment, Fault, T]
 
   /**
-   * Creates a ZIO effect system plugin with default environment using `RIO` as an effect type.
+   * Creates a ZIO effect system plugin with specific environment and with error handling using exceptions.
    *
    * @see
    *   [[https://zio.dev Library documentation]]
    * @see
    *   [[https://javadoc.io/doc/dev.zio/zio_3/latest/zio.html#RIO-0 Effect type]]
+   * @param runtime
+   *   ZIO runtime
+   * @tparam Environment
+   *   ZIO environment type
    * @return
    *   ZIO effect system plugin
    */
-  def default: ZioSystem[Any] =
-    ZioSystem[Any]()(defaultRuntime)
+  def withRIO[Environment](implicit runtime: Runtime[Environment]): ZioSystem[Environment, Throwable] =
+    ZioSystem(identity, identity)
 
-  /** Default ZIO runtime environment. */
-  def defaultRuntime: Runtime[Any] =
-    Runtime.default
+  /**
+   * Creates a ZIO effect system plugin without specific environment and with errors handling using exceptions.
+   *
+   * @see
+   *   [[https://zio.dev Library documentation]]
+   * @see
+   *   [[https://javadoc.io/doc/dev.zio/zio_3/latest/zio.html#Task-0 Effect type]]
+   * @param runtime
+   *   ZIO runtime
+   * @return
+   *   ZIO effect system plugin
+   */
+  def withTask(implicit runtime: Runtime[Any] = Runtime.default): ZioSystem[Any, Throwable] =
+    withRIO[Any]
 }

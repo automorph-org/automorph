@@ -26,7 +26,7 @@ private[examples] object EffectSystem {
     }
 
     // Create ZIO effect system plugin
-    val effectSystem = ZioSystem.default
+    val effectSystem = ZioSystem.withTask
 
     val run = for {
       // Initialize JSON-RPC HTTP & WebSocket server listening on port 9000 for requests to '/api'
@@ -45,7 +45,7 @@ private[examples] object EffectSystem {
       _ <- server.close()
     } yield ()
     Unsafe.unsafe { implicit unsafe =>
-      ZioSystem.defaultRuntime.unsafe.run(run)
+      effectSystem.runtime.unsafe.run(run)
     }
   }
 }
