@@ -49,10 +49,11 @@ final case class ZioHttpEndpoint[Fault](
   private lazy val mediaType = MediaType.forContentType(handler.mediaType).getOrElse(
     throw new IllegalStateException(s"Invalid message content type: ${handler.mediaType}")
   )
+  private lazy val requestHandler = Handler.fromFunctionZIO(handle)
   private val log = MessageLog(logger, Protocol.Http.name)
 
   override def adapter: http.RequestHandler[Any, Response] =
-    Handler.fromFunctionZIO(handle)
+    requestHandler
 
   override def withHandler(
     handler: RequestHandler[({ type Effect[A] = IO[Fault, A] })#Effect, Context]

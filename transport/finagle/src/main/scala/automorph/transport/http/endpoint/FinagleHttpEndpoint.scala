@@ -42,9 +42,7 @@ final case class FinagleHttpEndpoint[Effect[_]](
   handler: RequestHandler[Effect, Context] = RequestHandler.dummy[Effect, Context],
 ) extends EndpointTransport[Effect, Context, Service[Request, Response]] with Logging {
 
-  implicit private val system: EffectSystem[Effect] = effectSystem
-  private val log = MessageLog(logger, Protocol.Http.name)
-  private val service: Service[Request, Response] = (request: Request) => {
+  private lazy val service: Service[Request, Response] = (request: Request) => {
     // Log the request
     val requestId = Random.id
     lazy val requestProperties = getRequestProperties(request, requestId)
@@ -71,6 +69,8 @@ final case class FinagleHttpEndpoint[Effect[_]](
       Future(createErrorResponse(error, request, requestId, requestProperties))
     }
   }
+  implicit private val system: EffectSystem[Effect] = effectSystem
+  private val log = MessageLog(logger, Protocol.Http.name)
 
   override def adapter: Service[Request, Response] =
     service
