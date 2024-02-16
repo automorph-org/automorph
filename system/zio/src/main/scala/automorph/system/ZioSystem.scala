@@ -77,7 +77,7 @@ final case class ZioSystem[Environment, Fault](mapException: Throwable => Fault,
 object ZioSystem {
 
   /**
-   * ZIO effect type with specified environment.
+   * ZIO effect type with specified environment and error type.
    *
    * @tparam T
    *   effectful value type
