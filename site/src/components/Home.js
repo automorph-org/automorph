@@ -60,6 +60,9 @@ const integrations = [
     title: 'Finagle',
     link: 'docs/Plugins#endpoint-transport',
   }, {
+    title: 'ZIO HTTP',
+    link: 'docs/Plugins#endpoint-transport',
+  }, {
     title: 'Akka HTTP',
     link: 'docs/Plugins#endpoint-transport',
   }, {

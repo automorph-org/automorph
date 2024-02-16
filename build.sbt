@@ -74,6 +74,7 @@ lazy val root = project.in(file(".")).settings(
   undertow,
   vertx,
   jetty,
+  zioHttp,
   akkaHttp,
   pekkoHttp,
 
@@ -156,15 +157,11 @@ lazy val jackson = source(project, "codec/jackson", core, testCodec % Test).sett
 )
 lazy val json4s = source(project, "codec/json4s", core, testCodec % Test).settings(
   publish / skip := scala3.value,
-  libraryDependencies ++= Seq(
-    "org.json4s" %% "json4s-native" % "4.0.7"
-  ),
+  libraryDependencies += "org.json4s" %% "json4s-native" % "4.0.7"
 )
 lazy val playJson = source(project, "codec/play-json", core, testCodec % Test).settings(
   publish / skip := scala3.value,
-  libraryDependencies ++= Seq(
-    "org.playframework" %% "play-json" % "3.0.2"
-  ),
+  libraryDependencies += "org.playframework" %% "play-json" % "3.0.2"
 )
 lazy val weepickle = source(project, "codec/weepickle", core, testCodec % Test).settings(
   libraryDependencies ++= Seq(
@@ -193,9 +190,7 @@ lazy val sttp =
     )
   )
 lazy val rabbitmq = source(project, "transport/rabbitmq", core, testPlugin % Test).settings(
-  libraryDependencies ++= Seq(
-    "com.rabbitmq" % "amqp-client" % "5.20.0"
-  )
+  libraryDependencies += "com.rabbitmq" % "amqp-client" % "5.20.0"
 )
 
 // Server transport
@@ -223,6 +218,9 @@ lazy val jetty = source(project, "transport/jetty", core, testPlugin % Test).set
     "org.eclipse.jetty" % "jetty-servlet" % jettyVersion,
     "org.eclipse.jetty.websocket" % "websocket-jetty-server" % jettyVersion,
   )
+)
+lazy val zioHttp = source(project, "transport/zio-http", core, testPlugin % Test, zio % Test).settings(
+  libraryDependencies += "dev.zio" %% "zio-http" % "3.0.0-RC4"
 )
 val akkaVersion = "2.8.5"
 lazy val akkaHttp = source(project, "transport/akka-http", core, testPlugin % Test).settings(
