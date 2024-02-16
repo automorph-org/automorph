@@ -40,45 +40,56 @@ final case class JettyHttpEndpoint[Effect[_]](
   effectSystem: EffectSystem[Effect],
   mapException: Throwable => Int = HttpContext.toStatusCode,
   handler: RequestHandler[Effect, Context] = RequestHandler.dummy[Effect, Context],
-) extends HttpServlet with EndpointTransport[Effect, Context, HttpServlet] with Logging {
+) extends EndpointTransport[Effect, Context, HttpServlet] with Logging {
+
+  private lazy val httpServlet = new HttpServlet {
+
+    override def service(request: HttpServletRequest, response: HttpServletResponse): Unit = {
+      // Log the request
+      val asyncContext = request.startAsync()
+      asyncContext.start { () =>
+        val requestId = Random.id
+        lazy val requestProperties = getRequestProperties(request, requestId)
+        log.receivedRequest(requestProperties)
+        val requestBody = request.getInputStream.toByteArray
+
+        // Process the request
+        Try {
+          val handlerResult = handler.processRequest(requestBody, getRequestContext(request), requestId)
+          handlerResult.either.map(
+            _.fold(
+              error => sendErrorResponse(error, response, asyncContext, request, requestId, requestProperties),
+              result => {
+                // Send the response
+                val responseBody = result.map(_.responseBody).getOrElse(Array.emptyByteArray)
+                val status = result.flatMap(_.exception).map(mapException).getOrElse(HttpStatus.OK_200)
+                sendResponse(
+                  responseBody,
+                  status,
+                  result.flatMap(_.context),
+                  response,
+                  asyncContext,
+                  request,
+                  requestId,
+                )
+              },
+            )
+          ).runAsync
+        }.failed.foreach { error =>
+          sendErrorResponse(error, response, asyncContext, request, requestId, requestProperties)
+        }
+      }
+    }
+  }
 
   private val log = MessageLog(logger, Protocol.Http.name)
   implicit private val system: EffectSystem[Effect] = effectSystem
 
   override def adapter: HttpServlet =
-    this
+    httpServlet
 
   override def withHandler(handler: RequestHandler[Effect, Context]): JettyHttpEndpoint[Effect] =
     copy(handler = handler)
-
-  override def service(request: HttpServletRequest, response: HttpServletResponse): Unit = {
-    // Log the request
-    val asyncContext = request.startAsync()
-    asyncContext.start { () =>
-      val requestId = Random.id
-      lazy val requestProperties = getRequestProperties(request, requestId)
-      log.receivedRequest(requestProperties)
-      val requestBody = request.getInputStream.toByteArray
-
-      // Process the request
-      Try {
-        val handlerResult = handler.processRequest(requestBody, getRequestContext(request), requestId)
-        handlerResult.either.map(
-          _.fold(
-            error => sendErrorResponse(error, response, asyncContext, request, requestId, requestProperties),
-            result => {
-              // Send the response
-              val responseBody = result.map(_.responseBody).getOrElse(Array.emptyByteArray)
-              val status = result.flatMap(_.exception).map(mapException).getOrElse(HttpStatus.OK_200)
-              sendResponse(responseBody, status, result.flatMap(_.context), response, asyncContext, request, requestId)
-            },
-          )
-        ).runAsync
-      }.failed.foreach { error =>
-        sendErrorResponse(error, response, asyncContext, request, requestId, requestProperties)
-      }
-    }
-  }
 
   private def sendErrorResponse(
     error: Throwable,

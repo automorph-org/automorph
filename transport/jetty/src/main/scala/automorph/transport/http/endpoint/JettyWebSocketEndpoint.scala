@@ -41,57 +41,59 @@ final case class JettyWebSocketEndpoint[Effect[_]](
   effectSystem: EffectSystem[Effect],
   mapException: Throwable => Int = HttpContext.toStatusCode,
   handler: RequestHandler[Effect, Context] = RequestHandler.dummy[Effect, Context],
-) extends WebSocketAdapter
-  with JettyWebSocketCreator
-  with Logging
-  with EndpointTransport[Effect, Context, WebSocketAdapter] {
+) extends EndpointTransport[Effect, Context, WebSocketAdapter] with Logging {
+
+  private lazy val webSocketAdapter = new WebSocketAdapter {
+
+    override def onWebSocketText(message: String): Unit =
+      handle(message.toByteArray)
+
+    override def onWebSocketBinary(payload: Array[Byte], offset: Int, length: Int): Unit =
+      handle(payload)
+
+    private def handle(requestBody: Array[Byte]): Unit = {
+      // Log the request
+      val session = getSession
+      val requestId = Random.id
+      lazy val requestProperties = getRequestProperties(session, requestId)
+      log.receivedRequest(requestProperties)
+
+      // Process the request
+      Try {
+        val handlerResult = handler.processRequest(requestBody, getRequestContext(session.getUpgradeRequest), requestId)
+        handlerResult.either.map(
+          _.fold(
+            error => sendErrorResponse(error, session, requestId, requestProperties),
+            result => {
+              // Send the response
+              val responseBody = result.map(_.responseBody).getOrElse(Array.emptyByteArray)
+              sendResponse(responseBody, session, requestId)
+            },
+          )
+        ).runAsync
+      }.failed.foreach { error =>
+        sendErrorResponse(error, session, requestId, requestProperties)
+      }
+    }
+  }
+  private lazy val jettyWebSocketCreator = new JettyWebSocketCreator {
+
+    override def createWebSocket(request: JettyServerUpgradeRequest, response: JettyServerUpgradeResponse): AnyRef =
+      adapter
+  }
 
   private val log = MessageLog(logger, Protocol.Http.name)
   implicit private val system: EffectSystem[Effect] = effectSystem
 
   /** Jetty WebSocket creator. */
   def creator: JettyWebSocketCreator =
-    this
-
-  override def createWebSocket(request: JettyServerUpgradeRequest, response: JettyServerUpgradeResponse): AnyRef =
-    adapter
+    jettyWebSocketCreator
 
   override def adapter: WebSocketAdapter =
-    this
+    webSocketAdapter
 
   override def withHandler(handler: RequestHandler[Effect, Context]): JettyWebSocketEndpoint[Effect] =
     copy(handler = handler)
-
-  override def onWebSocketText(message: String): Unit =
-    handle(message.toByteArray)
-
-  override def onWebSocketBinary(payload: Array[Byte], offset: Int, length: Int): Unit =
-    handle(payload)
-
-  private def handle(requestBody: Array[Byte]): Unit = {
-    // Log the request
-    val session = getSession
-    val requestId = Random.id
-    lazy val requestProperties = getRequestProperties(session, requestId)
-    log.receivedRequest(requestProperties)
-
-    // Process the request
-    Try {
-      val handlerResult = handler.processRequest(requestBody, getRequestContext(session.getUpgradeRequest), requestId)
-      handlerResult.either.map(
-        _.fold(
-          error => sendErrorResponse(error, session, requestId, requestProperties),
-          result => {
-            // Send the response
-            val responseBody = result.map(_.responseBody).getOrElse(Array.emptyByteArray)
-            sendResponse(responseBody, session, requestId)
-          },
-        )
-      ).runAsync
-    }.failed.foreach { error =>
-      sendErrorResponse(error, session, requestId, requestProperties)
-    }
-  }
 
   private def sendErrorResponse(
     error: Throwable,
