@@ -14,7 +14,7 @@ class ZioHttpEndpointHttpZioTest extends HttpServerTest {
   type Effect[T] = Task[T]
   type Context = ZioHttpEndpoint.Context
 
-  override lazy val system: ZioSystem[Any, Throwable] = ZioSystem.withTask
+  override lazy val system: ZioSystem[Throwable] = ZioSystem()
 
   override def run[T](effect: Effect[T]): T =
     Unsafe.unsafe { implicit unsafe =>

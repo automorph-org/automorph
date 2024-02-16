@@ -6,7 +6,7 @@ import automorph.transport.http.endpoint.ZioHttpEndpoint.{Context, headerXForwar
 import automorph.transport.http.{HttpContext, HttpMethod, Protocol}
 import automorph.util.Extensions.{StringOps, ThrowableOps, TryOps}
 import automorph.util.{Network, Random}
-import zio.{Chunk, Trace, ZIO, http}
+import zio.{Chunk, IO, Trace, ZIO, http}
 import zio.http.{Body, Handler, Header, Headers, MediaType, Request, Response, Status}
 import scala.collection.immutable.ListMap
 import scala.util.Try
@@ -31,21 +31,19 @@ import scala.util.Try
  *   maps an exception to a corresponding HTTP status code
  * @param handler
  *   RPC request handler
- * @tparam Environment
- *   ZIO environment type
  * @tparam Fault
  *   ZIO error type
  */
-final case class ZioHttpEndpoint[Environment, Fault](
-  effectSystem: EffectSystem[({ type Effect[A] = ZIO[Environment, Fault, A] })#Effect],
+final case class ZioHttpEndpoint[Fault](
+  effectSystem: EffectSystem[({ type Effect[A] = IO[Fault, A] })#Effect],
   mapException: Throwable => Int = HttpContext.toStatusCode,
-  handler: RequestHandler[({ type Effect[A] = ZIO[Environment, Fault, A] })#Effect, Context] =
-    RequestHandler.dummy[({ type Effect[A] = ZIO[Environment, Fault, A] })#Effect, Context],
+  handler: RequestHandler[({ type Effect[A] = IO[Fault, A] })#Effect, Context] =
+    RequestHandler.dummy[({ type Effect[A] = IO[Fault, A] })#Effect, Context],
 ) extends Logging
   with EndpointTransport[
-    ({ type Effect[A] = ZIO[Environment, Fault, A] })#Effect,
+    ({ type Effect[A] = IO[Fault, A] })#Effect,
     Context,
-    http.RequestHandler[Environment, Response],
+    http.RequestHandler[Any, Response],
   ] {
 
   private lazy val mediaType = MediaType.forContentType(handler.mediaType).getOrElse(
@@ -53,15 +51,15 @@ final case class ZioHttpEndpoint[Environment, Fault](
   )
   private val log = MessageLog(logger, Protocol.Http.name)
 
-  override def adapter: http.RequestHandler[Environment, Response] =
+  override def adapter: http.RequestHandler[Any, Response] =
     Handler.fromFunctionZIO(handle)
 
   override def withHandler(
-    handler: RequestHandler[({ type Effect[A] = ZIO[Environment, Fault, A] })#Effect, Context]
-  ): ZioHttpEndpoint[Environment, Fault] =
+    handler: RequestHandler[({ type Effect[A] = IO[Fault, A] })#Effect, Context]
+  ): ZioHttpEndpoint[Fault] =
     copy(handler = handler)
 
-  private def handle(request: Request): ZIO[Environment, Response, Response] = {
+  private def handle(request: Request): IO[Response, Response] = {
     // Log the request
     val requestId = Random.id
     lazy val requestProperties = getRequestProperties(request, requestId)

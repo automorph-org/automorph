@@ -8,7 +8,7 @@ import automorph.util.Extensions.{StringOps, ThrowableOps, TryOps}
 import automorph.util.Random
 import zio.http.ChannelEvent.{ExceptionCaught, Read}
 import zio.http.{WebSocketChannel, WebSocketFrame}
-import zio.{Chunk, Trace, ZIO}
+import zio.{Chunk, IO, Trace, ZIO}
 import scala.collection.immutable.ListMap
 import scala.util.Try
 
@@ -35,27 +35,27 @@ import scala.util.Try
  * @tparam Fault
  *   ZIO error type
  */
-final case class ZioHttpWebSocketEndpoint[Environment, Fault](
-  effectSystem: EffectSystem[({ type Effect[A] = ZIO[Environment, Fault, A] })#Effect],
-  handler: RequestHandler[({ type Effect[A] = ZIO[Environment, Fault, A] })#Effect, Context] =
-    RequestHandler.dummy[({ type Effect[A] = ZIO[Environment, Fault, A] })#Effect, Context],
+final case class ZioHttpWebSocketEndpoint[Fault](
+  effectSystem: EffectSystem[({ type Effect[A] = IO[Fault, A] })#Effect],
+  handler: RequestHandler[({ type Effect[A] = IO[Fault, A] })#Effect, Context] =
+    RequestHandler.dummy[({ type Effect[A] = IO[Fault, A] })#Effect, Context],
 ) extends Logging
   with EndpointTransport[
-    ({ type Effect[A] = ZIO[Environment, Fault, A] })#Effect,
+    ({ type Effect[A] = IO[Fault, A] })#Effect,
     Context,
-    WebSocketChannel => ZIO[Environment, Throwable, Any],
+    WebSocketChannel => IO[Throwable, Any],
   ] {
   private val log = MessageLog(logger, Protocol.WebSocket.name)
 
-  override def adapter: WebSocketChannel => ZIO[Environment, Throwable, Any] =
+  override def adapter: WebSocketChannel => IO[Throwable, Any] =
     channel => handle(channel)
 
   override def withHandler(
-    handler: RequestHandler[({ type Effect[A] = ZIO[Environment, Fault, A] })#Effect, Context]
-  ): ZioHttpWebSocketEndpoint[Environment, Fault] =
+    handler: RequestHandler[({ type Effect[A] = IO[Fault, A] })#Effect, Context]
+  ): ZioHttpWebSocketEndpoint[Fault] =
     copy(handler = handler)
 
-  private def handle(channel: WebSocketChannel): ZIO[Environment, Throwable, Any] =
+  private def handle(channel: WebSocketChannel): IO[Throwable, Any] =
     channel.receiveAll {
       case Read(WebSocketFrame.Binary(request)) =>
         // Log the request
