@@ -1,7 +1,6 @@
 package test.system
 
 import automorph.system.FutureSystem
-import scala.concurrent.ExecutionContext.Implicits.global
 import scala.concurrent.Future
 import scala.util.Try
 import test.base.Await

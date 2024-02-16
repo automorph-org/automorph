@@ -6,7 +6,6 @@ import automorph.transport.amqp.client.RabbitMqClient
 import automorph.transport.amqp.server.RabbitMqServer
 import automorph.transport.local.client.LocalClient
 import org.scalacheck.Arbitrary
-import scala.concurrent.ExecutionContext.Implicits.global
 import scala.concurrent.Future
 import test.base.{Await, Mutex}
 import test.core.ClientServerTest

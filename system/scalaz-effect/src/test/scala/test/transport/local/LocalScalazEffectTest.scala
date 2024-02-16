@@ -2,7 +2,6 @@ package test.transport.local
 
 import automorph.spi.EffectSystem
 import automorph.system.ScalazEffectSystem
-import scala.concurrent.ExecutionContext.Implicits.global
 import scalaz.effect.IO
 
 class LocalScalazEffectTest extends LocalTest {

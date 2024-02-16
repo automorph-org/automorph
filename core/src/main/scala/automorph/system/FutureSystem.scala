@@ -17,7 +17,8 @@ import scala.util.Success
  * @param executionContext
  *   execution context
  */
-final case class FutureSystem()(implicit val executionContext: ExecutionContext) extends AsyncEffectSystem[Future] {
+final case class FutureSystem()(implicit executionContext: ExecutionContext = ExecutionContext.Implicits.global)
+  extends AsyncEffectSystem[Future] {
 
   override def evaluate[T](value: => T): Future[T] =
     Future(value)

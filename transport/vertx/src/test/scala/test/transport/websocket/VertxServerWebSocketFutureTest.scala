@@ -5,7 +5,6 @@ import automorph.system.FutureSystem
 import automorph.transport.http.server.VertxServer
 import automorph.transport.websocket.endpoint.VertxWebSocketEndpoint
 import org.scalacheck.Arbitrary
-import scala.concurrent.ExecutionContext.Implicits.global
 import scala.concurrent.Future
 import test.transport.WebSocketServerTest
 import test.transport.http.HttpContextGenerator

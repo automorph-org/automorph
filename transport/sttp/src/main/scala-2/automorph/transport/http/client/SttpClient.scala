@@ -54,7 +54,7 @@ object SttpClient {
    *
    * @param effectSystem
    *   effect system plugin
-   * @param backend
+    @param backend
    *   STTP backend
    * @param url
    *   remote API HTTP URL

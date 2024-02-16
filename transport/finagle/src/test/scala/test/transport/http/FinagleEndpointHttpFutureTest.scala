@@ -6,7 +6,6 @@ import automorph.transport.http.endpoint.FinagleHttpEndpoint
 import com.twitter.finagle.{Http, ListeningServer}
 import com.twitter.util.{Return, Throw}
 import org.scalacheck.Arbitrary
-import scala.concurrent.ExecutionContext.Implicits.global
 import scala.concurrent.{Future, Promise}
 import test.transport.HttpServerTest
 import test.transport.http.FinagleEndpointHttpFutureTest.FinagleServer

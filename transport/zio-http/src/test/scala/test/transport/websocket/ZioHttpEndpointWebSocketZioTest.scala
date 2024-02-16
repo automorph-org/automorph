@@ -40,14 +40,14 @@ object ZioEndpointHttpWebSocketZioTest {
     effectSystem: EffectSystem[Effect],
     port: Int,
   ) extends ServerTransport[Effect, Context] with ZIOAppDefault {
-
+/
 //    private var server = Option.empty[ListeningServer]
     private lazy val webSocketApp = Handler.webSocket[Any](endpoint.adapter)
     private lazy val httpApp = Routes(Method.POST / "/" -> handler(webSocketApp.toResponse)).toHttpApp
     private var endpoint = ZioHttpWebSocketEndpoint(effectSystem)
 
     override def run: ZIO[Any, Throwable, Nothing] =
-      Server.serve(httpApp).provide(Server.default)
+      Server.serve(httpApp).provide(Server.defaultWithPort(port))
 
     override def withHandler(handler: RequestHandler[Effect, Context]): ServerTransport[Effect, Context] = {
       endpoint = endpoint.withHandler(handler)

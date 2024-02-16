@@ -5,7 +5,6 @@ import automorph.system.FutureSystem
 import automorph.transport.http.endpoint.VertxHttpEndpoint
 import automorph.transport.http.server.VertxServer
 import org.scalacheck.Arbitrary
-import scala.concurrent.ExecutionContext.Implicits.global
 import scala.concurrent.Future
 import test.transport.HttpServerTest
 

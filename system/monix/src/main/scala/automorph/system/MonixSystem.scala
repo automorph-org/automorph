@@ -18,7 +18,8 @@ import monix.execution.Scheduler
  * @param scheduler
  *   task scheduler
  */
-final case class MonixSystem()(implicit val scheduler: Scheduler) extends AsyncEffectSystem[Task] {
+final case class MonixSystem()(implicit val scheduler: Scheduler = Scheduler.Implicits.global)
+  extends AsyncEffectSystem[Task] {
 
   override def evaluate[T](value: => T): Task[T] =
     Task.evalAsync(value)

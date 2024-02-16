@@ -5,7 +5,6 @@ import automorph.system.FutureSystem
 import automorph.transport.http.endpoint.PekkoHttpEndpoint
 import automorph.transport.http.server.PekkoServer
 import org.scalacheck.Arbitrary
-import scala.concurrent.ExecutionContext.Implicits.global
 import scala.concurrent.Future
 import test.transport.HttpServerTest
 

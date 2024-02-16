@@ -5,7 +5,6 @@ import automorph.system.FutureSystem
 import automorph.transport.http.server.UndertowServer
 import automorph.transport.websocket.endpoint.UndertowWebSocketEndpoint
 import org.scalacheck.Arbitrary
-import scala.concurrent.ExecutionContext.Implicits.global
 import scala.concurrent.Future
 import test.transport.WebSocketServerTest
 import test.transport.http.HttpContextGenerator
