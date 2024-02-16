@@ -187,15 +187,15 @@ const features = [
     ),
   }, {
     title: 'Standards',
-    link: 'https://central.sonatype.com/namespace/org.automorph',
+    link: 'docs/Plugins#rpc-protocol',
     description: tags(standards),
   }, {
     title: 'Integrations',
-    link: 'https://central.sonatype.com/namespace/org.automorph',
+    link: 'docs/Plugins#message-codec',
     description: tags(integrations),
   }, {
     title: 'Effects',
-    link: 'https://central.sonatype.com/namespace/org.automorph',
+    link: 'docs/Plugins#effect-system',
     description: tags(effects),
   },
 ]
