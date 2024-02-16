@@ -8,6 +8,7 @@ import org.scalacheck.Arbitrary
 import sttp.client3.okhttp.OkHttpFutureBackend
 import test.transport.HttpClientTest
 import test.transport.http.HttpContextGenerator
+import scala.concurrent.ExecutionContext.Implicits.global
 import scala.concurrent.Future
 
 class SttpClientOkHttpHttpFutureTest extends HttpClientTest {

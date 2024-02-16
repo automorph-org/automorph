@@ -7,6 +7,7 @@ import automorph.transport.http.client.HttpClient
 import automorph.transport.http.server.NanoServer
 import java.net.URI
 import org.scalacheck.Arbitrary
+import scala.concurrent.ExecutionContext.Implicits.global
 import scala.concurrent.Future
 import test.core.ClientServerTest
 import test.transport.http.HttpContextGenerator

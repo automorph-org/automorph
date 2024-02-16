@@ -18,8 +18,7 @@ import cats.effect.unsafe.IORuntime
  * @param runtime
  *   runtime system
  */
-final case class CatsEffectSystem()(implicit val runtime: IORuntime = cats.effect.unsafe.implicits.global)
-  extends AsyncEffectSystem[IO] {
+final case class CatsEffectSystem()(implicit val runtime: IORuntime) extends AsyncEffectSystem[IO] {
 
   override def evaluate[T](value: => T): IO[T] =
     IO(value)

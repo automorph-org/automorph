@@ -4,6 +4,7 @@ import automorph.spi.{EffectSystem, RequestHandler, ServerTransport}
 import automorph.system.CatsEffectSystem
 import automorph.transport.http.endpoint.TapirHttpEndpoint
 import cats.effect.IO
+import cats.effect.unsafe.implicits.global
 import com.comcast.ip4s.Port
 import org.http4s.ember.server.EmberServerBuilder
 import org.scalacheck.Arbitrary

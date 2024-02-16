@@ -4,6 +4,7 @@ import automorph.spi.{EffectSystem, RequestHandler, ServerTransport}
 import automorph.system.FutureSystem
 import automorph.transport.http.endpoint.TapirHttpEndpoint
 import org.scalacheck.Arbitrary
+import scala.concurrent.ExecutionContext.Implicits.global
 import scala.concurrent.Future
 import sttp.tapir.server.netty.{NettyFutureServer, NettyFutureServerBinding}
 import test.transport.HttpServerTest

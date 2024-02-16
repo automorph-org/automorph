@@ -7,6 +7,7 @@ import io.vertx.core.Vertx
 import io.vertx.core.http.HttpServer
 import io.vertx.ext.web.Router
 import org.scalacheck.Arbitrary
+import scala.concurrent.ExecutionContext.Implicits.global
 import scala.concurrent.Future
 import sttp.tapir.server.vertx.VertxFutureServerInterpreter
 import test.transport.HttpServerTest

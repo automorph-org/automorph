@@ -2,6 +2,7 @@ package test.transport.local
 
 import automorph.spi.EffectSystem
 import automorph.system.FutureSystem
+import scala.concurrent.ExecutionContext.Implicits.global
 import scala.concurrent.Future
 
 class LocalFutureTest extends LocalTest {

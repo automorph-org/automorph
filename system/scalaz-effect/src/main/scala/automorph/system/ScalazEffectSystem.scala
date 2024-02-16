@@ -16,8 +16,7 @@ import scalaz.effect.IO
  * @param executionContext
  *   execution context
  */
-final case class ScalazEffectSystem()(implicit executionContext: ExecutionContext = ExecutionContext.Implicits.global)
-  extends EffectSystem[IO] {
+final case class ScalazEffectSystem()(implicit val executionContext: ExecutionContext) extends EffectSystem[IO] {
 
   override def evaluate[T](value: => T): IO[T] =
     IO(value)

@@ -5,6 +5,7 @@ import automorph.system.FutureSystem
 import automorph.transport.http.endpoint.TapirHttpEndpoint
 import com.linecorp.armeria.server.Server
 import org.scalacheck.Arbitrary
+import scala.concurrent.ExecutionContext.Implicits.global
 import scala.concurrent.Future
 import sttp.tapir.server.armeria.ArmeriaFutureServerInterpreter
 import test.transport.HttpServerTest

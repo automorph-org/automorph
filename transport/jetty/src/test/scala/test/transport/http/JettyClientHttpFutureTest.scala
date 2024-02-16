@@ -5,6 +5,7 @@ import automorph.system.FutureSystem
 import automorph.transport.http.HttpMethod
 import automorph.transport.http.client.JettyClient
 import org.scalacheck.Arbitrary
+import scala.concurrent.ExecutionContext.Implicits.global
 import scala.concurrent.Future
 import test.transport.HttpClientTest
 

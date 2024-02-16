@@ -2,6 +2,7 @@ package test.system
 
 import automorph.system.MonixSystem
 import monix.eval.Task
+import monix.execution.Scheduler.Implicits.global
 import scala.concurrent.duration.Duration
 import scala.util.Try
 
