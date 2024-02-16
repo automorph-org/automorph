@@ -15,7 +15,7 @@ class SttpClientAsyncHttpClientHttpZioTest extends HttpClientTest {
   type Effect[T] = Task[T]
   type Context = SttpClient.Context
 
-  override lazy val system: ZioSystem[Any] = ZioSystem.apply
+  override lazy val system: ZioSystem[Any, Throwable] = ZioSystem.withTask
 
   override def run[T](effect: Effect[T]): T =
     Unsafe.unsafe { implicit unsafe =>
