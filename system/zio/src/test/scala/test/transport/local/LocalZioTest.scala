@@ -6,7 +6,7 @@ import zio.{Task, Unsafe}
 class LocalZioTest extends LocalTest {
   type Effect[T] = Task[T]
 
-  override lazy val system: ZioSystem[Throwable] = ZioSystem()
+  override lazy val system: ZioSystem[Throwable] = ZioSystem.withTask
 
   override def run[T](effect: Effect[T]): T =
     Unsafe.unsafe { implicit unsafe =>

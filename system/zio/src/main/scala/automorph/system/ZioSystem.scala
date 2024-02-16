@@ -22,7 +22,10 @@ import zio.{IO, Queue, Runtime, Trace, Unsafe, ZIO}
  * @tparam Fault
  *   ZIO error type
  */
-final case class ZioSystem[Fault](mapException: Throwable => Fault, mapError: Fault => Throwable)(
+final case class ZioSystem[Fault](
+  mapException: Throwable => Fault,
+  mapError: (Fault, Trace) => Throwable = ZioSystem.mapError,
+)(
   implicit val runtime: Runtime[Any]
 ) extends AsyncEffectSystem[({ type Effect[A] = IO[Fault, A] })#Effect] {
 
@@ -36,7 +39,10 @@ final case class ZioSystem[Fault](mapException: Throwable => Fault, mapError: Fa
     ZIO.fail(exception).mapError(mapException)
 
   override def either[T](effect: => IO[Fault, T]): IO[Fault, Either[Throwable, T]] =
-    effect.either.map(_.fold(error => Left(mapError(error)), value => Right(value)))
+    effect.fold(
+      error => Left(mapError(error, implicitly[Trace])).withRight[T],
+      value => Right(value),
+    )
 
   override def flatMap[T, R](effect: IO[Fault, T])(function: T => IO[Fault, R]): IO[Fault, R] =
     effect.flatMap(function)
@@ -49,8 +55,7 @@ final case class ZioSystem[Fault](mapException: Throwable => Fault, mapError: Fa
     }
   }
 
-  override def completable[T]
-    : IO[Fault, Completable[({ type Effect[A] = IO[Fault, A] })#Effect, T]] =
+  override def completable[T]: IO[Fault, Completable[({ type Effect[A] = IO[Fault, A] })#Effect, T]] =
     map(Queue.dropping[Either[Fault, T]](1))(CompletableZIO.apply)
 
   sealed private case class CompletableZIO[T](private val queue: Queue[Either[Fault, T]])
@@ -59,7 +64,7 @@ final case class ZioSystem[Fault](mapException: Throwable => Fault, mapError: Fa
     override def effect: IO[Fault, T] =
       queue.take.flatMap {
         case Right(value) => successful(value)
-        case Left(error) => failed(mapError(error))
+        case Left(error) => failed(mapError(error, implicitly[Trace]))
       }
 
     override def succeed(value: T): IO[Fault, Unit] =
@@ -94,10 +99,20 @@ object ZioSystem {
    * @return
    *   ZIO effect system plugin
    */
-  def apply(implicit runtime: Runtime[Any] = Runtime.default): ZioSystem[Throwable] =
-    ZioSystem.apply(identity, identity)
+  def withTask(implicit runtime: Runtime[Any] = Runtime.default): ZioSystem[Throwable] =
+    ZioSystem[Throwable](identity, (error: Throwable, _: Trace) => error)
 
-  def toException[Fault](error: Fault, trace: Trace): Throwable = ???
-
-  def toError[Fault](exception: Throwable): Fault = ???
+  /**
+   * Maps a ZIO error to a RuntimeException containing the error trace.
+   *
+   * @param error
+   *   ZIO error
+   * @param trace
+   *   ZIO trace
+   * @tparam Fault
+   *   ZIO error type
+   * @return
+   */
+  def mapError[Fault](error: Fault, trace: Trace): Throwable =
+    new RuntimeException(s"$error\n$trace")
 }

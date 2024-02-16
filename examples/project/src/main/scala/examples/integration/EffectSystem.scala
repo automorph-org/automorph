@@ -26,7 +26,7 @@ private[examples] object EffectSystem {
     }
 
     // Create ZIO effect system plugin
-    val effectSystem = ZioSystem()
+    val effectSystem = ZioSystem.withTask
 
     val run = for {
       // Initialize JSON-RPC HTTP & WebSocket server listening on port 9000 for requests to '/api'
