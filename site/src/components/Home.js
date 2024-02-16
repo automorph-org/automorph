@@ -39,7 +39,7 @@ const standards = [
 
 const integrations = [
   {
-    title: 'HTTPClient',
+    title: 'HTTP Client',
     link: 'https://openjdk.org/groups/net/httpclient/intro.html',
   }, {
     title: 'STTP',
@@ -78,7 +78,7 @@ const integrations = [
     title: 'Jackson',
     link: 'docs/Plugins#message-codec',
   }, {
-    title: 'PlayJson',
+    title: 'Play JSON',
     link: 'docs/Plugins#message-codec',
   }, {
     title: 'Json4s',
@@ -242,7 +242,7 @@ function FeatureCell({title, link, description}) {
   return (
     <div className='col col--4'>
       <div className='text--center padding-horiz--sm padding-vert--sm'>
-        <h3 style={{lineHeight: '1.0rem'}}><a href={link}>{title}</a></h3>
+        <h3 style={{lineHeight: '0.8rem'}}><a href={link}>{title}</a></h3>
         <p style={{fontSize: '1.0rem'}}>{description}</p>
       </div>
     </div>
@@ -263,7 +263,7 @@ function DocumentationRow() {
   return (
     <div className='row'>
       <div className='col col--12'>
-        <div className='text--center padding-bottom--lg'>
+        <div className='text--center padding-bottom--md'>
           <a className='button' href='docs/Quickstart' style={{
             color: 'var(--sidebar-background-color)',
             backgroundColor: 'var(--ifm-link-color)',
