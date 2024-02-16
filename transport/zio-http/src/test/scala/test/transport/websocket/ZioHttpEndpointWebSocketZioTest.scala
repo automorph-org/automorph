@@ -1,18 +1,18 @@
-package test.transport.http
+package test.transport.websocket
 
 import automorph.spi.{EffectSystem, EndpointTransport, RequestHandler, ServerTransport}
 import automorph.system.ZioSystem
-import automorph.transport.http.endpoint.ZioHttpEndpoint
-import org.scalacheck.Arbitrary
-import test.transport.HttpServerTest
-import test.transport.http.ZioEndpointHttpZioTest.ZioServer
-import zio.http.{Method, Routes, Server}
+import automorph.transport.http.endpoint.ZioHttpWebSocketEndpoint
+import org.scalacheck.{Arbitrary, Gen}
+import test.transport.WebSocketServerTest
+import test.transport.websocket.ZioEndpointHttpWebSocketZioTest.ZioServer
+import zio.http.{Handler, Method, Routes, Server, handler}
 import zio.{Task, Unsafe, ZIO, ZIOAppDefault}
 
-class ZioHttpEndpointHttpZioTest extends HttpServerTest {
+class ZioHttpEndpointWebSocketZioTest extends WebSocketServerTest {
 
   type Effect[T] = Task[T]
-  type Context = ZioHttpEndpoint.Context
+  type Context = ZioHttpWebSocketEndpoint.Context
 
   override lazy val system: ZioSystem[Throwable] = ZioSystem.withTask
 
@@ -22,19 +22,19 @@ class ZioHttpEndpointHttpZioTest extends HttpServerTest {
     }
 
   override def arbitraryContext: Arbitrary[Context] =
-    HttpContextGenerator.arbitrary
+    Arbitrary(Gen.const(()))
 
   override def serverTransport(fixtureId: String): ServerTransport[Effect, Context] =
     ZioServer(system, port(fixtureId))
 
   override def endpointTransport: EndpointTransport[Task, Context, ?] =
-    ZioHttpEndpoint(system)
+    ZioHttpWebSocketEndpoint(system)
 }
 
-object ZioEndpointHttpZioTest {
+object ZioEndpointHttpWebSocketZioTest {
 
   type Effect[T] = Task[T]
-  type Context = ZioHttpEndpoint.Context
+  type Context = ZioHttpWebSocketEndpoint.Context
 
   final case class ZioServer(
     effectSystem: EffectSystem[Effect],
@@ -42,8 +42,9 @@ object ZioEndpointHttpZioTest {
   ) extends ServerTransport[Effect, Context] with ZIOAppDefault {
 
 //    private var server = Option.empty[ListeningServer]
-    private lazy val httpApp = Routes(Method.POST / "/" -> endpoint.adapter).toHttpApp
-    private var endpoint = ZioHttpEndpoint(effectSystem)
+    private lazy val webSocketApp = Handler.webSocket[Any](endpoint.adapter)
+    private lazy val httpApp = Routes(Method.POST / "/" -> handler(webSocketApp.toResponse)).toHttpApp
+    private var endpoint = ZioHttpWebSocketEndpoint(effectSystem)
 
     override def run: ZIO[Any, Throwable, Nothing] =
       Server.serve(httpApp).provide(Server.default)
