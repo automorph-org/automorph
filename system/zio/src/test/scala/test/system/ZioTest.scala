@@ -6,7 +6,7 @@ import zio.{Runtime, Task, Unsafe}
 class ZioTest extends AsyncEffectSystemTest[Task] {
   override lazy val system: ZioSystem[Throwable] = {
     implicit val runtime: Runtime[Any] = Runtime.default
-    ZioSystem.apply
+    ZioSystem()
   }
 
   def run[T](effect: Task[T]): Either[Throwable, T] =

@@ -17,7 +17,7 @@ class SttpClientAsyncHttpClientHttpZioTest extends HttpClientTest {
 
   override lazy val system: ZioSystem[Throwable] = {
     implicit val runtime: Runtime[Any] = Runtime.default
-    ZioSystem.apply
+    ZioSystem()
   }
 
   override def run[T](effect: Effect[T]): T =

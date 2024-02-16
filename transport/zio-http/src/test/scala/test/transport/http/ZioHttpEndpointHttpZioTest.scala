@@ -7,14 +7,17 @@ import org.scalacheck.Arbitrary
 import test.transport.HttpServerTest
 import test.transport.http.ZioEndpointHttpZioTest.ZioServer
 import zio.http.{Method, Routes, Server}
-import zio.{Task, Unsafe, ZIO, ZIOAppDefault}
+import zio.{Runtime, Task, Unsafe, ZIO, ZIOAppDefault}
 
 class ZioHttpEndpointHttpZioTest extends HttpServerTest {
 
   type Effect[T] = Task[T]
   type Context = ZioHttpEndpoint.Context
 
-  override lazy val system: ZioSystem[Throwable] = ZioSystem.apply
+  override lazy val system: ZioSystem[Throwable] = {
+    implicit val runtime: Runtime[Any] = Runtime.default
+    ZioSystem()
+  }
 
   override def run[T](effect: Effect[T]): T =
     Unsafe.unsafe { implicit unsafe =>

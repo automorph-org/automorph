@@ -98,7 +98,7 @@ object ZioSystem {
    * @return
    *   ZIO effect system plugin
    */
-  def apply(implicit runtime: Runtime[Any]): ZioSystem[Throwable] =
+  def apply()(implicit runtime: Runtime[Any]): ZioSystem[Throwable] =
     ZioSystem[Throwable](identity, (error: Throwable, _: Trace) => error)
 
   /**

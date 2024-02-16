@@ -8,7 +8,7 @@ class LocalZioTest extends LocalTest {
 
   override lazy val system: ZioSystem[Throwable] = {
     implicit val runtime: Runtime[Any] = Runtime.default
-    ZioSystem.apply
+    ZioSyste()
   }
 
   override def run[T](effect: Effect[T]): T =
