@@ -47,7 +47,7 @@ final case class RabbitMqClient[Effect[_]](
   exchange: String = RabbitMq.directExchange,
   addresses: Seq[Address] = Seq.empty,
   connectionFactory: ConnectionFactory = new ConnectionFactory,
-) extends Logging with ClientTransport[Effect, Context] {
+) extends ClientTransport[Effect, Context] with Logging {
   private var session = Option.empty[RabbitMq.Session]
   private val directReplyToQueue = "amq.rabbitmq.reply-to"
   private val clientId = RabbitMq.applicationId(getClass.getName)

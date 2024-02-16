@@ -47,7 +47,7 @@ final case class RabbitMqServer[Effect[_]](
   addresses: Seq[Address] = Seq.empty,
   connectionFactory: ConnectionFactory = new ConnectionFactory,
   handler: RequestHandler[Effect, Context] = RequestHandler.dummy[Effect, Context],
-) extends Logging with ServerTransport[Effect, Context] {
+) extends ServerTransport[Effect, Context] with Logging {
 
   private val exchange = RabbitMq.directExchange
   private var session = Option.empty[RabbitMq.Session]

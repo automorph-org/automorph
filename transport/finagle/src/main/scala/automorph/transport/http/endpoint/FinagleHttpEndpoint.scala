@@ -40,18 +40,11 @@ final case class FinagleHttpEndpoint[Effect[_]](
   effectSystem: EffectSystem[Effect],
   mapException: Throwable => Int = HttpContext.toStatusCode,
   handler: RequestHandler[Effect, Context] = RequestHandler.dummy[Effect, Context],
-) extends Service[Request, Response] with Logging with EndpointTransport[Effect, Context, Service[Request, Response]] {
+) extends EndpointTransport[Effect, Context, Service[Request, Response]] with Logging {
 
-  private val log = MessageLog(logger, Protocol.Http.name)
   implicit private val system: EffectSystem[Effect] = effectSystem
-
-  override def adapter: Service[Request, Response] =
-    this
-
-  override def withHandler(handler: RequestHandler[Effect, Context]): FinagleHttpEndpoint[Effect] =
-    copy(handler = handler)
-
-  override def apply(request: Request): Future[Response] = {
+  private val log = MessageLog(logger, Protocol.Http.name)
+  private val service: Service[Request, Response] = (request: Request) => {
     // Log the request
     val requestId = Random.id
     lazy val requestProperties = getRequestProperties(request, requestId)
@@ -78,6 +71,12 @@ final case class FinagleHttpEndpoint[Effect[_]](
       Future(createErrorResponse(error, request, requestId, requestProperties))
     }
   }
+
+  override def adapter: Service[Request, Response] =
+    service
+
+  override def withHandler(handler: RequestHandler[Effect, Context]): FinagleHttpEndpoint[Effect] =
+    copy(handler = handler)
 
   private def createErrorResponse(
     error: Throwable,
@@ -111,8 +110,8 @@ final case class FinagleHttpEndpoint[Effect[_]](
       responseStatus,
       Reader.fromBuf(Buf.ByteArray.Owned(responseBody)),
     )
-    setResponseContext(response, responseContext)
     response.contentType = handler.mediaType
+    setResponseContext(response, responseContext)
     log.sendingResponse(responseProperties)
     response
   }

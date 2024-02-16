@@ -43,9 +43,8 @@ final case class UndertowWebSocketEndpoint[Effect[_]](
   effectSystem: EffectSystem[Effect],
   handler: RequestHandler[Effect, Context] = RequestHandler.dummy[Effect, Context],
 ) extends WebSocketConnectionCallback
-  with AutoCloseable
-  with Logging
-  with EndpointTransport[Effect, Context, WebSocketConnectionCallback] {
+  with EndpointTransport[Effect, Context, WebSocketConnectionCallback]
+  with Logging {
 
   private val log = MessageLog(logger, Protocol.WebSocket.name)
 
@@ -69,9 +68,6 @@ final case class UndertowWebSocketEndpoint[Effect[_]](
     channel.getReceiveSetter.set(receiveListener)
     channel.resumeReceives()
   }
-
-  override def close(): Unit =
-    ()
 }
 
 object UndertowWebSocketEndpoint {

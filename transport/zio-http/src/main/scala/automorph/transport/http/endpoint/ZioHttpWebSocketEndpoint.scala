@@ -39,12 +39,12 @@ final case class ZioHttpWebSocketEndpoint[Fault](
   effectSystem: EffectSystem[({ type Effect[A] = IO[Fault, A] })#Effect],
   handler: RequestHandler[({ type Effect[A] = IO[Fault, A] })#Effect, Context] =
     RequestHandler.dummy[({ type Effect[A] = IO[Fault, A] })#Effect, Context],
-) extends Logging
-  with EndpointTransport[
+) extends EndpointTransport[
     ({ type Effect[A] = IO[Fault, A] })#Effect,
     Context,
     WebSocketChannel => IO[Throwable, Any],
-  ] {
+  ]
+  with Logging {
   private val log = MessageLog(logger, Protocol.WebSocket.name)
 
   override def adapter: WebSocketChannel => IO[Throwable, Any] =

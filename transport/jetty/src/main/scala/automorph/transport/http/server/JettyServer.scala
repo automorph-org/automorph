@@ -70,7 +70,7 @@ final case class JettyServer[Effect[_]](
   maxFrameSize: Long = 65536,
   attributes: Map[String, String] = Map.empty,
   handler: RequestHandler[Effect, Context] = RequestHandler.dummy[Effect, Context],
-) extends Logging with ServerTransport[Effect, Context] {
+) extends ServerTransport[Effect, Context] with Logging {
 
   private lazy val server = createServer()
   private val allowedMethods = methods.map(_.name).toSet

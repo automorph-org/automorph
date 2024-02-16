@@ -59,11 +59,11 @@ final case class UndertowServer[Effect[_]](
   mapException: Throwable => Int = HttpContext.toStatusCode,
   builder: Undertow.Builder = UndertowServer.builder,
   handler: RequestHandler[Effect, Context] = RequestHandler.dummy[Effect, Context],
-) extends Logging with ServerTransport[Effect, Context] {
+) extends ServerTransport[Effect, Context] with Logging {
 
-  private var active = false
   private lazy val server = createServer()
   private val allowedMethods = methods.map(_.name).toSet
+  private var active = false
 
   override def withHandler(handler: RequestHandler[Effect, Context]): UndertowServer[Effect] =
     copy(handler = handler)

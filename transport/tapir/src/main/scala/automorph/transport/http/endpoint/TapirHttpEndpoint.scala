@@ -52,15 +52,13 @@ final case class TapirHttpEndpoint[Effect[_]](
   method: Option[HttpMethod] = None,
   mapException: Throwable => Int = HttpContext.toStatusCode,
   handler: RequestHandler[Effect, Context] = RequestHandler.dummy[Effect, Context],
-) extends Logging
-  with EndpointTransport[
+) extends EndpointTransport[
     Effect,
     Context,
     ServerEndpoint.Full[Unit, Unit, Request, Unit, (Array[Byte], StatusCode), Any, Effect],
-  ] {
+  ]
+  with Logging {
 
-  private val allowedMethod = method.map(httpMethod => Method(httpMethod.name))
-  private val prefixPaths = pathComponents(pathPrefix)
   private lazy val mediaType = MediaType.parse(handler.mediaType).fold(
     error =>
       throw new IllegalStateException(
@@ -71,6 +69,8 @@ final case class TapirHttpEndpoint[Effect[_]](
   )
   private lazy val codec = id[Array[Byte], MessageFormat](MessageFormat(mediaType), Schema.schemaForByteArray)
   private lazy val body = EndpointIO.Body(RawBodyType.ByteArrayBody, codec, EndpointIO.Info.empty)
+  private val allowedMethod = method.map(httpMethod => Method(httpMethod.name))
+  private val prefixPaths = pathComponents(pathPrefix)
   private val log = MessageLog(logger, Protocol.Http.name)
   implicit private val system: EffectSystem[Effect] = effectSystem
 
@@ -153,9 +153,6 @@ object TapirHttpEndpoint {
 
   /** Endpoint request type. */
   type Request = (Array[Byte], List[String], QueryParams, List[Header])
-
-  final private[automorph] case class MessageFormat(mediaType: MediaType) extends CodecFormat
-
   private val leadingSlashPattern = "^/+".r
   private val trailingSlashPattern = "/+$".r
   private val multiSlashPattern = "/+".r
@@ -207,4 +204,6 @@ object TapirHttpEndpoint {
 
   private def urlPath(paths: List[String]): String =
     s"/${paths.mkString("/")}"
+
+  final private[automorph] case class MessageFormat(mediaType: MediaType) extends CodecFormat
 }

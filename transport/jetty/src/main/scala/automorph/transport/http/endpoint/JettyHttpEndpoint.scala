@@ -40,7 +40,7 @@ final case class JettyHttpEndpoint[Effect[_]](
   effectSystem: EffectSystem[Effect],
   mapException: Throwable => Int = HttpContext.toStatusCode,
   handler: RequestHandler[Effect, Context] = RequestHandler.dummy[Effect, Context],
-) extends HttpServlet with Logging with EndpointTransport[Effect, Context, HttpServlet] {
+) extends HttpServlet with EndpointTransport[Effect, Context, HttpServlet] with Logging {
 
   private val log = MessageLog(logger, Protocol.Http.name)
   implicit private val system: EffectSystem[Effect] = effectSystem

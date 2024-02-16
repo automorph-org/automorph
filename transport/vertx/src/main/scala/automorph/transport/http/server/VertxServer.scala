@@ -58,7 +58,7 @@ final case class VertxServer[Effect[_]](
   vertxOptions: VertxOptions = VertxServer.vertxOptions,
   httpServerOptions: HttpServerOptions = new HttpServerOptions,
   handler: RequestHandler[Effect, Context] = RequestHandler.dummy[Effect, Context],
-) extends Logging with ServerTransport[Effect, Context] {
+) extends ServerTransport[Effect, Context] with Logging {
 
   private lazy val httpServer = createServer()
   private val statusWebSocketApplication = 4000

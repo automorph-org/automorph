@@ -42,7 +42,7 @@ final case class UndertowHttpEndpoint[Effect[_]](
   effectSystem: EffectSystem[Effect],
   mapException: Throwable => Int = HttpContext.toStatusCode,
   handler: RequestHandler[Effect, Context] = RequestHandler.dummy[Effect, Context],
-) extends HttpHandler with Logging with EndpointTransport[Effect, Context, HttpHandler] {
+) extends HttpHandler with EndpointTransport[Effect, Context, HttpHandler] with Logging {
 
   private val log = MessageLog(logger, Protocol.Http.name)
   implicit private val system: EffectSystem[Effect] = effectSystem

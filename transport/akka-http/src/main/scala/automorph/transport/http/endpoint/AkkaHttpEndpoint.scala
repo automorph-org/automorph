@@ -49,7 +49,7 @@ final case class AkkaHttpEndpoint[Effect[_]](
   mapException: Throwable => Int = HttpContext.toStatusCode,
   readTimeout: FiniteDuration = 30.seconds,
   handler: RequestHandler[Effect, Context] = RequestHandler.dummy[Effect, Context],
-) extends Logging with EndpointTransport[Effect, Context, Route] {
+) extends EndpointTransport[Effect, Context, Route] with Logging {
 
   private lazy val contentType = ContentType.parse(handler.mediaType).swap.map { errors =>
     new IllegalStateException(s"Invalid message content type: ${errors.mkString("\n")}")

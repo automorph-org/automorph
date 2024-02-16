@@ -39,12 +39,12 @@ final case class ZioHttpEndpoint[Fault](
   mapException: Throwable => Int = HttpContext.toStatusCode,
   handler: RequestHandler[({ type Effect[A] = IO[Fault, A] })#Effect, Context] =
     RequestHandler.dummy[({ type Effect[A] = IO[Fault, A] })#Effect, Context],
-) extends Logging
-  with EndpointTransport[
+) extends EndpointTransport[
     ({ type Effect[A] = IO[Fault, A] })#Effect,
     Context,
     http.RequestHandler[Any, Response],
-  ] {
+  ]
+  with Logging {
 
   private lazy val mediaType = MediaType.forContentType(handler.mediaType).getOrElse(
     throw new IllegalStateException(s"Invalid message content type: ${handler.mediaType}")
