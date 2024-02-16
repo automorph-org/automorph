@@ -43,6 +43,7 @@ final case class JettyHttpEndpoint[Effect[_]](
 ) extends EndpointTransport[Effect, Context, HttpServlet] with Logging {
 
   private lazy val httpServlet = new HttpServlet {
+    private val log = MessageLog(logger, Protocol.Http.name)
 
     override def service(request: HttpServletRequest, response: HttpServletResponse): Unit = {
       // Log the request
