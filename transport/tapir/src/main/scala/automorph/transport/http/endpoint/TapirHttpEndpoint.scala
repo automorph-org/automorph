@@ -3,7 +3,7 @@ package automorph.transport.http.endpoint
 import automorph.log.{LogProperties, Logging, MessageLog}
 import automorph.spi.{EffectSystem, EndpointTransport, RequestHandler}
 import automorph.transport.http.endpoint.TapirHttpEndpoint.{
-  Context, MessageFormat, Request, clientAddress, getRequestContext, getRequestProperties, pathComponents,
+  Context, Endpoint, MessageFormat, clientAddress, getRequestContext, getRequestProperties, pathComponents,
   pathEndpointInput,
 }
 import automorph.transport.http.{HttpContext, HttpMethod, Protocol}
@@ -52,12 +52,7 @@ final case class TapirHttpEndpoint[Effect[_]](
   method: Option[HttpMethod] = None,
   mapException: Throwable => Int = HttpContext.toStatusCode,
   handler: RequestHandler[Effect, Context] = RequestHandler.dummy[Effect, Context],
-) extends EndpointTransport[
-    Effect,
-    Context,
-    ServerEndpoint.Full[Unit, Unit, Request, Unit, (Array[Byte], StatusCode), Any, Effect],
-  ]
-  with Logging {
+) extends EndpointTransport[Effect, Context, Endpoint[Effect]] with Logging {
 
   private lazy val mediaType = MediaType.parse(handler.mediaType).fold(
     error =>
@@ -74,7 +69,7 @@ final case class TapirHttpEndpoint[Effect[_]](
   private val log = MessageLog(logger, Protocol.Http.name)
   implicit private val system: EffectSystem[Effect] = effectSystem
 
-  override def adapter: ServerEndpoint.Full[Unit, Unit, Request, Unit, (Array[Byte], StatusCode), Any, Effect] = {
+  override def adapter: Endpoint[Effect] = {
     // Define server endpoint inputs & outputs
     val endpointMethod = allowedMethod.map(endpoint.method).getOrElse(endpoint)
     val endpointPath = pathEndpointInput(prefixPaths).map(path => endpointMethod.in(path)).getOrElse(endpointMethod)
@@ -151,13 +146,22 @@ object TapirHttpEndpoint {
   /** Request context type. */
   type Context = HttpContext[Unit]
 
-  /** Endpoint request type. */
-  type Request = (Array[Byte], List[String], QueryParams, List[Header])
+  /** Endpoint type. */
+  type Endpoint[Effect[_]] = ServerEndpoint.Full[
+    Unit,
+    Unit,
+    (Array[Byte], List[String], QueryParams, List[Header]),
+    Unit,
+    (Array[Byte], StatusCode),
+    Any,
+    Effect,
+  ]
+
   private val leadingSlashPattern = "^/+".r
   private val trailingSlashPattern = "/+$".r
   private val multiSlashPattern = "/+".r
 
-  private[automorph] def pathComponents(path: String): List[String] = {
+  private def pathComponents(path: String): List[String] = {
     val canonicalPath = multiSlashPattern.replaceAllIn(
       trailingSlashPattern.replaceAllIn(leadingSlashPattern.replaceAllIn(path, ""), ""),
       "/",
@@ -168,7 +172,7 @@ object TapirHttpEndpoint {
     }
   }
 
-  private[automorph] def pathEndpointInput(pathComponents: List[String]): Option[EndpointInput[Unit]] =
+  private def pathEndpointInput(pathComponents: List[String]): Option[EndpointInput[Unit]] =
     pathComponents match {
       case Nil => None
       case head :: tail =>
@@ -177,7 +181,7 @@ object TapirHttpEndpoint {
         })
     }
 
-  private[automorph] def getRequestContext(
+  private def getRequestContext(
     paths: List[String],
     queryParams: QueryParams,
     headers: List[Header],
@@ -191,7 +195,7 @@ object TapirHttpEndpoint {
       headers = headers.map(header => header.name -> header.value),
     )
 
-  private[automorph] def getRequestProperties(
+  private def getRequestProperties(
     clientIp: Option[String],
     method: Option[Method],
     requestId: String,
@@ -199,11 +203,11 @@ object TapirHttpEndpoint {
     ListMap(LogProperties.requestId -> requestId, LogProperties.client -> clientAddress(clientIp)) ++
       method.map("Method" -> _.toString)
 
-  private[automorph] def clientAddress(clientIp: Option[String]): String =
+  private def clientAddress(clientIp: Option[String]): String =
     clientIp.getOrElse("")
 
   private def urlPath(paths: List[String]): String =
     s"/${paths.mkString("/")}"
 
-  final private[automorph] case class MessageFormat(mediaType: MediaType) extends CodecFormat
+  final private case class MessageFormat(mediaType: MediaType) extends CodecFormat
 }
