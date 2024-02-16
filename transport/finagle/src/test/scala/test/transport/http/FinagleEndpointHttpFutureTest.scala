@@ -36,9 +36,9 @@ object FinagleEndpointHttpFutureTest {
   type Effect[T] = Future[T]
   type Context = FinagleHttpEndpoint.Context
 
-  private final case class FinagleServer(
+  final private case class FinagleServer(
     effectSystem: EffectSystem[Effect],
-    port: Int
+    port: Int,
   ) extends ServerTransport[Effect, Context] {
     private var endpoint = FinagleHttpEndpoint(effectSystem)
     private var server = Option.empty[ListeningServer]
@@ -49,11 +49,9 @@ object FinagleEndpointHttpFutureTest {
     }
 
     override def init(): Effect[Unit] =
-      Future {
-        server = Some(Http.serve(s":$port", endpoint.adapter))
-      }
+      Future(server = Some(Http.serve(s":$port", endpoint.adapter)))
 
-    override def close(): Effect[Unit] = {
+    override def close(): Effect[Unit] =
       server.map { activeServer =>
         val promise = Promise[Unit]()
         activeServer.close().respond {
@@ -62,6 +60,5 @@ object FinagleEndpointHttpFutureTest {
         }
         promise.future
       }.getOrElse(effectSystem.successful {})
-    }
   }
 }
