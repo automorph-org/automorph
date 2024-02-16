@@ -5,7 +5,7 @@ import com.rallyhealth.weejson.v1.Value
 import com.rallyhealth.weepickle.v1.WeePickle.{FromTo, macroFromTo}
 
 /** Web-RPC protocol support for weePickle message codec using JSON format. */
-private[automorph] object WeepickleWebRpc {
+private[automorph] object WeePickleWebRpc {
 
   type RpcMessage = Message[Value]
 

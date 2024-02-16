@@ -4,7 +4,7 @@ import upickle.AttributeTagged
 import upickle.core.{Abort, ByteUtils, CharUtils, ParseUtils, Visitor}
 
 /** uPickle reader and writer instances providing basic null-safe data types support. */
-trait UpickleConfig extends AttributeTagged {
+trait UPickleConfig extends AttributeTagged {
 
   /** Serialize None as null. */
   implicit override def OptionWriter[T: Writer]: Writer[Option[T]] =

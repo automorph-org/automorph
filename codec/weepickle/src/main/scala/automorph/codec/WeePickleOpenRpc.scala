@@ -7,7 +7,7 @@ import com.rallyhealth.weepickle.v1.WeePickle.{From, FromTo, FromValue, To, ToVa
 import com.rallyhealth.weepickle.v1.core.Abort
 
 /** OpenRPC schema support for weePickle message codec plugin. */
-private[automorph] object WeepickleOpenRpc {
+private[automorph] object WeePickleOpenRpc {
 
   @scala.annotation.nowarn("msg=never used")
   def fromTo: FromTo[OpenRpc] = {

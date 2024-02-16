@@ -1,43 +1,34 @@
 package automorph.codec.messagepack
 
-import automorph.schema.OpenApi
-import automorph.schema.openapi.*
+import automorph.schema.OpenRpc
+import automorph.schema.openrpc.*
 import upack.{Arr, Msg, Obj, Str}
 import upickle.core.{Abort, LinkedHashMap}
 
 /** JSON-RPC protocol support for Circe message codec plugin using JSON format. */
-private[automorph] object UpickleOpenApi {
+private[automorph] object UPickleOpenRpc {
 
   @scala.annotation.nowarn("msg=never used")
-  def readWriter[Config <: UpickleMessagePackConfig](config: Config): config.ReadWriter[OpenApi] = {
+  def readWriter[Config <: UpickleMessagePackConfig](config: Config): config.ReadWriter[OpenRpc] = {
     import config.*
 
     implicit val schemaRw: config.ReadWriter[Schema] = readwriter[Msg].bimap[Schema](fromSchema, toSchema)
-    implicit val authFlowRw: config.ReadWriter[OAuthFlow] = config.macroRW
     implicit val contactRw: config.ReadWriter[Contact] = config.macroRW
+    implicit val contentDescriptorRw: config.ReadWriter[ContentDescriptor] = config.macroRW
     implicit val externalDocumentationRw: config.ReadWriter[ExternalDocumentation] = config.macroRW
+    implicit val errorRw: config.ReadWriter[Error] = config.macroRW
     implicit val exampleRw: config.ReadWriter[Example] = config.macroRW
-    implicit val headerReferenceRw: config.ReadWriter[HeaderReference] = config.macroRW
     implicit val licenseRw: config.ReadWriter[License] = config.macroRW
-    implicit val pathItemReferenceRw: config.ReadWriter[PathItemReference] = config.macroRW
     implicit val serverVariableRw: config.ReadWriter[ServerVariable] = config.macroRW
-    implicit val authFlowsRw: config.ReadWriter[OAuthFlows] = config.macroRW
+    implicit val examplePairingRw: config.ReadWriter[ExamplePairing] = config.macroRW
     implicit val infoRw: config.ReadWriter[Info] = config.macroRW
-    implicit val securitySchemeRw: config.ReadWriter[SecurityScheme] = config.macroRW
     implicit val serverRw: config.ReadWriter[Server] = config.macroRW
     implicit val tagRw: config.ReadWriter[Tag] = config.macroRW
-    implicit val encodingRw: config.ReadWriter[Encoding] = config.macroRW
-    implicit val mediaTypeRw: config.ReadWriter[MediaType] = config.macroRW
-    implicit val headerRw: config.ReadWriter[Header] = config.macroRW
     implicit val linkRw: config.ReadWriter[Link] = config.macroRW
-    implicit val parameterRw: config.ReadWriter[Parameter] = config.macroRW
-    implicit val requestBodyRw: config.ReadWriter[RequestBody] = config.macroRW
-    implicit val responseRw: config.ReadWriter[Response] = config.macroRW
-    implicit val operationRw: config.ReadWriter[Operation] = config.macroRW
-    implicit val pathItemRw: config.ReadWriter[PathItem] = config.macroRW
     implicit val componentsRw: config.ReadWriter[Components] = config.macroRW
+    implicit val methodRw: config.ReadWriter[Method] = config.macroRW
 
-    config.macroRW[OpenApi]
+    config.macroRW[OpenRpc]
   }
 
   private def fromSchema(schema: Schema): Msg =
@@ -71,6 +62,6 @@ private[automorph] object UpickleOpenApi {
           allOf = fields.get(Str("allOf")).map(_.arr.map(toSchema).toList),
           $ref = fields.get(Str("$ref")).map(_.str),
         )
-      case _ => throw Abort(s"Invalid OpenAPI object")
+      case _ => throw Abort(s"Invalid OpenRPC object")
     }
 }

@@ -6,7 +6,7 @@ import com.rallyhealth.weepickle.v1.WeePickle.{From, FromTo, FromValue, To, ToVa
 import com.rallyhealth.weepickle.v1.core.Abort
 
 /** JSON-RPC protocol support for weePickle message codec using JSON format. */
-private[automorph] object WeepickleJsonRpc {
+private[automorph] object WeePickleJsonRpc {
 
   type RpcMessage = Message[Value]
 

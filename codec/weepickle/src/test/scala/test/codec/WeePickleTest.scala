@@ -8,7 +8,7 @@ import org.scalacheck.{Arbitrary, Gen}
 import test.api.{Enum, Record, Structure}
 import test.api.Generators.arbitraryRecord
 
-trait WeepickleTest extends MessageCodecTest {
+trait WeePickleTest extends MessageCodecTest {
 
   type Node = Value
   type ActualCodec = WeepickleCodec

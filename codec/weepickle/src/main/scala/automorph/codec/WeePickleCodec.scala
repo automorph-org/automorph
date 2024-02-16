@@ -76,10 +76,10 @@ object WeepickleCodec {
   /** Message node type. */
   type Node = Value
 
-  implicit lazy val jsonRpcFromTo: FromTo[WeepickleJsonRpc.RpcMessage] = WeepickleJsonRpc.fromTo
-  implicit lazy val webRpcFromTo: FromTo[WeepickleWebRpc.RpcMessage] = WeepickleWebRpc.fromTo
-  implicit lazy val openRpcFromTo: FromTo[OpenRpc] = WeepickleOpenRpc.fromTo
-  implicit lazy val openApiFromTo: FromTo[OpenApi] = WeepickleOpenApi.fromTo
+  implicit lazy val jsonRpcFromTo: FromTo[WeePickleJsonRpc.RpcMessage] = WeePickleJsonRpc.fromTo
+  implicit lazy val webRpcFromTo: FromTo[WeePickleWebRpc.RpcMessage] = WeePickleWebRpc.fromTo
+  implicit lazy val openRpcFromTo: FromTo[OpenRpc] = WeePickleOpenRpc.fromTo
+  implicit lazy val openApiFromTo: FromTo[OpenApi] = WeePickleOpenApi.fromTo
 
   // Do not deserialize nulls as empty collections
   implicit def ToSeqLike[C[_], T](implicit r: To[T], factory: Factory[T, C[T]]): To[C[T]] =

@@ -7,7 +7,7 @@ import com.rallyhealth.weepickle.v1.WeePickle.{From, FromTo, FromValue, To, ToVa
 import com.rallyhealth.weepickle.v1.core.Abort
 
 /** OpenAPI schema support for weePickle message codec plugin. */
-private[automorph] object WeepickleOpenApi {
+private[automorph] object WeePickleOpenApi {
 
   @scala.annotation.nowarn("msg=never used")
   def fromTo: FromTo[OpenApi] = {
