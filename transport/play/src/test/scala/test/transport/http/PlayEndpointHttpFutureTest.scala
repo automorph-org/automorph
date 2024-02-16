@@ -5,6 +5,7 @@
 //import automorph.transport.http.endpoint.PlayHttpEndpoint
 //import org.scalacheck.Arbitrary
 //import scala.concurrent.{Future, Promise}
+//import scala.concurrent.ExecutionContext.Implicits.global
 //import test.transport.HttpServerTest
 //import test.transport.http.PlayEndpointHttpFutureTest.PlayServer
 //

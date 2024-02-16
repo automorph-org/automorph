@@ -43,7 +43,7 @@
 //  effectSystem: EffectSystem[Effect],
 //  mapException: Throwable => Int = HttpContext.toStatusCode,
 //  handler: RequestHandler[Effect, Context] = RequestHandler.dummy[Effect, Context],
-//)(implicit executionContext: ExecutionContext = ExecutionContext.Implicits.global)
+//)(implicit val executionContext: ExecutionContext)
 //  extends EndpointTransport[Effect, Context, Action[Array[Byte]]] with Logging {
 //
 //  private val log = MessageLog(logger, Protocol.Http.name)
