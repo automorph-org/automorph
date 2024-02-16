@@ -69,6 +69,9 @@ const integrations = [
     title: 'Pekko HTTP',
     link: 'docs/Plugins#endpoint-transport',
   }, {
+    title: 'Play',
+    link: 'docs/Plugins#endpoint-transport',
+  }, {
     title: 'RabbitMQ',
     link: 'docs/Plugins#client-transport',
   }, {
