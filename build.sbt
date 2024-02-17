@@ -170,11 +170,11 @@ lazy val weepickle = source(project, "codec/weepickle", core, testCodec % Test).
   )
 )
 lazy val upickle = source(project, "codec/upickle", core, testCodec % Test).settings(
-  libraryDependencies += "com.lihaoyi" %% "upickle" % "3.1.4"
+  libraryDependencies += "com.lihaoyi" %% "upickle" % "3.1.5"
 )
 
 // Client transport
-val sttpVersion = "3.9.2"
+val sttpVersion = "3.9.3"
 val sttpHttpClientVersion = "3.5.2"
 lazy val sttp =
   source(project, "transport/sttp", core, catsEffect % Test, zio % Test, testPlugin % Test).settings(
@@ -184,7 +184,7 @@ lazy val sttp =
       "com.softwaremill.sttp.client3" %% "async-http-client-backend-zio" % sttpVersion % Test,
       "com.softwaremill.sttp.client3" %% "armeria-backend" % sttpVersion % Test,
       "com.softwaremill.sttp.client3" %% "httpclient-backend" % sttpHttpClientVersion % Test,
-      "com.softwaremill.sttp.client3" %% "okhttp-backend" % sttpHttpClientVersion % Test,
+      "com.softwaremill.sttp.client3" %% "okhttp-backend" % sttpVersion % Test,
     )
   )
 lazy val rabbitmq = source(project, "transport/rabbitmq", core, testPlugin % Test).settings(
@@ -204,7 +204,7 @@ lazy val tapir = source(project, "transport/tapir", core, catsEffect % Test, tes
   )
 )
 lazy val undertow = source(project, "transport/undertow", core, testPlugin % Test).settings(
-  libraryDependencies += "io.undertow" % "undertow-core" % "2.3.10.Final"
+  libraryDependencies += "io.undertow" % "undertow-core" % "2.3.11.Final"
 )
 lazy val vertx = source(project, "transport/vertx", core, testPlugin % Test).settings(
   libraryDependencies += "io.vertx" % "vertx-core" % "4.5.3"
