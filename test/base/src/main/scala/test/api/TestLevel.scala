@@ -6,7 +6,7 @@ object TestLevel {
   private val environment = "TEST_LEVEL"
 
   /** Simple tests environment value. */
-  private val simpleValue = "complex"
+  private val simpleValue = "simple"
 
   /** Complex tests environment value. */
   private val complexValue = "complex"

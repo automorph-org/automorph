@@ -39,18 +39,25 @@ trait PlatformSpecificTest extends ProtocolCodecTest {
       .bind(simpleApi, mapName).bind(complexApi)
     val client = RpcClient.transport(typedClientTransport(id)).rpcProtocol(protocol)
     Fixture(
-      id, client, server,
+      id,
+      client,
+      server,
       Apis(client.bind[SimpleApiType], client.bind[ComplexApiType], client.bind[InvalidApiType]),
       Functions(f => client.call(f)(), (f, a0) => client.call(f)(a0), (f, a0) => client.tell(f)(a0)),
     )
   }
 
   private def json4sNativeJsonRpcFixture(implicit context: Context): TestFixture = {
-    val formats = Json4sNativeJsonCodec.formats + new CustomSerializer[Enum.Enum](_ => ({
-      case JInt(value) => Enum.fromOrdinal(value.toInt)
-    }, {
-      case value: Enum.Enum => JInt(Enum.toOrdinal(value))
-    }))
+    val formats = Json4sNativeJsonCodec.formats + new CustomSerializer[Enum.Enum](_ =>
+      (
+        {
+          case JInt(value) => Enum.fromOrdinal(value.toInt)
+        },
+        {
+          case value: Enum.Enum => JInt(Enum.toOrdinal(value))
+        },
+      )
+    )
     val codec = Json4sNativeJsonCodec(formats)
     val protocol = JsonRpcProtocol[Json4sNativeJsonCodec.Node, codec.type, Context](codec)
     RpcEndpoint.transport(endpointTransport).rpcProtocol(protocol).bind(simpleApi, mapName).bind(complexApi)
@@ -59,7 +66,9 @@ trait PlatformSpecificTest extends ProtocolCodecTest {
       .bind(simpleApi, mapName).bind(complexApi)
     val client = RpcClient.transport(typedClientTransport(id)).rpcProtocol(protocol)
     Fixture(
-      id, client, server,
+      id,
+      client,
+      server,
       Apis(client.bind[SimpleApiType], client.bind[ComplexApiType], client.bind[InvalidApiType]),
       Functions(f => client.call(f)(), (f, a0) => client.call(f)(a0), (f, a0) => client.tell(f)(a0)),
     )
