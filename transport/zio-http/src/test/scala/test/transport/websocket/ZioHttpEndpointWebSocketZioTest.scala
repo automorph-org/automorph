@@ -44,7 +44,6 @@
 //    port: Int,
 //  ) extends ServerTransport[Effect, Context] with ZIOAppDefault {
 //
-////    private var server = Option.empty[ListeningServer]
 //    private lazy val webSocketApp = Handler.webSocket[Any](endpoint.adapter)
 //    private lazy val httpApp = Routes(Method.POST / "/" -> handler(webSocketApp.toResponse)).toHttpApp
 //    private var endpoint = ZioHttpWebSocketEndpoint(effectSystem)
@@ -61,6 +60,6 @@
 //      run
 //
 //    override def close(): Effect[Unit] =
-//      ???
+//      exit(ExitCode(0))
 //  }
 //}
