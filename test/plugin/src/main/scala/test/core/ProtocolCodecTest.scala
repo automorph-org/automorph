@@ -40,7 +40,7 @@ trait ProtocolCodecTest extends CoreTest {
       weePickleJsonRpcIonFixture,
       uPickleJsonRpcJsonFixture,
       uPickleJsonRpcMessagePackFixture,
-    )).getOrElse(Seq.empty)
+    )).getOrElse(Seq())
   }
 
   def clientTransport(fixtureId: String): ClientTransport[Effect, ?]

@@ -6,17 +6,17 @@ import automorph.codec.json.meta.PlayJsonCodec
 import automorph.protocol.JsonRpcProtocol
 import org.json4s.{CustomSerializer, JInt}
 import play.api.libs.json.{JsNumber, JsValue, Json, Reads, Writes}
-import test.api.{Enum, Record, Structure}
+import test.api.{Enum, Record, Structure, TestLevel}
 import test.core.Fixtures.{Apis, Fixture, Functions}
 
 trait PlatformSpecificTest extends ProtocolCodecTest {
 
   override def fixtures: Seq[TestFixture] = {
     implicit val context: Context = arbitraryContext.arbitrary.sample.get
-    super.fixtures ++ Seq(
+    super.fixtures ++ Option.when(basic || TestLevel.all)(Seq(
       playJsonJsonRpcFixture,
       json4sNativeJsonRpcFixture,
-    )
+    )).getOrElse(Seq())
   }
 
   @scala.annotation.nowarn("msg=never used")
