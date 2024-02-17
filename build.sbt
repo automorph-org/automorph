@@ -170,7 +170,7 @@ lazy val weepickle = source(project, "codec/weepickle", core, testCodec % Test).
   )
 )
 lazy val upickle = source(project, "codec/upickle", core, testCodec % Test).settings(
-  libraryDependencies += "com.lihaoyi" %% "upickle" % "3.1.5"
+  libraryDependencies += "com.lihaoyi" %% "upickle" % "3.2.0"
 )
 
 // Client transport
