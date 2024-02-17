@@ -49,7 +49,7 @@
 //    private var endpoint = ZioHttpWebSocketEndpoint(effectSystem)
 //
 //    override def run: ZIO[Any, Throwable, Nothing] =
-//      Server.serve(httpApp).provide(Server.default)
+//      Server.serve(httpApp).provide(Server.defaultWithPort(port))
 //
 //    override def withHandler(handler: RequestHandler[Effect, Context]): ServerTransport[Effect, Context] = {
 //      endpoint = endpoint.withHandler(handler)
