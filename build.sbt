@@ -117,12 +117,9 @@ def source(project: Project, path: String, dependsOn: ClasspathDep[ProjectRefere
 // Core
 val slf4jVersion = "1.7.36"
 lazy val meta = source(project, "meta").settings(
-  libraryDependencies ++= (if (scala3.value) Seq()
-                           else {
-                             Seq("org.scala-lang" % "scala-reflect" % scalaVersion.value)
-                           }) ++ Seq(
-    "org.slf4j" % "slf4j-api" % slf4jVersion
-  )
+  libraryDependencies ++= (
+    if (scala3.value) Seq() else Seq("org.scala-lang" % "scala-reflect" % scalaVersion.value)
+  ) ++ Seq("org.slf4j" % "slf4j-api" % slf4jVersion)
 )
 lazy val core = source(project, "core", meta, testBase % Test)
 
@@ -158,11 +155,11 @@ lazy val jackson = source(project, "codec/jackson", core, testCodec % Test).sett
 )
 lazy val json4s = source(project, "codec/json4s", core, testCodec % Test).settings(
   publish / skip := scala3.value,
-  libraryDependencies += "org.json4s" %% "json4s-native" % "4.0.7"
+  libraryDependencies += "org.json4s" %% "json4s-native" % "4.0.7",
 )
 lazy val playJson = source(project, "codec/play-json", core, testCodec % Test).settings(
   publish / skip := scala3.value,
-  libraryDependencies += "org.playframework" %% "play-json" % "3.0.2"
+  libraryDependencies += "org.playframework" %% "play-json" % "3.0.2",
 )
 lazy val weepickle = source(project, "codec/weepickle", core, testCodec % Test).settings(
   libraryDependencies ++= Seq(
@@ -315,9 +312,6 @@ def testJavaOptions: Seq[String] =
   Seq(s"-Dproject.target=${System.getProperty("project.target")}")
 
 // Compile
-ThisBuild / scalaVersion := "3.3.0"
-ThisBuild / crossScalaVersions += "2.13.12"
-ThisBuild / javacOptions ++= Seq("-source", "11", "-target", "11")
 val commonScalacOptions = Seq(
   "-language:higherKinds",
   "-feature",
@@ -329,8 +323,8 @@ val commonScalacOptions = Seq(
   "utf8",
   "-Werror",
 )
-val compileScalac3Options = commonScalacOptions ++ Seq(
-//  "-explain",
+val commonScalac3Options = commonScalacOptions ++ Seq(
+  //  "-explain",
   "-source",
   "3.3",
   "-language:adhocExtensions",
@@ -338,7 +332,7 @@ val compileScalac3Options = commonScalacOptions ++ Seq(
   "120",
 )
 val compileScalac2Options = commonScalacOptions ++ Seq(
-//  "-explaintypes",
+  //  "-explaintypes",
   "-language:existentials",
   "-Xsource:3",
   "-Xlint:_,-byname-implicit",
@@ -352,7 +346,15 @@ val compileScalac2Options = commonScalacOptions ++ Seq(
   "-Ybackend-parallelism",
   s"${Math.min(java.lang.Runtime.getRuntime.availableProcessors, 16)}",
 )
-val docScalac3Options = compileScalac3Options ++ Seq(
+val compileScalac3Options = commonScalac3Options ++ Seq(
+  "-indent",
+  "-Wconf:msg=not suppress any:silent",
+  "-Wunused:all",
+  "-Wvalue-discard",
+  "-Xcheck-macros",
+  "-Xmigration"
+)
+val docScalac3Options = commonScalac3Options ++ Seq(
   s"-source-links:src=github://$repositoryPath/master",
   s"-skip-by-id:$projectName.client.meta,$projectName.handler.meta,examples",
 )
@@ -360,19 +362,10 @@ val docScalac2Options = compileScalac2Options ++ Seq(
   "-skip-packages",
   s"$projectName.client.meta:$projectName.handler.meta:examples",
 )
-
-ThisBuild / scalacOptions ++= (
-  if (scala3.value) {
-    compileScalac3Options ++ Seq(
-      "-indent",
-      "-Wconf:msg=not suppress any:silent",
-      "-Wunused:all",
-      "-Wvalue-discard",
-      "-Xcheck-macros",
-      "-Xmigration",
-    )
-  } else compileScalac2Options
-)
+ThisBuild / scalaVersion := "3.3.0"
+ThisBuild / crossScalaVersions += "2.13.12"
+ThisBuild / javacOptions ++= Seq("-source", "11", "-target", "11")
+ThisBuild / scalacOptions ++= (if (scala3.value) compileScalac3Options else compileScalac2Options)
 
 // Analyze
 scalastyleConfig := baseDirectory.value / "project/scalastyle-config.sbt.xml"
@@ -447,7 +440,7 @@ site := {
   // Insert examples sources into the examples page
   val docsDirectory = (docs / baseDirectory).value
   val examplesDirectory = (examples / baseDirectory).value / "project"
-  insertDocumentationExamples(docsDirectory, examplesDirectory, releaseVersion.value, logbackVersion)
+  insertDocumentationExampleSources(docsDirectory, examplesDirectory, releaseVersion.value, logbackVersion)
 
   // Generate website
   Process(Seq("yarn", "install"), docsDirectory).!
@@ -468,7 +461,7 @@ site := {
   IO.copyDirectory(examplesDirectory, docsDirectory / "build/examples", overwrite = true)
 }
 
-def insertDocumentationExamples(
+def insertDocumentationExampleSources(
   docsDirectory: File,
   sourceDirectory: File,
   releaseVersion: String,
