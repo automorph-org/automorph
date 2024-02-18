@@ -12,7 +12,7 @@ import sttp.tapir.server.http4s.Http4sServerInterpreter
 import test.transport.HttpServerTest
 import test.transport.http.TapirHttp4sHttpCatsEffectTest.TapirServer
 
-class TapirHttp4sHttpCatsEffectTest extends HttpServerTest {
+final class TapirHttp4sHttpCatsEffectTest extends HttpServerTest {
 
   type Effect[T] = IO[T]
   type Context = TapirHttpEndpoint.Context

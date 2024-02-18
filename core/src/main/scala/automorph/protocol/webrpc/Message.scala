@@ -50,7 +50,7 @@ object Message {
 final case class MessageError(message: Option[String], code: Option[Int])
 
 /** Web-RPC message type. */
-sealed abstract class MessageType {
+sealed trait MessageType {
 
   /** Message type name. */
   def name: String =

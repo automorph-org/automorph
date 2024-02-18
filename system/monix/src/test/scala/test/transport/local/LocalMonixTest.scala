@@ -6,7 +6,7 @@ import monix.eval.Task
 import monix.execution.Scheduler.Implicits.global
 import scala.concurrent.duration.Duration
 
-class LocalMonixTest extends LocalTest {
+final class LocalMonixTest extends LocalTest {
 
   type Effect[T] = Task[T]
 

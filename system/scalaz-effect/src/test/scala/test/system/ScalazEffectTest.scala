@@ -6,7 +6,7 @@ import scala.concurrent.ExecutionContext.Implicits.global
 import scala.util.Try
 import scalaz.effect.IO
 
-class ScalazEffectTest extends EffectSystemTest[IO] {
+final class ScalazEffectTest extends EffectSystemTest[IO] {
 
   lazy val system: EffectSystem[IO] = ScalazEffectSystem()
 

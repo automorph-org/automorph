@@ -8,7 +8,7 @@ import test.codec.MessageCodecTest
 import upack.{Arr, Bool, Float64, Msg, Null, Obj, Str}
 import upickle.core.LinkedHashMap
 
-class UpickleMessagePackTest extends MessageCodecTest {
+final class UpickleMessagePackTest extends MessageCodecTest {
 
   type Node = Msg
   type ActualCodec = UPickleMessagePackCodec[UpickleMessagePackTest.type]

@@ -9,7 +9,7 @@
 //import test.transport.HttpServerTest
 //import test.transport.http.PlayEndpointHttpFutureTest.PlayServer
 //
-//class PlayEndpointHttpFutureTest extends HttpServerTest {
+//final class PlayEndpointHttpFutureTest extends HttpServerTest {
 //
 //  type Effect[T] = Future[T]
 //  type Context = PlayHttpEndpoint.Context

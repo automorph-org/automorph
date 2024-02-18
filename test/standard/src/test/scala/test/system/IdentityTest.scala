@@ -5,7 +5,7 @@ import automorph.system.IdentitySystem
 import automorph.system.IdentitySystem.Identity
 import scala.util.Try
 
-class IdentityTest extends EffectSystemTest[Identity] {
+final class IdentityTest extends EffectSystemTest[Identity] {
 
   lazy val system: EffectSystem[Identity] = IdentitySystem()
 

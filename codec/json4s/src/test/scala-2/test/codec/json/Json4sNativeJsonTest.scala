@@ -6,7 +6,7 @@ import org.scalacheck.{Arbitrary, Gen}
 import test.api.Generators.arbitraryRecord
 import test.api.{Enum, Record}
 
-class Json4sNativeJsonTest extends JsonMessageCodecTest {
+final class Json4sNativeJsonTest extends JsonMessageCodecTest {
 
   type Node = JValue
   type ActualCodec = Json4sNativeJsonCodec

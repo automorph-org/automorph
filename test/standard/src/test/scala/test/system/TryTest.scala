@@ -4,7 +4,7 @@ import automorph.spi.EffectSystem
 import automorph.system.TrySystem
 import scala.util.Try
 
-class TryTest extends EffectSystemTest[Try] {
+final class TryTest extends EffectSystemTest[Try] {
 
   lazy val system: EffectSystem[Try] = TrySystem()
 

@@ -5,7 +5,7 @@ import automorph.system.ScalazEffectSystem
 import scala.concurrent.ExecutionContext.Implicits.global
 import scalaz.effect.IO
 
-class LocalScalazEffectTest extends LocalTest {
+final class LocalScalazEffectTest extends LocalTest {
 
   type Effect[T] = IO[T]
 

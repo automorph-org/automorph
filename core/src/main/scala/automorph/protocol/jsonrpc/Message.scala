@@ -83,7 +83,7 @@ object Message {
 final case class MessageError[Node](message: Option[String], code: Option[Int], data: Option[Node])
 
 /** JSON-RPC message type. */
-sealed abstract class MessageType {
+sealed trait MessageType {
 
   /** Message type name. */
   def name: String =

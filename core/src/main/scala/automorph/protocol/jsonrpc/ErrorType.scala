@@ -6,7 +6,11 @@ package automorph.protocol.jsonrpc
  * @see
  *   [[https://www.jsonrpc.org/specification JSON-RPC protocol specification]]
  */
-sealed abstract class ErrorType(val code: Int)
+sealed trait ErrorType {
+
+  /** Error code. */
+  def code: Int
+}
 
 /**
  * JSON-RPC error types with codes.
@@ -16,19 +20,43 @@ sealed abstract class ErrorType(val code: Int)
  */
 object ErrorType {
 
-  case object ParseError extends ErrorType(-32700)
+  case object ParseError extends ErrorType {
+    override val code: Int =
+      -32700
+  }
 
-  case object InvalidRequest extends ErrorType(-32600)
+  case object InvalidRequest extends ErrorType {
+    override val code: Int =
+      -32600
+  }
 
-  case object MethodNotFound extends ErrorType(-32601)
+  case object MethodNotFound extends ErrorType {
+    override val code: Int =
+      -32601
+  }
 
-  case object InvalidParams extends ErrorType(-32602)
+  case object InvalidParams extends ErrorType {
+    override val code: Int =
+      -32602
+  }
 
-  case object InternalError extends ErrorType(-32603)
+  case object InternalError extends ErrorType {
+    override val code: Int =
+      -32603
+  }
 
-  case object ServerError extends ErrorType(-32000)
+  case object ServerError extends ErrorType {
+    override val code: Int =
+      -32000
+  }
 
-  case object ReservedError extends ErrorType(-32768)
+  case object ReservedError extends ErrorType {
+    override val code: Int =
+      -32768
+  }
 
-  case object ApplicationError extends ErrorType(0)
+  case object ApplicationError extends ErrorType {
+    override val code: Int =
+      0
+  }
 }

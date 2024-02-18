@@ -10,7 +10,7 @@ import scala.concurrent.Future
 import test.transport.WebSocketClientTest
 import test.transport.http.HttpContextGenerator
 
-class JettyClientWebSocketFutureTest extends WebSocketClientTest {
+final class JettyClientWebSocketFutureTest extends WebSocketClientTest {
 
   type Effect[T] = Future[T]
   type Context = JettyClient.Context

@@ -10,7 +10,7 @@ import test.transport.HttpClientTest
 import test.transport.http.HttpContextGenerator
 import zio.{Runtime, Task, Unsafe}
 
-class SttpClientAsyncHttpClientHttpZioTest extends HttpClientTest {
+final class SttpClientAsyncHttpClientHttpZioTest extends HttpClientTest {
 
   type Effect[T] = Task[T]
   type Context = SttpClient.Context

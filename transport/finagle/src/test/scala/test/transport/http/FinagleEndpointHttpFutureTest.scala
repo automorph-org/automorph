@@ -11,7 +11,7 @@ import scala.concurrent.{Future, Promise}
 import test.transport.HttpServerTest
 import test.transport.http.FinagleEndpointHttpFutureTest.FinagleServer
 
-class FinagleEndpointHttpFutureTest extends HttpServerTest {
+final class FinagleEndpointHttpFutureTest extends HttpServerTest {
 
   type Effect[T] = Future[T]
   type Context = FinagleHttpEndpoint.Context

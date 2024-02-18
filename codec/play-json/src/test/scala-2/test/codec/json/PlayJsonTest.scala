@@ -6,7 +6,7 @@ import play.api.libs.json.*
 import test.api.Generators.arbitraryRecord
 import test.api.{Enum, Record, Structure}
 
-class PlayJsonTest extends JsonMessageCodecTest {
+final class PlayJsonTest extends JsonMessageCodecTest {
 
   type Node = JsValue
   type ActualCodec = PlayJsonCodec

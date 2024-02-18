@@ -13,7 +13,7 @@ import sttp.tapir.server.vertx.VertxFutureServerInterpreter
 import test.transport.HttpServerTest
 import test.transport.http.TapirVertxHttpFutureTest.TapirServer
 
-class TapirVertxHttpFutureTest extends HttpServerTest {
+final class TapirVertxHttpFutureTest extends HttpServerTest {
 
   type Effect[T] = Future[T]
   type Context = TapirHttpEndpoint.Context

@@ -10,7 +10,7 @@ import scala.concurrent.Future
 import test.transport.WebSocketServerTest
 import test.transport.http.HttpContextGenerator
 
-class VertxServerWebSocketFutureTest extends WebSocketServerTest {
+final class VertxServerWebSocketFutureTest extends WebSocketServerTest {
 
   type Effect[T] = Future[T]
   type Context = VertxServer.Context

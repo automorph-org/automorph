@@ -4,7 +4,7 @@ import automorph.spi.EffectSystem
 import automorph.system.TrySystem
 import scala.util.Try
 
-class HttpClientHttpTryTest extends HttpClientHttpTest {
+final class HttpClientHttpTryTest extends HttpClientHttpTest {
 
   type Effect[T] = Try[T]
 

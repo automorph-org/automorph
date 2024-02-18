@@ -5,7 +5,7 @@ import automorph.system.FutureSystem
 import scala.concurrent.ExecutionContext.Implicits.global
 import scala.concurrent.Future
 
-class HttpClientHttpFutureTest extends HttpClientHttpTest {
+final class HttpClientHttpFutureTest extends HttpClientHttpTest {
 
   type Effect[T] = Future[T]
 

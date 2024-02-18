@@ -11,7 +11,7 @@ import test.transport.http.HttpContextGenerator
 import scala.concurrent.ExecutionContext.Implicits.global
 import scala.concurrent.Future
 
-class SttpClientOkHttpHttpFutureTest extends HttpClientTest {
+final class SttpClientOkHttpHttpFutureTest extends HttpClientTest {
 
   type Effect[T] = Future[T]
   type Context = SttpClient.Context

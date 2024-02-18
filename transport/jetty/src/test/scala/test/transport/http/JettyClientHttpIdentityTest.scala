@@ -8,7 +8,7 @@ import automorph.transport.http.client.JettyClient
 import org.scalacheck.Arbitrary
 import test.transport.HttpClientTest
 
-class JettyClientHttpIdentityTest extends HttpClientTest {
+final class JettyClientHttpIdentityTest extends HttpClientTest {
 
   type Effect[T] = Identity[T]
   type Context = JettyClient.Context

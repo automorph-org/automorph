@@ -9,7 +9,7 @@ import scala.concurrent.ExecutionContext.Implicits.global
 import scala.concurrent.Future
 import test.transport.WebSocketServerTest
 
-class JettyServerWebSocketFutureTest extends WebSocketServerTest {
+final class JettyServerWebSocketFutureTest extends WebSocketServerTest {
 
   type Effect[T] = Future[T]
   type Context = JettyWebSocketEndpoint.Context

@@ -12,7 +12,7 @@ import scala.concurrent.Future
 import test.core.ClientServerTest
 import test.transport.http.HttpContextGenerator
 
-class HttpClientWebSocketFutureTest extends ClientServerTest {
+final class HttpClientWebSocketFutureTest extends ClientServerTest {
 
   type Effect[T] = Future[T]
   type Context = NanoServer.Context

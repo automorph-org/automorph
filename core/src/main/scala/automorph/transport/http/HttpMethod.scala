@@ -1,7 +1,7 @@
 package automorph.transport.http
 
 /** HTTP request method. */
-sealed abstract class HttpMethod {
+sealed trait HttpMethod {
 
   /** HTTP method name. */
   def name: String =

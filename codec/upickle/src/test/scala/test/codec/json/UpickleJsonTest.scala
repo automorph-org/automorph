@@ -7,7 +7,7 @@ import test.api.{Enum, Record, Structure}
 import test.codec.MessageCodecTest
 import ujson.{Arr, Bool, Null, Num, Obj, Str, Value}
 
-class UpickleJsonTest extends MessageCodecTest with JsonMessageCodecTest {
+final class UpickleJsonTest extends MessageCodecTest with JsonMessageCodecTest {
 
   type Node = Value
   type ActualCodec = UPickleJsonCodec[UpickleJsonTest.type]

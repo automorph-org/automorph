@@ -10,7 +10,7 @@ import test.api.{Enum, Record, Structure}
 import test.codec.MessageCodecTest
 
 @scala.annotation.nowarn("msg=never used")
-class CirceJsonTest extends MessageCodecTest with JsonMessageCodecTest {
+final class CirceJsonTest extends MessageCodecTest with JsonMessageCodecTest {
 
   type Node = Json
   type ActualCodec = CirceJsonCodec

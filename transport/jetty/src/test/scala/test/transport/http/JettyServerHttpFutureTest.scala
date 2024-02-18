@@ -9,7 +9,7 @@ import scala.concurrent.ExecutionContext.Implicits.global
 import scala.concurrent.Future
 import test.transport.HttpServerTest
 
-class JettyServerHttpFutureTest extends HttpServerTest {
+final class JettyServerHttpFutureTest extends HttpServerTest {
 
   type Effect[T] = Future[T]
   type Context = JettyHttpEndpoint.Context

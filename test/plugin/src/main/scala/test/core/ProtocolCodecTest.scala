@@ -223,7 +223,7 @@ trait ProtocolCodecTest extends CoreTest {
   }
 
   private def uPickleJsonRpcJsonFixture(implicit context: Context): TestFixture = {
-    class CustomConfig extends UPickleJsonConfig {
+    final class CustomConfig extends UPickleJsonConfig {
       implicit lazy val enumRw: ReadWriter[Enum.Enum] = readwriter[Int]
         .bimap[Enum.Enum](value => Enum.toOrdinal(value), number => Enum.fromOrdinal(number))
       implicit lazy val structureRw: ReadWriter[Structure] = macroRW
@@ -247,7 +247,7 @@ trait ProtocolCodecTest extends CoreTest {
   }
 
   private def uPickleJsonRpcMessagePackFixture(implicit context: Context): TestFixture = {
-    class CustomConfig extends UPickleMessagePackConfig {
+    final class CustomConfig extends UPickleMessagePackConfig {
       implicit lazy val enumRw: ReadWriter[Enum.Enum] = readwriter[Int]
         .bimap[Enum.Enum](value => Enum.toOrdinal(value), number => Enum.fromOrdinal(number))
       implicit lazy val structureRw: ReadWriter[Structure] = macroRW

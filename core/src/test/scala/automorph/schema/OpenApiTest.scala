@@ -5,7 +5,7 @@ import automorph.RpcFunction.Parameter
 import automorph.schema.openapi.{Info, MediaType, Operation, PathItem, RequestBody, Response, RpcSchema, Schema}
 import test.base.BaseTest
 
-class OpenApiTest extends BaseTest {
+final class OpenApiTest extends BaseTest {
 
   private val function = RpcFunction(
     "test",

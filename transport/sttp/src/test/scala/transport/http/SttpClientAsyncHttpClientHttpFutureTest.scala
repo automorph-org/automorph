@@ -11,7 +11,7 @@ import sttp.client3.asynchttpclient.future.AsyncHttpClientFutureBackend
 import test.transport.HttpClientTest
 import test.transport.http.HttpContextGenerator
 
-class SttpClientAsyncHttpClientHttpFutureTest extends HttpClientTest {
+final class SttpClientAsyncHttpClientHttpFutureTest extends HttpClientTest {
 
   type Effect[T] = Future[T]
   type Context = SttpClient.Context

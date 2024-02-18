@@ -9,7 +9,7 @@ import scala.concurrent.ExecutionContext.Implicits.global
 import scala.concurrent.Future
 import test.transport.HttpServerTest
 
-class VertxServerHttpFutureTest extends HttpServerTest {
+final class VertxServerHttpFutureTest extends HttpServerTest {
 
   type Effect[T] = Future[T]
   type Context = VertxServer.Context

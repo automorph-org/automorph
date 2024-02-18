@@ -9,7 +9,7 @@
 //import zio.http.{Method, Routes, Server}
 //import zio.{ExitCode, Promise, Runtime, Task, Unsafe, ZIO, ZIOAppDefault}
 //
-//class ZioHttpEndpointHttpZioTest extends HttpServerTest {
+//final class ZioHttpEndpointHttpZioTest extends HttpServerTest {
 //
 //  type Effect[T] = Task[T]
 //  type Context = ZioHttpEndpoint.Context

@@ -4,7 +4,7 @@ import automorph.system.IdentitySystem
 import automorph.system.IdentitySystem.Identity
 import automorph.spi.EffectSystem
 
-class LocalIdentityTest extends LocalTest {
+final class LocalIdentityTest extends LocalTest {
 
   type Effect[T] = Identity[T]
 

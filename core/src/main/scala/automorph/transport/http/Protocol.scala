@@ -1,7 +1,10 @@
 package automorph.transport.http
 
 /** Transport protocol. */
-sealed abstract private[automorph] class Protocol(val name: String) {
+sealed private[automorph] trait Protocol {
+
+  /** Protocol name. */
+  def name: String
 
   override def toString: String =
     name
@@ -10,7 +13,13 @@ sealed abstract private[automorph] class Protocol(val name: String) {
 /** Transport protocols. */
 private[automorph] object Protocol {
 
-  case object Http extends Protocol("HTTP")
+  case object Http extends Protocol {
+    override val name: String =
+      "HTTP"
+  }
 
-  case object WebSocket extends Protocol("WebSocket")
+  case object WebSocket extends Protocol {
+    override val name: String =
+      "WebSocket"
+  }
 }

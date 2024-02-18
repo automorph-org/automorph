@@ -4,7 +4,7 @@ import automorph.system.TrySystem
 import automorph.spi.EffectSystem
 import scala.util.Try
 
-class LocalTryTest extends LocalTest {
+final class LocalTryTest extends LocalTest {
 
   type Effect[T] = Try[T]
 

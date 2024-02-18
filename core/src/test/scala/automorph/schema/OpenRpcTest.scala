@@ -5,7 +5,7 @@ import automorph.RpcFunction.Parameter
 import automorph.schema.openrpc.{ContentDescriptor, Info, Method, Schema}
 import test.base.BaseTest
 
-class OpenRpcTest extends BaseTest {
+final class OpenRpcTest extends BaseTest {
   private val function = RpcFunction(
     "test",
     Seq(

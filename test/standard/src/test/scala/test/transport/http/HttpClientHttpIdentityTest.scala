@@ -4,7 +4,7 @@ import automorph.spi.EffectSystem
 import automorph.system.IdentitySystem
 import automorph.system.IdentitySystem.Identity
 
-class HttpClientHttpIdentityTest extends HttpClientHttpTest {
+final class HttpClientHttpIdentityTest extends HttpClientHttpTest {
 
   type Effect[T] = Identity[T]
 

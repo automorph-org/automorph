@@ -11,7 +11,7 @@ import sttp.tapir.server.armeria.ArmeriaFutureServerInterpreter
 import test.transport.HttpServerTest
 import test.transport.http.TapirArmeriaHttpFutureTest.TapirServer
 
-class TapirArmeriaHttpFutureTest extends HttpServerTest {
+final class TapirArmeriaHttpFutureTest extends HttpServerTest {
 
   type Effect[T] = Future[T]
   type Context = TapirHttpEndpoint.Context

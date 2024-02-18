@@ -3,7 +3,7 @@ package test.system
 import automorph.system.ZioSystem
 import zio.{Runtime, Task, Unsafe}
 
-class ZioTest extends AsyncEffectSystemTest[Task] {
+final class ZioTest extends AsyncEffectSystemTest[Task] {
   override lazy val system: ZioSystem[Throwable] = {
     implicit val runtime: Runtime[Any] = Runtime.default
     ZioSystem()

@@ -9,7 +9,7 @@ import scala.concurrent.ExecutionContext.Implicits.global
 import scala.concurrent.Future
 import test.transport.HttpServerTest
 
-class AkkaServerHttpFutureTest extends HttpServerTest {
+final class AkkaServerHttpFutureTest extends HttpServerTest {
 
   type Effect[T] = Future[T]
   type Context = AkkaServer.Context

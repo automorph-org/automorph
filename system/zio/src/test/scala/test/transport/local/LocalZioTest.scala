@@ -3,7 +3,7 @@ package test.transport.local
 import automorph.system.ZioSystem
 import zio.{Runtime, Task, Unsafe}
 
-class LocalZioTest extends LocalTest {
+final class LocalZioTest extends LocalTest {
   type Effect[T] = Task[T]
 
   override lazy val system: ZioSystem[Throwable] = {

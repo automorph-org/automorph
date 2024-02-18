@@ -4,7 +4,7 @@ import automorph.Default
 import automorph.protocol.WebRpcProtocol
 import test.base.BaseTest
 
-class WebRpcTest extends BaseTest {
+trait WebRpcTest extends BaseTest {
 
   "" - {
     "API description" - {

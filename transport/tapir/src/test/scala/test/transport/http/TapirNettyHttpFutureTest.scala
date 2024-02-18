@@ -10,7 +10,7 @@ import sttp.tapir.server.netty.{NettyFutureServer, NettyFutureServerBinding}
 import test.transport.HttpServerTest
 import test.transport.http.TapirNettyHttpFutureTest.TapirServer
 
-class TapirNettyHttpFutureTest extends HttpServerTest {
+final class TapirNettyHttpFutureTest extends HttpServerTest {
 
   type Effect[T] = Future[T]
   type Context = TapirHttpEndpoint.Context

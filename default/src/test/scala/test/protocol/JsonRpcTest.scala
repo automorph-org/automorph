@@ -4,7 +4,7 @@ import automorph.Default
 import automorph.protocol.JsonRpcProtocol
 import test.base.BaseTest
 
-class JsonRpcTest extends BaseTest {
+trait JsonRpcTest extends BaseTest {
 
   "" - {
     "API description" - {

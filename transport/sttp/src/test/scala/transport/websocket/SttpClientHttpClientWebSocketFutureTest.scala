@@ -11,7 +11,7 @@ import sttp.client3.httpclient.HttpClientFutureBackend
 import test.transport.WebSocketClientTest
 import test.transport.http.HttpContextGenerator
 
-class SttpClientHttpClientWebSocketFutureTest extends WebSocketClientTest {
+final class SttpClientHttpClientWebSocketFutureTest extends WebSocketClientTest {
 
   type Effect[T] = Future[T]
   type Context = SttpClient.Context

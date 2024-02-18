@@ -9,9 +9,6 @@ import scala.util.{Failure, Success, Try}
 /** Extension methods for utility types. */
 private[automorph] object Extensions {
 
-  /** String character set */
-  private val charset: Charset = StandardCharsets.UTF_8
-
   implicit final class ThrowableOps(private val throwable: Throwable) {
 
     /**
@@ -49,7 +46,7 @@ private[automorph] object Extensions {
         }
   }
 
-  implicit class ByteArrayOps(data: Array[Byte]) {
+  implicit final class ByteArrayOps(data: Array[Byte]) {
 
     /** Converts this byte array to input stream. */
     def toInputStream: InputStream =
@@ -64,7 +61,7 @@ private[automorph] object Extensions {
       new String(data, charset)
   }
 
-  implicit class ByteBufferOps(data: ByteBuffer) {
+  implicit final class ByteBufferOps(data: ByteBuffer) {
 
     /** Converts this byte buffer to byte array. */
     def toByteArray: Array[Byte] =
@@ -77,7 +74,7 @@ private[automorph] object Extensions {
       }
   }
 
-  implicit class InputStreamOps(data: InputStream) {
+  implicit final class InputStreamOps(data: InputStream) {
 
     /** Converts this input stream to byte array. */
     def toByteArray: Array[Byte] =
@@ -88,7 +85,7 @@ private[automorph] object Extensions {
       }
   }
 
-  implicit class StringOps(data: String) {
+  implicit final class StringOps(data: String) {
 
     /** Converts this string to byte array using UTF-8 character encoding. */
     def toByteArray: Array[Byte] =
@@ -174,4 +171,7 @@ private[automorph] object Extensions {
     def runAsync(implicit system: EffectSystem[Effect]): Unit =
       system.runAsync(effect)
   }
+
+  /** String character set */
+  private val charset: Charset = StandardCharsets.UTF_8
 }

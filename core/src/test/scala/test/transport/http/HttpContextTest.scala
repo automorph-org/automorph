@@ -6,7 +6,7 @@ import java.net.URI
 import scala.collection.immutable.Seq
 import test.base.BaseTest
 
-class HttpContextTest extends BaseTest {
+final class HttpContextTest extends BaseTest {
   private val url = new URI("test://test:test@test:0/test?a=b&c=d#test")
   private val userInfo = "test:test"
   private val scheme = "test"

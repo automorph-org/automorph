@@ -9,7 +9,7 @@
 //import zio.http.{Handler, Method, Routes, Server, handler}
 //import zio.{Runtime, Task, Unsafe, ZIO, ZIOAppDefault}
 //
-//class ZioHttpEndpointWebSocketZioTest extends WebSocketServerTest {
+//final class ZioHttpEndpointWebSocketZioTest extends WebSocketServerTest {
 //
 //  type Effect[T] = Task[T]
 //  type Context = ZioHttpWebSocketEndpoint.Context

@@ -6,7 +6,7 @@ import monix.execution.Scheduler.Implicits.global
 import scala.concurrent.duration.Duration
 import scala.util.Try
 
-class MonixTest extends AsyncEffectSystemTest[Task] {
+final class MonixTest extends AsyncEffectSystemTest[Task] {
 
   lazy val system: MonixSystem = MonixSystem()
 

@@ -13,7 +13,7 @@ import test.core.ClientServerTest
 import test.transport.local.LocalServer
 import java.net.URI
 
-class RabbitMqFutureTest extends ClientServerTest with Await with Mutex {
+final class RabbitMqFutureTest extends ClientServerTest with Await with Mutex {
 
   type Effect[T] = Future[T]
   type Context = RabbitMqServer.Context

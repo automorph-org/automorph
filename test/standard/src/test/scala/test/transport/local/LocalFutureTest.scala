@@ -5,7 +5,7 @@ import automorph.system.FutureSystem
 import scala.concurrent.ExecutionContext.Implicits.global
 import scala.concurrent.Future
 
-class LocalFutureTest extends LocalTest {
+final class LocalFutureTest extends LocalTest {
 
   type Effect[T] = Future[T]
 

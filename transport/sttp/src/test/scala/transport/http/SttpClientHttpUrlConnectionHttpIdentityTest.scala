@@ -10,7 +10,7 @@ import sttp.client3.HttpURLConnectionBackend
 import test.transport.HttpClientTest
 import test.transport.http.HttpContextGenerator
 
-class SttpClientHttpUrlConnectionHttpIdentityTest extends HttpClientTest {
+final class SttpClientHttpUrlConnectionHttpIdentityTest extends HttpClientTest {
 
   type Effect[T] = Identity[T]
   type Context = SttpClient.Context
