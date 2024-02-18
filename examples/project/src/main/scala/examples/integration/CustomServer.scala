@@ -30,7 +30,7 @@ private[examples] object CustomServer {
     val endpoint = RpcEndpoint.transport(endpointTransport).rpcProtocol(Default.rpcProtocol).bind(service)
 
     // Define a function for processing JSON-RPC requests via the generic RPC endpoint.
-    // This function should be called from request handling logic of an unsupported server.
+    // This function should be called from request handling logic of a custom server.
     def processRpcRequest(requestBody: Array[Byte]): Future[Array[Byte]] = {
       // Supply request context of type Unit as defined by the generic endpoint transport plugin
       val requestContext: Unit = ()
