@@ -7,7 +7,7 @@ import com.rallyhealth.weepickle.v1.WeePickle.{From, FromScala, To, ToScala}
 import scala.compiletime.summonInline
 
 /** weePickle MessagePack codec plugin code generation. */
-trait WeePickleMessagePackMeta extends MessageCodec[Msg]:
+private[automorph] trait WeePickleMessagePackMeta extends MessageCodec[Msg]:
 
   @scala.annotation.nowarn("msg=unused import")
   override inline def encode[T](value: T): Msg =
