@@ -2,7 +2,7 @@ package automorph.schema
 
 import automorph.RpcFunction
 import automorph.RpcFunction.Parameter
-import automorph.schema.openrpc.{ContentDescriptor, Info, Method, Schema}
+import automorph.schema.openrpc.{ContentDescriptor, Info, Method}
 import test.base.BaseTest
 
 final class OpenRpcTest extends BaseTest {
