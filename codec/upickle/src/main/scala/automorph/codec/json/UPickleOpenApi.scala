@@ -1,6 +1,6 @@
 package automorph.codec.json
 
-import automorph.codec.json.UPickleJsonCodec.JsonConfig
+import automorph.codec.UPickleJsonCodec.JsonConfig
 import automorph.codec.json.UPickleOpenRpc.{fromSchema, toSchema}
 import automorph.schema.openapi.*
 import automorph.schema.{OpenApi, Schema}

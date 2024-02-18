@@ -1,9 +1,8 @@
 package test.core
 
-import automorph.{RpcClient, RpcEndpoint, RpcServer}
-import automorph.codec.json.Json4sNativeJsonCodec
-import automorph.codec.json.meta.PlayJsonCodec
+import automorph.codec.{Json4sNativeJsonCodec, PlayJsonCodec}
 import automorph.protocol.JsonRpcProtocol
+import automorph.{RpcClient, RpcEndpoint, RpcServer}
 import org.json4s.{CustomSerializer, JInt}
 import play.api.libs.json.{JsNumber, JsValue, Json, Reads, Writes}
 import test.api.{Enum, Record, Structure, TestLevel}

@@ -1,6 +1,6 @@
 package automorph.codec.messagepack
 
-import automorph.codec.messagepack.UPickleMessagePackCodec.MessagePackConfig
+import automorph.codec.UPickleMessagePackCodec.MessagePackConfig
 import automorph.codec.messagepack.UPickleOpenRpc.{fromSchema, toSchema}
 import automorph.schema.openapi.*
 import automorph.schema.{OpenApi, Schema}

@@ -1,7 +1,7 @@
 package test.core
 
 import automorph.{RpcClient, RpcEndpoint, RpcServer}
-import automorph.codec.json.CirceJsonCodec
+import automorph.codec.CirceJsonCodec
 import automorph.protocol.WebRpcProtocol
 import automorph.transport.http.HttpContext
 import io.circe.generic.auto.*

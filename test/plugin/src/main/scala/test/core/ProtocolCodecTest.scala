@@ -1,10 +1,10 @@
 package test.core
 
-import automorph.codec.json.UPickleJsonCodec.JsonConfig
-import automorph.codec.json.{CirceJsonCodec, UPickleJsonCodec}
-import automorph.codec.messagepack.UPickleMessagePackCodec.MessagePackConfig
-import automorph.codec.messagepack.{UPickleMessagePackCodec, WeePickleMessagePackCodec}
-import automorph.codec.{JacksonCodec, WeePickleCodec}
+import automorph.codec.UPickleJsonCodec.JsonConfig
+import automorph.codec.UPickleMessagePackCodec.MessagePackConfig
+import automorph.codec.{
+  CirceJsonCodec, JacksonCodec, UPickleJsonCodec, UPickleMessagePackCodec, WeePickleCodec, WeePickleMessagePackCodec,
+}
 import automorph.protocol.JsonRpcProtocol
 import automorph.schema.OpenApi
 import automorph.spi.{ClientTransport, EndpointTransport, RpcProtocol, ServerTransport}

@@ -1,6 +1,6 @@
 package automorph.codec.messagepack
 
-import automorph.codec.messagepack.UPickleMessagePackCodec.MessagePackConfig
+import automorph.codec.UPickleMessagePackCodec.MessagePackConfig
 import automorph.protocol.jsonrpc.{Message, MessageError}
 import upack.{Arr, Float64, Msg, Null, Obj, Str}
 import upickle.core.{Abort, LinkedHashMap}

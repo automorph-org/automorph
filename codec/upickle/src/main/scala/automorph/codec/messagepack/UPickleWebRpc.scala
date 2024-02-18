@@ -1,6 +1,6 @@
 package automorph.codec.messagepack
 
-import automorph.codec.messagepack.UPickleMessagePackCodec.MessagePackConfig
+import automorph.codec.UPickleMessagePackCodec.MessagePackConfig
 import automorph.protocol.webrpc.{Message, MessageError}
 import upack.Msg
 
