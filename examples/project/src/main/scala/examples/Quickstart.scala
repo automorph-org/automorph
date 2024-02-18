@@ -11,7 +11,6 @@ import scala.concurrent.{Await, Future}
 
 private[examples] object Quickstart {
 
-  //
   @scala.annotation.nowarn
   def main(arguments: Array[String]): Unit = {
     import io.circe.generic.auto.*
