@@ -5,7 +5,7 @@ set -eo pipefail
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" >/dev/null && pwd)"
 cd ${SCRIPT_DIR}/..
 
-sbt '+ stats'
+# sbt '+ stats'
 
 echo -e "\n### Files"
 echo "* Main: `find  . -name '*.scala' -type f | grep src/main/ | wc -l`"
