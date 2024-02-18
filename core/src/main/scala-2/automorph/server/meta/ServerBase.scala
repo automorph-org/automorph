@@ -119,8 +119,8 @@ object ServerBind {
 
     // This server needs to be assigned to a stable identifier due to macro expansion limitations
     c.Expr[RpcServer[Node, Codec, Effect, Context]](q"""
-      import automorph.handler.{ApiRequestHandler, HandlerBinding}
-      import automorph.handler.meta.HandlerBindingGenerator
+      import automorph.endpoint.{ApiRequestHandler, HandlerBinding}
+      import automorph.endpoint.meta.HandlerBindingGenerator
       import scala.collection.immutable.ListMap
 
       val server = ${c.prefix}

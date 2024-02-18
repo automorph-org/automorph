@@ -1,17 +1,6 @@
-package automorph.handler.meta
+package automorph.endpoint.meta
 
-import automorph.RpcResult
-import automorph.handler.HandlerBinding
-import automorph.log.MacroLogger
-import automorph.reflection.ApiReflection.functionToExpr
-import automorph.reflection.{ApiReflection, ClassReflection}
-import automorph.spi.MessageCodec
-import scala.quoted.{Expr, Quotes, Type}
-
-/** RPC handler API bindings generator. */
-private[automorph] object HandlerBindingGenerator:
-
-  /**
+/**
    * Generates handler bindings for all valid public methods of an API type.
    *
    * @param codec

@@ -1,12 +1,12 @@
-package automorph.handler
+package automorph.endpoint
 
-import automorph.RpcFunction
 import automorph.RpcException.{FunctionNotFound, InvalidArguments}
 import automorph.log.{LogProperties, Logging}
 import automorph.spi.RequestHandler.Result
 import automorph.spi.protocol.{Message, Request}
 import automorph.spi.{EffectSystem, MessageCodec, RequestHandler, RpcProtocol}
 import automorph.util.Extensions.EffectOps
+import automorph.{RpcFunction, endpoint}
 import scala.collection.immutable.ListMap
 import scala.util.{Failure, Success, Try}
 
@@ -307,7 +307,7 @@ final case class ApiRequestHandler[Node, Codec <: MessageCodec[Node], Effect[_],
       val apiSchemaFunctions = rpcProtocol.apiSchemas.filter { apiSchema =>
         !apiBindings.contains(apiSchema.function.name)
       }.map(_.function) ++ apiBindings.values.map(_.function)
-      apiSchema.function.name -> HandlerBinding[Node, Effect, Context](
+      apiSchema.function.name -> endpoint.HandlerBinding[Node, Effect, Context](
         apiSchema.function,
         Map.empty,
         result => result.asInstanceOf[Node] -> None,

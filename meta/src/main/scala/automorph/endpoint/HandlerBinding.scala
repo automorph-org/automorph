@@ -1,4 +1,4 @@
-package automorph.handler
+package automorph.endpoint
 
 import automorph.RpcFunction
 

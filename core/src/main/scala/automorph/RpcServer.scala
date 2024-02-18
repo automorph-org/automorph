@@ -1,6 +1,6 @@
 package automorph
 
-import automorph.handler.ApiRequestHandler
+import automorph.endpoint.ApiRequestHandler
 import automorph.server.meta.ServerBind
 import automorph.spi.{MessageCodec, RequestHandler, RpcProtocol, ServerTransport}
 import scala.collection.immutable.ListMap

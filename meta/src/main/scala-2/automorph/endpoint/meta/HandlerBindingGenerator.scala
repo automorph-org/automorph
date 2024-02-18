@@ -1,10 +1,10 @@
-package automorph.handler.meta
+package automorph.endpoint.meta
 
-import automorph.{RpcFunction, RpcResult}
-import automorph.handler.HandlerBinding
+import automorph.endpoint.HandlerBinding
 import automorph.log.MacroLogger
 import automorph.reflection.{ApiReflection, ClassReflection}
 import automorph.spi.MessageCodec
+import automorph.{RpcFunction, RpcResult}
 import scala.annotation.nowarn
 import scala.language.experimental.macros
 import scala.reflect.macros.blackbox
@@ -95,7 +95,7 @@ object HandlerBindingGenerator {
     logCode[C](ref)("Call", call)
     implicit val functionLiftable: Liftable[RpcFunction] = ApiReflection.functionLiftable(ref)
     ref.c.Expr[HandlerBinding[Node, Effect, Context]](q"""
-      automorph.handler.HandlerBinding(
+      automorph.endpoint.HandlerBinding(
         ${method.lift.rpcFunction},
         $argumentDecoders,
         $encodeResult,
