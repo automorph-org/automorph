@@ -1,6 +1,6 @@
 package automorph.meta
 
-import automorph.codec.json.CirceJsonCodec
+import automorph.codec.CirceJsonCodec
 import automorph.protocol.JsonRpcProtocol
 import automorph.spi.MessageCodec
 

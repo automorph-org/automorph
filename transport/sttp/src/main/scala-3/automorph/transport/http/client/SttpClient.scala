@@ -1,7 +1,7 @@
-package automorph.transport.http.client
+package automorph.transport.client
 
 import automorph.spi.EffectSystem
-import automorph.transport.http.{HttpContext, HttpMethod}
+import automorph.transport.{HttpContext, HttpMethod}
 import sttp.capabilities.WebSockets
 import sttp.client3.{PartialRequest, SttpBackend}
 import java.net.URI

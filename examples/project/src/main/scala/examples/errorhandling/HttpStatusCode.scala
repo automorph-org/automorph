@@ -3,7 +3,7 @@
 package examples.errorhandling
 
 import automorph.Default
-import automorph.transport.http.HttpContext
+import automorph.transport.HttpContext
 import java.net.URI
 import java.sql.SQLException
 import scala.concurrent.ExecutionContext.Implicits.global

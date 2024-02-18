@@ -4,6 +4,7 @@ import automorph.spi.EffectSystem
 import automorph.system.MonixSystem
 import monix.eval.Task
 import monix.execution.Scheduler.Implicits.global
+import test.transport.LocalTest
 import scala.concurrent.duration.Duration
 
 final class LocalMonixTest extends LocalTest {

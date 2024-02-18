@@ -1,7 +1,7 @@
 package examples.transport
 
 import automorph.{Default, RpcClient}
-import automorph.transport.http.client.UrlClient
+import automorph.transport.client.UrlClient
 import java.net.URI
 import scala.concurrent.ExecutionContext.Implicits.global
 import scala.concurrent.duration.Duration

@@ -1,7 +1,7 @@
 package test.transport
 
 import automorph.spi.ServerTransport
-import automorph.transport.http.server.NanoServer
+import automorph.transport.server.NanoServer
 import test.core.HttpClientServerTest
 import java.net.URI
 

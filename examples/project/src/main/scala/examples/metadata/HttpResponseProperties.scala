@@ -4,7 +4,7 @@ package examples.metadata
 
 import automorph.Default.{ClientContext, ServerContext}
 import automorph.system.IdentitySystem
-import automorph.transport.http.HttpContext
+import automorph.transport.HttpContext
 import automorph.{RpcResult, Default}
 import java.net.URI
 

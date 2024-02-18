@@ -2,8 +2,8 @@ package automorph.transport.websocket.endpoint
 
 import automorph.log.{LogProperties, Logging, MessageLog}
 import automorph.spi.{EffectSystem, EndpointTransport, RequestHandler}
-import automorph.transport.http.endpoint.VertxHttpEndpoint
-import automorph.transport.http.{HttpContext, Protocol}
+import automorph.transport.endpoint.VertxHttpEndpoint
+import automorph.transport.{HttpContext, Protocol}
 import automorph.transport.websocket.endpoint.VertxWebSocketEndpoint.Context
 import automorph.util.Extensions.{EffectOps, StringOps, ThrowableOps}
 import automorph.util.Random

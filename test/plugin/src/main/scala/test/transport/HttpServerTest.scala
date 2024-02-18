@@ -1,8 +1,8 @@
 package test.transport
 
 import automorph.spi.ClientTransport
-import automorph.transport.http.HttpMethod
-import automorph.transport.http.client.HttpClient
+import automorph.transport.HttpMethod
+import automorph.transport.client.HttpClient
 import test.core.HttpClientServerTest
 import java.net.URI
 

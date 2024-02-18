@@ -1,6 +1,7 @@
 package test.transport.local
 
 import automorph.system.ZioSystem
+import test.transport.LocalTest
 import zio.{Runtime, Task, Unsafe}
 
 final class LocalZioTest extends LocalTest {

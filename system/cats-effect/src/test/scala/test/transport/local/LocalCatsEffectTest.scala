@@ -4,6 +4,7 @@ import automorph.spi.EffectSystem
 import automorph.system.CatsEffectSystem
 import cats.effect.IO
 import cats.effect.unsafe.implicits.global
+import test.transport.LocalTest
 
 class LocalCatsEffectTest extends LocalTest {
 

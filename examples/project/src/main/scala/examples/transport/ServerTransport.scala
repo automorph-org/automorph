@@ -1,7 +1,7 @@
 package examples.transport
 
 import automorph.{Default, RpcServer}
-import automorph.transport.http.server.VertxServer
+import automorph.transport.server.VertxServer
 import java.net.URI
 import scala.concurrent.ExecutionContext.Implicits.global
 import scala.concurrent.duration.Duration

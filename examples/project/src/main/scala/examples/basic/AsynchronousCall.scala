@@ -3,7 +3,7 @@
 package examples.basic
 
 import automorph.Default
-import automorph.transport.http.HttpMethod.{Post, Put}
+import automorph.transport.HttpMethod.{Post, Put}
 import java.net.URI
 import scala.concurrent.ExecutionContext.Implicits.global
 import scala.concurrent.duration.Duration

@@ -3,11 +3,11 @@ package automorph
 import automorph.meta.DefaultRpcProtocol
 import automorph.spi.AsyncEffectSystem
 import automorph.system.FutureSystem
-import automorph.transport.http.client.HttpClient
-import automorph.transport.http.endpoint.UndertowHttpEndpoint
-import automorph.transport.http.server.UndertowServer
-import automorph.transport.http.server.UndertowServer.builder
-import automorph.transport.http.{HttpContext, HttpMethod}
+import automorph.transport.client.HttpClient
+import automorph.transport.endpoint.UndertowHttpEndpoint
+import automorph.transport.server.UndertowServer
+import automorph.transport.server.UndertowServer.builder
+import automorph.transport.{HttpContext, HttpMethod}
 import io.undertow.Undertow
 import java.net.URI
 import scala.concurrent.{ExecutionContext, Future}

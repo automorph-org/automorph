@@ -1,6 +1,6 @@
 package examples.special
 
-import automorph.transport.http.HttpContext
+import automorph.transport.HttpContext
 import automorph.transport.local.client.LocalClient
 import automorph.{Default, RpcClient}
 import scala.concurrent.ExecutionContext.Implicits.global

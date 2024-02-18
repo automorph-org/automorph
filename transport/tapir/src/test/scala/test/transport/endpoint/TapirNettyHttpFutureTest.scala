@@ -1,0 +1,53 @@
+package test.transport.endpoint
+
+import automorph.spi.{EffectSystem, RequestHandler, ServerTransport}
+import automorph.system.FutureSystem
+import automorph.transport.endpoint.TapirHttpEndpoint
+import org.scalacheck.Arbitrary
+import sttp.tapir.server.netty.{NettyFutureServer, NettyFutureServerBinding}
+import test.transport.endpoint.TapirNettyHttpFutureTest.TapirServer
+import test.transport.{HttpContextGenerator, HttpServerTest}
+import scala.concurrent.ExecutionContext.Implicits.global
+import scala.concurrent.Future
+
+final class TapirNettyHttpFutureTest extends HttpServerTest {
+
+  type Effect[T] = Future[T]
+  type Context = TapirHttpEndpoint.Context
+
+  override lazy val system: EffectSystem[Effect] = FutureSystem()
+  override lazy val arbitraryContext: Arbitrary[Context] =
+    HttpContextGenerator.arbitrary
+
+  override def run[T](effect: Effect[T]): T =
+    await(effect)
+
+  def serverTransport(fixtureId: String): ServerTransport[Effect, Context] =
+    TapirServer(system, port(fixtureId))
+}
+
+object TapirNettyHttpFutureTest {
+
+  type Effect[T] = Future[T]
+  type Context = TapirHttpEndpoint.Context
+
+  final case class TapirServer(effectSystem: EffectSystem[Effect], port: Int) extends ServerTransport[Effect, Context] {
+    private var endpoint = TapirHttpEndpoint(effectSystem)
+    private var server = Option.empty[NettyFutureServerBinding]
+
+    override def withHandler(handler: RequestHandler[Effect, Context]): ServerTransport[Effect, Context] = {
+      endpoint = endpoint.withHandler(handler)
+      this
+    }
+
+    override def init(): Effect[Unit] =
+      NettyFutureServer().port(port).addEndpoint(endpoint.adapter).start().map { activeServer =>
+        server = Some(activeServer)
+      }
+
+    override def close(): Effect[Unit] =
+      server.map { activeServer =>
+        activeServer.stop()
+      }.getOrElse(effectSystem.successful {})
+  }
+}

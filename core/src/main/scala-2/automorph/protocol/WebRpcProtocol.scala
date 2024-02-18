@@ -3,7 +3,7 @@ package automorph.protocol
 import automorph.protocol.webrpc.{ErrorMapping, ErrorType, Message, WebRpcCore}
 import automorph.schema.OpenApi
 import automorph.spi.{MessageCodec, RpcProtocol}
-import automorph.transport.http.HttpContext
+import automorph.transport.HttpContext
 import scala.language.experimental.macros
 import scala.reflect.macros.blackbox
 

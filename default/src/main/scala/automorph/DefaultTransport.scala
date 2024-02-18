@@ -2,11 +2,11 @@ package automorph
 
 import automorph.Default.{Codec, Node, rpcProtocol}
 import automorph.spi.EffectSystem
-import automorph.transport.http.{HttpContext, HttpMethod}
-import automorph.transport.http.client.HttpClient
-import automorph.transport.http.endpoint.UndertowHttpEndpoint
-import automorph.transport.http.server.UndertowServer
-import automorph.transport.http.server.UndertowServer.builder
+import automorph.transport.{HttpContext, HttpMethod}
+import automorph.transport.client.HttpClient
+import automorph.transport.endpoint.UndertowHttpEndpoint
+import automorph.transport.server.UndertowServer
+import automorph.transport.server.UndertowServer.builder
 import io.undertow.Undertow
 import io.undertow.server.HttpHandler
 import java.net.URI

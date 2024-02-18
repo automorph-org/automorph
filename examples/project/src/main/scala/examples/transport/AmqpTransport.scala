@@ -4,8 +4,8 @@
 package examples.transport
 
 import automorph.{RpcClient, Default, RpcServer}
-import automorph.transport.amqp.client.RabbitMqClient
-import automorph.transport.amqp.server.RabbitMqServer
+import automorph.transport.client.RabbitMqClient
+import automorph.transport.server.RabbitMqServer
 import java.net.URI
 import scala.concurrent.ExecutionContext.Implicits.global
 import scala.concurrent.duration.Duration

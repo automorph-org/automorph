@@ -2,8 +2,8 @@ package automorph.transport.websocket.endpoint
 
 import automorph.log.{LogProperties, Logging, MessageLog}
 import automorph.spi.{EffectSystem, EndpointTransport, RequestHandler}
-import automorph.transport.http.endpoint.UndertowHttpEndpoint.requestQuery
-import automorph.transport.http.{HttpContext, Protocol}
+import automorph.transport.endpoint.UndertowHttpEndpoint.requestQuery
+import automorph.transport.{HttpContext, Protocol}
 import automorph.transport.websocket.endpoint.UndertowWebSocketEndpoint.{ConnectionListener, Context}
 import automorph.util.Extensions.{ByteArrayOps, ByteBufferOps, EffectOps, StringOps, ThrowableOps}
 import automorph.util.{Network, Random}

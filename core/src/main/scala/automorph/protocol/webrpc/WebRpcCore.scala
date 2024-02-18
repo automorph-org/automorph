@@ -8,7 +8,7 @@ import automorph.schema.{OpenApi, Schema}
 import automorph.schema.openapi.RpcSchema
 import automorph.spi.{MessageCodec, protocol}
 import automorph.spi.protocol.{ApiSchema, ParseError}
-import automorph.transport.http.{HttpContext, HttpMethod}
+import automorph.transport.{HttpContext, HttpMethod}
 import automorph.util.Extensions.ThrowableOps
 import scala.util.{Failure, Success, Try}
 

@@ -4,6 +4,7 @@ import automorph.spi.EffectSystem
 import automorph.system.ScalazEffectSystem
 import scala.concurrent.ExecutionContext.Implicits.global
 import scalaz.effect.IO
+import test.transport.LocalTest
 
 final class LocalScalazEffectTest extends LocalTest {
 

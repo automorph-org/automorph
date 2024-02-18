@@ -3,7 +3,7 @@ package test.core
 import automorph.{RpcClient, RpcEndpoint, RpcServer}
 import automorph.codec.CirceJsonCodec
 import automorph.protocol.WebRpcProtocol
-import automorph.transport.http.HttpContext
+import automorph.transport.HttpContext
 import io.circe.generic.auto.*
 import io.circe.{Decoder, Encoder}
 import test.api.Enum
