@@ -1,5 +1,7 @@
 package automorph.schema.openapi
 
+import automorph.schema.Schema
+
 final case class Header(
   descriptipon: Option[String] = None,
   required: Option[Boolean] = None,

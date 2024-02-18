@@ -1,7 +1,7 @@
 package automorph.schema
 
 import automorph.RpcFunction
-import automorph.schema.openrpc.{Components, ContentDescriptor, ExternalDocumentation, Info, Method, Schema, Server}
+import automorph.schema.openrpc.{Components, ContentDescriptor, ExternalDocumentation, Info, Method, Server}
 
 /**
  * OpenRPC API schema.

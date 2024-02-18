@@ -2,8 +2,8 @@ package automorph.protocol.jsonrpc
 
 import automorph.RpcFunction
 import automorph.RpcException.InvalidResponse
-import automorph.schema.openapi.{RpcSchema, Schema}
-import automorph.schema.{OpenApi, OpenRpc}
+import automorph.schema.openapi.RpcSchema
+import automorph.schema.{OpenApi, OpenRpc, Schema}
 import automorph.protocol.JsonRpcProtocol
 import automorph.spi.MessageCodec
 import automorph.spi.protocol

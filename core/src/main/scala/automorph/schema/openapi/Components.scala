@@ -1,5 +1,6 @@
 package automorph.schema.openapi
 
+import automorph.schema.Schema
 import automorph.schema.openapi.Operation.Callback
 
 final case class Components(

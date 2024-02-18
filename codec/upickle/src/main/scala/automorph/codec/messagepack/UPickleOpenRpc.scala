@@ -1,6 +1,6 @@
 package automorph.codec.messagepack
 
-import automorph.schema.OpenRpc
+import automorph.schema.{OpenRpc, Schema}
 import automorph.schema.openrpc.*
 import upack.{Arr, Msg, Obj, Str}
 import upickle.core.{Abort, LinkedHashMap}
@@ -31,7 +31,7 @@ private[automorph] object UPickleOpenRpc {
     config.macroRW[OpenRpc]
   }
 
-  private def fromSchema(schema: Schema): Msg =
+  private[automorph] def fromSchema(schema: Schema): Msg =
     Obj(LinkedHashMap[Msg, Msg](
       Seq(
         schema.`type`.map(Str("type") -> Str(_)),
@@ -49,7 +49,7 @@ private[automorph] object UPickleOpenRpc {
       ).flatten
     ))
 
-  private def toSchema(node: Msg): Schema =
+  private[automorph] def toSchema(node: Msg): Schema =
     node match {
       case Obj(fields) => Schema(
           `type` = fields.get(Str("type")).map(_.str),

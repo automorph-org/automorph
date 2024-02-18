@@ -1,5 +1,7 @@
 package automorph.schema.openrpc
 
+import automorph.schema.Schema
+
 final case class ContentDescriptor(
   name: String,
   summary: Option[String] = None,

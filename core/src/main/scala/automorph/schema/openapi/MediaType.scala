@@ -1,5 +1,7 @@
 package automorph.schema.openapi
 
+import automorph.schema.Schema
+
 final case class MediaType(
   schema: Option[Schema] = None,
   example: Option[String] = None,

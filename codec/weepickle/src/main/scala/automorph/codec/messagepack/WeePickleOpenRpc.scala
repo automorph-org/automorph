@@ -1,7 +1,7 @@
 package automorph.codec.messagepack
 
-import automorph.schema.OpenRpc
 import automorph.schema.openrpc.*
+import automorph.schema.{OpenRpc, Schema}
 import com.rallyhealth.weepack.v1.Msg.{FromMsgValue, ToMsgValue}
 import com.rallyhealth.weepack.v1.{Arr, Msg, Obj, Str}
 import com.rallyhealth.weepickle.v1.WeePickle.{From, FromTo, To, macroFromTo}
@@ -32,7 +32,7 @@ private[automorph] object WeePickleOpenRpc {
     macroFromTo[OpenRpc]
   }
 
-  private def fromSchema(schema: Schema): Msg =
+  private[automorph] def fromSchema(schema: Schema): Msg =
     Obj(mutable.LinkedHashMap.newBuilder[Msg, Msg].addAll(
       Seq(
         schema.`type`.map(Str("type") -> Str(_)),
@@ -50,7 +50,7 @@ private[automorph] object WeePickleOpenRpc {
       ).flatten
     ).result())
 
-  private def toSchema(node: Msg): Schema =
+  private[automorph] def toSchema(node: Msg): Schema =
     node match {
       case Obj(fields) => Schema(
           `type` = fields.get(Str("type")).map(_.str),

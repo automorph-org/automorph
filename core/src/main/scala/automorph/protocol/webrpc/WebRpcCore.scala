@@ -4,8 +4,8 @@ import automorph.RpcException.{InvalidRequest, InvalidResponse}
 import automorph.RpcFunction
 import automorph.protocol.WebRpcProtocol
 import automorph.protocol.webrpc.Message.Request
-import automorph.schema.OpenApi
-import automorph.schema.openapi.{RpcSchema, Schema}
+import automorph.schema.{OpenApi, Schema}
+import automorph.schema.openapi.RpcSchema
 import automorph.spi.{MessageCodec, protocol}
 import automorph.spi.protocol.{ApiSchema, ParseError}
 import automorph.transport.http.{HttpContext, HttpMethod}

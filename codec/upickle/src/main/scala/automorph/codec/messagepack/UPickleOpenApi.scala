@@ -1,9 +1,9 @@
 package automorph.codec.messagepack
 
-import automorph.schema.OpenApi
+import automorph.codec.messagepack.UPickleOpenRpc.{fromSchema, toSchema}
 import automorph.schema.openapi.*
-import upack.{Arr, Msg, Obj, Str}
-import upickle.core.{Abort, LinkedHashMap}
+import automorph.schema.{OpenApi, Schema}
+import upack.Msg
 
 /** JSON-RPC protocol support for Circe message codec plugin using JSON format. */
 private[automorph] object UPickleOpenApi {
@@ -39,39 +39,4 @@ private[automorph] object UPickleOpenApi {
 
     config.macroRW[OpenApi]
   }
-
-  private def fromSchema(schema: Schema): Msg =
-    Obj(LinkedHashMap[Msg, Msg](
-      Seq(
-        schema.`type`.map(Str("type") -> Str(_)),
-        schema.title.map(Str("title") -> Str(_)),
-        schema.description.map(Str("description") -> Str(_)),
-        schema.properties.map(v =>
-          Str("properties") -> Obj(LinkedHashMap[Msg, Msg](v.map { case (key, value) =>
-            Str(key) -> fromSchema(value)
-          }))
-        ),
-        schema.required.map(v => Str("required") -> Arr(v.map(Str.apply)*)),
-        schema.default.map(Str("default") -> Str(_)),
-        schema.allOf.map(v => Str("allOf") -> Arr(v.map(fromSchema)*)),
-        schema.$ref.map(Str("$ref") -> Str(_)),
-      ).flatten
-    ))
-
-  private def toSchema(node: Msg): Schema =
-    node match {
-      case Obj(fields) => Schema(
-          `type` = fields.get(Str("type")).map(_.str),
-          title = fields.get(Str("title")).map(_.str),
-          description = fields.get(Str("description")).map(_.str),
-          properties = fields.get(Str("properties")).map(_.obj.map { case (key, value) =>
-            key.str -> toSchema(value)
-          }.toMap),
-          required = fields.get(Str("required")).map(_.arr.map(_.str).toList),
-          default = fields.get(Str("default")).map(_.str),
-          allOf = fields.get(Str("allOf")).map(_.arr.map(toSchema).toList),
-          $ref = fields.get(Str("$ref")).map(_.str),
-        )
-      case _ => throw Abort(s"Invalid OpenAPI object")
-    }
 }

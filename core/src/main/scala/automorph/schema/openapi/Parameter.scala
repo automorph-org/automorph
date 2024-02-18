@@ -1,5 +1,7 @@
 package automorph.schema.openapi
 
+import automorph.schema.Schema
+
 final case class Parameter(
   name: String,
   in: String,

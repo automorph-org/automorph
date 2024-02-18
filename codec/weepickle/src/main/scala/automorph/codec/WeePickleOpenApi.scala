@@ -1,10 +1,9 @@
 package automorph.codec
 
-import automorph.schema.OpenApi
+import automorph.codec.WeePickleOpenRpc.{fromSchema, toSchema}
 import automorph.schema.openapi.*
-import com.rallyhealth.weejson.v1.{Arr, Obj, Str, Value}
+import automorph.schema.{OpenApi, Schema}
 import com.rallyhealth.weepickle.v1.WeePickle.{From, FromTo, FromValue, To, ToValue, macroFromTo}
-import com.rallyhealth.weepickle.v1.core.Abort
 
 /** OpenAPI schema support for weePickle message codec plugin. */
 private[automorph] object WeePickleOpenApi {
@@ -38,33 +37,4 @@ private[automorph] object WeePickleOpenApi {
     implicit val componentsFromTo: FromTo[Components] = macroFromTo
     macroFromTo[OpenApi]
   }
-
-  private def fromSchema(schema: Schema): Value =
-    Obj.from(
-      Seq(
-        schema.`type`.map("type" -> Str(_)),
-        schema.title.map("title" -> Str(_)),
-        schema.description.map("description" -> Str(_)),
-        schema.properties.map(v => "properties" -> Obj.from(v.view.mapValues(fromSchema).toSeq)),
-        schema.required.map(v => "required" -> Arr.from(v.map(Str.apply))),
-        schema.default.map("default" -> Str(_)),
-        schema.allOf.map(v => "allOf" -> Arr.from(v.map(fromSchema))),
-        schema.$ref.map("$ref" -> Str(_)),
-      ).flatten
-    )
-
-  private def toSchema(node: Value): Schema =
-    node match {
-      case Obj(fields) => Schema(
-          `type` = fields.get("type").map(_.str),
-          title = fields.get("title").map(_.str),
-          description = fields.get("description").map(_.str),
-          properties = fields.get("properties").map(_.obj.view.mapValues(toSchema).toMap),
-          required = fields.get("required").map(_.arr.map(_.str).toList),
-          default = fields.get("default").map(_.str),
-          allOf = fields.get("allOf").map(_.arr.map(toSchema).toList),
-          $ref = fields.get("$ref").map(_.str),
-        )
-      case _ => throw new Abort("Invalid OpenAPI object")
-    }
 }

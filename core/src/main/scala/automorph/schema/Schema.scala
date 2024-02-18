@@ -1,7 +1,7 @@
-package automorph.schema.openrpc
+package automorph.schema
 
 import automorph.RpcFunction
-import automorph.schema.openrpc.Schema.Properties
+import automorph.schema.Schema.Properties
 
 final case class Schema(
   `type`: Option[String] = None,

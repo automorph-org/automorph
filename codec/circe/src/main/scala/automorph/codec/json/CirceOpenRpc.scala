@@ -1,6 +1,6 @@
 package automorph.codec.json
 
-import automorph.schema.OpenRpc
+import automorph.schema.{OpenRpc, Schema}
 import automorph.schema.openrpc.*
 import io.circe.generic.semiauto.{deriveDecoder, deriveEncoder}
 import io.circe.{ACursor, Decoder, DecodingFailure, Encoder, HCursor, Json}

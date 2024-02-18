@@ -1,5 +1,7 @@
 package automorph.schema.openapi
 
+import automorph.schema.Schema
+
 /**
  * RPC function schema.
  *

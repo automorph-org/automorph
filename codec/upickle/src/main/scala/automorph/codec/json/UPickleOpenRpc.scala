@@ -1,6 +1,6 @@
 package automorph.codec.json
 
-import automorph.schema.OpenRpc
+import automorph.schema.{OpenRpc, Schema}
 import automorph.schema.openrpc.*
 import ujson.{Arr, Obj, Str, Value}
 import upickle.core.Abort
@@ -30,7 +30,7 @@ private[automorph] object UPickleOpenRpc {
     config.macroRW[OpenRpc]
   }
 
-  private def fromSchema(schema: Schema): Value =
+  private[automorph] def fromSchema(schema: Schema): Value =
     Obj.from(
       Seq(
         schema.`type`.map("type" -> Str(_)),
@@ -44,7 +44,7 @@ private[automorph] object UPickleOpenRpc {
       ).flatten
     )
 
-  private def toSchema(node: Value): Schema =
+  private[automorph] def toSchema(node: Value): Schema =
     node match {
       case Obj(fields) => Schema(
           `type` = fields.get("type").map(_.str),

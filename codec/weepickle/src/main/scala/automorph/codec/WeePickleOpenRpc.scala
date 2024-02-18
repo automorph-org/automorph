@@ -1,6 +1,6 @@
 package automorph.codec
 
-import automorph.schema.OpenRpc
+import automorph.schema.{OpenRpc, Schema}
 import automorph.schema.openrpc.*
 import com.rallyhealth.weejson.v1.{Arr, Obj, Str, Value}
 import com.rallyhealth.weepickle.v1.WeePickle.{From, FromTo, FromValue, To, ToValue, macroFromTo}
@@ -30,7 +30,7 @@ private[automorph] object WeePickleOpenRpc {
     macroFromTo[OpenRpc]
   }
 
-  private def fromSchema(schema: Schema): Value =
+  private[automorph] def fromSchema(schema: Schema): Value =
     Obj.from(
       Seq(
         schema.`type`.map("type" -> Str(_)),
@@ -44,7 +44,7 @@ private[automorph] object WeePickleOpenRpc {
       ).flatten
     )
 
-  private def toSchema(node: Value): Schema =
+  private[automorph] def toSchema(node: Value): Schema =
     node match {
       case Obj(fields) => Schema(
           `type` = fields.get("type").map(_.str),
