@@ -38,7 +38,7 @@ final case class UPickleMessagePackCodec[Config <: UPickleMessagePackConfig](
     config.write(node, indent)
 }
 
-case object UPickleMessagePackCodec {
+object UPickleMessagePackCodec {
 
   /** Message node type. */
   type Node = Msg

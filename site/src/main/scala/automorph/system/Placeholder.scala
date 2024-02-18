@@ -8,4 +8,4 @@ package automorph.system
  */
 final case class MonixSystem()
 
-case object MonixSystem
+object MonixSystem
