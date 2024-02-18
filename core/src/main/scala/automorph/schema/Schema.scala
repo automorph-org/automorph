@@ -3,6 +3,12 @@ package automorph.schema
 import automorph.RpcFunction
 import automorph.schema.Schema.Properties
 
+/**
+ * JSON schema.
+ *
+ * @see
+ *   [[https://json-schema.org/specification JSON schema specification]]
+ */
 final case class Schema(
   `type`: Option[String] = None,
   title: Option[String] = None,
