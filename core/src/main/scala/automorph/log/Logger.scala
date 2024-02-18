@@ -13,11 +13,12 @@ import scala.annotation.nowarn
  *   [[https://github.com/lightbend/scala-logging Scala Logging documentation]]
  * @see
  *   [[http://logback.qos.ch/manual/mdc.html MDC concept description]]
+ * @constructor
+ *   Creates a logger using the underlying `org.slf4j.Logger`.
  * @param underlying
  *   underlying [[https://www.javadoc.io/doc/org.slf4j/slf4j-api/1.7.30/org/slf4j/Logger.html SLF4J logger]]
  */
-@SerialVersionUID(782158461L)
-final private[automorph] case class Logger private (private val underlying: slf4j.Logger) {
+final private[automorph] case class Logger(private val underlying: slf4j.Logger) {
 
   type Not[T] = T => Nothing
   type Or[T, U] = Not[Not[T] & Not[U]]
@@ -196,18 +197,7 @@ final private[automorph] case class Logger private (private val underlying: slf4
 private[automorph] object Logger {
 
   /**
-   * Create a logger using the underlying `org.slf4j.Logger`.
-   *
-   * @param underlying
-   *   underlying [[https://www.javadoc.io/doc/org.slf4j/slf4j-api/1.7.30/org/slf4j/Logger.html SLF4J logger]]
-   * @return
-   *   logger
-   */
-  def apply(underlying: slf4j.Logger): Logger =
-    new Logger(underlying)
-
-  /**
-   * Create a logger with the specified name.
+   * Creates a logger with the specified name.
    *
    * @param name
    *   logger name
