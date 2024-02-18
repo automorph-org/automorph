@@ -9,7 +9,7 @@ import upickle.core.{Abort, LinkedHashMap}
 private[automorph] object UPickleOpenApi {
 
   @scala.annotation.nowarn("msg=never used")
-  def readWriter[Config <: UpickleMessagePackConfig](config: Config): config.ReadWriter[OpenApi] = {
+  def readWriter[Config <: UPickleMessagePackConfig](config: Config): config.ReadWriter[OpenApi] = {
     import config.*
 
     implicit val schemaRw: config.ReadWriter[Schema] = readwriter[Msg].bimap[Schema](fromSchema, toSchema)
@@ -64,8 +64,9 @@ private[automorph] object UPickleOpenApi {
           `type` = fields.get(Str("type")).map(_.str),
           title = fields.get(Str("title")).map(_.str),
           description = fields.get(Str("description")).map(_.str),
-          properties = fields.get(Str("properties")).map(_.obj.map { case (key, value) => key.str -> toSchema(value) }
-            .toMap),
+          properties = fields.get(Str("properties")).map(_.obj.map { case (key, value) =>
+            key.str -> toSchema(value)
+          }.toMap),
           required = fields.get(Str("required")).map(_.arr.map(_.str).toList),
           default = fields.get(Str("default")).map(_.str),
           allOf = fields.get(Str("allOf")).map(_.arr.map(toSchema).toList),

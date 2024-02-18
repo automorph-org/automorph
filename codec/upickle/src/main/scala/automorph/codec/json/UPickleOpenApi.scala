@@ -9,7 +9,7 @@ import upickle.core.Abort
 private[automorph] object UPickleOpenApi {
 
   @scala.annotation.nowarn("msg=never used")
-  def readWriter[Config <: UpickleJsonConfig](config: Config): config.ReadWriter[OpenApi] = {
+  def readWriter[Config <: UPickleJsonConfig](config: Config): config.ReadWriter[OpenApi] = {
     import config.*
 
     implicit val schemaRw: config.ReadWriter[Schema] = readwriter[Value].bimap[Schema](fromSchema, toSchema)

@@ -163,7 +163,7 @@ lazy val playJson = source(project, "codec/play-json", core, testCodec % Test).s
 )
 lazy val weepickle = source(project, "codec/weepickle", core, testCodec % Test).settings(
   libraryDependencies ++= Seq(
-    "com.rallyhealth" %% "weepickle-v1" % "1.9.1",
+    "com.rallyhealth" %% "weepack-v1" % "1.9.1",
     "com.fasterxml.jackson.dataformat" % "jackson-dataformat-smile" % jacksonVersion,
     "com.fasterxml.jackson.dataformat" % "jackson-dataformat-cbor" % jacksonVersion,
     "com.fasterxml.jackson.dataformat" % "jackson-dataformat-ion" % jacksonVersion,

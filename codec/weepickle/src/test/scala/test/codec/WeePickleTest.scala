@@ -1,6 +1,6 @@
 package test.codec
 
-import automorph.codec.WeepickleCodec
+import automorph.codec.WeePickleCodec
 import com.fasterxml.jackson.core.JsonFactory
 import com.rallyhealth.weejson.v1.{Arr, Bool, Null, Num, Obj, Str, Value}
 import com.rallyhealth.weepickle.v1.WeePickle.{FromInt, FromTo, ToInt, macroFromTo}
@@ -11,9 +11,9 @@ import test.api.Generators.arbitraryRecord
 trait WeePickleTest extends MessageCodecTest {
 
   type Node = Value
-  type ActualCodec = WeepickleCodec
+  type ActualCodec = WeePickleCodec
 
-  override lazy val codec: ActualCodec = WeepickleCodec(jsonFactory)
+  override lazy val codec: ActualCodec = WeePickleCodec(jsonFactory)
 
   override lazy val arbitraryNode: Arbitrary[Value] = Arbitrary(Gen.recursive[Value] { recurse =>
     Gen.oneOf(

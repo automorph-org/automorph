@@ -1,6 +1,6 @@
 package test.codec.json
 
-import automorph.codec.json.{UpickleJsonCodec, UpickleJsonConfig}
+import automorph.codec.json.{UPickleJsonCodec, UPickleJsonConfig}
 import org.scalacheck.{Arbitrary, Gen}
 import test.api.Generators.arbitraryRecord
 import test.api.{Enum, Record, Structure}
@@ -10,9 +10,9 @@ import ujson.{Arr, Bool, Null, Num, Obj, Str, Value}
 class UpickleJsonTest extends MessageCodecTest with JsonMessageCodecTest {
 
   type Node = Value
-  type ActualCodec = UpickleJsonCodec[UpickleJsonTest.type]
+  type ActualCodec = UPickleJsonCodec[UpickleJsonTest.type]
 
-  override lazy val codec: ActualCodec = UpickleJsonCodec(UpickleJsonTest)
+  override lazy val codec: ActualCodec = UPickleJsonCodec(UpickleJsonTest)
 
   override lazy val arbitraryNode: Arbitrary[Node] = Arbitrary(Gen.recursive[Node] { recurse =>
     Gen.oneOf(
@@ -36,7 +36,7 @@ class UpickleJsonTest extends MessageCodecTest with JsonMessageCodecTest {
   }
 }
 
-object UpickleJsonTest extends UpickleJsonConfig {
+object UpickleJsonTest extends UPickleJsonConfig {
 
   @scala.annotation.nowarn("msg=never used")
   implicit lazy val recordRw: ReadWriter[Record] = {

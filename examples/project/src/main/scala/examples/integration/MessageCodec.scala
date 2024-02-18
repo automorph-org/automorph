@@ -3,7 +3,7 @@
 //> using dep ch.qos.logback:logback-classic:@LOGGER_VERSION@
 package examples.integration
 
-import automorph.codec.messagepack.{UpickleMessagePackCodec, UpickleMessagePackConfig}
+import automorph.codec.messagepack.{UPickleMessagePackCodec, UPickleMessagePackConfig}
 import automorph.{RpcClient, Default, RpcServer}
 import java.net.URI
 import scala.concurrent.ExecutionContext.Implicits.global
@@ -19,7 +19,7 @@ private[examples] object MessageCodec {
   def main(arguments: Array[String]): Unit = {
 
     // Create uPickle message codec for JSON format
-    val messageCodec = UpickleMessagePackCodec[UpickleMessagePackConfig]()
+    val messageCodec = UPickleMessagePackCodec[UPickleMessagePackConfig]()
 
     // Provide custom data type serialization and deserialization logic as needed
     import messageCodec.config.*
@@ -39,7 +39,7 @@ private[examples] object MessageCodec {
 
     // Create a server RPC protocol plugin
     val serverRpcProtocol = Default.rpcProtocol[
-      UpickleMessagePackCodec.Node,
+      UPickleMessagePackCodec.Node,
       messageCodec.type,
       Default.ServerContext,
     ](messageCodec)
@@ -49,7 +49,7 @@ private[examples] object MessageCodec {
 
     // Create a client RPC protocol plugin
     val clientRpcProtocol = Default.rpcProtocol[
-      UpickleMessagePackCodec.Node,
+      UPickleMessagePackCodec.Node,
       messageCodec.type,
       Default.ClientContext,
     ](messageCodec)

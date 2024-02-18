@@ -6,22 +6,22 @@ import scala.language.experimental.macros
 import scala.reflect.macros.blackbox
 
 /** weePickle codec plugin code generation. */
-trait WeepickleMeta extends MessageCodec[Value] {
+trait WeePickleMeta extends MessageCodec[Value] {
 
   override def encode[T](value: T): Value =
-    macro WeepickleMeta.encodeMacro[T]
+    macro WeePickleMeta.encodeMacro[T]
 
   override def decode[T](node: Value): T =
-    macro WeepickleMeta.decodeMacro[T]
+    macro WeePickleMeta.decodeMacro[T]
 }
 
-object WeepickleMeta {
+object WeePickleMeta {
 
   def encodeMacro[T](c: blackbox.Context)(value: c.Expr[T]): c.Expr[Value] = {
     import c.universe.Quasiquote
 
     c.Expr[Value](q"""
-      import automorph.codec.WeepickleCodec.*
+      import automorph.codec.WeePickleCodec.*
       import com.rallyhealth.weejson.v1.Value
       import com.rallyhealth.weepickle.v1.WeePickle.FromScala
       FromScala($value).transform(Value)
@@ -32,7 +32,7 @@ object WeepickleMeta {
     import c.universe.{Quasiquote, weakTypeOf}
 
     c.Expr[T](q"""
-      import automorph.codec.WeepickleCodec.*
+      import automorph.codec.WeePickleCodec.*
       import com.rallyhealth.weepickle.v1.WeePickle.ToScala
       $node.transform(ToScala[${weakTypeOf[T]}])
     """)

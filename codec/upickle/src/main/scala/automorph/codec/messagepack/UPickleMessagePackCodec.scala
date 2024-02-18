@@ -1,6 +1,6 @@
 package automorph.codec.messagepack
 
-import automorph.codec.messagepack.meta.UpickleMessagePackMeta
+import automorph.codec.messagepack.meta.UPickleMessagePackMeta
 import upack.Msg
 
 /**
@@ -19,9 +19,9 @@ import upack.Msg
  * @tparam Config
  *   Upickle configuration type
  */
-final case class UpickleMessagePackCodec[Config <: UpickleMessagePackConfig](
-  config: Config = UpickleMessagePackConfig.default
-) extends UpickleMessagePackMeta[Config] {
+final case class UPickleMessagePackCodec[Config <: UPickleMessagePackConfig](
+  config: Config = UPickleMessagePackConfig.default
+) extends UPickleMessagePackMeta[Config] {
 
   import config.*
 
@@ -38,7 +38,7 @@ final case class UpickleMessagePackCodec[Config <: UpickleMessagePackConfig](
     config.write(node, indent)
 }
 
-case object UpickleMessagePackCodec {
+case object UPickleMessagePackCodec {
 
   /** Message node type. */
   type Node = Msg

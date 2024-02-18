@@ -1,6 +1,6 @@
 package automorph.codec.messagepack.meta
 
-import automorph.codec.messagepack.UpickleMessagePackConfig
+import automorph.codec.messagepack.UPickleMessagePackConfig
 import automorph.spi.MessageCodec
 import scala.language.experimental.macros
 import scala.reflect.macros.blackbox
@@ -12,16 +12,16 @@ import upack.Msg
  * @tparam Config
  *   uPickle configuration type
  */
-trait UpickleMessagePackMeta[Config <: UpickleMessagePackConfig] extends MessageCodec[Msg] {
+trait UPickleMessagePackMeta[Config <: UPickleMessagePackConfig] extends MessageCodec[Msg] {
 
   override def encode[T](value: T): Msg =
-    macro UpickleMessagePackMeta.encodeMacro[T]
+    macro UPickleMessagePackMeta.encodeMacro[T]
 
   override def decode[T](node: Msg): T =
-    macro UpickleMessagePackMeta.decodeMacro[T]
+    macro UPickleMessagePackMeta.decodeMacro[T]
 }
 
-object UpickleMessagePackMeta {
+object UPickleMessagePackMeta {
 
   def encodeMacro[T](c: blackbox.Context)(value: c.Expr[T]): c.Expr[Msg] = {
     import c.universe.Quasiquote

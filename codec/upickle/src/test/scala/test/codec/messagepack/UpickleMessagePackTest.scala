@@ -1,6 +1,6 @@
 package test.codec.messagepack
 
-import automorph.codec.messagepack.{UpickleMessagePackCodec, UpickleMessagePackConfig}
+import automorph.codec.messagepack.{UPickleMessagePackCodec, UPickleMessagePackConfig}
 import org.scalacheck.{Arbitrary, Gen}
 import test.api.Generators.arbitraryRecord
 import test.api.{Enum, Record, Structure}
@@ -11,9 +11,9 @@ import upickle.core.LinkedHashMap
 class UpickleMessagePackTest extends MessageCodecTest {
 
   type Node = Msg
-  type ActualCodec = UpickleMessagePackCodec[UpickleMessagePackTest.type]
+  type ActualCodec = UPickleMessagePackCodec[UpickleMessagePackTest.type]
 
-  override lazy val codec: ActualCodec = UpickleMessagePackCodec(UpickleMessagePackTest)
+  override lazy val codec: ActualCodec = UPickleMessagePackCodec(UpickleMessagePackTest)
 
   override lazy val arbitraryNode: Arbitrary[Node] = Arbitrary(Gen.recursive[Node] { recurse =>
     Gen.oneOf(
@@ -39,7 +39,7 @@ class UpickleMessagePackTest extends MessageCodecTest {
   }
 }
 
-object UpickleMessagePackTest extends UpickleMessagePackConfig {
+object UpickleMessagePackTest extends UPickleMessagePackConfig {
 
   @scala.annotation.nowarn("msg=never used")
   implicit lazy val recordRw: ReadWriter[Record] = {

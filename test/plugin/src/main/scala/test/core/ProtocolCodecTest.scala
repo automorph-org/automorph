@@ -1,8 +1,8 @@
 package test.core
 
-import automorph.codec.{JacksonCodec, WeepickleCodec}
-import automorph.codec.json.{CirceJsonCodec, UpickleJsonCodec, UpickleJsonConfig}
-import automorph.codec.messagepack.{UpickleMessagePackCodec, UpickleMessagePackConfig}
+import automorph.codec.json.{CirceJsonCodec, UPickleJsonCodec, UPickleJsonConfig}
+import automorph.codec.messagepack.{UPickleMessagePackCodec, UPickleMessagePackConfig, WeePickleMessagePackCodec}
+import automorph.codec.{JacksonCodec, WeePickleCodec}
 import automorph.protocol.JsonRpcProtocol
 import automorph.schema.OpenApi
 import automorph.spi.{ClientTransport, EndpointTransport, RpcProtocol, ServerTransport}
@@ -38,6 +38,7 @@ trait ProtocolCodecTest extends CoreTest {
       weePickleJsonRpcSmileFixture,
       weePickleJsonRpcCborFixture,
       weePickleJsonRpcIonFixture,
+      weePickleJsonRpcMessagePackFixture,
       uPickleJsonRpcJsonFixture,
       uPickleJsonRpcMessagePackFixture,
     )).getOrElse(Seq())
@@ -137,8 +138,8 @@ trait ProtocolCodecTest extends CoreTest {
   }
 
   private def weePickleJsonRpcJsonFixture(implicit context: Context): TestFixture = {
-    val codec = WeepickleCodec()
-    val protocol = JsonRpcProtocol[WeepickleCodec.Node, codec.type, Context](codec)
+    val codec = WeePickleCodec()
+    val protocol = JsonRpcProtocol[WeePickleCodec.Node, codec.type, Context](codec)
     RpcEndpoint.transport(endpointTransport).rpcProtocol(protocol).bind(simpleApi, mapName).bind(complexApi)
     val id = fixtureId(protocol, Some("JSON"))
     val server = RpcServer.transport(serverTransport(id)).rpcProtocol(protocol).discovery(true)
@@ -154,8 +155,8 @@ trait ProtocolCodecTest extends CoreTest {
   }
 
   private def weePickleJsonRpcSmileFixture(implicit context: Context): TestFixture = {
-    val codec = WeepickleCodec(WeepickleCodec.smileFactory)
-    val protocol = JsonRpcProtocol[WeepickleCodec.Node, codec.type, Context](codec)
+    val codec = WeePickleCodec(WeePickleCodec.smileFactory)
+    val protocol = JsonRpcProtocol[WeePickleCodec.Node, codec.type, Context](codec)
     RpcEndpoint.transport(endpointTransport).rpcProtocol(protocol).bind(simpleApi, mapName).bind(complexApi)
     val id = fixtureId(protocol, Some("Smile"))
     val server = RpcServer.transport(serverTransport(id)).rpcProtocol(protocol).discovery(true)
@@ -171,8 +172,8 @@ trait ProtocolCodecTest extends CoreTest {
   }
 
   private def weePickleJsonRpcCborFixture(implicit context: Context): TestFixture = {
-    val codec = WeepickleCodec(WeepickleCodec.cborFactory)
-    val protocol = JsonRpcProtocol[WeepickleCodec.Node, codec.type, Context](codec)
+    val codec = WeePickleCodec(WeePickleCodec.cborFactory)
+    val protocol = JsonRpcProtocol[WeePickleCodec.Node, codec.type, Context](codec)
     RpcEndpoint.transport(endpointTransport).rpcProtocol(protocol).bind(simpleApi, mapName).bind(complexApi)
     val id = fixtureId(protocol, Some("CBOR"))
     val server = RpcServer.transport(serverTransport(id)).rpcProtocol(protocol).discovery(true)
@@ -188,8 +189,8 @@ trait ProtocolCodecTest extends CoreTest {
   }
 
   private def weePickleJsonRpcIonFixture(implicit context: Context): TestFixture = {
-    val codec = WeepickleCodec(WeepickleCodec.ionFactory)
-    val protocol = JsonRpcProtocol[WeepickleCodec.Node, codec.type, Context](codec)
+    val codec = WeePickleCodec(WeePickleCodec.ionFactory)
+    val protocol = JsonRpcProtocol[WeePickleCodec.Node, codec.type, Context](codec)
     RpcEndpoint.transport(endpointTransport).rpcProtocol(protocol).bind(simpleApi, mapName).bind(complexApi)
     val id = fixtureId(protocol, Some("Ion"))
     val server = RpcServer.transport(serverTransport(id)).rpcProtocol(protocol).discovery(true)
@@ -204,16 +205,33 @@ trait ProtocolCodecTest extends CoreTest {
     )
   }
 
+  private def weePickleJsonRpcMessagePackFixture(implicit context: Context): TestFixture = {
+    val codec = WeePickleMessagePackCodec()
+    val protocol = JsonRpcProtocol[WeePickleMessagePackCodec.Node, codec.type, Context](codec)
+    RpcEndpoint.transport(endpointTransport).rpcProtocol(protocol).bind(simpleApi, mapName).bind(complexApi)
+    val id = fixtureId(protocol)
+    val server = RpcServer.transport(serverTransport(id)).rpcProtocol(protocol).discovery(true)
+      .bind(simpleApi, mapName).bind(complexApi)
+    val client = RpcClient.transport(typedClientTransport(id)).rpcProtocol(protocol)
+    Fixture(
+      id,
+      client,
+      server,
+      Apis(client.bind[SimpleApiType], client.bind[ComplexApiType], client.bind[InvalidApiType]),
+      Functions(f => client.call(f)(), (f, a0) => client.call(f)(a0), (f, a0) => client.tell(f)(a0)),
+    )
+  }
+
   private def uPickleJsonRpcJsonFixture(implicit context: Context): TestFixture = {
-    class CustomConfig extends UpickleJsonConfig {
+    class CustomConfig extends UPickleJsonConfig {
       implicit lazy val enumRw: ReadWriter[Enum.Enum] = readwriter[Int]
         .bimap[Enum.Enum](value => Enum.toOrdinal(value), number => Enum.fromOrdinal(number))
       implicit lazy val structureRw: ReadWriter[Structure] = macroRW
       implicit lazy val recordRw: ReadWriter[Record] = macroRW
     }
     val customConfig = new CustomConfig
-    val codec = UpickleJsonCodec(customConfig)
-    val protocol = JsonRpcProtocol[UpickleJsonCodec.Node, codec.type, Context](codec)
+    val codec = UPickleJsonCodec(customConfig)
+    val protocol = JsonRpcProtocol[UPickleJsonCodec.Node, codec.type, Context](codec)
     RpcEndpoint.transport(endpointTransport).rpcProtocol(protocol).bind(simpleApi, mapName).bind(complexApi)
     val id = fixtureId(protocol)
     val server = RpcServer.transport(serverTransport(id)).rpcProtocol(protocol).discovery(true)
@@ -229,15 +247,15 @@ trait ProtocolCodecTest extends CoreTest {
   }
 
   private def uPickleJsonRpcMessagePackFixture(implicit context: Context): TestFixture = {
-    class CustomConfig extends UpickleMessagePackConfig {
+    class CustomConfig extends UPickleMessagePackConfig {
       implicit lazy val enumRw: ReadWriter[Enum.Enum] = readwriter[Int]
         .bimap[Enum.Enum](value => Enum.toOrdinal(value), number => Enum.fromOrdinal(number))
       implicit lazy val structureRw: ReadWriter[Structure] = macroRW
       implicit lazy val recordRw: ReadWriter[Record] = macroRW
     }
     val customConfig = new CustomConfig
-    val codec = UpickleMessagePackCodec(customConfig)
-    val protocol = JsonRpcProtocol[UpickleMessagePackCodec.Node, codec.type, Context](codec)
+    val codec = UPickleMessagePackCodec(customConfig)
+    val protocol = JsonRpcProtocol[UPickleMessagePackCodec.Node, codec.type, Context](codec)
     RpcEndpoint.transport(endpointTransport).rpcProtocol(protocol).bind(simpleApi, mapName).bind(complexApi)
     val id = fixtureId(protocol)
     val server = RpcServer.transport(serverTransport(id)).rpcProtocol(protocol).discovery(true)

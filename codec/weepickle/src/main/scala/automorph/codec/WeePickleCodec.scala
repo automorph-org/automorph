@@ -1,18 +1,17 @@
 package automorph.codec
 
-import automorph.codec.meta.WeepickleMeta
+import automorph.codec.meta.WeePickleMeta
 import automorph.schema.{OpenApi, OpenRpc}
-import com.fasterxml.jackson.core.{JsonFactory, JsonGenerator}
+import com.fasterxml.jackson.core.JsonFactory
 import com.fasterxml.jackson.dataformat.cbor.{CBORFactory, CBORFactoryBuilder}
 import com.fasterxml.jackson.dataformat.ion.{IonFactory, IonFactoryBuilder}
 import com.fasterxml.jackson.dataformat.smile.{SmileFactory, SmileFactoryBuilder}
 import com.rallyhealth.weejson.v1.Value
-import com.rallyhealth.weejson.v1.jackson.{CustomPrettyPrinter, DefaultJsonFactory, JsonGeneratorOps, JsonParserOps}
-import com.rallyhealth.weepickle.v1.WeePickle.{FromTo, SimpleTo, To}
+import com.rallyhealth.weejson.v1.jackson.{DefaultJsonFactory, FromJson, ToJson, ToPrettyJson}
 import com.rallyhealth.weepickle.v1.WeePickle
+import com.rallyhealth.weepickle.v1.WeePickle.{FromTo, SimpleTo, To}
 import com.rallyhealth.weepickle.v1.core.{Abort, ArrVisitor, ObjVisitor}
 import java.time.Instant
-import java.util.Base64
 import scala.collection.compat.Factory
 import scala.reflect.ClassTag
 
@@ -41,14 +40,7 @@ import scala.reflect.ClassTag
  * @param formatFactory
  *   Jackson data format factory
  */
-final case class WeepickleCodec(formatFactory: JsonFactory = WeepickleCodec.jsonFactory) extends WeepickleMeta {
-  private val jsonGenerator = new JsonGeneratorOps(formatFactory) {}
-  private val jsonTextGenerator = new JsonGeneratorOps(formatFactory) {
-
-    override protected def wrapGenerator(g: JsonGenerator): JsonGenerator =
-      g.setPrettyPrinter(CustomPrettyPrinter(2))
-  }
-  private val jsonParser = new JsonParserOps(formatFactory) {}
+final case class WeePickleCodec(formatFactory: JsonFactory = WeePickleCodec.jsonFactory) extends WeePickleMeta {
 
   override val mediaType: String = formatFactory match {
     case _: SmileFactory => "application/x-jackson-smile"
@@ -58,28 +50,16 @@ final case class WeepickleCodec(formatFactory: JsonFactory = WeepickleCodec.json
   }
 
   override def serialize(node: Value): Array[Byte] =
-    node.transform(jsonGenerator.bytes)
+    node.transform(ToJson.bytes)
 
   override def deserialize(data: Array[Byte]): Value =
-    jsonParser(data).transform(Value)
+    FromJson(data).transform(Value)
 
   override def text(node: Value): String =
-    formatFactory match {
-      case _: SmileFactory | _: CBORFactory | _: IonFactory =>
-        Base64.getEncoder.encodeToString(node.transform(jsonGenerator.bytes))
-      case _ => node.transform(jsonTextGenerator.string)
-    }
+    node.transform(ToPrettyJson.string)
 }
 
-object WeepickleCodec {
-
-  /** Message node type. */
-  type Node = Value
-
-  implicit lazy val jsonRpcFromTo: FromTo[WeePickleJsonRpc.RpcMessage] = WeePickleJsonRpc.fromTo
-  implicit lazy val webRpcFromTo: FromTo[WeePickleWebRpc.RpcMessage] = WeePickleWebRpc.fromTo
-  implicit lazy val openRpcFromTo: FromTo[OpenRpc] = WeePickleOpenRpc.fromTo
-  implicit lazy val openApiFromTo: FromTo[OpenApi] = WeePickleOpenApi.fromTo
+object WeePickleCodec {
 
   // Do not deserialize nulls as empty collections
   implicit def ToSeqLike[C[_], T](implicit r: To[T], factory: Factory[T, C[T]]): To[C[T]] =
@@ -98,6 +78,13 @@ object WeepickleCodec {
   implicit def ToMutableMap[K, V](implicit k: To[K], v: To[V]): To[collection.mutable.Map[K, V]] =
     new NullSafeTo[collection.mutable.Map[K, V]](WeePickle.ToMutableMap, "map")
 
+  /** Message node type. */
+  type Node = Value
+  implicit lazy val jsonRpcFromTo: FromTo[WeePickleJsonRpc.RpcMessage] = WeePickleJsonRpc.fromTo
+  implicit lazy val webRpcFromTo: FromTo[WeePickleWebRpc.RpcMessage] = WeePickleWebRpc.fromTo
+  implicit lazy val openRpcFromTo: FromTo[OpenRpc] = WeePickleOpenRpc.fromTo
+  implicit lazy val openApiFromTo: FromTo[OpenApi] = WeePickleOpenApi.fromTo
+
   /** Default Jackson JSON factory. */
   def jsonFactory: JsonFactory =
     DefaultJsonFactory.Instance
@@ -114,7 +101,7 @@ object WeepickleCodec {
   def ionFactory: JsonFactory =
     new IonFactoryBuilder(new IonFactory).configure(JsonFactory.Feature.INTERN_FIELD_NAMES, false).build()
 
-  private class NullSafeTo[T](to: To[T], typeName: String) extends SimpleTo[T] {
+  final private[automorph] class NullSafeTo[T](to: To[T], typeName: String) extends SimpleTo[T] {
 
     override def visitArray(length: Int): ArrVisitor[Any, T] =
       to.visitArray(length)

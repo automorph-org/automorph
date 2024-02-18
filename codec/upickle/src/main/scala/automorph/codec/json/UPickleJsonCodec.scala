@@ -1,6 +1,6 @@
 package automorph.codec.json
 
-import automorph.codec.json.meta.UpickleJsonMeta
+import automorph.codec.json.meta.UPickleJsonMeta
 import ujson.Value
 
 /**
@@ -19,8 +19,8 @@ import ujson.Value
  * @tparam Config
  *   Upickle configuration type
  */
-final case class UpickleJsonCodec[Config <: UpickleJsonConfig](config: Config = UpickleJsonConfig.default)
-  extends UpickleJsonMeta[Config] {
+final case class UPickleJsonCodec[Config <: UPickleJsonConfig](config: Config = UPickleJsonConfig.default)
+  extends UPickleJsonMeta[Config] {
 
   import config.*
 
@@ -37,7 +37,7 @@ final case class UpickleJsonCodec[Config <: UpickleJsonConfig](config: Config = 
     config.write(node, indent)
 }
 
-object UpickleJsonCodec {
+object UPickleJsonCodec {
 
   /** Message node type. */
   type Node = Value

@@ -1,6 +1,6 @@
 package automorph.codec.messagepack.meta
 
-import automorph.codec.messagepack.UpickleMessagePackConfig
+import automorph.codec.messagepack.UPickleMessagePackConfig
 import automorph.spi.MessageCodec
 import scala.compiletime.summonInline
 import upack.Msg
@@ -11,7 +11,7 @@ import upack.Msg
  * @tparam Config
  *   uPickle configuration type
  */
-private[automorph] trait UpickleMessagePackMeta[Config <: UpickleMessagePackConfig] extends MessageCodec[Msg]:
+private[automorph] trait UPickleMessagePackMeta[Config <: UPickleMessagePackConfig] extends MessageCodec[Msg]:
 
   val config: Config
 

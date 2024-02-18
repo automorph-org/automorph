@@ -1,6 +1,6 @@
 package automorph.codec.json.meta
 
-import automorph.codec.json.UpickleJsonConfig
+import automorph.codec.json.UPickleJsonConfig
 import automorph.spi.MessageCodec
 import scala.language.experimental.macros
 import scala.reflect.macros.blackbox
@@ -12,16 +12,16 @@ import ujson.Value
  * @tparam Config
  *   uPickle configuration type
  */
-trait UpickleJsonMeta[Config <: UpickleJsonConfig] extends MessageCodec[Value] {
+trait UPickleJsonMeta[Config <: UPickleJsonConfig] extends MessageCodec[Value] {
 
   override def encode[T](value: T): Value =
-    macro UpickleJsonMeta.encodeMacro[T]
+    macro UPickleJsonMeta.encodeMacro[T]
 
   override def decode[T](node: Value): T =
-    macro UpickleJsonMeta.decodeMacro[T]
+    macro UPickleJsonMeta.decodeMacro[T]
 }
 
-object UpickleJsonMeta {
+object UPickleJsonMeta {
 
   def encodeMacro[T](c: blackbox.Context)(value: c.Expr[T]): c.Expr[Value] = {
     import c.universe.Quasiquote
