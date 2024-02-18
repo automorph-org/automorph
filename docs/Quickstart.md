@@ -6,7 +6,7 @@ sidebar_position: 2
 
 Please see the library functionality [overview](https://automorph.org/docs/Overview), component [architecture](https://automorph.org/docs/Architecture) additional [examples](https://automorph.org/docs/Examples) and [API](https://automorph.org/api/automorph.html) documentation for more information.
 
-The following sections describe multiple ways to start with Automorph depending on the scenario.
+The following sections describe multiple ways to start with Automorph depending on the preferred setup:
 
 
 
