@@ -1,6 +1,7 @@
 package test.codec.messagepack
 
-import automorph.codec.messagepack.{UPickleMessagePackCodec, UPickleMessagePackConfig}
+import automorph.codec.messagepack.UPickleMessagePackCodec
+import automorph.codec.messagepack.UPickleMessagePackCodec.MessagePackConfig
 import org.scalacheck.{Arbitrary, Gen}
 import test.api.Generators.arbitraryRecord
 import test.api.{Enum, Record, Structure}
@@ -21,10 +22,10 @@ final class UpickleMessagePackTest extends MessageCodecTest {
       Gen.resultOf[String, Node](Str.apply),
       Gen.resultOf[Double, Node](Float64.apply),
       Gen.resultOf[Boolean, Node](Bool.apply),
-      Gen.listOfN[Node](2, recurse).map(Arr(_ *)),
+      Gen.listOfN[Node](2, recurse).map(Arr(_*)),
       Gen.mapOfN(2, Gen.zip(Gen.resultOf[String, Msg](Str.apply), recurse)).map { values =>
         Obj(LinkedHashMap(values))
-      }
+      },
     )
   })
 
@@ -39,13 +40,13 @@ final class UpickleMessagePackTest extends MessageCodecTest {
   }
 }
 
-object UpickleMessagePackTest extends UPickleMessagePackConfig {
+object UpickleMessagePackTest extends MessagePackConfig {
 
   @scala.annotation.nowarn("msg=never used")
   implicit lazy val recordRw: ReadWriter[Record] = {
     implicit val enumRw: ReadWriter[Enum.Enum] = readwriter[Int].bimap[Enum.Enum](
       value => Enum.toOrdinal(value),
-      number => Enum.fromOrdinal(number)
+      number => Enum.fromOrdinal(number),
     )
     implicit val structureRw: ReadWriter[Structure] = macroRW
     macroRW

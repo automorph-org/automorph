@@ -1,10 +1,10 @@
 package automorph.codec.messagepack.meta
 
-import automorph.codec.messagepack.UPickleMessagePackConfig
+import automorph.codec.messagepack.UPickleMessagePackCodec.MessagePackConfig
 import automorph.spi.MessageCodec
+import upack.Msg
 import scala.language.experimental.macros
 import scala.reflect.macros.blackbox
-import upack.Msg
 
 /**
  * uPickle MessagePack codec plugin code generation.
@@ -12,7 +12,7 @@ import upack.Msg
  * @tparam Config
  *   uPickle configuration type
  */
-trait UPickleMessagePackMeta[Config <: UPickleMessagePackConfig] extends MessageCodec[Msg] {
+trait UPickleMessagePackMeta[Config <: MessagePackConfig] extends MessageCodec[Msg] {
 
   override def encode[T](value: T): Msg =
     macro UPickleMessagePackMeta.encodeMacro[T]
@@ -33,7 +33,7 @@ object UPickleMessagePackMeta {
   }
 
   def decodeMacro[T: c.WeakTypeTag](c: blackbox.Context)(node: c.Expr[Msg]): c.Expr[T] = {
-    import c.universe.{weakTypeOf, Quasiquote}
+    import c.universe.{Quasiquote, weakTypeOf}
 
     c.Expr[T](q"""
       import ${c.prefix}.config.*

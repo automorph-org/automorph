@@ -1,5 +1,6 @@
 package automorph.codec.messagepack
 
+import automorph.codec.messagepack.UPickleMessagePackCodec.MessagePackConfig
 import automorph.protocol.jsonrpc.{Message, MessageError}
 import upack.{Arr, Float64, Msg, Null, Obj, Str}
 import upickle.core.{Abort, LinkedHashMap}
@@ -9,7 +10,7 @@ private[automorph] object UPickleJsonRpc {
 
   private[automorph] type RpcMessage = Message[Msg]
 
-  def readWriter[Custom <: UPickleMessagePackConfig](custom: Custom): custom.ReadWriter[Message[Msg]] = {
+  def readWriter[Custom <: MessagePackConfig](custom: Custom): custom.ReadWriter[Message[Msg]] = {
     import custom.*
 
     implicit val idRw: ReadWriter[Option[Message.Id]] = readwriter[Msg].bimap[Option[Message.Id]](

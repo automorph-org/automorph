@@ -1,6 +1,9 @@
 package automorph.codec.json
 
+import automorph.codec.UPickleNullSafeConfig
+import automorph.codec.json.UPickleJsonCodec.JsonConfig
 import automorph.codec.json.meta.UPickleJsonMeta
+import automorph.schema.{OpenApi, OpenRpc}
 import ujson.Value
 
 /**
@@ -19,7 +22,7 @@ import ujson.Value
  * @tparam Config
  *   Upickle configuration type
  */
-final case class UPickleJsonCodec[Config <: UPickleJsonConfig](config: Config = UPickleJsonConfig.default)
+final case class UPickleJsonCodec[Config <: JsonConfig](config: Config = new JsonConfig {})
   extends UPickleJsonMeta[Config] {
 
   import config.*
@@ -41,4 +44,13 @@ object UPickleJsonCodec {
 
   /** Message node type. */
   type Node = Value
+
+  /** uPickle reader and writer instances providing basic null-safe data types support for JSON format. */
+  trait JsonConfig extends UPickleNullSafeConfig {
+
+    implicit lazy val jsonRpcMessageRw: ReadWriter[UPickleJsonRpc.RpcMessage] = UPickleJsonRpc.readWriter(this)
+    implicit lazy val restRpcMessageRw: ReadWriter[UPickleWebRpc.RpcMessage] = UPickleWebRpc.readWriter(this)
+    implicit lazy val openRpcRw: ReadWriter[OpenRpc] = UPickleOpenRpc.readWriter(this)
+    implicit lazy val openApiRw: ReadWriter[OpenApi] = UPickleOpenApi.readWriter(this)
+  }
 }

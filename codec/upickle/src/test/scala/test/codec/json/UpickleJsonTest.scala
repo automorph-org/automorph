@@ -1,6 +1,7 @@
 package test.codec.json
 
-import automorph.codec.json.{UPickleJsonCodec, UPickleJsonConfig}
+import automorph.codec.json.UPickleJsonCodec
+import automorph.codec.json.UPickleJsonCodec.JsonConfig
 import org.scalacheck.{Arbitrary, Gen}
 import test.api.Generators.arbitraryRecord
 import test.api.{Enum, Record, Structure}
@@ -20,8 +21,8 @@ final class UpickleJsonTest extends MessageCodecTest with JsonMessageCodecTest {
       Gen.resultOf[String, Node](Str.apply),
       Gen.resultOf[Double, Node](Num.apply),
       Gen.resultOf[Boolean, Node](Bool.apply),
-      Gen.listOfN[Node](2, recurse).map(Arr(_ *)),
-      Gen.mapOfN(2, Gen.zip(Arbitrary.arbitrary[String], recurse)).map(Obj.from)
+      Gen.listOfN[Node](2, recurse).map(Arr(_*)),
+      Gen.mapOfN(2, Gen.zip(Arbitrary.arbitrary[String], recurse)).map(Obj.from),
     )
   })
 
@@ -36,13 +37,13 @@ final class UpickleJsonTest extends MessageCodecTest with JsonMessageCodecTest {
   }
 }
 
-object UpickleJsonTest extends UPickleJsonConfig {
+object UpickleJsonTest extends JsonConfig {
 
   @scala.annotation.nowarn("msg=never used")
   implicit lazy val recordRw: ReadWriter[Record] = {
     implicit val enumRw: ReadWriter[Enum.Enum] = readwriter[Int].bimap[Enum.Enum](
       value => Enum.toOrdinal(value),
-      number => Enum.fromOrdinal(number)
+      number => Enum.fromOrdinal(number),
     )
     implicit val structureRw: ReadWriter[Structure] = macroRW
     macroRW

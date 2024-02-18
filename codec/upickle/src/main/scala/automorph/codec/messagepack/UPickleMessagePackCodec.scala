@@ -1,6 +1,9 @@
 package automorph.codec.messagepack
 
+import automorph.codec.UPickleNullSafeConfig
+import automorph.codec.messagepack.UPickleMessagePackCodec.MessagePackConfig
 import automorph.codec.messagepack.meta.UPickleMessagePackMeta
+import automorph.schema.{OpenApi, OpenRpc}
 import upack.Msg
 
 /**
@@ -19,8 +22,8 @@ import upack.Msg
  * @tparam Config
  *   Upickle configuration type
  */
-final case class UPickleMessagePackCodec[Config <: UPickleMessagePackConfig](
-  config: Config = UPickleMessagePackConfig.default
+final case class UPickleMessagePackCodec[Config <: MessagePackConfig](
+  config: Config = new MessagePackConfig {}
 ) extends UPickleMessagePackMeta[Config] {
 
   import config.*
@@ -42,4 +45,13 @@ object UPickleMessagePackCodec {
 
   /** Message node type. */
   type Node = Msg
+
+  /** uPickle reader and writer instances providing basic null-safe data types support for MessagePack format. */
+  trait MessagePackConfig extends UPickleNullSafeConfig {
+
+    implicit lazy val jsonRpcMessageRw: ReadWriter[UPickleJsonRpc.RpcMessage] = UPickleJsonRpc.readWriter(this)
+    implicit lazy val restRpcMessageRw: ReadWriter[UPickleWebRpc.RpcMessage] = UPickleWebRpc.readWriter(this)
+    implicit lazy val openRpcRw: ReadWriter[OpenRpc] = UPickleOpenRpc.readWriter(this)
+    implicit lazy val openApiRw: ReadWriter[OpenApi] = UPickleOpenApi.readWriter(this)
+  }
 }

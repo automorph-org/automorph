@@ -1,5 +1,6 @@
 package automorph.codec.messagepack
 
+import automorph.codec.messagepack.UPickleMessagePackCodec.MessagePackConfig
 import automorph.protocol.webrpc.{Message, MessageError}
 import upack.Msg
 
@@ -9,7 +10,7 @@ private[automorph] object UPickleWebRpc {
   type RpcMessage = Message[Msg]
 
   @scala.annotation.nowarn("msg=never used")
-  def readWriter[Config <: UPickleMessagePackConfig](config: Config): config.ReadWriter[Message[Msg]] = {
+  def readWriter[Config <: MessagePackConfig](config: Config): config.ReadWriter[Message[Msg]] = {
     import config.*
 
     implicit val messageErrorRw: config.ReadWriter[MessageError] = config.macroRW

@@ -1,7 +1,9 @@
 package test.core
 
-import automorph.codec.json.{CirceJsonCodec, UPickleJsonCodec, UPickleJsonConfig}
-import automorph.codec.messagepack.{UPickleMessagePackCodec, UPickleMessagePackConfig, WeePickleMessagePackCodec}
+import automorph.codec.json.UPickleJsonCodec.JsonConfig
+import automorph.codec.json.{CirceJsonCodec, UPickleJsonCodec}
+import automorph.codec.messagepack.UPickleMessagePackCodec.MessagePackConfig
+import automorph.codec.messagepack.{UPickleMessagePackCodec, WeePickleMessagePackCodec}
 import automorph.codec.{JacksonCodec, WeePickleCodec}
 import automorph.protocol.JsonRpcProtocol
 import automorph.schema.OpenApi
@@ -223,7 +225,7 @@ trait ProtocolCodecTest extends CoreTest {
   }
 
   private def uPickleJsonRpcJsonFixture(implicit context: Context): TestFixture = {
-    final class CustomConfig extends UPickleJsonConfig {
+    final class CustomConfig extends JsonConfig {
       implicit lazy val enumRw: ReadWriter[Enum.Enum] = readwriter[Int]
         .bimap[Enum.Enum](value => Enum.toOrdinal(value), number => Enum.fromOrdinal(number))
       implicit lazy val structureRw: ReadWriter[Structure] = macroRW
@@ -247,7 +249,7 @@ trait ProtocolCodecTest extends CoreTest {
   }
 
   private def uPickleJsonRpcMessagePackFixture(implicit context: Context): TestFixture = {
-    final class CustomConfig extends UPickleMessagePackConfig {
+    final class CustomConfig extends MessagePackConfig {
       implicit lazy val enumRw: ReadWriter[Enum.Enum] = readwriter[Int]
         .bimap[Enum.Enum](value => Enum.toOrdinal(value), number => Enum.fromOrdinal(number))
       implicit lazy val structureRw: ReadWriter[Structure] = macroRW

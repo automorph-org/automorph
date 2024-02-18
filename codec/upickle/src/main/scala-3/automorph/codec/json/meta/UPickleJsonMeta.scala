@@ -1,9 +1,9 @@
 package automorph.codec.json.meta
 
-import automorph.codec.json.UPickleJsonConfig
+import automorph.codec.json.UPickleJsonCodec.JsonConfig
 import automorph.spi.MessageCodec
-import scala.compiletime.summonInline
 import ujson.Value
+import scala.compiletime.summonInline
 
 /**
  * uPickle JSON codec plugin code generation.
@@ -11,7 +11,7 @@ import ujson.Value
  * @tparam Config
  *   uPickle configuration type
  */
-private[automorph] trait UPickleJsonMeta[Config <: UPickleJsonConfig] extends MessageCodec[Value]:
+private[automorph] trait UPickleJsonMeta[Config <: JsonConfig] extends MessageCodec[Value]:
 
   val config: Config
 

@@ -1,5 +1,6 @@
 package automorph.codec.json
 
+import automorph.codec.json.UPickleJsonCodec.JsonConfig
 import automorph.codec.json.UPickleOpenRpc.{fromSchema, toSchema}
 import automorph.schema.openapi.*
 import automorph.schema.{OpenApi, Schema}
@@ -9,7 +10,7 @@ import ujson.Value
 private[automorph] object UPickleOpenApi {
 
   @scala.annotation.nowarn("msg=never used")
-  def readWriter[Config <: UPickleJsonConfig](config: Config): config.ReadWriter[OpenApi] = {
+  def readWriter[Config <:JsonConfig](config: Config): config.ReadWriter[OpenApi] = {
     import config.*
 
     implicit val schemaRw: config.ReadWriter[Schema] = readwriter[Value].bimap[Schema](fromSchema, toSchema)

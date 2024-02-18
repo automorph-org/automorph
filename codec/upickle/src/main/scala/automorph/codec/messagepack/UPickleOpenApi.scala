@@ -1,5 +1,6 @@
 package automorph.codec.messagepack
 
+import automorph.codec.messagepack.UPickleMessagePackCodec.MessagePackConfig
 import automorph.codec.messagepack.UPickleOpenRpc.{fromSchema, toSchema}
 import automorph.schema.openapi.*
 import automorph.schema.{OpenApi, Schema}
@@ -9,7 +10,7 @@ import upack.Msg
 private[automorph] object UPickleOpenApi {
 
   @scala.annotation.nowarn("msg=never used")
-  def readWriter[Config <: UPickleMessagePackConfig](config: Config): config.ReadWriter[OpenApi] = {
+  def readWriter[Config <: MessagePackConfig](config: Config): config.ReadWriter[OpenApi] = {
     import config.*
 
     implicit val schemaRw: config.ReadWriter[Schema] = readwriter[Msg].bimap[Schema](fromSchema, toSchema)

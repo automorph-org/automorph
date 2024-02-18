@@ -1,5 +1,6 @@
 package automorph.codec.json
 
+import automorph.codec.json.UPickleJsonCodec.JsonConfig
 import automorph.protocol.jsonrpc.{Message, MessageError}
 import ujson.{Arr, Null, Num, Obj, Str, Value}
 import upickle.core.Abort
@@ -10,7 +11,7 @@ private[automorph] object UPickleJsonRpc {
   type RpcMessage = Message[Value]
 
   @scala.annotation.nowarn("msg=never used")
-  def readWriter[Config <: UPickleJsonConfig](config: Config): config.ReadWriter[Message[Value]] = {
+  def readWriter[Config <: JsonConfig](config: Config): config.ReadWriter[Message[Value]] = {
     import config.*
 
     implicit val idRw: ReadWriter[Option[Message.Id]] = readwriter[Value].bimap[Option[Message.Id]](
