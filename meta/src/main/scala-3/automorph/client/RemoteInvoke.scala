@@ -263,7 +263,7 @@ private[automorph] trait RemoteInvoke[Node, Codec <: MessageCodec[Node], Effect[
       requestContext,
     )
 
-object RemoteInvoke:
+private[automorph] object RemoteInvoke:
 
   inline def decodeResult[Node, Codec <: MessageCodec[Node], Context, R](codec: Codec): (Node, Context) => R =
     ${ decodeResultMacro[Node, Codec, Context, R]('codec) }
