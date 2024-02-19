@@ -187,5 +187,5 @@ object RabbitMqServer {
   type Context = AmqpContext[Message]
 
   /** Message properties. */
-  type Message = RabbitMq.Message
+  type Message = RabbitMq.Transport
 }

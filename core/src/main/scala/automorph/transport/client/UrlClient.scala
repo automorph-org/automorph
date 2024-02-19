@@ -2,7 +2,7 @@ package automorph.transport.client
 
 import automorph.log.{LogProperties, Logging, MessageLog}
 import automorph.spi.{ClientTransport, EffectSystem}
-import automorph.transport.client.UrlClient.{Context, TransportContext}
+import automorph.transport.client.UrlClient.{Context, Transport}
 import automorph.transport.{HttpContext, HttpMethod, Protocol}
 import automorph.util.Extensions.{EffectOps, TryOps, InputStreamOps}
 import java.net.{HttpURLConnection, URI}
@@ -77,7 +77,7 @@ final case class UrlClient[Effect[_]](
     send(requestBody, requestId, mediaType, requestContext).map(_ => ())
 
   override def context: Context =
-    TransportContext.defaultContext.url(url).method(method)
+    Transport.context.url(url).method(method)
 
   override def init(): Effect[Unit] =
     effectSystem.successful {}
@@ -173,14 +173,14 @@ final case class UrlClient[Effect[_]](
 object UrlClient {
 
   /** Message context type. */
-  type Context = HttpContext[TransportContext]
+  type Context = HttpContext[Transport]
 
-  /** Transport context. */
-  final case class TransportContext(connection: HttpURLConnection)
+  /** Transport-specific context. */
+  final case class Transport(connection: HttpURLConnection)
 
-  object TransportContext {
+  object Transport {
 
     /** Implicit default context value. */
-    implicit val defaultContext: HttpContext[TransportContext] = HttpContext()
+    implicit val context: HttpContext[Transport] = HttpContext()
   }
 }

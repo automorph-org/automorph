@@ -49,8 +49,8 @@ import scala.reflect.macros.blackbox
 final case class WebRpcProtocol[Node, Codec <: MessageCodec[Node], Context <: HttpContext[?]](
   messageCodec: Codec,
   pathPrefix: String,
-  mapError: (String, Option[Int]) => Throwable = WebRpcProtocol.defaultMapError,
-  mapException: Throwable => ErrorType = WebRpcProtocol.defaultMapException,
+  mapError: (String, Option[Int]) => Throwable = WebRpcProtocol.mapError,
+  mapException: Throwable => ErrorType = WebRpcProtocol.mapException,
   mapOpenApi: OpenApi => OpenApi = identity,
   protected val encodeRequest: Message.Request[Node] => Node,
   protected val decodeRequest: Node => Message.Request[Node],
@@ -101,8 +101,8 @@ object WebRpcProtocol extends ErrorMapping {
       automorph.protocol.WebRpcProtocol(
         $codec,
         $pathPrefix,
-        automorph.protocol.WebRpcProtocol.defaultMapError,
-        automorph.protocol.WebRpcProtocol.defaultMapException,
+        automorph.protocol.WebRpcProtocol.mapError,
+        automorph.protocol.WebRpcProtocol.mapException,
         identity
       )
     """)

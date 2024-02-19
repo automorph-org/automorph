@@ -93,8 +93,8 @@ object WebRpcProtocol extends ErrorMapping:
   inline def apply[Node, Codec <: MessageCodec[Node], Context <: HttpContext[?]](
     messageCodec: Codec,
     pathPrefix: String,
-    mapError: (String, Option[Int]) => Throwable = defaultMapError,
-    mapException: Throwable => ErrorType = defaultMapException,
+    mapError: (String, Option[Int]) => Throwable = mapError,
+    mapException: Throwable => ErrorType = mapException,
     mapOpenApi: OpenApi => OpenApi = identity,
   ): WebRpcProtocol[Node, Codec, Context] =
     val encodeRequest = (value: Message.Request[Node]) => messageCodec.encode[Message.Request[Node]](value)

@@ -44,7 +44,7 @@ final case class SttpClient[Effect[_]] private (
 object SttpClient:
 
   /** Request context type. */
-  type Context = HttpContext[TransportContext]
+  type Context = HttpContext[Transport]
 
   /**
    * Creates an STTP HTTP client message transport plugin with the specified STTP backend.
@@ -126,10 +126,10 @@ object SttpClient:
       '{ false }
     '{ SttpClient(${ effectSystem }, ${ backend }, ${ url }, HttpMethod.Post, webSocket = ${ webSocket }) }
 
-  /** Transport context. */
-  final case class TransportContext(request: PartialRequest[Either[String, String], Any])
+  /** Transport-specific context. */
+  final case class Transport(request: PartialRequest[Either[String, String], Any])
 
-  object TransportContext:
+  object Transport:
 
     /** Implicit default context value. */
-    implicit val defaultContext: HttpContext[TransportContext] = HttpContext()
+    implicit val context: HttpContext[Transport] = HttpContext()

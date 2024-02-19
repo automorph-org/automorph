@@ -29,11 +29,11 @@ private[examples] object LocalCall {
     // Create passive JSON-RPC HTTP & WebSocket server on port 9000 for POST requests to '/api'
     val server = Default.rpcServer(9000, "/api").bind(service)
 
-    // Create default value for request metadata of the type defined by the RPC server
-    val defaultRequestContext: Default.ServerContext = HttpContext()
+    // Create context with default request metadata of the type defined by the RPC server
+    val requestContext: Default.ServerContext = HttpContext()
 
     // Create local client transport which passes requests directly to RPC server request handler
-    val clientTransport = LocalClient(Default.effectSystem, defaultRequestContext, server.handler)
+    val clientTransport = LocalClient(Default.effectSystem, requestContext, server.handler)
 
     Await.result(
       for {

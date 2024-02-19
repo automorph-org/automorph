@@ -42,8 +42,8 @@ private[automorph] trait DefaultRpcProtocol {
   def rpcProtocol[Context]: JsonRpcProtocol[Node, Codec, Context] =
     JsonRpcProtocol(
       messageCodec,
-      JsonRpcProtocol.defaultMapError,
-      JsonRpcProtocol.defaultMapException,
+      JsonRpcProtocol.mapError,
+      JsonRpcProtocol.mapException,
       true,
       identity,
       identity,

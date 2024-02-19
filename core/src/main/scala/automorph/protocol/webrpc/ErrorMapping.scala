@@ -14,7 +14,7 @@ private[automorph] trait ErrorMapping {
    * @return
    *   exception
    */
-  def defaultMapError(message: String, code: Option[Int]): Throwable =
+  def mapError(message: String, code: Option[Int]): Throwable =
     code match {
       case Some(ErrorType.InvalidRequest.code) => InvalidRequest(message)
       case Some(ErrorType.FunctionNotFound.code) => FunctionNotFound(message)
@@ -31,7 +31,7 @@ private[automorph] trait ErrorMapping {
    * @return
    *   Web-RPC error type
    */
-  def defaultMapException(exception: Throwable): ErrorType =
+  def mapException(exception: Throwable): ErrorType =
     exception match {
       case _: InvalidRequest => ErrorType.InvalidRequest
       case _: FunctionNotFound => ErrorType.FunctionNotFound

@@ -3,7 +3,7 @@ package automorph.transport.client
 import automorph.log.{LogProperties, Logging, MessageLog}
 import automorph.spi.AsyncEffectSystem.Completable
 import automorph.spi.{AsyncEffectSystem, ClientTransport, EffectSystem}
-import automorph.transport.client.HttpClient.{Context, Response, TransportContext}
+import automorph.transport.client.HttpClient.{Context, Response, Transport}
 import automorph.transport.{HttpContext, HttpMethod, Protocol}
 import automorph.util.Extensions.{ByteArrayOps, ByteBufferOps, EffectOps}
 import java.net.URI
@@ -100,7 +100,7 @@ final case class HttpClient[Effect[_]](
     }
 
   override def context: Context =
-    TransportContext.defaultContext.url(url).method(method)
+    Transport.context.url(url).method(method)
 
   override def init(): Effect[Unit] =
     effectSystem.successful {}
@@ -316,18 +316,18 @@ final case class HttpClient[Effect[_]](
 object HttpClient {
 
   /** Message context type. */
-  type Context = HttpContext[TransportContext]
+  type Context = HttpContext[Transport]
 
   /** Default HTTP client builder. */
   val builder: Builder = java.net.http.HttpClient.newBuilder
 
-  /** Transport context. */
-  final case class TransportContext(request: HttpRequest.Builder)
+  /** Transport-specific context. */
+  final case class Transport(request: HttpRequest.Builder)
 
-  object TransportContext {
+  object Transport {
 
     /** Implicit default context value. */
-    implicit val defaultContext: HttpContext[TransportContext] = HttpContext()
+    implicit val context: HttpContext[Transport] = HttpContext()
   }
 
   final private case class Response(

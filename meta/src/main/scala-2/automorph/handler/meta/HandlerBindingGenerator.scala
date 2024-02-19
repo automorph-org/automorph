@@ -47,7 +47,7 @@ object HandlerBindingGenerator {
     Codec <: MessageCodec[Node],
     Effect[_],
     Context: c.WeakTypeTag,
-    Api <: AnyRef: c.WeakTypeTag
+    Api <: AnyRef: c.WeakTypeTag,
   ](c: blackbox.Context)(codec: c.Expr[Codec], api: c.Expr[Api])(implicit
     effectType: c.WeakTypeTag[Effect[?]]
   ): c.Expr[Seq[HandlerBinding[Node, Effect, Context]]] = {
@@ -80,7 +80,7 @@ object HandlerBindingGenerator {
     Codec <: MessageCodec[Node],
     Effect[_],
     Context: ref.c.WeakTypeTag,
-    Api
+    Api,
   ](ref: ClassReflection[C])(method: ref.RefMethod, codec: ref.c.Expr[Codec], api: ref.c.Expr[Api])(implicit
     effectType: ref.c.WeakTypeTag[Effect[?]]
   ): ref.c.Expr[HandlerBinding[Node, Effect, Context]] = {
@@ -109,10 +109,10 @@ object HandlerBindingGenerator {
     C <: blackbox.Context,
     Node: ref.c.WeakTypeTag,
     Codec <: MessageCodec[Node],
-    Context: ref.c.WeakTypeTag
+    Context: ref.c.WeakTypeTag,
   ](ref: ClassReflection[C])(
     method: ref.RefMethod,
-    codec: ref.c.Expr[Codec]
+    codec: ref.c.Expr[Codec],
   ): ref.c.Expr[Map[String, Option[Node] => Any]] = {
     import ref.c.universe.{Quasiquote, weakTypeOf}
 
@@ -183,7 +183,8 @@ object HandlerBindingGenerator {
 
   @nowarn("msg=never used")
   private def generateCall[C <: blackbox.Context, Effect[_], Context: ref.c.WeakTypeTag, Api](ref: ClassReflection[C])(
-    method: ref.RefMethod, api: ref.c.Expr[Api]
+    method: ref.RefMethod,
+    api: ref.c.Expr[Api],
   )(implicit
     effectType: ref.c.WeakTypeTag[Effect[?]]
   ): ref.c.Expr[(Seq[Any], Context) => Any] = {

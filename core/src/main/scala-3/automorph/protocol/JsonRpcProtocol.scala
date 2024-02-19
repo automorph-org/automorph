@@ -98,8 +98,8 @@ object JsonRpcProtocol extends ErrorMapping:
    */
   inline def apply[Node, Codec <: MessageCodec[Node], Context](
     messageCodec: Codec,
-    mapError: (String, Int) => Throwable = defaultMapError,
-    mapException: Throwable => ErrorType = defaultMapException,
+    mapError: (String, Int) => Throwable = mapError,
+    mapException: Throwable => ErrorType = mapException,
     namedArguments: Boolean = true,
     mapOpenApi: OpenApi => OpenApi = identity,
     mapOpenRpc: OpenRpc => OpenRpc = identity,

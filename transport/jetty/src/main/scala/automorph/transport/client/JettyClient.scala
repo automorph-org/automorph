@@ -3,7 +3,7 @@ package automorph.transport.client
 import automorph.log.{LogProperties, Logging, MessageLog}
 import automorph.spi.AsyncEffectSystem.Completable
 import automorph.spi.{AsyncEffectSystem, ClientTransport, EffectSystem}
-import automorph.transport.client.JettyClient.{Context, Message}
+import automorph.transport.client.JettyClient.{Context, Transport}
 import automorph.transport.{HttpContext, HttpMethod, Protocol}
 import automorph.util.Extensions.{ByteArrayOps, EffectOps}
 import java.net.URI
@@ -99,7 +99,7 @@ final case class JettyClient[Effect[_]](
     }
 
   override def context: Context =
-    Message.defaultContext.url(url).method(method)
+    Transport.context.url(url).method(method)
 
   override def init(): Effect[Unit] =
     effectSystem.evaluate(this.synchronized {
@@ -333,14 +333,14 @@ final case class JettyClient[Effect[_]](
 object JettyClient {
 
   /** Request context type. */
-  type Context = HttpContext[Message]
+  type Context = HttpContext[Transport]
 
-  /** Message properties. */
-  final case class Message(request: Request)
+  /** Transport-specific context. */
+  final case class Transport(request: Request)
 
-  object Message {
+  object Transport {
 
     /** Implicit default context value. */
-    implicit val defaultContext: HttpContext[Message] = HttpContext()
+    implicit val context: HttpContext[Transport] = HttpContext()
   }
 }

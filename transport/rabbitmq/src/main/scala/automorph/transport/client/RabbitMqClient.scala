@@ -75,7 +75,7 @@ final case class RabbitMqClient[Effect[_]](
     send(requestBody, requestId, mediaType, requestContext, None)
 
   override def context: Context =
-    RabbitMq.Message.defaultContext
+    RabbitMq.Transport.context
 
   override def init(): Effect[Unit] =
     system.evaluate(this.synchronized {
@@ -166,7 +166,7 @@ object RabbitMqClient {
   type Context = AmqpContext[Message]
 
   /** Message properties. */
-  type Message = RabbitMq.Message
+  type Message = RabbitMq.Transport
 
   private type Response = (Array[Byte], Context)
 }

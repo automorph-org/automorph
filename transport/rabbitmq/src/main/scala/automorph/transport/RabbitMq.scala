@@ -15,13 +15,13 @@ import scala.util.{Try, Using}
 /** Common RabbitMQ functionality. */
 object RabbitMq extends Logging {
 
-  /** Message properties. */
-  final case class Message(properties: BasicProperties)
+  /** Transport-specific context. */
+  final case class Transport(properties: BasicProperties)
 
-  object Message {
+  object Transport {
 
     /** Implicit default context value. */
-    implicit val defaultContext: AmqpContext[Message] = AmqpContext()
+    implicit val context: AmqpContext[Transport] = AmqpContext()
   }
 
   final private[automorph] case class Session(connection: Connection, consumer: ThreadLocal[DefaultConsumer])
@@ -181,7 +181,7 @@ object RabbitMq extends Logging {
    * @return
    *   message context
    */
-  private[automorph] def messageContext(properties: BasicProperties): AmqpContext[Message] =
+  private[automorph] def messageContext(properties: BasicProperties): AmqpContext[Transport] =
     AmqpContext(
       contentType = Option(properties.getContentType),
       contentEncoding = Option(properties.getContentEncoding),
@@ -196,7 +196,7 @@ object RabbitMq extends Logging {
       `type` = Option(properties.getType),
       userId = Option(properties.getUserId),
       appId = Option(properties.getAppId),
-      message = Some(Message(properties)),
+      message = Some(Transport(properties)),
     )
 
   /**

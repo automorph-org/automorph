@@ -2,7 +2,7 @@ package automorph.transport.client
 
 import automorph.log.{LogProperties, Logging, MessageLog}
 import automorph.spi.{ClientTransport, EffectSystem}
-import SttpClient.{Context, TransportContext}
+import SttpClient.{Context, Transport}
 import automorph.transport.{HttpMethod, Protocol}
 import automorph.util.Extensions.EffectOps
 import java.net.URI
@@ -16,7 +16,7 @@ private[automorph] trait SttpClientBase[Effect[_]] extends ClientTransport[Effec
   private type WebSocket = sttp.capabilities.Effect[Effect] & WebSockets
 
   private val webSocketsSchemePrefix = "ws"
-  private val defaultUrl = Uri(url).toJavaUri
+  private val baseUrl = Uri(url).toJavaUri
   private val log = MessageLog(logger, Protocol.Http.name)
   implicit private val system: EffectSystem[Effect] = effectSystem
 
@@ -72,7 +72,7 @@ private[automorph] trait SttpClientBase[Effect[_]] extends ClientTransport[Effec
   }
 
   override def context: Context =
-    TransportContext.defaultContext.url(url).method(method)
+    Transport.context.url(url).method(method)
 
   override def init(): Effect[Unit] =
     effectSystem.successful {}
@@ -115,7 +115,7 @@ private[automorph] trait SttpClientBase[Effect[_]] extends ClientTransport[Effec
   ): Request[Array[Byte], WebSocket] = {
     // URL & method
     val transportRequest = requestContext.transportContext.map(_.request).getOrElse(basicRequest)
-    val requestUrl = Uri(requestContext.overrideUrl(defaultUrl))
+    val requestUrl = Uri(requestContext.overrideUrl(baseUrl))
     val requestMethod = Method.unsafeApply(requestContext.method.getOrElse(method).name)
 
     // Headers, timeout & follow redirects

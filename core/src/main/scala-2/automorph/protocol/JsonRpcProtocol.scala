@@ -48,8 +48,8 @@ import scala.reflect.macros.blackbox
  */
 final case class JsonRpcProtocol[Node, Codec <: MessageCodec[Node], Context](
   messageCodec: Codec,
-  mapError: (String, Int) => Throwable = JsonRpcProtocol.defaultMapError,
-  mapException: Throwable => ErrorType = JsonRpcProtocol.defaultMapException,
+  mapError: (String, Int) => Throwable = JsonRpcProtocol.mapError,
+  mapException: Throwable => ErrorType = JsonRpcProtocol.mapException,
   namedArguments: Boolean = true,
   mapOpenApi: OpenApi => OpenApi = identity,
   mapOpenRpc: OpenRpc => OpenRpc = identity,
@@ -103,8 +103,8 @@ object JsonRpcProtocol extends ErrorMapping {
     c.Expr[JsonRpcProtocol[Node, Codec, Context]](q"""
       automorph.protocol.JsonRpcProtocol(
         $codec,
-        automorph.protocol.JsonRpcProtocol.defaultMapError,
-        automorph.protocol.JsonRpcProtocol.defaultMapException,
+        automorph.protocol.JsonRpcProtocol.mapError,
+        automorph.protocol.JsonRpcProtocol.mapException,
         true,
         identity,
         identity

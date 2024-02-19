@@ -44,7 +44,7 @@ object ClientBindingGenerator {
     Codec <: MessageCodec[Node],
     Effect[_],
     Context: c.WeakTypeTag,
-    Api <: AnyRef: c.WeakTypeTag
+    Api <: AnyRef: c.WeakTypeTag,
   ](c: blackbox.Context)(codec: c.Expr[Codec])(implicit
     effectType: c.WeakTypeTag[Effect[?]]
   ): c.Expr[Seq[ClientBinding[Node, Context]]] = {
@@ -55,10 +55,9 @@ object ClientBindingGenerator {
     val apiMethods = ApiReflection.apiMethods[c.type, Api, Effect[?]](ref)
     val validMethods = apiMethods.flatMap(_.swap.toOption) match {
       case Seq() => apiMethods.flatMap(_.toOption)
-      case errors =>
-        ref.c.abort(
+      case errors => ref.c.abort(
           ref.c.enclosingPosition,
-          s"Failed to bind API methods:\n${errors.map(error => s"  $error").mkString("\n")}"
+          s"Failed to bind API methods:\n${errors.map(error => s"  $error").mkString("\n")}",
         )
     }
 
@@ -99,13 +98,13 @@ object ClientBindingGenerator {
     C <: blackbox.Context,
     Node,
     Codec <: MessageCodec[Node],
-    Context: ref.c.WeakTypeTag
+    Context: ref.c.WeakTypeTag,
   ](ref: ClassReflection[C])(method: ref.RefMethod, codec: ref.c.Expr[Codec]): ref.c.Expr[Map[String, Any => Node]] = {
     import ref.c.universe.Quasiquote
 
     // Map multiple parameter lists to flat argument node list offsets
     val parameterListOffsets = method.parameters.map(_.size).foldLeft(Seq(0)) { (indices, size) =>
-      indices :+ (indices.last + size)
+      indices :+ indices.last + size
     }
     val lastArgumentIndex = method.parameters.map(_.size).sum - 1
 
@@ -119,7 +118,7 @@ object ClientBindingGenerator {
     val argumentEncoders = method.parameters.toList.zip(parameterListOffsets).flatMap { case (parameters, offset) =>
       parameters.toList.zipWithIndex.flatMap { case (parameter, index) =>
         Option.when(
-          (offset + index) != lastArgumentIndex || !ApiReflection.acceptsContext[C, Context](ref)(method)
+          offset + index != lastArgumentIndex || !ApiReflection.acceptsContext[C, Context](ref)(method)
         ) {
           q"""
             ${parameter.name} -> (
@@ -167,10 +166,11 @@ object ClientBindingGenerator {
     method: ref.RefMethod,
     encodeArguments: ref.c.Expr[Any],
     decodeResult: ref.c.Expr[Any],
-  ): Unit = MacroLogger.debug(
-    s"""${ApiReflection.methodSignature[C, Api](ref)(method)} =
-      |  ${ref.c.universe.showCode(encodeArguments.tree)}
-      |  ${ref.c.universe.showCode(decodeResult.tree)}
-      |""".stripMargin
-  )
+  ): Unit =
+    MacroLogger.debug(
+      s"""${ApiReflection.methodSignature[C, Api](ref)(method)} =
+        |  ${ref.c.universe.showCode(encodeArguments.tree)}
+        |  ${ref.c.universe.showCode(decodeResult.tree)}
+        |""".stripMargin
+    )
 }
