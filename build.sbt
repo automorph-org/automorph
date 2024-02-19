@@ -218,6 +218,7 @@ lazy val jetty = source(project, "transport/jetty", core, testPlugin % Test).set
   )
 )
 lazy val zioHttp = source(project, "transport/zio-http", core, testPlugin % Test, zio % Test).settings(
+  publish / skip := true,
   libraryDependencies += "dev.zio" %% "zio-http" % "3.0.0-RC4"
 )
 val akkaVersion = "2.8.5"
