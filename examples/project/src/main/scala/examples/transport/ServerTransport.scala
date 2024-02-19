@@ -1,3 +1,4 @@
+// Serve a remote API from a selected standalone server transport layer.
 package examples.transport
 
 import automorph.{Default, RpcServer}
@@ -9,7 +10,6 @@ import scala.concurrent.{Await, Future}
 
 private[examples] object ServerTransport {
 
-  // Serve a remote API from a selected standalone server transport layer.
   @scala.annotation.nowarn
   def main(arguments: Array[String]): Unit = {
 

@@ -1,3 +1,4 @@
+// Attach and extract HTTP status code and headers to/from a remote API response.
 //> using dep org.automorph::automorph-default:@PROJECT_VERSION@
 //> using dep ch.qos.logback:logback-classic:@LOGGER_VERSION@
 package examples.metadata
@@ -10,7 +11,6 @@ import java.net.URI
 
 private[examples] object HttpResponseProperties {
 
-  // Attach and extract HTTP status code and headers to/from a remote API response.
   @scala.annotation.nowarn
   def main(arguments: Array[String]): Unit = {
 

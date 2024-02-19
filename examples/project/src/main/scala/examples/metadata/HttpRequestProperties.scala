@@ -1,3 +1,4 @@
+// Attach and extract URL query parameters and HTTP headers to/from a remote API request.
 package examples.metadata
 
 import automorph.Default
@@ -7,7 +8,6 @@ import java.net.URI
 
 private[examples] object HttpRequestProperties {
 
-  // Attach and extract URL query parameters and HTTP headers to/from a remote API request.
   @scala.annotation.nowarn
   def main(arguments: Array[String]): Unit = {
 

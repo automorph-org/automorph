@@ -1,3 +1,4 @@
+// Process incoming RPC requests into remote API calls from any custom endpoint or server.
 package examples.integration
 
 import automorph.transport.generic.endpoint.GenericEndpoint
@@ -9,7 +10,6 @@ import scala.util.Random
 
 private[examples] object CustomServer {
 
-  // Process incoming RPC requests into remote API calls from any custom endpoint or server.
   @scala.annotation.nowarn
   def main(arguments: Array[String]): Unit = {
 

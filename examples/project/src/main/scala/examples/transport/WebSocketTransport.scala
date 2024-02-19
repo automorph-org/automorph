@@ -1,3 +1,4 @@
+// Serve a and call a remote API using JSON-RPC over WebSocket.
 //> using dep org.automorph::automorph-default:@PROJECT_VERSION@
 //> using dep ch.qos.logback:logback-classic:@LOGGER_VERSION@
 package examples.transport
@@ -10,7 +11,6 @@ import scala.concurrent.{Await, Future}
 
 private[examples] object WebSocketTransport {
 
-  // Serve a and call a remote API using JSON-RPC over WebSocket.
   @scala.annotation.nowarn
   def main(arguments: Array[String]): Unit = {
 

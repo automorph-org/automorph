@@ -1,3 +1,4 @@
+// Serve a remote API from an existing server by using a suitable endpoint transport layer.
 //> using dep org.automorph::automorph-default:@PROJECT_VERSION@
 //> using dep ch.qos.logback:logback-classic:@LOGGER_VERSION@
 package examples.transport
@@ -11,7 +12,6 @@ import scala.concurrent.{Await, Future}
 
 private[examples] object EndpointTransport {
 
-  // Serve a remote API from an existing server by using a suitable endpoint transport layer.
   @scala.annotation.nowarn
   def main(arguments: Array[String]): Unit = {
 

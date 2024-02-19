@@ -1,3 +1,4 @@
+// Serve an asynchronous API implementation and call it remotely using JSON-RPC over HTTP(S).
 //> using dep org.automorph::automorph-default:@PROJECT_VERSION@
 //> using dep ch.qos.logback:logback-classic:@LOGGER_VERSION@
 package examples.basic
@@ -11,7 +12,6 @@ import scala.concurrent.{Await, Future}
 
 private[examples] object AsynchronousCall {
 
-  // Serve an asynchronous API implementation and call it remotely using JSON-RPC over HTTP(S).
   @scala.annotation.nowarn
   def main(arguments: Array[String]): Unit = {
 

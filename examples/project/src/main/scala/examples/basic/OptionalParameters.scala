@@ -1,3 +1,4 @@
+// Define remote API with optional parameters and call it without supplying them.
 //> using dep org.automorph::automorph-default:@PROJECT_VERSION@
 //> using dep ch.qos.logback:logback-classic:@LOGGER_VERSION@
 package examples.basic
@@ -10,7 +11,6 @@ import scala.concurrent.{Await, Future}
 
 private[examples] object OptionalParameters {
 
-  // Define remote API with optional parameters and call it without supplying them.
   @scala.annotation.nowarn
   def main(arguments: Array[String]): Unit = {
 

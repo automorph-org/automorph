@@ -1,3 +1,4 @@
+// Serve multiple API implementations and call them remotely using JSON-RPC over HTTP(S).
 package examples.basic
 
 import automorph.Default
@@ -8,7 +9,6 @@ import scala.concurrent.{Await, Future}
 
 private[examples] object MultipleApis {
 
-  // Serve multiple API implementations and call them remotely using JSON-RPC over HTTP(S).
   @scala.annotation.nowarn
   def main(arguments: Array[String]): Unit = {
 

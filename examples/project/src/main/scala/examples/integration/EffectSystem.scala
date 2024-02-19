@@ -1,3 +1,4 @@
+// Implement, serve and call a remote API using a selected effect system.
 //> using dep org.automorph::automorph-default:@PROJECT_VERSION@
 //> using dep org.automorph::automorph-zio:@PROJECT_VERSION@
 //> using dep com.softwaremill.sttp.client3::async-http-client-backend-zio:3.3.9
@@ -11,7 +12,6 @@ import zio.{Console, Runtime, Task, Unsafe, ZIO}
 
 private[examples] object EffectSystem {
 
-  // Implement, serve and call a remote API using a selected effect system.
   @scala.annotation.nowarn
   def main(arguments: Array[String]): Unit = {
 

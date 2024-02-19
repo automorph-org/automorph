@@ -1,3 +1,4 @@
+// Serve an API implementation and call it remotely using JSON-RPC over HTTP(S).
 //> using scala 3.3.1
 //> using dep org.automorph::automorph-default:0.2.5
 //> using dep ch.qos.logback:logback-classic:1.4.14
@@ -11,7 +12,6 @@ import scala.concurrent.{Await, Future}
 
 private[examples] object Quickstart {
 
-  // Serve an API implementation and call it remotely using JSON-RPC over HTTP(S).
   @scala.annotation.nowarn
   def main(arguments: Array[String]): Unit = {
     import io.circe.generic.auto.*

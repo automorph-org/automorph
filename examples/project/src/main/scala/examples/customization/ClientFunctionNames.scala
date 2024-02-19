@@ -1,3 +1,4 @@
+// Translate remote API method names on the client side.
 //> using dep org.automorph::automorph-default:@PROJECT_VERSION@
 //> using dep ch.qos.logback:logback-classic:@LOGGER_VERSION@
 package examples.customization
@@ -8,7 +9,6 @@ import java.net.URI
 
 private[examples] object ClientFunctionNames {
 
-  // Translate remote API method names on the client side.
   @scala.annotation.nowarn
   def main(arguments: Array[String]): Unit = {
 

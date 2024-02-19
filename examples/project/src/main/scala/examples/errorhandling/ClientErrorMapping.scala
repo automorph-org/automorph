@@ -1,3 +1,4 @@
+// Translate RPC errors to exceptions on the client side.
 package examples.errorhandling
 
 import automorph.{RpcClient, Default}
@@ -9,7 +10,6 @@ import scala.concurrent.{Await, Future}
 
 private[examples] object ClientErrorMapping {
 
-  // Translate RPC errors to exceptions on the client side.
   @scala.annotation.nowarn
   def main(arguments: Array[String]): Unit = {
 

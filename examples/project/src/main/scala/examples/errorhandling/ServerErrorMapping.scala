@@ -1,3 +1,4 @@
+// Translate remote API call exceptions to RPC errors on the server side.
 package examples.errorhandling
 
 import automorph.protocol.jsonrpc.ErrorType.InvalidRequest
@@ -11,7 +12,6 @@ import scala.concurrent.{Await, Future}
 
 private[examples] object ServerErrorMapping {
 
-  // Translate remote API call exceptions to RPC errors on the server side.
   @scala.annotation.nowarn
   def main(arguments: Array[String]): Unit = {
 

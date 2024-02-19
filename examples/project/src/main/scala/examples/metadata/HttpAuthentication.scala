@@ -1,3 +1,4 @@
+// Attach and extract HTTP authentication metadata to/from a remote API request.
 //> using dep org.automorph::automorph-default:@PROJECT_VERSION@
 //> using dep ch.qos.logback:logback-classic:@LOGGER_VERSION@
 package examples.metadata
@@ -10,7 +11,6 @@ import scala.util.Try
 
 private[examples] object HttpAuthentication {
 
-  // Attach and extract HTTP authentication metadata to/from a remote API request.
   @scala.annotation.nowarn
   def main(arguments: Array[String]): Unit = {
 

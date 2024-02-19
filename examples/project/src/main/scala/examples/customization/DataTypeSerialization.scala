@@ -1,3 +1,4 @@
+// Configure serialization and deserialization of arbitrary data types.
 package examples.customization
 
 import automorph.Default
@@ -10,7 +11,6 @@ import scala.concurrent.{Await, Future}
 
 private[examples] object DataTypeSerialization {
 
-  // Configure serialization and deserialization of arbitrary data types.
   @scala.annotation.nowarn
   def main(arguments: Array[String]): Unit = {
 

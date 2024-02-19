@@ -1,3 +1,4 @@
+// Call a remote API while supplying invoked method arguments by position instead of by name.
 package examples.special
 
 import automorph.{RpcClient, Default}
@@ -8,7 +9,6 @@ import scala.concurrent.{Await, Future}
 
 private[examples] object PositionalArguments {
 
-  // Call a remote API while supplying invoked method arguments by position instead of by name.
   @scala.annotation.nowarn
   def main(arguments: Array[String]): Unit = {
 
