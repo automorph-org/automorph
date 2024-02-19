@@ -45,7 +45,7 @@ dependencies {
 
 ### Server
 
-Serve an API instance for remote calls using JSON-RPC over HTTP(S).
+Serve an API implementation to be called remotely using JSON-RPC over HTTP(S).
 
 ```scala
 import automorph.Default
