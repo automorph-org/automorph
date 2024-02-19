@@ -79,9 +79,7 @@ object SttpClient:
     backend: Expr[SttpBackend[Effect, Capabilities]],
     url: Expr[URI],
     method: Expr[HttpMethod],
-  )(
-    using quotes: Quotes
-  ): Expr[SttpClient[Effect]] =
+  )(using quotes: Quotes): Expr[SttpClient[Effect]] =
     import quotes.reflect.TypeRepr
 
     val webSocket = if TypeRepr.of[Capabilities] <:< TypeRepr.of[WebSockets] then
@@ -89,6 +87,44 @@ object SttpClient:
     else
       '{ false }
     '{ SttpClient(${ effectSystem }, ${ backend }, ${ url }, ${ method }, webSocket = ${ webSocket }) }
+
+  /**
+   * Creates an STTP HTTP client message transport plugin with the specified STTP backend using POST HTTP method.
+   *
+   * Use the alternative [[SttpClient.webSocket]] function for STTP backends with WebSocket capability.
+   *
+   * @param effectSystem
+   *   effect system plugin
+   * @param backend
+   *   STTP backend
+   * @param url
+   *   remote API HTTP URL
+   * @tparam Effect
+   *   effect type
+   * @tparam Capabilities
+   *   STTP backend capabilities
+   * @return
+   *   STTP HTTP client message transport plugin using POST HTTP method
+   */
+  inline def apply[Effect[_], Capabilities](
+    effectSystem: EffectSystem[Effect],
+    backend: SttpBackend[Effect, Capabilities],
+    url: URI,
+  ): SttpClient[Effect] =
+    ${ applyMethodMacro[Effect, Capabilities]('effectSystem, 'backend, 'url) }
+
+  private def applyMethodMacro[Effect[_]: Type, Capabilities: Type](
+    effectSystem: Expr[EffectSystem[Effect]],
+    backend: Expr[SttpBackend[Effect, Capabilities]],
+    url: Expr[URI],
+  )(using quotes: Quotes): Expr[SttpClient[Effect]] =
+    import quotes.reflect.TypeRepr
+
+    val webSocket = if TypeRepr.of[Capabilities] <:< TypeRepr.of[WebSockets] then
+      '{ true }
+    else
+      '{ false }
+    '{ SttpClient(${ effectSystem }, ${ backend }, ${ url }, HttpMethod.Post, webSocket = ${ webSocket }) }
 
   /** Transport context. */
   final case class TransportContext(request: PartialRequest[Either[String, String], Any])

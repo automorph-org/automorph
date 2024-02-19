@@ -93,6 +93,51 @@ object SttpClient {
     """)
   }
 
+  /**
+   * Creates an STTP HTTP client message transport plugin with the specified STTP backend using POST HTTP method.
+   *
+   * Use the alternative [[SttpClient.webSocket]] function for STTP backends with WebSocket capability.
+   *
+   * @param effectSystem
+   *   effect system plugin
+   * @param backend
+   *   STTP backend
+   * @param url
+   *   remote API HTTP URL
+   * @tparam Effect
+   *   effect type
+   * @tparam Capabilities
+   *   STTP backend capabilities
+   * @return
+   *   STTP HTTP client message transport plugin using POST HTTP method
+   */
+  def apply[Effect[_], Capabilities](
+    effectSystem: EffectSystem[Effect],
+    backend: SttpBackend[Effect, Capabilities],
+    url: URI,
+  ): SttpClient[Effect] =
+    macro applyMethodMacro[Effect, Capabilities]
+
+  def applyMethodMacro[Effect[_], Capabilities: c.WeakTypeTag](c: blackbox.Context)(
+    effectSystem: c.Expr[EffectSystem[Effect]],
+    backend: c.Expr[SttpBackend[Effect, Capabilities]],
+    url: c.Expr[URI],
+  ): c.Expr[SttpClient[Effect]] = {
+    import c.universe.{Quasiquote, weakTypeOf}
+
+    val webSocket = c.Expr[Boolean](if (weakTypeOf[Capabilities] <:< weakTypeOf[WebSockets]) {
+      q"""true"""
+    } else {
+      q"""false"""
+    })
+    c.Expr[SttpClient[Effect]](q"""
+      import automorph.transport.HttpMethod
+      automorph.transport.client.SttpClient.create(
+        $effectSystem, $backend, $url, HttpMethod.Post, webSocket = $webSocket
+      )
+    """)
+  }
+
   /** This method must never be used and should be considered private. */
   def create[Effect[_]](
     effectSystem: EffectSystem[Effect],

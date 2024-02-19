@@ -481,6 +481,7 @@ def insertDocumentationExampleSources(
             .replaceAll(":", "\" % \"")
             .replaceFirst("@AUTOMORPH_VERSION@", releaseVersion)
             .replaceFirst("@LOGBACK_VERSION@", logbackVersion)
+            .replaceFirst("@STTP_VERSION@", sttpVersion)
             .replaceFirst("$", "\","))
         case line if line.startsWith("package") => Seq(")\n```\n\n**Source**\n```scala")
         case line if line.startsWith("private") && line.contains("object") => Seq()

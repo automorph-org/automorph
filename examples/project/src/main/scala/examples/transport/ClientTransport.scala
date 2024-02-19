@@ -1,11 +1,10 @@
 // Call a remote API using JSON-RPC over a selected client transport layer.
 //> using dep org.automorph::automorph-default:@PROJECT_VERSION@
 //> using dep org.automorph::automorph-sttp:@PROJECT_VERSION@
-//> using dep com.softwaremill.sttp.client3::async-http-client-backend-future:3.9.2
+//> using dep com.softwaremill.sttp.client3::async-http-client-backend-future:@STTP_VERSION@
 //> using dep ch.qos.logback:logback-classic:@LOGGER_VERSION@
 package examples.transport
 
-import automorph.transport.HttpMethod
 import automorph.{Default, RpcClient}
 import automorph.transport.client.SttpClient
 import sttp.client3.asynchttpclient.future.AsyncHttpClientFutureBackend
@@ -35,7 +34,6 @@ private[examples] object ClientTransport {
       Default.effectSystem,
       AsyncHttpClientFutureBackend(),
       new URI("http://localhost:9000/api"),
-      HttpMethod.Post,
     )
 
     Await.result(
