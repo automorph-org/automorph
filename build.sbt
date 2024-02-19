@@ -471,7 +471,9 @@ def insertDocumentationExampleSources(
   val examples = IO.readLines(examplesPage).flatMap { docLine =>
     "^###.*https?://[^/]+/[^/]+/([^)]*)\\)".r.findFirstMatchIn(docLine).map(_.group(1)).map { path =>
       var omittedEmptyLines = 3
-      val source = IO.readLines(sourceDirectory / path).flatMap {
+      val lines = IO.readLines(sourceDirectory / path)
+      val caption = lines.headOption.filter(_.startsWith("// ")).map(_.replaceFirst("// ", "") + "\n")
+      val source = caption.map(_ => lines.tail).getOrElse(lines).flatMap {
         case line if line.startsWith("//> ") =>
           Seq(line
             .replaceFirst("//> using dep ", "  \"")
@@ -493,7 +495,7 @@ def insertDocumentationExampleSources(
           }
         case line => Seq(line.replaceFirst("    ", "").replaceFirst("^private\\[examples\\] ", ""))
       }
-      Seq(docLine, "\n", "**Build**\n```scala\nlibraryDependencies ++= Seq(") ++ source ++ Seq("```")
+      Seq(docLine) ++ caption ++ Seq("\n", "**Build**\n```scala\nlibraryDependencies ++= Seq(") ++ source ++ Seq("```")
     }.getOrElse(Seq(docLine))
   }
   IO.writeLines(examplesPage, examples)

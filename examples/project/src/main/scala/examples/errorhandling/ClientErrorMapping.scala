@@ -1,4 +1,6 @@
 // Translate RPC errors to exceptions on the client side.
+//> using dep org.automorph::automorph-default:@PROJECT_VERSION@
+//> using dep ch.qos.logback:logback-classic:@LOGGER_VERSION@
 package examples.errorhandling
 
 import automorph.{RpcClient, Default}

@@ -1,8 +1,14 @@
-// Call a remote API using a using JSON-RPC over a selected client transport layer.
+// Call a remote API using JSON-RPC over a selected client transport layer.
+//> using dep org.automorph::automorph-default:@PROJECT_VERSION@
+//> using dep org.automorph::automorph-sttp:@PROJECT_VERSION@
+//> using dep com.softwaremill.sttp.client3::async-http-client-backend-future:3.9.2
+//> using dep ch.qos.logback:logback-classic:@LOGGER_VERSION@
 package examples.transport
 
+import automorph.transport.HttpMethod
 import automorph.{Default, RpcClient}
-import automorph.transport.client.UrlClient
+import automorph.transport.client.SttpClient
+import sttp.client3.asynchttpclient.future.AsyncHttpClientFutureBackend
 import java.net.URI
 import scala.concurrent.ExecutionContext.Implicits.global
 import scala.concurrent.duration.Duration
@@ -24,8 +30,13 @@ private[examples] object ClientTransport {
         Future(s"Hello world $n")
     }
 
-    // Create standard JRE HTTP client transport sending POST requests to 'http://localhost:9000/api'
-    val clientTransport = UrlClient(Default.effectSystem, new URI("http://localhost:9000/api"))
+    // Create STTP client transport with asynchronous HTTP backend sending POST requests to 'http://localhost:9000/api'
+    val clientTransport = SttpClient(
+      Default.effectSystem,
+      AsyncHttpClientFutureBackend(),
+      new URI("http://localhost:9000/api"),
+      HttpMethod.Post,
+    )
 
     Await.result(
       for {

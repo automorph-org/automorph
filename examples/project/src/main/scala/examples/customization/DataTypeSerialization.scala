@@ -1,9 +1,10 @@
 // Configure serialization and deserialization of arbitrary data types.
+//> using dep org.automorph::automorph-default:@PROJECT_VERSION@
+//> using dep ch.qos.logback:logback-classic:@LOGGER_VERSION@
 package examples.customization
 
 import automorph.Default
 import io.circe.{Decoder, Encoder}
-import io.circe.generic.auto.*
 import java.net.URI
 import scala.concurrent.ExecutionContext.Implicits.global
 import scala.concurrent.duration.Duration
@@ -13,6 +14,7 @@ private[examples] object DataTypeSerialization {
 
   @scala.annotation.nowarn
   def main(arguments: Array[String]): Unit = {
+    import io.circe.generic.auto.*
 
     // Introduce custom data types
     sealed abstract class State

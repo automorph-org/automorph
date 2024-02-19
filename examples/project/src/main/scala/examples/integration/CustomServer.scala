@@ -1,4 +1,6 @@
 // Process incoming RPC requests into remote API calls from any custom endpoint or server.
+//> using dep org.automorph::automorph-default:@PROJECT_VERSION@
+//> using dep ch.qos.logback:logback-classic:@LOGGER_VERSION@
 package examples.integration
 
 import automorph.transport.generic.endpoint.GenericEndpoint

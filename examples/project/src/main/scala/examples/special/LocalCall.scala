@@ -1,4 +1,6 @@
 // Serve a remote API but call it locally by directly accessing the API request handler.
+//> using dep org.automorph::automorph-default:@PROJECT_VERSION@
+//> using dep ch.qos.logback:logback-classic:@LOGGER_VERSION@
 package examples.special
 
 import automorph.transport.HttpContext

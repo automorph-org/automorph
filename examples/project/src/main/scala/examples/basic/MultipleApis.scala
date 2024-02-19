@@ -1,4 +1,6 @@
 // Serve multiple API implementations and call them remotely using JSON-RPC over HTTP(S).
+//> using dep org.automorph::automorph-default:@PROJECT_VERSION@
+//> using dep ch.qos.logback:logback-classic:@LOGGER_VERSION@
 package examples.basic
 
 import automorph.Default
