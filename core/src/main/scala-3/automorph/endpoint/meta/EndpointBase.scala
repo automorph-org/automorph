@@ -1,7 +1,8 @@
 package automorph.endpoint.meta
 
 import automorph.RpcEndpoint
-import automorph.endpoint.ApiRequestHandler
+import automorph.handler.ApiRequestHandler
+import automorph.handler.meta.HandlerBindingGenerator
 import automorph.spi.{EndpointTransport, MessageCodec, RequestHandler, RpcProtocol}
 import scala.collection.immutable.ListMap
 
