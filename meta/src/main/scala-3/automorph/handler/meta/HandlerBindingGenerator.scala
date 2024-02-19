@@ -1,6 +1,7 @@
 package automorph.handler.meta
 
 import automorph.RpcResult
+import automorph.handler.HandlerBinding
 import automorph.log.MacroLogger
 import automorph.reflection.ApiReflection.functionToExpr
 import automorph.reflection.{ApiReflection, ClassReflection}
