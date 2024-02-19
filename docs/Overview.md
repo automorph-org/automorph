@@ -64,7 +64,7 @@ trait Api:
 val service = new Api:
   def hello(n: Int): Future[String] = Future(s"Hello world $n")
 
-// Expose a server API implementation to be called remotely
+// Serve the API implementation to be called remotely
 val apiServer = server.bind(service)
 
 // Create a type-safe local proxy for the remote API from an API trait

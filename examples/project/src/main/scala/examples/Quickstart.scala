@@ -11,6 +11,7 @@ import scala.concurrent.{Await, Future}
 
 private[examples] object Quickstart {
 
+  // Serve an API implementation call it remotely using JSON-RPC over HTTP(S).
   @scala.annotation.nowarn
   def main(arguments: Array[String]): Unit = {
     import io.circe.generic.auto.*
@@ -30,7 +31,7 @@ private[examples] object Quickstart {
     // Configure JSON-RPC HTTP & WebSocket server to listen on port 9000 for requests to '/api'
     val inactiveServer = Default.rpcServer(9000, "/api")
 
-    // Expose the server API implementation to be called remotely
+    // Serve the API implementation to be called remotely
     val apiServer = inactiveServer.bind(service)
 
     // Configure JSON-RPC HTTP client to send POST requests to 'http://localhost:9000/api'

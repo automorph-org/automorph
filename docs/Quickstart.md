@@ -45,7 +45,7 @@ dependencies {
 
 ### Server
 
-Expose an API instance for remote calls using JSON-RPC over HTTP(S).
+Serve an API instance for remote calls using JSON-RPC over HTTP(S).
 
 ```scala
 import automorph.Default
@@ -70,7 +70,7 @@ val api = new ApiImpl
 // Configure JSON-RPC HTTP & WebSocket server to listen on port 9000 for requests to '/api'
 val server = Default.rpcServer(9000, "/api")
 
-// Expose the server API implementation to be called remotely
+// Serve the API implementation to be called remotely
 val apiServer = server.bind(api)
 
 val run = for {
