@@ -1,6 +1,6 @@
 // Serve a and call a remote API using JSON-RPC over WebSocket.
-//> using dep org.automorph::automorph-default:@PROJECT_VERSION@
-//> using dep ch.qos.logback:logback-classic:@LOGGER_VERSION@
+//> using dep org.automorph::automorph-default:@AUTOMORPH_VERSION@
+//> using dep ch.qos.logback:logback-classic:@LOGBACK_VERSION@
 package examples.transport
 
 import automorph.Default

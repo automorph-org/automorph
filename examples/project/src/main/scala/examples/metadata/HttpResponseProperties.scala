@@ -1,6 +1,6 @@
 // Attach and extract HTTP status code and headers to/from a remote API response.
-//> using dep org.automorph::automorph-default:@PROJECT_VERSION@
-//> using dep ch.qos.logback:logback-classic:@LOGGER_VERSION@
+//> using dep org.automorph::automorph-default:@AUTOMORPH_VERSION@
+//> using dep ch.qos.logback:logback-classic:@LOGBACK_VERSION@
 package examples.metadata
 
 import automorph.Default.{ClientContext, ServerContext}

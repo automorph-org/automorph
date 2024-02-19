@@ -1,6 +1,6 @@
 // Serve and call a remote API using a selected RPC protocol.
-//> using dep org.automorph::automorph-default:@PROJECT_VERSION@
-//> using dep ch.qos.logback:logback-classic:@LOGGER_VERSION@
+//> using dep org.automorph::automorph-default:@AUTOMORPH_VERSION@
+//> using dep ch.qos.logback:logback-classic:@LOGBACK_VERSION@
 package examples.integration
 
 import automorph.protocol.WebRpcProtocol

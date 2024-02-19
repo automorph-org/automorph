@@ -1,8 +1,8 @@
 // Call a remote API using JSON-RPC over a selected client transport layer.
-//> using dep org.automorph::automorph-default:@PROJECT_VERSION@
-//> using dep org.automorph::automorph-sttp:@PROJECT_VERSION@
+//> using dep org.automorph::automorph-default:@AUTOMORPH_VERSION@
+//> using dep org.automorph::automorph-sttp:@AUTOMORPH_VERSION@
 //> using dep com.softwaremill.sttp.client3::async-http-client-backend-future:@STTP_VERSION@
-//> using dep ch.qos.logback:logback-classic:@LOGGER_VERSION@
+//> using dep ch.qos.logback:logback-classic:@LOGBACK_VERSION@
 package examples.transport
 
 import automorph.{Default, RpcClient}

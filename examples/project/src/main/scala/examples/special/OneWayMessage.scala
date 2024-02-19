@@ -1,6 +1,6 @@
 // Serve a remote API and send a one-way message to it without expecting a response.
-//> using dep org.automorph::automorph-default:@PROJECT_VERSION@
-//> using dep ch.qos.logback:logback-classic:@LOGGER_VERSION@
+//> using dep org.automorph::automorph-default:@AUTOMORPH_VERSION@
+//> using dep ch.qos.logback:logback-classic:@LOGBACK_VERSION@
 package examples.special
 
 import automorph.Default
