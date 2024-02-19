@@ -202,7 +202,7 @@ const features = [
 
 function tags(tags) {
   return (
-    <p style={{fontSize: '1.0rem', margin: '0.2rem'}}>
+    <p style={{fontSize: '1.0rem'}}>
       {tags.map(({title, link}, index) =>
         index === tags.length - 1 ?
           <span><a href={link}>{title}</a></span> :
@@ -217,7 +217,7 @@ function BannerRow() {
   return (
     <div className='row'>
       <div className='col col--12'>
-        <div className='padding-horiz--sm'>
+        <div className='padding-horiz--xl'>
           <img src={bannerImage} alt={config.title}/>
         </div>
       </div>
@@ -244,7 +244,9 @@ function TaglineRow() {
 function FeatureCell({title, link, description}) {
   return (
     <div className='col col--4'>
-      <div className='text--center padding-horiz--sm padding-vert--sm'>
+      <div style={
+        {marginLeft: '2rem', marginRight: '2rem'}
+      } className='text--center padding-horiz--sm padding-vert--sm'>
         <h3 style={{lineHeight: '0.8rem'}}><a href={link}>{title}</a></h3>
         <p style={{fontSize: '1.0rem'}}>{description}</p>
       </div>

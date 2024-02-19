@@ -7,11 +7,16 @@
  */
 
 :root {
-  --ifm-navbar-height: 3.5rem;
-  --doc-sidebar-width: 10rem !important;
+  --ifm-navbar-height: 3rem;
+  --ifm-navbar-item-padding-vertical: 0rem;
+  --doc-sidebar-width: 8rem !important;
+  --ifm-container-width: 100%;
+  --ifm-container-width-xl: 100%;
+  --ifm-spacing-horizontal: 1rem;
+  --ifm-toc-padding-horizontal: 1rem;
 
-  --ifm-color-black: #000000;
-  --ifm-color-white: #eeeeee;
+  --ifm-color-black: #070707;
+  --ifm-color-white: #f7f7f7;
   --ifm-background-color: #ffffff;
   --ifm-color-primary: #1f7fbf;
   --ifm-color-primary-dark: var(--ifm-color-primary);
@@ -20,15 +25,15 @@
   --ifm-color-primary-light: var(--ifm-color-primary);
   --ifm-color-primary-lighter: var(--ifm-color-primary);
   --ifm-color-primary-lightest: var(--ifm-color-primary);
-  --ifm-code-font-size: 90%;
-
-  --ifm-menu-color: #111111;
-  --sidebar-background-color: var(--ifm-color-white);
-  --theme-toggle-background-color: #bbbbbb;
-  --search-background-color: #cccccc;
-  --search-color: var(--ifm-color-black);
-  --placeholder-color: #222222;
+  --ifm-toc-border-color: #cccccc;
   --code-background-color: #00000011;
+
+  --ifm-menu-color: #444444;
+  --sidebar-background-color: var(--ifm-color-white);
+  --search-background-color: #dddddd;
+  --search-color: var(--ifm-color-black);
+  --placeholder-color: var(--ifm-menu-color);
+  --ifm-toc-border-color: #cccccc;
 }
 
 html[data-theme="dark"] {
@@ -36,13 +41,31 @@ html[data-theme="dark"] {
   --sidebar-background-color: #222222;
   --search-color: var(--ifm-color-white);
   --search-background-color: #444444;
-  --theme-toggle-background-color: #555555;
-  --placeholder-color: #aaaaaa;
-  --code-background-color: rgba(0, 0, 0, 0.3);
+  --placeholder-color: var(--ifm-menu-color);
 }
 
 div[class*='toggleTrack_'] {
   background-color: var(--theme-toggle-background-color);
+}
+
+.row {
+  margin: 0rem;
+}
+
+.table-of-contents {
+  font-size: 1rem;
+}
+
+.table-of-contents__link {
+  color: var(--ifm-menu-color);
+}
+
+.button {
+  background-color: #ffffff22;
+}
+
+.button:hover {
+  background-color: #00000022;
 }
 
 .navbar__search-input {
@@ -64,14 +87,6 @@ div[class*='toggleTrack_'] {
 
 .navbar__search-input:-ms-input-placeholder {
   color: var(--placeholder-color);
-}
-
-.button {
-  background-color: #ffffff22;
-}
-
-.button:hover {
-  background-color: #00000022;
 }
 
 .menu {
