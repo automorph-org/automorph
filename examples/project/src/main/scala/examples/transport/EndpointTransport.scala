@@ -11,6 +11,7 @@ import scala.concurrent.{Await, Future}
 
 private[examples] object EndpointTransport {
 
+  // Serve a remote API from an existing server by using a suitable endpoint transport layer.
   @scala.annotation.nowarn
   def main(arguments: Array[String]): Unit = {
 

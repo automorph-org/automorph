@@ -9,6 +9,7 @@ import scala.util.Random
 
 private[examples] object CustomServer {
 
+  // Process incoming RPC requests into remote API calls from any custom endpoint or server.
   @scala.annotation.nowarn
   def main(arguments: Array[String]): Unit = {
 
@@ -30,7 +31,7 @@ private[examples] object CustomServer {
     val endpoint = RpcEndpoint.transport(endpointTransport).rpcProtocol(Default.rpcProtocol).bind(service)
 
     // Define a function for processing JSON-RPC requests via the generic RPC endpoint.
-    // This function should be called from request handling logic of a custom server.
+    // This function should be called from request handling logic of a custom endpoint.
     def processRpcRequest(requestBody: Array[Byte]): Future[Array[Byte]] = {
       // Supply request context of type Unit as defined by the generic endpoint transport plugin
       val requestContext: Unit = ()

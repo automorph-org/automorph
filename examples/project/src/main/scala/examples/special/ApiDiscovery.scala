@@ -10,6 +10,7 @@ import scala.concurrent.{Await, Future}
 
 private[examples] object ApiDiscovery {
 
+  // Retrieve a remote API description using OpenRPC and OpenAPI schema discovery functions.
   @scala.annotation.nowarn
   def main(arguments: Array[String]): Unit = {
 

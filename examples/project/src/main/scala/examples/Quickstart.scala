@@ -11,7 +11,7 @@ import scala.concurrent.{Await, Future}
 
 private[examples] object Quickstart {
 
-  // Serve an API implementation call it remotely using JSON-RPC over HTTP(S).
+  // Serve an API implementation and call it remotely using JSON-RPC over HTTP(S).
   @scala.annotation.nowarn
   def main(arguments: Array[String]): Unit = {
     import io.circe.generic.auto.*

@@ -11,6 +11,7 @@ import scala.concurrent.{Await, Future}
 
 private[examples] object RpcProtocol {
 
+  // Serve and call a remote API using a selected RPC protocol.
   @scala.annotation.nowarn
   def main(arguments: Array[String]): Unit = {
 

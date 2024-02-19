@@ -8,6 +8,7 @@ import java.net.URI
 
 private[examples] object SynchronousCall {
 
+  // Serve a synchronous API implementation and call it remotely using JSON-RPC over HTTP(S).
   @scala.annotation.nowarn
   def main(arguments: Array[String]): Unit = {
 

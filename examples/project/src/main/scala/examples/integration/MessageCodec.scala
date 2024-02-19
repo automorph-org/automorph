@@ -16,6 +16,7 @@ final private[examples] case class Record(values: List[String])
 
 private[examples] object MessageCodec {
 
+  // Serve and call a remote API using a selected message codec for MessagePack format.
   @scala.annotation.nowarn
   def main(arguments: Array[String]): Unit = {
 

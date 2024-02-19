@@ -10,6 +10,7 @@ import scala.concurrent.{Await, Future}
 
 private[examples] object WebSocketTransport {
 
+  // Serve a and call a remote API using JSON-RPC over WebSocket.
   @scala.annotation.nowarn
   def main(arguments: Array[String]): Unit = {
 

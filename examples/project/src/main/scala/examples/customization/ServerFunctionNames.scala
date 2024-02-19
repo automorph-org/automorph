@@ -9,6 +9,7 @@ import scala.util.Try
 
 private[examples] object ServerFunctionNames {
 
+  // Translate remote API method names on the server side.
   @scala.annotation.nowarn
   def main(arguments: Array[String]): Unit = {
 

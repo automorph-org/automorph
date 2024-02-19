@@ -11,6 +11,7 @@ import scala.concurrent.{Await, Future}
 
 private[examples] object DynamicPayload {
 
+  // Include dynamic payload in a remote API call request and response.
   @scala.annotation.nowarn
   def main(arguments: Array[String]): Unit = {
 

@@ -10,6 +10,7 @@ import scala.concurrent.{Await, Future}
 
 private[examples] object DataTypeSerialization {
 
+  // Configure serialization and deserialization of arbitrary data types.
   @scala.annotation.nowarn
   def main(arguments: Array[String]): Unit = {
 

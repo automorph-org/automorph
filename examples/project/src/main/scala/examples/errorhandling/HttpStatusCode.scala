@@ -12,6 +12,7 @@ import scala.concurrent.{Await, Future}
 
 private[examples] object HttpStatusCode {
 
+  // Translate remote API call exceptions to HTTP status code on the server side.
   @scala.annotation.nowarn
   def main(arguments: Array[String]): Unit = {
 

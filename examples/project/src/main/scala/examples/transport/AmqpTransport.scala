@@ -13,6 +13,7 @@ import scala.concurrent.{Await, Future}
 
 private[examples] object AmqpTransport {
 
+  // Serve a and call a remote API using JSON-RPC over AMQP.
   @scala.annotation.nowarn
   def main(arguments: Array[String]): Unit = {
 

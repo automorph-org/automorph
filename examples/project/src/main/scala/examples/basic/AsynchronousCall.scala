@@ -11,6 +11,7 @@ import scala.concurrent.{Await, Future}
 
 private[examples] object AsynchronousCall {
 
+  // Serve an asynchronous API implementation and call it remotely using JSON-RPC over HTTP(S).
   @scala.annotation.nowarn
   def main(arguments: Array[String]): Unit = {
 

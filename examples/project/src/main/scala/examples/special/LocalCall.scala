@@ -9,6 +9,7 @@ import scala.concurrent.{Await, Future}
 
 private[examples] object LocalCall {
 
+  // Serve a remote API but call it locally by directly accessing the API request handler.
   @scala.annotation.nowarn
   def main(arguments: Array[String]): Unit = {
 

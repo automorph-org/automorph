@@ -11,6 +11,7 @@ import zio.{Console, Runtime, Task, Unsafe, ZIO}
 
 private[examples] object EffectSystem {
 
+  // Implement, serve and call a remote API using a selected effect system.
   @scala.annotation.nowarn
   def main(arguments: Array[String]): Unit = {
 

@@ -10,6 +10,7 @@ import scala.concurrent.{Await, Future}
 
 private[examples] object OptionalParameters {
 
+  // Define remote API with optional parameters and call it without supplying them.
   @scala.annotation.nowarn
   def main(arguments: Array[String]): Unit = {
 

@@ -8,6 +8,7 @@ import java.net.URI
 
 private[examples] object ClientFunctionNames {
 
+  // Translate remote API method names on the client side.
   @scala.annotation.nowarn
   def main(arguments: Array[String]): Unit = {
 

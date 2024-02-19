@@ -10,6 +10,7 @@ import scala.util.Try
 
 private[examples] object HttpAuthentication {
 
+  // Attach and extract HTTP authentication metadata to/from a remote API request.
   @scala.annotation.nowarn
   def main(arguments: Array[String]): Unit = {
 

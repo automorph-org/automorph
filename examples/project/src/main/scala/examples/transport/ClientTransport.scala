@@ -9,6 +9,7 @@ import scala.concurrent.{Await, Future}
 
 private[examples] object ClientTransport {
 
+  // Call a remote API using a using JSON-RPC over a selected client transport layer.
   @scala.annotation.nowarn
   def main(arguments: Array[String]): Unit = {
 

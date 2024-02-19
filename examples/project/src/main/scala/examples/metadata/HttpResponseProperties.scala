@@ -10,6 +10,7 @@ import java.net.URI
 
 private[examples] object HttpResponseProperties {
 
+  // Attach and extract HTTP status code and headers to/from a remote API response.
   @scala.annotation.nowarn
   def main(arguments: Array[String]): Unit = {
 
@@ -26,7 +27,7 @@ private[examples] object HttpResponseProperties {
       def hello(message: String): RpcResult[String, ServerContext] =
         RpcResult(
           message,
-          HttpContext().headers("X-Test" -> "value", "Cache-Control" -> "no-cache").statusCode(200),
+          HttpContext().statusCode(200).headers("X-Test" -> "value", "Cache-Control" -> "no-cache"),
         )
     }
     val service = new Service
