@@ -11,22 +11,14 @@ with existing systems by freely combining its various plugins:
 
 - [RPC client](https://automorph.org/api/automorph/RpcClient.html)
 - [RPC server](https://automorph.org/api/automorph/RpcServer.html)
-- [RPC endpoint](https://automorph.org/api/automorph/RpcEndpoint.html)
 - [RPC protocol](https://automorph.org/api/automorph/spi/RpcProtocol.html)
 - [Effect system](https://automorph.org/api/automorph/spi/EffectSystem.html)
 - [Message codec](https://automorph.org/api/automorph/spi/MessageCodec.html)
 - [Client transport](https://automorph.org/api/automorph/spi/ClientTransport.html)
 - [Server transport](https://automorph.org/api/automorph/spi/ServerTransport.html)
-- [Endpoint transport](https://automorph.org/api/automorph/spi/EndpointTransport.html)
 
 
-### RPC client & server
-
-![RPC client & server](images/architecture-server.jpg)
-
-### RPC client & endpoint
-
-![RPC client & endpoint](images/architecture-endpoint.jpg)
+![RPC client & server](images/architecture.jpg)
 
 
 ## Entry points
@@ -50,7 +42,7 @@ Remote APIs can be invoked statically using transparent proxy instances automati
 
 ### [RPC server](https://automorph.org/api/automorph/RpcServer.html)
 
-Used to serve remote API requests using specific transport protocol and invoke bound API
+Used to handle remote API requests using specific transport protocol and invoke bound API
 methods to process them.
 
 Automatically derives remote API bindings for existing API instances.
@@ -58,23 +50,6 @@ Automatically derives remote API bindings for existing API instances.
 **Depends on**
 
 - [Server transport](https://automorph.org/api/automorph/spi/ServerTransport.html)
-- [RPC protocol](https://automorph.org/api/automorph/spi/RpcProtocol.html)
-
-**Used by**
-
-- Applications
-
-
-### [RPC endpoint](https://automorph.org/api/automorph/RpcEndpoint.html)
-
-Integrates with an existing server to receive remote API requests using
-specific transport protocol and invoke bound API methods to process them.
-
-Automatically derives remote API bindings for existing API instances.
-
-**Depends on**
-
-- [Endpoint transport](https://automorph.org/api/automorph/spi/EndpointTransport.html)
 - [RPC protocol](https://automorph.org/api/automorph/spi/RpcProtocol.html)
 
 **Used by**
@@ -98,7 +73,6 @@ The underlying RPC protocol must support remote function invocation.
 
 - [Client](https://automorph.org/api/automorph/RpcClient.html)
 - [Server](https://automorph.org/api/automorph/RpcServer.html)
-- [Endpoint](https://automorph.org/api/automorph/RpcEndpoint.html)
 
 
 ### [Effect system](https://automorph.org/api/automorph/spi/EffectSystem.html)
@@ -111,7 +85,6 @@ The underlying runtime must support monadic composition of effectful values.
 
 - [Client transport](https://automorph.org/api/automorph/spi/ClientTransport.html)
 - [Server transport](https://automorph.org/api/automorph/spi/ServerTransport.html)
-- [Endpoint transport](https://automorph.org/api/automorph/spi/EndpointTransport.html)
 
 ### [Message codec](https://automorph.org/api/automorph/spi/MessageCodec.html)
 
@@ -145,7 +118,7 @@ Passively sends requests and receives responses to and from a remote endpoint us
 
 Server transport protocol plugin.
 
-Actively receives requests to be processed by the RPC handler and sends responses using specific transport protocol.
+Either actively listens for requests or passively receives requests from an existing server layer and sends responses using specific transport protocol.
 
 **Depends on**
 
@@ -155,17 +128,3 @@ Actively receives requests to be processed by the RPC handler and sends response
 
 - Applications
 
-
-### [Endpoint transport](https://automorph.org/api/automorph/spi/EndpointTransport.html)
-
-Existing transport protocol server integration plugin.
-
-Passively parses requests to be processed by the RPC handler and creates responses for specific server.
-
-**Depends on**
-
-- [Effect system](https://automorph.org/api/automorph/spi/EffectSystem.html)
-
-**Used by**
-
-- Applications

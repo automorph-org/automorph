@@ -1,8 +1,7 @@
 package test.transport.server
 
-import automorph.spi.{EffectSystem, EndpointTransport, ServerTransport}
+import automorph.spi.{EffectSystem, ServerTransport}
 import automorph.system.FutureSystem
-import automorph.transport.endpoint.UndertowHttpEndpoint
 import automorph.transport.server.UndertowServer
 import org.scalacheck.Arbitrary
 import test.transport.{HttpContextGenerator, HttpServerTest}
@@ -22,9 +21,6 @@ final class UndertowServerHttpFutureTest extends HttpServerTest {
   override def arbitraryContext: Arbitrary[Context] =
     HttpContextGenerator.arbitrary
 
-  override def serverTransport(fixtureId: String): ServerTransport[Effect, Context] =
+  override def serverTransport(fixtureId: String): ServerTransport[Effect, Context, Unit] =
     UndertowServer[Effect](system, port(fixtureId))
-
-  override def endpointTransport: EndpointTransport[Future, Context, ?] =
-    UndertowHttpEndpoint(system)
 }

@@ -2,7 +2,6 @@ package automorph.transport.server
 
 import automorph.log.Logging
 import automorph.spi.{EffectSystem, RequestHandler, ServerTransport}
-import automorph.transport.endpoint.{JettyHttpEndpoint, JettyWebSocketEndpoint}
 import automorph.transport.server.JettyServer.Context
 import automorph.transport.{HttpContext, HttpMethod}
 import jakarta.servlet.http.{HttpServletRequest, HttpServletResponse}
@@ -15,7 +14,7 @@ import org.eclipse.jetty.util.thread.{QueuedThreadPool, ThreadPool}
 import org.eclipse.jetty.websocket.server.JettyWebSocketServerContainer
 import org.eclipse.jetty.websocket.server.config.JettyWebSocketServletContainerInitializer
 import scala.collection.immutable.ListMap
-import scala.concurrent.duration.{FiniteDuration, DurationInt}
+import scala.concurrent.duration.{DurationInt, FiniteDuration}
 import scala.jdk.CollectionConverters.ListHasAsScala
 
 /**
@@ -70,7 +69,7 @@ final case class JettyServer[Effect[_]](
   maxFrameSize: Long = 65536,
   attributes: Map[String, String] = Map.empty,
   handler: RequestHandler[Effect, Context] = RequestHandler.dummy[Effect, Context],
-) extends ServerTransport[Effect, Context] with Logging {
+) extends ServerTransport[Effect, Context, Unit] with Logging {
 
   private lazy val server = createServer()
   private val allowedMethods = methods.map(_.name).toSet
@@ -84,8 +83,8 @@ final case class JettyServer[Effect[_]](
     }
   }
 
-  override def withHandler(handler: RequestHandler[Effect, Context]): JettyServer[Effect] =
-    copy(handler = handler)
+  override def endpoint: Unit =
+    ()
 
   override def init(): Effect[Unit] =
     effectSystem.evaluate(this.synchronized {
@@ -108,13 +107,16 @@ final case class JettyServer[Effect[_]](
       server.stop()
     })
 
+  override def withHandler(handler: RequestHandler[Effect, Context]): JettyServer[Effect] =
+    copy(handler = handler)
+
   private def createServer(): Server = {
     val endpointTransport = JettyHttpEndpoint(effectSystem, mapException, handler)
     val servletHandler = new ServletContextHandler
     val servletPath = s"$pathPrefix*"
 
     // Validate URL path
-    servletHandler.addServlet(new ServletHolder(endpointTransport.adapter), servletPath)
+    servletHandler.addServlet(new ServletHolder(endpointTransport.endpoint), servletPath)
 
     // Validate HTTP request method
     servletHandler.addFilter(new FilterHolder(methodFilter), servletPath, util.EnumSet.of(DispatcherType.REQUEST))

@@ -178,5 +178,5 @@ sbt run
 
 Customize the [examples](@REPOSITORY_URL@/blob/main/examples/project/src/main/scala/examples) by:
 - Integrating with preferred platforms by including additional plugins
-- Configuring RPC client, server or endpoint properties
+- Configuring RPC client or server properties
 - Removing unused examples and build dependencies

@@ -28,7 +28,7 @@ final class HttpClientWebSocketFutureTest extends ClientServerTest {
   override def clientTransport(fixtureId: String): ClientTransport[Effect, ?] =
     HttpClient(system, url(fixtureId), HttpMethod.Get)
 
-  override def serverTransport(fixtureId: String): ServerTransport[Effect, Context] =
+  override def serverTransport(fixtureId: String): ServerTransport[Effect, Context, Unit] =
     NanoServer[Effect](system, port(fixtureId))
 
   private def url(fixtureId: String): URI =

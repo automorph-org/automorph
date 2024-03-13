@@ -17,6 +17,6 @@ trait LocalTest extends ClientServerTest {
   override def clientTransport(fixtureId: String): ClientTransport[Effect, ?] =
     LocalClient(system, arbitraryContext.arbitrary.sample.get, serverTransport.handler)
 
-  override def serverTransport(fixtureId: String): ServerTransport[Effect, Context] =
+  override def serverTransport(fixtureId: String): ServerTransport[Effect, Context, Unit] =
     serverTransport
 }

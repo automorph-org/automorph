@@ -1,31 +1,26 @@
 package automorph.spi
 
 /**
- * Server transport protocol plugin.
+ * Existing server transport layer integration plugin.
  *
- * Enables RPC server to receive requests and send responses using specific transport protocol.
+ * Enables RPC endpoint to integrate with and handle requests from an existing server infrastructure.
  *
- * Actively receives requests to be processed by the RPC handler and sends responses.
+ * Passively parses requests to be processed by the RPC handler and creates responses usable by specific server.
  *
  * @tparam Effect
  *   effect type
  * @tparam Context
  *   RPC message context type
+ * @tparam Endpoint
+ *   transport layer endpoint type
  */
-trait ServerTransport[Effect[_], Context] {
+trait ServerTransport[Effect[_], Context, Endpoint] {
 
   /** Effect system plugin. */
   def effectSystem: EffectSystem[Effect]
 
-  /**
-   * Create a copy of this server transport with specified RPC request handler.
-   *
-   * @param handler
-   *   RPC request handler
-   * @return
-   *   server transport
-   */
-  def withHandler(handler: RequestHandler[Effect, Context]): ServerTransport[Effect, Context]
+  /** Transport layer integration endpoint. */
+  def endpoint: Endpoint
 
   /**
    * Starts this server to process incoming requests.
@@ -42,4 +37,14 @@ trait ServerTransport[Effect[_], Context] {
    *   nothing
    */
   def close(): Effect[Unit]
+
+  /**
+   * Create a copy of this endpoint transport with specified RPC request handler.
+   *
+   * @param handler
+   *   RPC request handler
+   * @return
+   *   server transport
+   */
+  def withHandler(handler: RequestHandler[Effect, Context]): ServerTransport[Effect, Context, Endpoint]
 }

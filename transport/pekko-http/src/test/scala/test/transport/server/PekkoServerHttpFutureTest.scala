@@ -1,13 +1,12 @@
 package test.transport.server
 
-import automorph.spi.{EffectSystem, EndpointTransport, ServerTransport}
+import automorph.spi.{EffectSystem, ServerTransport}
 import automorph.system.FutureSystem
-import automorph.transport.endpoint.PekkoHttpEndpoint
 import automorph.transport.server.PekkoServer
 import org.scalacheck.Arbitrary
+import test.transport.{HttpContextGenerator, HttpServerTest}
 import scala.concurrent.ExecutionContext.Implicits.global
 import scala.concurrent.Future
-import test.transport.{HttpContextGenerator, HttpServerTest}
 
 final class PekkoServerHttpFutureTest extends HttpServerTest {
 
@@ -22,10 +21,7 @@ final class PekkoServerHttpFutureTest extends HttpServerTest {
   override def arbitraryContext: Arbitrary[Context] =
     HttpContextGenerator.arbitrary
 
-  override def serverTransport(fixtureId: String): ServerTransport[Effect, Context] = {
+  override def serverTransport(fixtureId: String): ServerTransport[Effect, Context, Unit] = {
     PekkoServer(system, port(fixtureId))
   }
-
-  override def endpointTransport: EndpointTransport[Future, Context, ?] =
-    PekkoHttpEndpoint(system)
 }

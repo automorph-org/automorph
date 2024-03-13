@@ -47,7 +47,7 @@ final case class RabbitMqServer[Effect[_]](
   addresses: Seq[Address] = Seq.empty,
   connectionFactory: ConnectionFactory = new ConnectionFactory,
   handler: RequestHandler[Effect, Context] = RequestHandler.dummy[Effect, Context],
-) extends ServerTransport[Effect, Context] with Logging {
+) extends ServerTransport[Effect, Context, Unit] with Logging {
 
   private val exchange = RabbitMq.directExchange
   private var session = Option.empty[RabbitMq.Session]
@@ -56,8 +56,8 @@ final case class RabbitMqServer[Effect[_]](
   private val log = MessageLog(logger, RabbitMq.protocol)
   implicit private val system: EffectSystem[Effect] = effectSystem
 
-  override def withHandler(handler: RequestHandler[Effect, Context]): RabbitMqServer[Effect] =
-    copy(handler = handler)
+  override def endpoint: Unit =
+    ()
 
   override def init(): Effect[Unit] =
     system.evaluate(this.synchronized {
@@ -80,6 +80,9 @@ final case class RabbitMqServer[Effect[_]](
       RabbitMq.close(session)
       session = None
     })
+
+  override def withHandler(handler: RequestHandler[Effect, Context]): RabbitMqServer[Effect] =
+    copy(handler = handler)
 
   private def createConsumer(channel: Channel): DefaultConsumer = {
     val consumer = new DefaultConsumer(channel) {

@@ -1,9 +1,8 @@
 package test.transport.websocket.server
 
-import automorph.spi.{EffectSystem, EndpointTransport, ServerTransport}
+import automorph.spi.{EffectSystem, ServerTransport}
 import automorph.system.FutureSystem
 import automorph.transport.server.VertxServer
-import automorph.transport.websocket.endpoint.VertxWebSocketEndpoint
 import org.scalacheck.Arbitrary
 import test.transport.{HttpContextGenerator, WebSocketServerTest}
 import scala.concurrent.ExecutionContext.Implicits.global
@@ -22,9 +21,6 @@ final class VertxServerWebSocketFutureTest extends WebSocketServerTest {
   override def arbitraryContext: Arbitrary[Context] =
     HttpContextGenerator.arbitrary
 
-  override def serverTransport(fixtureId: String): ServerTransport[Effect, Context] =
+  override def serverTransport(fixtureId: String): ServerTransport[Effect, Context, Unit] =
     VertxServer(system, port(fixtureId))
-
-  override def endpointTransport: EndpointTransport[Future, Context, ?] =
-    VertxWebSocketEndpoint(system)
 }

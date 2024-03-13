@@ -61,7 +61,7 @@ final case class NanoServer[Effect[_]](
   mapException: Throwable => Int = HttpContext.toStatusCode,
   readTimeout: FiniteDuration = 30.seconds,
   threads: Int = Runtime.getRuntime.availableProcessors * 2,
-) extends NanoWSD(port, threads) with Logging with ServerTransport[Effect, Context] {
+) extends NanoWSD(port, threads) with Logging with ServerTransport[Effect, Context, Unit] {
 
   private var handler: RequestHandler[Effect, Context] = RequestHandler.dummy
   private val headerXForwardedFor = "X-Forwarded-For"
@@ -73,6 +73,9 @@ final case class NanoServer[Effect[_]](
     this.handler = handler
     this
   }
+
+  override def endpoint: Unit =
+    ()
 
   override def init(): Effect[Unit] =
     effectSystem.evaluate(this.synchronized {

@@ -1,8 +1,8 @@
 package automorph.transport.websocket.endpoint
 
 import automorph.log.{LogProperties, Logging, MessageLog}
-import automorph.spi.{EffectSystem, EndpointTransport, RequestHandler}
-import automorph.transport.endpoint.VertxHttpEndpoint
+import automorph.spi.{EffectSystem, ServerTransport, RequestHandler}
+import automorph.transport.server.VertxHttpEndpoint
 import automorph.transport.{HttpContext, Protocol}
 import automorph.transport.websocket.endpoint.VertxWebSocketEndpoint.Context
 import automorph.util.Extensions.{EffectOps, StringOps, ThrowableOps}
@@ -38,7 +38,7 @@ import scala.util.Try
 final case class VertxWebSocketEndpoint[Effect[_]](
   effectSystem: EffectSystem[Effect],
   handler: RequestHandler[Effect, Context] = RequestHandler.dummy[Effect, Context],
-) extends EndpointTransport[Effect, Context, Handler[ServerWebSocket]] with Logging {
+) extends ServerTransport[Effect, Context, Handler[ServerWebSocket]] with Logging {
 
   private lazy val requestHandler = new Handler[ServerWebSocket] {
 
@@ -74,8 +74,14 @@ final case class VertxWebSocketEndpoint[Effect[_]](
   private val log = MessageLog(logger, Protocol.WebSocket.name)
   implicit private val system: EffectSystem[Effect] = effectSystem
 
-  override def adapter: Handler[ServerWebSocket] =
+  override def endpoint: Handler[ServerWebSocket] =
     requestHandler
+
+  override def init(): Effect[Unit] =
+    effectSystem.successful {}
+
+  override def close(): Effect[Unit] =
+    effectSystem.successful {}
 
   override def withHandler(handler: RequestHandler[Effect, Context]): VertxWebSocketEndpoint[Effect] =
     copy(handler = handler)

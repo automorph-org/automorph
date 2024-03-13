@@ -3,14 +3,14 @@ package test.transport
 import automorph.spi.{ClientTransport, ServerTransport}
 import automorph.system.FutureSystem
 import automorph.transport.client.RabbitMqClient
-import automorph.transport.server.RabbitMqServer
 import automorph.transport.local.client.LocalClient
+import automorph.transport.server.RabbitMqServer
 import org.scalacheck.Arbitrary
-import scala.concurrent.ExecutionContext.Implicits.global
-import scala.concurrent.Future
 import test.base.{Await, Mutex}
 import test.core.ClientServerTest
 import java.net.URI
+import scala.concurrent.ExecutionContext.Implicits.global
+import scala.concurrent.Future
 
 final class RabbitMqFutureTest extends ClientServerTest with Await with Mutex {
 
@@ -38,10 +38,10 @@ final class RabbitMqFutureTest extends ClientServerTest with Await with Mutex {
         .asInstanceOf[ClientTransport[Effect, Context]]
     )
 
-  override def serverTransport(fixtureId: String): ServerTransport[Effect, Context] =
+  override def serverTransport(fixtureId: String): ServerTransport[Effect, Context, Unit] =
     amqpBrokerUrl.map { url =>
       RabbitMqServer[Effect](system, url, Seq(fixtureId.replaceAll(" ", "_")))
     }.getOrElse(
-      serverTransport.asInstanceOf[ServerTransport[Effect, Context]]
+      serverTransport.asInstanceOf[ServerTransport[Effect, Context, Unit]]
     )
 }

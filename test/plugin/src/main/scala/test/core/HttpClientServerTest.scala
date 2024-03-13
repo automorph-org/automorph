@@ -1,6 +1,6 @@
 package test.core
 
-import automorph.{RpcClient, RpcEndpoint, RpcServer}
+import automorph.{RpcClient, RpcServer}
 import automorph.codec.CirceJsonCodec
 import automorph.protocol.WebRpcProtocol
 import automorph.transport.HttpContext
@@ -23,7 +23,6 @@ trait HttpClientServerTest extends ClientServerTest {
     implicit val enumDecoder: Decoder[Enum.Enum] = Decoder.decodeInt.map(Enum.fromOrdinal)
     val codec = CirceJsonCodec()
     val protocol = WebRpcProtocol[CirceJsonCodec.Node, codec.type, Context](codec, "/")
-    RpcEndpoint.transport(endpointTransport).rpcProtocol(protocol).bind(simpleApi, mapName).bind(complexApi)
     val id = fixtureId(protocol)
     val server = RpcServer.transport(serverTransport(id)).rpcProtocol(protocol).discovery(true)
       .bind(simpleApi, mapName).bind(complexApi)

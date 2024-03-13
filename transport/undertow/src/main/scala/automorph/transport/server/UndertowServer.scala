@@ -2,10 +2,9 @@ package automorph.transport.server
 
 import automorph.log.Logging
 import automorph.spi.{EffectSystem, RequestHandler, ServerTransport}
-import automorph.transport.endpoint.UndertowHttpEndpoint
 import automorph.transport.server.UndertowServer.Context
-import automorph.transport.{HttpContext, HttpMethod}
 import automorph.transport.websocket.endpoint.UndertowWebSocketEndpoint
+import automorph.transport.{HttpContext, HttpMethod}
 import io.undertow.predicate.Predicates
 import io.undertow.server.handlers.ResponseCodeHandler
 import io.undertow.server.{HttpHandler, HttpServerExchange}
@@ -59,14 +58,14 @@ final case class UndertowServer[Effect[_]](
   mapException: Throwable => Int = HttpContext.toStatusCode,
   builder: Undertow.Builder = UndertowServer.builder,
   handler: RequestHandler[Effect, Context] = RequestHandler.dummy[Effect, Context],
-) extends ServerTransport[Effect, Context] with Logging {
+) extends ServerTransport[Effect, Context, Unit] with Logging {
 
   private lazy val server = createServer()
   private val allowedMethods = methods.map(_.name).toSet
   private var active = false
 
-  override def withHandler(handler: RequestHandler[Effect, Context]): UndertowServer[Effect] =
-    copy(handler = handler)
+  override def endpoint: Unit =
+    ()
 
   override def init(): Effect[Unit] =
     effectSystem.evaluate(this.synchronized {
@@ -95,10 +94,13 @@ final case class UndertowServer[Effect[_]](
       }
     })
 
+  override def withHandler(handler: RequestHandler[Effect, Context]): UndertowServer[Effect] =
+    copy(handler = handler)
+
   private def createServer(): Undertow = {
     // Validate HTTP request method
     val endpointTransport = UndertowHttpEndpoint(effectSystem, mapException, handler)
-    val httpHandler = methodHandler(endpointTransport.adapter)
+    val httpHandler = methodHandler(endpointTransport.endpoint)
 
     // Validate URL path
     val rootHandler = Handlers.predicate(

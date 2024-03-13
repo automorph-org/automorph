@@ -32,13 +32,13 @@ Many Scala and Java HTTP server libraries are supported. Please see the relevant
 [server examples](https://automorph.org/docs/Examples#server-transport) and [endpoint examples](https://automorph.org/docs/Examples#endpoint-transport).
 
 Integrating with unsupported server of any kind involves the following steps as demonstrated in the
-[unsupported server example](https://automorph.org/examples/src/main/scala/examples/src/main/scala/examples/integration/UnsupportedServer.scala):
-- Create an instance of [LocalEndpoint](https://automorph.org/api/automorph/transport/local/endpoint/LocalEndpoint.html)
+[unsupported server example](https://automorph.org/examples/src/main/scala/examples/src/main/scala/examples/integration/CustomServer.scala):
+- Create an instance of [local server transport](https://automorph.org/api/automorph/transport/local/server/LocalServer.html)
   - Supply the desired [effect system](https://automorph.org/docs/Plugins#effect-system) and default request context value (use `()` if no request context is needed).
-- Create an [RPC endpoint](https://automorph.org/api/automorph/RpcEndpoint.html)
-  - Supply the local endpoint instance and [RPC protocol](https://automorph.org/docs/Plugins#rpc-protocol).
+- Create an [RPC server](https://automorph.org/api/automorph/RpcServer.html)
+  - Supply the local server transport instance and [RPC protocol](https://automorph.org/docs/Plugins#rpc-protocol).
 - In the HTTP server request handling code
-  - Pass the request body to `processRequest()` method of the RPC endpoint `handler`
+  - Pass the request body to `processRequest()` method of the RPC server
   - Send the response body returned by `processRequest()` to the client
 
 

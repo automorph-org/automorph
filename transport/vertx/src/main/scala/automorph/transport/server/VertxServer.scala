@@ -2,7 +2,6 @@ package automorph.transport.server
 
 import automorph.log.Logging
 import automorph.spi.{EffectSystem, RequestHandler, ServerTransport}
-import automorph.transport.endpoint.VertxHttpEndpoint
 import automorph.transport.server.VertxServer.Context
 import automorph.transport.{HttpContext, HttpMethod, Protocol}
 import automorph.transport.websocket.endpoint.VertxWebSocketEndpoint
@@ -58,7 +57,7 @@ final case class VertxServer[Effect[_]](
   vertxOptions: VertxOptions = VertxServer.vertxOptions,
   httpServerOptions: HttpServerOptions = new HttpServerOptions,
   handler: RequestHandler[Effect, Context] = RequestHandler.dummy[Effect, Context],
-) extends ServerTransport[Effect, Context] with Logging {
+) extends ServerTransport[Effect, Context, Unit] with Logging {
 
   private lazy val httpServer = createServer()
   private val statusWebSocketApplication = 4000
@@ -68,8 +67,8 @@ final case class VertxServer[Effect[_]](
   private val messageMethodNotAllowed = "Method Not Allowed"
   private val allowedMethods = methods.map(_.name).toSet
 
-  override def withHandler(handler: RequestHandler[Effect, Context]): VertxServer[Effect] =
-    copy(handler = handler)
+  override def endpoint: Unit =
+    ()
 
   override def init(): Effect[Unit] =
     effectSystem.evaluate(this.synchronized {
@@ -91,6 +90,9 @@ final case class VertxServer[Effect[_]](
       ()
     })
 
+  override def withHandler(handler: RequestHandler[Effect, Context]): VertxServer[Effect] =
+    copy(handler = handler)
+
   private def createServer(): HttpServer = {
     // HTTP
     val endpoint = VertxHttpEndpoint(effectSystem, mapException, handler)
@@ -99,7 +101,7 @@ final case class VertxServer[Effect[_]](
       if (request.path.startsWith(pathPrefix)) {
         // Validate HTTP request method
         if (allowedMethods.contains(request.method.name.toUpperCase)) {
-          endpoint.adapter.handle(request)
+          endpoint.endpoint.handle(request)
         } else {
           request.response.setStatusCode(statusMethodNotAllowed).end(messageMethodNotAllowed)
           ()
@@ -116,7 +118,7 @@ final case class VertxServer[Effect[_]](
       server.webSocketHandler { request =>
         // Validate URL path
         if (request.path.startsWith(pathPrefix)) {
-          webSocketHandler.adapter.handle(request)
+          webSocketHandler.endpoint.handle(request)
         } else {
           request.close((statusWebSocketApplication + statusNotFound).toShort, messageNotFound)
           ()

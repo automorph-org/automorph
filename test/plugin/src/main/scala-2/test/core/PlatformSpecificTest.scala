@@ -2,7 +2,7 @@ package test.core
 
 import automorph.codec.{Json4sNativeJsonCodec, PlayJsonCodec}
 import automorph.protocol.JsonRpcProtocol
-import automorph.{RpcClient, RpcEndpoint, RpcServer}
+import automorph.{RpcClient, RpcServer}
 import org.json4s.{CustomSerializer, JInt}
 import play.api.libs.json.{JsNumber, JsValue, Json, Reads, Writes}
 import test.api.{Enum, Record, Structure, TestLevel}
@@ -32,7 +32,6 @@ trait PlatformSpecificTest extends ProtocolCodecTest {
     }
     val codec = PlayJsonCodec()
     val protocol = JsonRpcProtocol[PlayJsonCodec.Node, codec.type, Context](codec)
-    RpcEndpoint.transport(endpointTransport).rpcProtocol(protocol).bind(simpleApi, mapName).bind(complexApi)
     val id = fixtureId(protocol)
     val server = RpcServer.transport(serverTransport(id)).rpcProtocol(protocol).discovery(true)
       .bind(simpleApi, mapName).bind(complexApi)
@@ -59,7 +58,6 @@ trait PlatformSpecificTest extends ProtocolCodecTest {
     )
     val codec = Json4sNativeJsonCodec(formats)
     val protocol = JsonRpcProtocol[Json4sNativeJsonCodec.Node, codec.type, Context](codec)
-    RpcEndpoint.transport(endpointTransport).rpcProtocol(protocol).bind(simpleApi, mapName).bind(complexApi)
     val id = fixtureId(protocol)
     val server = RpcServer.transport(serverTransport(id)).rpcProtocol(protocol).discovery(true)
       .bind(simpleApi, mapName).bind(complexApi)

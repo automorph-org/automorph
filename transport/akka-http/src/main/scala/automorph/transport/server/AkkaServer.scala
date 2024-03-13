@@ -9,12 +9,11 @@ import akka.http.scaladsl.server.Route
 import akka.http.scaladsl.settings.ServerSettings
 import automorph.log.Logging
 import automorph.spi.{EffectSystem, RequestHandler, ServerTransport}
-import automorph.transport.endpoint.AkkaHttpEndpoint
 import automorph.transport.server.AkkaServer.Context
 import automorph.transport.{HttpContext, HttpMethod, Protocol}
 import com.typesafe.config.{Config, ConfigFactory}
 import scala.collection.immutable.ListMap
-import scala.concurrent.duration.{Duration, FiniteDuration, DurationInt}
+import scala.concurrent.duration.{Duration, DurationInt, FiniteDuration}
 import scala.concurrent.Await
 
 /**
@@ -65,14 +64,14 @@ final case class AkkaServer[Effect[_]](
   config: Config = ConfigFactory.empty(),
   guardianProps: Props = Props.empty,
   handler: RequestHandler[Effect, Context] = RequestHandler.dummy[Effect, Context],
-) extends ServerTransport[Effect, Context] with Logging {
+) extends ServerTransport[Effect, Context, Unit] with Logging {
 
   private lazy val route = createRoute()
   private val allowedMethods = methods.map(_.name).toSet
   private var server = Option.empty[(ActorSystem[Nothing], Http.ServerBinding)]
 
-  override def withHandler(handler: RequestHandler[Effect, Context]): AkkaServer[Effect] =
-    copy(handler = handler)
+  override def endpoint: Unit =
+    ()
 
   override def init(): Effect[Unit] =
     effectSystem.evaluate(this.synchronized {
@@ -107,6 +106,9 @@ final case class AkkaServer[Effect[_]](
       }
     })
 
+  override def withHandler(handler: RequestHandler[Effect, Context]): AkkaServer[Effect] =
+    copy(handler = handler)
+
   private def createRoute(): Route = {
     val endpointTransport = AkkaHttpEndpoint(effectSystem, mapException, readTimeout, handler)
     extractRequest { httpRequest =>
@@ -114,7 +116,7 @@ final case class AkkaServer[Effect[_]](
       if (allowedMethods.contains(httpRequest.method.value.toUpperCase)) {
         // Validate URL path
         if (httpRequest.uri.path.toString.startsWith(pathPrefix)) {
-          endpointTransport.adapter
+          endpointTransport.endpoint
         } else {
           complete(NotFound)
         }

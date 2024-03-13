@@ -1,10 +1,10 @@
-// Process incoming RPC requests into remote API calls from any custom endpoint or server.
+// Process incoming RPC requests into remote API calls from any custom server.
 //> using dep org.automorph::automorph-default:@AUTOMORPH_VERSION@
 //> using dep ch.qos.logback:logback-classic:@LOGBACK_VERSION@
 package examples.integration
 
-import automorph.transport.generic.endpoint.GenericEndpoint
-import automorph.{Default, RpcEndpoint}
+import automorph.transport.server.GenericEndpoint
+import automorph.{Default, RpcServer}
 import java.nio.charset.StandardCharsets.UTF_8
 import scala.concurrent.ExecutionContext.Implicits.global
 import scala.concurrent.Future
@@ -26,11 +26,11 @@ private[examples] object CustomServer {
         Future(s"Hello world $n")
     }
 
-    // Create generic endpoint transport plugin with Unit as RPC request context type
-    val endpointTransport = GenericEndpoint.context[Unit].effectSystem(Default.effectSystem)
+    // Create generic server transport plugin with Unit as RPC request context type
+    val serverTransport = GenericEndpoint.context[Unit].effectSystem(Default.effectSystem)
 
-    // Setup JSON-RPC endpoint and bind the API implementation to it
-    val endpoint = RpcEndpoint.transport(endpointTransport).rpcProtocol(Default.rpcProtocol).bind(service)
+    // Setup JSON-RPC server and bind the API implementation to it
+    val server = RpcServer.transport(serverTransport).rpcProtocol(Default.rpcProtocol).bind(service)
 
     // Define a function for processing JSON-RPC requests via the generic RPC endpoint.
     // This function should be called from request handling logic of a custom endpoint.
@@ -42,7 +42,7 @@ private[examples] object CustomServer {
       val requestId = Random.nextInt(Int.MaxValue).toString
 
       // Call the remote API function by passing the request body directly to the RPC endpoint request handler
-      val handlerResult = endpoint.handler.processRequest(requestBody, requestContext, requestId)
+      val handlerResult = server.processRequest(requestBody, requestContext, requestId)
 
       // Extract the response body containing a JSON-RPC response from the request handler result
       handlerResult.map(_.map(_.responseBody).getOrElse(Array.emptyByteArray))

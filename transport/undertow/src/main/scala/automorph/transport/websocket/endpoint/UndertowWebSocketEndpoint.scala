@@ -1,10 +1,10 @@
 package automorph.transport.websocket.endpoint
 
 import automorph.log.{LogProperties, Logging, MessageLog}
-import automorph.spi.{EffectSystem, EndpointTransport, RequestHandler}
-import automorph.transport.endpoint.UndertowHttpEndpoint.requestQuery
-import automorph.transport.{HttpContext, Protocol}
+import automorph.spi.{EffectSystem, RequestHandler, ServerTransport}
+import automorph.transport.server.UndertowHttpEndpoint.requestQuery
 import automorph.transport.websocket.endpoint.UndertowWebSocketEndpoint.{ConnectionListener, Context}
+import automorph.transport.{HttpContext, Protocol}
 import automorph.util.Extensions.{ByteArrayOps, ByteBufferOps, EffectOps, StringOps, ThrowableOps}
 import automorph.util.{Network, Random}
 import io.undertow.server.{HttpHandler, HttpServerExchange}
@@ -40,7 +40,7 @@ import scala.util.Try
 final case class UndertowWebSocketEndpoint[Effect[_]](
   effectSystem: EffectSystem[Effect],
   handler: RequestHandler[Effect, Context] = RequestHandler.dummy[Effect, Context],
-) extends EndpointTransport[Effect, Context, WebSocketConnectionCallback] with Logging {
+) extends ServerTransport[Effect, Context, WebSocketConnectionCallback] with Logging {
 
   private lazy val webSocketConnectionCallback = new WebSocketConnectionCallback {
 
@@ -59,10 +59,16 @@ final case class UndertowWebSocketEndpoint[Effect[_]](
    *   Undertow handler invoked if a HTTP request does not contain a WebSocket handshake
    */
   def handshakeHandler(next: HttpHandler): WebSocketProtocolHandshakeHandler =
-    new WebSocketProtocolHandshakeHandler(adapter, next)
+    new WebSocketProtocolHandshakeHandler(endpoint, next)
 
-  override def adapter: WebSocketConnectionCallback =
+  override def endpoint: WebSocketConnectionCallback =
     webSocketConnectionCallback
+
+  override def init(): Effect[Unit] =
+    effectSystem.successful {}
+
+  override def close(): Effect[Unit] =
+    effectSystem.successful {}
 
   override def withHandler(handler: RequestHandler[Effect, Context]): UndertowWebSocketEndpoint[Effect] =
     copy(handler = handler)

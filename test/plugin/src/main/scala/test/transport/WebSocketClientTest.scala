@@ -7,8 +7,8 @@ import java.net.URI
 
 trait WebSocketClientTest extends ClientServerTest {
 
-  override def serverTransport(fixtureId: String): ServerTransport[Effect, Context] =
-    NanoServer[Effect](system, port(fixtureId)).asInstanceOf[ServerTransport[Effect, Context]]
+  override def serverTransport(fixtureId: String): ServerTransport[Effect, Context, Unit] =
+    NanoServer[Effect](system, port(fixtureId)).asInstanceOf[ServerTransport[Effect, Context, Unit]]
 
   def url(fixtureId: String): URI =
     new URI(s"ws://localhost:${port(fixtureId)}")

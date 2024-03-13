@@ -22,11 +22,11 @@ object Fixtures {
   final case class Fixture[Effect[_], Context](
     id: String,
     client: RpcClient[?, ?, Effect, Context],
-    server: RpcServer[?, ?, Effect, Context],
+    server: RpcServer[?, ?, Effect, Context, Unit],
     apis: Apis[Effect, Context],
     functions: Functions[Effect],
   ) {
-    private type GenericServer[E[_], C] = RpcServer[Any, MessageCodec[Any], E, C]
+    private type GenericServer[E[_], C] = RpcServer[Any, MessageCodec[Any], E, C, Unit]
     private type GenericClient[E[_], C] = RpcClient[Any, MessageCodec[Any], E, C]
 
     val genericClient: GenericClient[Effect, Context] = client.asInstanceOf[GenericClient[Effect, Context]]

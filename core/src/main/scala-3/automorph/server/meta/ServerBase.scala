@@ -3,7 +3,7 @@ package automorph.server.meta
 import automorph.RpcServer
 import automorph.handler.ApiRequestHandler
 import automorph.handler.meta.HandlerBindingGenerator
-import automorph.spi.{MessageCodec, RequestHandler, RpcProtocol, ServerTransport}
+import automorph.spi.{ServerTransport, MessageCodec, RequestHandler, RpcProtocol}
 import scala.collection.immutable.ListMap
 
 /**
@@ -17,10 +17,12 @@ import scala.collection.immutable.ListMap
  *   effect type
  * @tparam Context
  *   RPC message context type
+ * @tparam Endpoint
+ *   transport layer transport type
  */
-private[automorph] trait ServerBind[Node, Codec <: MessageCodec[Node], Effect[_], Context]:
+private[automorph] trait ServerBase[Node, Codec <: MessageCodec[Node], Effect[_], Context, Endpoint]:
 
-  def transport: ServerTransport[Effect, Context]
+  def transport: ServerTransport[Effect, Context, Endpoint]
 
   def rpcProtocol: RpcProtocol[Node, Codec, Context]
 
@@ -35,12 +37,12 @@ private[automorph] trait ServerBind[Node, Codec <: MessageCodec[Node], Effect[_]
    *   - has type parameters
    *   - is inline
    *
-   * Bindings API methods using the names identical to already existing bindings replaces the existing bindings with the
-   * new bindings.
+   * Bindings API methods using the names identical to already existing bindings replaces * the existing bindings with
+   * the new bindings.
    *
    * If the last parameter of bound method is of `Context` type or returns a context function accepting the `Context`
-   * type the server-supplied ''request context'' is passed to the bound method or the returned context function as its
-   * last argument.
+   * type the server-supplied ''request context'' is passed to the bound method or the returned context function as
+   * its last argument.
    *
    * @param api
    *   API instance
@@ -51,7 +53,7 @@ private[automorph] trait ServerBind[Node, Codec <: MessageCodec[Node], Effect[_]
    * @throws IllegalArgumentException
    *   if invalid public methods are found in the API type
    */
-  inline def bind[Api <: AnyRef](api: Api): RpcServer[Node, Codec, Effect, Context] =
+  inline def bind[Api <: AnyRef](api: Api): RpcServer[Node, Codec, Effect, Context, Endpoint] =
     bind(api, Seq(_))
 
   /**
@@ -67,8 +69,8 @@ private[automorph] trait ServerBind[Node, Codec <: MessageCodec[Node], Effect[_]
    * new bindings.
    *
    * If the last parameter of bound method is of `Context` type or returns a context function accepting the `Context`
-   * type the server-supplied ''request context'' is passed to the bound method or the returned context function as its
-   * last argument.
+   * type the server-supplied ''request context'' is passed to the bound method or the returned context function as
+   * its last argument.
    *
    * Bound API methods are exposed as RPC functions with their names transformed via the `mapName` function.
    *
@@ -86,7 +88,7 @@ private[automorph] trait ServerBind[Node, Codec <: MessageCodec[Node], Effect[_]
   inline def bind[Api <: AnyRef](
     api: Api,
     mapName: String => Iterable[String],
-  ): RpcServer[Node, Codec, Effect, Context] =
+  ): RpcServer[Node, Codec, Effect, Context, Endpoint] =
     val apiBindings = handler match
       case apiHandler: ApiRequestHandler[?, ?, ?, ?] =>
         apiHandler.asInstanceOf[ApiRequestHandler[Node, Codec, Effect, Context]].apiBindings

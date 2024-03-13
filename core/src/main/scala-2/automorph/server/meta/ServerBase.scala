@@ -1,6 +1,6 @@
 package automorph.server.meta
 
-import automorph.spi.{MessageCodec, RequestHandler, RpcProtocol, ServerTransport}
+import automorph.spi.{ServerTransport, MessageCodec, RequestHandler, RpcProtocol}
 import automorph.RpcServer
 import scala.language.experimental.macros
 import scala.reflect.macros.blackbox
@@ -16,12 +16,14 @@ import scala.reflect.macros.blackbox
  *   effect type
  * @tparam Context
  *   RPC message context type
+ * @tparam Endpoint
+ *   transport layer transport type
  */
-private[automorph] trait ServerBind[Node, Codec <: MessageCodec[Node], Effect[_], Context] {
+private[automorph] trait ServerBase[Node, Codec <: MessageCodec[Node], Effect[_], Context, Endpoint] {
 
   def rpcProtocol: RpcProtocol[Node, Codec, Context]
 
-  def transport: ServerTransport[Effect, Context]
+  def transport: ServerTransport[Effect, Context, Endpoint]
 
   def handler: RequestHandler[Effect, Context]
 
@@ -34,7 +36,7 @@ private[automorph] trait ServerBind[Node, Codec <: MessageCodec[Node], Effect[_]
    *   - has type parameters
    *   - is inline
    *
-   * Bindings API methods using the names identical to already existing bindings replaces the existing bindings
+   * Bindings API methods using the names identical to already existing bindings replaces * the existing bindings
    * with the new bindings.
    *
    * If the last parameter of bound method is of `Context` type or returns a context function accepting
@@ -50,8 +52,8 @@ private[automorph] trait ServerBind[Node, Codec <: MessageCodec[Node], Effect[_]
    * @throws java.lang.IllegalArgumentException
    *   if invalid public methods are found in the API type
    */
-  def bind[Api <: AnyRef](api: Api): RpcServer[Node, Codec, Effect, Context] =
-    macro ServerBind.bindMacro[Node, Codec, Effect, Context, Api]
+  def bind[Api <: AnyRef](api: Api): RpcServer[Node, Codec, Effect, Context, Endpoint] =
+    macro ServerBase.bindMacro[Node, Codec, Effect, Context, Endpoint, Api]
 
   /**
    * Creates a copy of this server with added RPC bindings for all public methods of the specified API instance.
@@ -82,43 +84,50 @@ private[automorph] trait ServerBind[Node, Codec <: MessageCodec[Node], Effect[_]
    * @throws java.lang.IllegalArgumentException
    *   if invalid public methods are found in the API type
    */
-  def bind[Api <: AnyRef](api: Api, mapName: String => Iterable[String]): RpcServer[Node, Codec, Effect, Context] =
-    macro ServerBind.bindMapNameMacro[Node, Codec, Effect, Context, Api]
+  def bind[Api <: AnyRef](
+    api: Api, mapName: String => Iterable[String]
+  ): RpcServer[Node, Codec, Effect, Context, Endpoint] =
+    macro ServerBase.bindMapNameMacro[Node, Codec, Effect, Context, Endpoint, Api]
 }
 
-object ServerBind {
+object ServerBase {
 
-  def bindMacro[Node, Codec <: MessageCodec[Node], Effect[_], Context, Api <: AnyRef](c: blackbox.Context)(
+  def bindMacro[Node, Codec <: MessageCodec[Node], Effect[_], Context, Endpoint, Api <: AnyRef](c: blackbox.Context)(
     api: c.Expr[Api]
   )(implicit
     nodeType: c.WeakTypeTag[Node],
     codecType: c.WeakTypeTag[Codec],
     effectType: c.WeakTypeTag[Effect[?]],
     contextType: c.WeakTypeTag[Context],
+    adapterType: c.WeakTypeTag[Endpoint],
     apiType: c.WeakTypeTag[Api],
-  ): c.Expr[RpcServer[Node, Codec, Effect, Context]] = {
+  ): c.Expr[RpcServer[Node, Codec, Effect, Context, Endpoint]] = {
     import c.universe.Quasiquote
-    Seq(nodeType, codecType, effectType, contextType, apiType)
+    Seq(nodeType, codecType, effectType, contextType, adapterType, apiType)
 
     val mapName = c.Expr[String => Seq[String]](q"""
       (name: String) => Seq(name)
     """)
-    bindMapNameMacro[Node, Codec, Effect, Context, Api](c)(api, mapName)
+    bindMapNameMacro[Node, Codec, Effect, Context, Endpoint, Api](c)(api, mapName)
   }
 
-  def bindMapNameMacro[Node, Codec <: MessageCodec[Node], Effect[_], Context, Api <: AnyRef](c: blackbox.Context)(
+  def bindMapNameMacro[Node, Codec <: MessageCodec[Node], Effect[_], Context, Endpoint, Api <: AnyRef](
+    c: blackbox.Context
+  )(
     api: c.Expr[Api], mapName: c.Expr[String => Iterable[String]]
   )(implicit
     nodeType: c.WeakTypeTag[Node],
     codecType: c.WeakTypeTag[Codec],
     effectType: c.WeakTypeTag[Effect[?]],
     contextType: c.WeakTypeTag[Context],
+    adapterType: c.WeakTypeTag[Endpoint],
     apiType: c.WeakTypeTag[Api],
-  ): c.Expr[RpcServer[Node, Codec, Effect, Context]] = {
+  ): c.Expr[RpcServer[Node, Codec, Effect, Context, Endpoint]] = {
     import c.universe.Quasiquote
+    Seq(adapterType)
 
     // This server needs to be assigned to a stable identifier due to macro expansion limitations
-    c.Expr[RpcServer[Node, Codec, Effect, Context]](q"""
+    c.Expr[RpcServer[Node, Codec, Effect, Context, Endpoint]](q"""
       import automorph.handler.{ApiRequestHandler, HandlerBinding}
       import automorph.handler.meta.HandlerBindingGenerator
       import scala.collection.immutable.ListMap

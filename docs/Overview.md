@@ -29,7 +29,7 @@ for type-safely calling and serving remote APIs in a few lines of code.
 
 - Transparently generates optimized type-safe [RPC server](https://automorph.org/docs/Quickstart#server) bindings at compile time.
 - Serves remote APIs using a standalone server by selecting a [server transport](https://automorph.org/docs/Plugins#server-transport) layer.
-- Embeds remote API into an existing server via a suitable [endpoint transport](https://automorph.org/docs/Plugins#endpoint-transport).
+- Embeds remote API into an existing server layer via a suitable [endpoint transport](https://automorph.org/docs/Plugins#endpoint-transport).
 - Automatically generates RPC API discovery functions providing [OpenRPC](https://spec.open-rpc.org) 1.3+ and [OpenAPI](https://www.openapis.org) 3.1+ schemas.
 - Allows changing the [remote to local RPC function names mapping](https://automorph.org/docs/Examples#server-function-names).
 - Allows changing the [exceptions to RPC errors mapping](https://automorph.org/docs/Examples#server-error-mapping).
@@ -84,9 +84,7 @@ client.call[String]("hello")("n" -> 1)
 The following classes represent primary entry points to Automorph functionality:
 
 - [RPC client](https://automorph.org/api/automorph/RpcClient.html) - Used to perform type-safe remote API calls or send one-way messages.
-- [RPC server](https://automorph.org/api/automorph/RpcServer.html) - Used to serve remote API requests and invoke bound API methods to process them.
-- [RPC endpoint](https://automorph.org/api/automorph/RpcEndpoint.html) - Used to handle remote API requests as part of an existing server
-and invoke bound API methods to process them.
+- [RPC server](https://automorph.org/api/automorph/RpcServer.html) - Used to handle remote API requests and invoke bound API methods to process them.
 
 Various combinations of [RPC protocol](https://automorph.org/docs/Plugins#rpc-protocol), [effect system](https://automorph.org/docs/Plugins#effect-system),
 [message codec](https://automorph.org/docs/Plugins#message-codec) and [transport layer](https://automorph.org/docs/Plugins#transport-layer) can be utilized by
@@ -111,7 +109,7 @@ Enables RPC client to send requests and receive responses using specific transpo
 - [Server transport](https://automorph.org/api/automorph/spi/ServerTransport.html) -
 Enables RPC server to receive requests and send responses using specific transport protocol.
 - [Endpoint transport](https://automorph.org/api/automorph/spi/EndpointTransport.html) -
-Enables RPC endpoint to integrate with and handle requests from an existing server infrastructure.
+Enables RPC server to integrate with and handle requests from an existing server infrastructure.
 
 
 ### Limitations

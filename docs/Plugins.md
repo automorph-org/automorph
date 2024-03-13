@@ -7,8 +7,7 @@ sidebar_position: 6
 *Automorph* supports integration with other libraries by providing plugins published in separate artifacts. Plugins
 are separated into categories based on which part of RPC functionality they provide. Specific plugin instances can be
 supplied to the factory methods of [RPC client](https://automorph.org/api/automorph/RpcClient.html),
-[RPC server](https://automorph.org/api/automorph/RpcServer.html) or
-[RPC endpoint](https://automorph.org/api/automorph/RpcEndpoint.html) at will.
+[RPC server](https://automorph.org/api/automorph/RpcServer.html) at will.
 
 
 ## Default plugins
@@ -99,7 +98,7 @@ which provides a convenient way to create default plugin instances or combine de
 | [NanoServer](https://automorph.org/api/automorph/transport/http/server/NanoServer.html) | [automorph-core](https://central.sonatype.com/artifact/org.automorph/automorph-core_3) | [NanoHTTPD](https://github.com/NanoHttpd/nanohttpd) | [HTTP](https://en.wikipedia.org/wiki/HTTP), [WebSocket](https://en.wikipedia.org/wiki/WebSocket) | :heavy_check_mark: | :heavy_check_mark: |
 
 
-### [Endpoint transport](https://automorph.org/api/automorph/spi/EndpointTransport.html)
+### [Endpoint transport](https://automorph.org/api/automorph/spi/ServerTransport.html)
 
 | Class | Artifact | Library | Protocol | Scala 2.13 | Scala 3 |
 | --- | --- | --- | --- | :---: | :---: |

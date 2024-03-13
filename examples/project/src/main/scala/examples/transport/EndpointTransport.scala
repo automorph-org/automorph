@@ -3,7 +3,8 @@
 //> using dep ch.qos.logback:logback-classic:@LOGBACK_VERSION@
 package examples.transport
 
-import automorph.Default
+import automorph.transport.server.UndertowHttpEndpoint
+import automorph.{Default, RpcServer}
 import io.undertow.{Handlers, Undertow}
 import java.net.URI
 import scala.concurrent.ExecutionContext.Implicits.global
@@ -26,15 +27,18 @@ private[examples] object EndpointTransport {
         Future(s"Hello world $n")
     }
 
-    // Setup JSON-RPC HTTP endpoint with Undertow adapter
-    val endpoint = Default.rpcEndpoint().bind(service)
+    // Create JSON-RPC HTTP server transport with Undertow endpoint adapter
+    val serverTransport = UndertowHttpEndpoint(Default.effectSystem)
+
+    // Initialize JSON-RPC HTTP server using the custom transport layer
+    val server = RpcServer.transport(serverTransport).rpcProtocol(Default.rpcProtocol).bind(service)
 
     // Create Undertow HTTP server listening on port 9000
-    val server = Undertow.builder().addHttpListener(9000, "0.0.0.0")
+    val undertowServer = Undertow.builder().addHttpListener(9000, "0.0.0.0")
 
     // Use the JSON-RPC HTTP endpoint adapter as an Undertow handler for requests to '/api'
-    val pathHandler = Handlers.path().addPrefixPath("/api", endpoint.adapter)
-    val apiServer = server.setHandler(pathHandler).build()
+    val pathHandler = Handlers.path().addPrefixPath("/api", server.endpoint)
+    val apiServer = undertowServer.setHandler(pathHandler).build()
 
     // Start the Undertow server
     apiServer.start()
