@@ -5,6 +5,7 @@ import automorph.server.meta.ServerBase
 import automorph.spi.RequestHandler.Result
 import automorph.spi.{MessageCodec, RequestHandler, RpcProtocol, ServerTransport}
 import scala.collection.immutable.ListMap
+import scala.util.Random
 
 /**
  * RPC server.
@@ -89,7 +90,11 @@ final case class RpcServer[Node, Codec <: MessageCodec[Node], Effect[_], Context
    * @return
    *   request processing result
    */
-  def processRequest(requestBody: Array[Byte], context: Context, id: String): Effect[Option[Result[Context]]] =
+  def processRequest(
+    requestBody: Array[Byte],
+    context: Context,
+    id: String = Random.nextInt(Int.MaxValue).toString,
+  ): Effect[Option[Result[Context]]] =
     handler.processRequest(requestBody, context, id)
 
   override def toString: String = {

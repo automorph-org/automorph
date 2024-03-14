@@ -7,8 +7,8 @@ import automorph.transport.server.GenericEndpoint
 import automorph.{Default, RpcServer}
 import java.nio.charset.StandardCharsets.UTF_8
 import scala.concurrent.ExecutionContext.Implicits.global
-import scala.concurrent.Future
-import scala.util.Random
+import scala.concurrent.duration.Duration
+import scala.concurrent.{Await, Future}
 
 private[examples] object CustomServer {
 
@@ -29,26 +29,7 @@ private[examples] object CustomServer {
     // Create generic server transport plugin with Unit as RPC request context type
     val serverTransport = GenericEndpoint.context[Unit].effectSystem(Default.effectSystem)
 
-    // Setup JSON-RPC server and bind the API implementation to it
-    val server = RpcServer.transport(serverTransport).rpcProtocol(Default.rpcProtocol).bind(service)
-
-    // Define a function for processing JSON-RPC requests via the generic RPC endpoint.
-    // This function should be called from request handling logic of a custom endpoint.
-    def processRpcRequest(requestBody: Array[Byte]): Future[Array[Byte]] = {
-      // Supply request context of type Unit as defined by the generic endpoint transport plugin
-      val requestContext: Unit = ()
-
-      // Supply request correlation identifier which will be included in logs associated with the request
-      val requestId = Random.nextInt(Int.MaxValue).toString
-
-      // Call the remote API function by passing the request body directly to the RPC endpoint request handler
-      val handlerResult = server.processRequest(requestBody, requestContext, requestId)
-
-      // Extract the response body containing a JSON-RPC response from the request handler result
-      handlerResult.map(_.map(_.responseBody).getOrElse(Array.emptyByteArray))
-    }
-
-    // Test the JSON-RPC request processing function
+    // Create example JSON-RPC request body
     val requestBody =
       """
         |{
@@ -60,9 +41,22 @@ private[examples] object CustomServer {
         |  }
         |}
         |""".getBytes(UTF_8)
-    val responseBody = processRpcRequest(requestBody)
-    responseBody.foreach { response =>
-      println(new String(response, UTF_8))
-    }
+
+    val run = for {
+      // Initialize JSON-RPC server using the custom transport layer
+      server <- RpcServer.transport(serverTransport).rpcProtocol(Default.rpcProtocol).bind(service).init()
+
+      // Call the remote API function by passing the request body directly to the RPC server
+      rpcResult <- server.processRequest(requestBody, ())
+
+      // Extract the response body containing a JSON-RPC response from the RPC result
+      _ = rpcResult.foreach { result =>
+        println(new String(result.responseBody, UTF_8))
+      }
+
+      // Close the RPC server
+      _ <- server.close()
+    } yield ()
+    Await.result(run, Duration.Inf)
   }
 }
