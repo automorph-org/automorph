@@ -1,4 +1,4 @@
-package automorph.handler
+package automorph.server
 
 import automorph.RpcFunction
 
@@ -24,7 +24,7 @@ import automorph.RpcFunction
  * @tparam Context
  *   RPC message context type
  */
-final case class HandlerBinding[Node, Effect[_], Context](
+final case class ServerBinding[Node, Effect[_], Context](
   function: RpcFunction,
   argumentDecoders: Map[String, Option[Node] => Any],
   encodeResult: Any => (Node, Option[Context]),

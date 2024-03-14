@@ -1,4 +1,4 @@
-package automorph.handler
+package automorph.server
 
 import automorph.RpcFunction
 import automorph.RpcException.{FunctionNotFound, InvalidArguments}
@@ -40,8 +40,8 @@ import scala.util.{Failure, Success, Try}
 final case class ApiRequestHandler[Node, Codec <: MessageCodec[Node], Effect[_], Context](
   effectSystem: EffectSystem[Effect],
   rpcProtocol: RpcProtocol[Node, Codec, Context],
-  apiBindings: ListMap[String, HandlerBinding[Node, Effect, Context]] =
-    ListMap[String, HandlerBinding[Node, Effect, Context]](),
+  apiBindings: ListMap[String, ServerBinding[Node, Effect, Context]] =
+    ListMap[String, ServerBinding[Node, Effect, Context]](),
   discovery: Boolean = false,
 ) extends RequestHandler[Effect, Context] with Logging {
 
@@ -140,7 +140,7 @@ final case class ApiRequestHandler[Node, Codec <: MessageCodec[Node], Effect[_],
    */
   private def extractArguments(
     rpcRequest: Request[Node, ?, Context],
-    binding: HandlerBinding[Node, Effect, Context],
+    binding: ServerBinding[Node, Effect, Context],
   ): Try[Seq[Option[Node]]] = {
     // Adjust expected function parameters if it uses context as its last parameter
     val parameters = binding.function.parameters
@@ -184,7 +184,7 @@ final case class ApiRequestHandler[Node, Codec <: MessageCodec[Node], Effect[_],
    */
   private def decodeArguments(
     argumentNodes: Seq[Option[Node]],
-    binding: HandlerBinding[Node, Effect, Context],
+    binding: ServerBinding[Node, Effect, Context],
   ): Seq[Any] =
     binding.function.parameters.zip(argumentNodes).map { case (parameter, argumentNode) =>
       val decodeArgument = binding.argumentDecoders.getOrElse(
@@ -207,7 +207,7 @@ final case class ApiRequestHandler[Node, Codec <: MessageCodec[Node], Effect[_],
    * @return
    *   remote function result node
    */
-  private def encodeResult(result: Any, binding: HandlerBinding[Node, Effect, Context]): (Node, Option[Context]) =
+  private def encodeResult(result: Any, binding: ServerBinding[Node, Effect, Context]): (Node, Option[Context]) =
     Try(binding.encodeResult(result)).recoverWith { case error =>
       Failure(new IllegalArgumentException("Malformed result", error))
     }.get
@@ -302,12 +302,12 @@ final case class ApiRequestHandler[Node, Codec <: MessageCodec[Node], Effect[_],
   private def getMessageBody(message: Message[?]): Option[(String, String)] =
     message.text.map(LogProperties.messageBody -> _)
 
-  private def apiSchemaBindings: ListMap[String, HandlerBinding[Node, Effect, Context]] =
+  private def apiSchemaBindings: ListMap[String, ServerBinding[Node, Effect, Context]] =
     ListMap(rpcProtocol.apiSchemas.map { apiSchema =>
       val apiSchemaFunctions = rpcProtocol.apiSchemas.filter { apiSchema =>
         !apiBindings.contains(apiSchema.function.name)
       }.map(_.function) ++ apiBindings.values.map(_.function)
-      apiSchema.function.name -> HandlerBinding[Node, Effect, Context](
+      apiSchema.function.name -> ServerBinding[Node, Effect, Context](
         apiSchema.function,
         Map.empty,
         result => result.asInstanceOf[Node] -> None,

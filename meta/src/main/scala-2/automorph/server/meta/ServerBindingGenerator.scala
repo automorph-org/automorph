@@ -1,9 +1,9 @@
-package automorph.handler.meta
+package automorph.server.meta
 
 import automorph.{RpcFunction, RpcResult}
-import automorph.handler.HandlerBinding
 import automorph.log.MacroLogger
 import automorph.reflection.{ApiReflection, ClassReflection}
+import automorph.server.ServerBinding
 import automorph.spi.MessageCodec
 import scala.annotation.nowarn
 import scala.language.experimental.macros
@@ -14,7 +14,7 @@ import scala.reflect.macros.blackbox
  *
  * Note: Consider this class to be private and do not use it. It remains public only due to Scala 2 macro limitations.
  */
-object HandlerBindingGenerator {
+object ServerBindingGenerator {
 
   /**
    * Generates handler bindings for all valid public methods of an API type.
@@ -39,7 +39,7 @@ object HandlerBindingGenerator {
   def generate[Node, Codec <: MessageCodec[Node], Effect[_], Context, Api <: AnyRef](
     codec: Codec,
     api: Api,
-  ): Seq[HandlerBinding[Node, Effect, Context]] =
+  ): Seq[ServerBinding[Node, Effect, Context]] =
     macro generateMacro[Node, Codec, Effect, Context, Api]
 
   def generateMacro[
@@ -50,7 +50,7 @@ object HandlerBindingGenerator {
     Api <: AnyRef: c.WeakTypeTag,
   ](c: blackbox.Context)(codec: c.Expr[Codec], api: c.Expr[Api])(implicit
     effectType: c.WeakTypeTag[Effect[?]]
-  ): c.Expr[Seq[HandlerBinding[Node, Effect, Context]]] = {
+  ): c.Expr[Seq[ServerBinding[Node, Effect, Context]]] = {
     import c.universe.Quasiquote
     val ref = ClassReflection[c.type](c)
 
@@ -68,7 +68,7 @@ object HandlerBindingGenerator {
     val bindings = validMethods.map { method =>
       generateBinding[c.type, Node, Codec, Effect, Context, Api](ref)(method, codec, api)
     }
-    c.Expr[Seq[HandlerBinding[Node, Effect, Context]]](q"""
+    c.Expr[Seq[ServerBinding[Node, Effect, Context]]](q"""
       Seq(..$bindings)
     """)
   }
@@ -83,7 +83,7 @@ object HandlerBindingGenerator {
     Api,
   ](ref: ClassReflection[C])(method: ref.RefMethod, codec: ref.c.Expr[Codec], api: ref.c.Expr[Api])(implicit
     effectType: ref.c.WeakTypeTag[Effect[?]]
-  ): ref.c.Expr[HandlerBinding[Node, Effect, Context]] = {
+  ): ref.c.Expr[ServerBinding[Node, Effect, Context]] = {
     import ref.c.universe.{Liftable, Quasiquote}
 
     val argumentDecoders = generateArgumentDecoders[C, Node, Codec, Context](ref)(method, codec)
@@ -94,8 +94,8 @@ object HandlerBindingGenerator {
     logCode[C](ref)("Encode result", encodeResult)
     logCode[C](ref)("Call", call)
     implicit val functionLiftable: Liftable[RpcFunction] = ApiReflection.functionLiftable(ref)
-    ref.c.Expr[HandlerBinding[Node, Effect, Context]](q"""
-      automorph.handler.HandlerBinding(
+    ref.c.Expr[ServerBinding[Node, Effect, Context]](q"""
+      automorph.server.ServerBinding(
         ${method.lift.rpcFunction},
         $argumentDecoders,
         $encodeResult,

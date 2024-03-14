@@ -128,17 +128,17 @@ object ServerBase {
 
     // This server needs to be assigned to a stable identifier due to macro expansion limitations
     c.Expr[RpcServer[Node, Codec, Effect, Context, Endpoint]](q"""
-      import automorph.handler.{ApiRequestHandler, HandlerBinding}
-      import automorph.handler.meta.HandlerBindingGenerator
+      import automorph.server.{ApiRequestHandler, ServerBinding}
+      import automorph.server.meta.ServerBindingGenerator
       import scala.collection.immutable.ListMap
 
       val server = ${c.prefix}
       val apiBindings = if (server.handler.isInstanceOf[ApiRequestHandler[?, ?, $effectType, ?]]) {
         server.handler.asInstanceOf[ApiRequestHandler[$nodeType, $codecType, $effectType, $contextType]].apiBindings
       } else {
-        ListMap.empty[String, HandlerBinding[$nodeType, $effectType, $contextType]]
+        ListMap.empty[String, ServerBinding[$nodeType, $effectType, $contextType]]
       }
-      val newApiBindings = HandlerBindingGenerator.generate[$nodeType, $codecType, $effectType, $contextType, $apiType](
+      val newApiBindings = ServerBindingGenerator.generate[$nodeType, $codecType, $effectType, $contextType, $apiType](
         server.rpcProtocol.messageCodec, $api
       ).flatMap { binding =>
         $mapName(binding.function.name).map(_ -> binding)

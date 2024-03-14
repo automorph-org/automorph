@@ -1,15 +1,15 @@
-package automorph.handler.meta
+package automorph.server.meta
 
 import automorph.RpcResult
-import automorph.handler.HandlerBinding
 import automorph.log.MacroLogger
 import automorph.reflection.ApiReflection.functionToExpr
 import automorph.reflection.{ApiReflection, ClassReflection}
+import automorph.server.ServerBinding
 import automorph.spi.MessageCodec
 import scala.quoted.{Expr, Quotes, Type}
 
 /** RPC handler API bindings generator. */
-private[automorph] object HandlerBindingGenerator:
+private[automorph] object ServerBindingGenerator:
 
   /**
    * Generates handler bindings for all valid public methods of an API type.
@@ -34,7 +34,7 @@ private[automorph] object HandlerBindingGenerator:
   inline def generate[Node, Codec <: MessageCodec[Node], Effect[_], Context, Api <: AnyRef](
     codec: Codec,
     api: Api,
-  ): Seq[HandlerBinding[Node, Effect, Context]] =
+  ): Seq[ServerBinding[Node, Effect, Context]] =
     ${ generateMacro[Node, Codec, Effect, Context, Api]('codec, 'api) }
 
   private def generateMacro[
@@ -45,7 +45,7 @@ private[automorph] object HandlerBindingGenerator:
     Api <: AnyRef: Type,
   ](codec: Expr[Codec], api: Expr[Api])(
     using quotes: Quotes
-  ): Expr[Seq[HandlerBinding[Node, Effect, Context]]] =
+  ): Expr[Seq[ServerBinding[Node, Effect, Context]]] =
     val ref = ClassReflection(quotes)
 
     // Detect and validate public methods in the API type
@@ -64,7 +64,7 @@ private[automorph] object HandlerBindingGenerator:
 
   private def generateBinding[Node: Type, Codec <: MessageCodec[Node], Effect[_]: Type, Context: Type, Api: Type](
     ref: ClassReflection
-  )(method: ref.RefMethod, codec: Expr[Codec], api: Expr[Api]): Expr[HandlerBinding[Node, Effect, Context]] =
+  )(method: ref.RefMethod, codec: Expr[Codec], api: Expr[Api]): Expr[ServerBinding[Node, Effect, Context]] =
     given Quotes =
       ref.q
 
@@ -76,7 +76,7 @@ private[automorph] object HandlerBindingGenerator:
     logCode(ref)("Encode result", encodeResult)
     logCode(ref)("Call", call)
     '{
-      HandlerBinding(
+      ServerBinding(
         ${ Expr(method.lift.rpcFunction) },
         $argumentDecoders,
         $encodeResult,
