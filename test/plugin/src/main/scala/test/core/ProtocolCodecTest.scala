@@ -47,7 +47,7 @@ trait ProtocolCodecTest extends CoreTest {
     )).getOrElse(Seq())
   }
 
-  def clientTransport(fixtureId: String, server: OptionalServer = None): ClientTransport[Effect, ?]
+  def clientTransport(fixtureId: String, server: OptionalServer): ClientTransport[Effect, ?]
 
   def serverTransport(fixtureId: String): ServerTransport[Effect, Context, Unit]
 
@@ -75,7 +75,7 @@ trait ProtocolCodecTest extends CoreTest {
     val id = fixtureId(protocol)
     val server = RpcServer.transport(serverTransport(id)).rpcProtocol(protocol).discovery(true)
       .bind(simpleApi, mapName).bind(complexApi)
-    val client = RpcClient.transport(typedClientTransport(id)).rpcProtocol(protocol)
+    val client = RpcClient.transport(typedClientTransport(id, Some(server))).rpcProtocol(protocol)
     Fixture(
       id,
       client,
@@ -91,7 +91,7 @@ trait ProtocolCodecTest extends CoreTest {
     val id = fixtureId(protocol, Some("JSON"))
     val server = RpcServer.transport(serverTransport(id)).rpcProtocol(protocol).discovery(true)
       .bind(simpleApi, mapName).bind(complexApi)
-    val client = RpcClient.transport(typedClientTransport(id)).rpcProtocol(protocol)
+    val client = RpcClient.transport(typedClientTransport(id, Some(server))).rpcProtocol(protocol)
     Fixture(
       id,
       client,
@@ -107,7 +107,7 @@ trait ProtocolCodecTest extends CoreTest {
     val id = fixtureId(protocol, Some("Smile"))
     val server = RpcServer.transport(serverTransport(id)).rpcProtocol(protocol).discovery(true)
       .bind(simpleApi, mapName).bind(complexApi)
-    val client = RpcClient.transport(typedClientTransport(id)).rpcProtocol(protocol)
+    val client = RpcClient.transport(typedClientTransport(id, Some(server))).rpcProtocol(protocol)
     Fixture(
       id,
       client,
@@ -123,7 +123,7 @@ trait ProtocolCodecTest extends CoreTest {
     val id = fixtureId(protocol, Some("CBOR"))
     val server = RpcServer.transport(serverTransport(id)).rpcProtocol(protocol).discovery(true)
       .bind(simpleApi, mapName).bind(complexApi)
-    val client = RpcClient.transport(typedClientTransport(id)).rpcProtocol(protocol)
+    val client = RpcClient.transport(typedClientTransport(id, Some(server))).rpcProtocol(protocol)
     Fixture(
       id,
       client,
@@ -139,7 +139,7 @@ trait ProtocolCodecTest extends CoreTest {
     val id = fixtureId(protocol, Some("JSON"))
     val server = RpcServer.transport(serverTransport(id)).rpcProtocol(protocol).discovery(true)
       .bind(simpleApi, mapName).bind(complexApi)
-    val client = RpcClient.transport(typedClientTransport(id)).rpcProtocol(protocol)
+    val client = RpcClient.transport(typedClientTransport(id, Some(server))).rpcProtocol(protocol)
     Fixture(
       id,
       client,
@@ -155,7 +155,7 @@ trait ProtocolCodecTest extends CoreTest {
     val id = fixtureId(protocol, Some("Smile"))
     val server = RpcServer.transport(serverTransport(id)).rpcProtocol(protocol).discovery(true)
       .bind(simpleApi, mapName).bind(complexApi)
-    val client = RpcClient.transport(typedClientTransport(id)).rpcProtocol(protocol)
+    val client = RpcClient.transport(typedClientTransport(id, Some(server))).rpcProtocol(protocol)
     Fixture(
       id,
       client,
@@ -171,7 +171,7 @@ trait ProtocolCodecTest extends CoreTest {
     val id = fixtureId(protocol, Some("CBOR"))
     val server = RpcServer.transport(serverTransport(id)).rpcProtocol(protocol).discovery(true)
       .bind(simpleApi, mapName).bind(complexApi)
-    val client = RpcClient.transport(typedClientTransport(id)).rpcProtocol(protocol)
+    val client = RpcClient.transport(typedClientTransport(id, Some(server))).rpcProtocol(protocol)
     Fixture(
       id,
       client,
@@ -187,7 +187,7 @@ trait ProtocolCodecTest extends CoreTest {
     val id = fixtureId(protocol, Some("Ion"))
     val server = RpcServer.transport(serverTransport(id)).rpcProtocol(protocol).discovery(true)
       .bind(simpleApi, mapName).bind(complexApi)
-    val client = RpcClient.transport(typedClientTransport(id)).rpcProtocol(protocol)
+    val client = RpcClient.transport(typedClientTransport(id, Some(server))).rpcProtocol(protocol)
     Fixture(
       id,
       client,
@@ -203,7 +203,7 @@ trait ProtocolCodecTest extends CoreTest {
     val id = fixtureId(protocol)
     val server = RpcServer.transport(serverTransport(id)).rpcProtocol(protocol).discovery(true)
       .bind(simpleApi, mapName).bind(complexApi)
-    val client = RpcClient.transport(typedClientTransport(id)).rpcProtocol(protocol)
+    val client = RpcClient.transport(typedClientTransport(id, Some(server))).rpcProtocol(protocol)
     Fixture(
       id,
       client,
@@ -226,7 +226,7 @@ trait ProtocolCodecTest extends CoreTest {
     val id = fixtureId(protocol)
     val server = RpcServer.transport(serverTransport(id)).rpcProtocol(protocol).discovery(true)
       .bind(simpleApi, mapName).bind(complexApi)
-    val client = RpcClient.transport(typedClientTransport(id)).rpcProtocol(protocol)
+    val client = RpcClient.transport(typedClientTransport(id, Some(server))).rpcProtocol(protocol)
     Fixture(
       id,
       client,
