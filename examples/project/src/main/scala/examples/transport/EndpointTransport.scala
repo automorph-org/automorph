@@ -35,7 +35,7 @@ private[examples] object EndpointTransport {
 
     val run = for {
       // Initialize JSON-RPC HTTP server using the custom transport layer
-      server <- RpcServer.transport(serverTransport).rpcProtocol(Default.rpcProtocol).bind(service).init()
+      server <- RpcServer.transport(serverTransport).rpcProtocol(Default.rpcProtocol).service(service).init()
 
       // Use the JSON-RPC HTTP endpoint adapter as an Undertow handler for requests to '/api'
       pathHandler = Handlers.path().addPrefixPath("/api", server.endpoint)
@@ -46,7 +46,7 @@ private[examples] object EndpointTransport {
 
       // Initialize JSON-RPC HTTP client sending POST requests to 'http://localhost:9000/api'
       client <- Default.rpcClient(new URI("http://localhost:9000/api")).init()
-      remoteApi = client.bind[Api]
+      remoteApi = client.proxy[Api]
 
       // Call the remote API function via a local proxy
       result <- remoteApi.hello(1)

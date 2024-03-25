@@ -53,11 +53,11 @@ private[examples] object DataTypeSerialization {
     Await.result(
       for {
         // Initialize JSON-RPC HTTP & WebSocket server listening on port 9000 for requests to '/api'
-        server <- Default.rpcServer(9000, "/api").bind(service).init()
+        server <- Default.rpcServer(9000, "/api").service(service).init()
 
         // Initialize JSON-RPC HTTP client for sending POST requests to 'http://localhost:9000/api'
         client <- Default.rpcClient(new URI("http://localhost:9000/api")).init()
-        remoteApi = client.bind[Api]
+        remoteApi = client.proxy[Api]
 
         // Call the remote API function via a local proxy
         result <- remoteApi.hello(Record("test", State.On))

@@ -33,13 +33,13 @@ private[examples] object HttpResponseProperties {
     val service = new Service
 
     // Initialize JSON-RPC HTTP & WebSocket server listening on port 9000 for requests to '/api'
-    val server = Default.rpcServerCustom(IdentitySystem(), 9000, "/api").bind(service).init()
+    val server = Default.rpcServerCustom(IdentitySystem(), 9000, "/api").service(service).init()
 
     // Initialize JSON-RPC HTTP client sending POST requests to 'http://localhost:9000/api'
     val client = Default.rpcClientCustom(IdentitySystem(), new URI("http://localhost:9000/api")).init()
 
     // Call the remote API function via a local proxy retrieving a result with HTTP response metadata
-    val remoteApi = client.bind[Api]
+    val remoteApi = client.proxy[Api]
     val static = remoteApi.hello("test")
     println(static.result)
     println(static.context.header("X-Test"))

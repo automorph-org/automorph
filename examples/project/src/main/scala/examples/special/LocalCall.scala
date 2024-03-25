@@ -27,7 +27,7 @@ private[examples] object LocalCall {
     }
 
     // Create passive JSON-RPC HTTP & WebSocket server on port 9000 for POST requests to '/api'
-    val server = Default.rpcServer(9000, "/api").bind(service)
+    val server = Default.rpcServer(9000, "/api").service(service)
 
     // Create context with default request metadata of the type defined by the RPC server
     val requestContext: Default.ServerContext = HttpContext()
@@ -39,7 +39,7 @@ private[examples] object LocalCall {
       for {
         // Initialize local JSON-RPC client
         client <- RpcClient.transport(clientTransport).rpcProtocol(Default.rpcProtocol).init()
-        remoteApi = client.bind[Api]
+        remoteApi = client.proxy[Api]
 
         // Call the remote API function using the local client
         result <- remoteApi.hello(1)

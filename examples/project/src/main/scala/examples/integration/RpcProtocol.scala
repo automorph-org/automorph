@@ -46,11 +46,11 @@ private[examples] object RpcProtocol {
 
     val run = for {
       // Initialize custom JSON-RPC HTTP & WebSocket server
-      server <- RpcServer.transport(serverTransport).rpcProtocol(serverRpcProtocol).bind(service).init()
+      server <- RpcServer.transport(serverTransport).rpcProtocol(serverRpcProtocol).service(service).init()
 
       // Initialize custom JSON-RPC HTTP client
       client <- RpcClient.transport(clientTransport).rpcProtocol(clientRpcProtocol).init()
-      remoteApi = client.bind[Api]
+      remoteApi = client.proxy[Api]
 
       // Call the remote API function via a local proxy
       result <- remoteApi.hello(1)

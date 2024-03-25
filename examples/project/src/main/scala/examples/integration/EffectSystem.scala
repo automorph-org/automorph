@@ -32,11 +32,11 @@ private[examples] object EffectSystem {
 
     val run = for {
       // Initialize JSON-RPC HTTP & WebSocket server listening on port 9000 for requests to '/api'
-      server <- Default.rpcServerCustom(effectSystem, 9000, "/api").bind(service).init()
+      server <- Default.rpcServerCustom(effectSystem, 9000, "/api").service(service).init()
 
       // Initialize JSON-RPC HTTP client sending POST requests to 'http://localhost:9000/api'
       client <- Default.rpcClientCustom(effectSystem, new URI("http://localhost:9000/api")).init()
-      remoteApi = client.bind[Api]
+      remoteApi = client.proxy[Api]
 
       // Call the remote API function via a local proxy
       result <- remoteApi.hello(1)

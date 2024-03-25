@@ -40,8 +40,8 @@ private[automorph] trait ClientBase[Node, Codec <: MessageCodec[Node], Effect[_]
    * @throws java.lang.IllegalArgumentException
    *   if invalid public functions are found in the API type
    */
-  def bind[Api <: AnyRef]: Api =
-    macro ClientBase.bindMacro[Node, Codec, Effect, Context, Api]
+  def proxy[Api <: AnyRef]: Api =
+    macro ClientBase.proxyMacro[Node, Codec, Effect, Context, Api]
 
   /**
    * Creates a remote API proxy with RPC bindings for all public methods of the specified API type.
@@ -66,8 +66,8 @@ private[automorph] trait ClientBase[Node, Codec <: MessageCodec[Node], Effect[_]
    * @throws java.lang.IllegalArgumentException
    *   if invalid public functions are found in the API type
    */
-  def bind[Api <: AnyRef](mapName: String => String): Api =
-    macro ClientBase.bindMapNamesMacro[Node, Codec, Effect, Context, Api]
+  def proxy[Api <: AnyRef](mapName: String => String): Api =
+    macro ClientBase.proxyMapNamesMacro[Node, Codec, Effect, Context, Api]
 
   /**
    * Creates a remote API function call proxy.
@@ -117,7 +117,7 @@ private[automorph] trait ClientBase[Node, Codec <: MessageCodec[Node], Effect[_]
 
 object ClientBase {
 
-  def bindMacro[Node, Codec <: MessageCodec[Node], Effect[_], Context, Api <: AnyRef](c: blackbox.Context)(implicit
+  def proxyMacro[Node, Codec <: MessageCodec[Node], Effect[_], Context, Api <: AnyRef](c: blackbox.Context)(implicit
     nodeType: c.WeakTypeTag[Node],
     codecType: c.WeakTypeTag[Codec],
     effectType: c.WeakTypeTag[Effect[?]],
@@ -130,10 +130,10 @@ object ClientBase {
     val mapName = c.Expr[String => String](q"""
       identity
     """)
-    bindMapNamesMacro[Node, Codec, Effect, Context, Api](c)(mapName)
+    proxyMapNamesMacro[Node, Codec, Effect, Context, Api](c)(mapName)
   }
 
-  def bindMapNamesMacro[Node, Codec <: MessageCodec[Node], Effect[_], Context, Api <: AnyRef](c: blackbox.Context)(
+  def proxyMapNamesMacro[Node, Codec <: MessageCodec[Node], Effect[_], Context, Api <: AnyRef](c: blackbox.Context)(
     mapName: c.Expr[String => String]
   )(implicit
     nodeType: c.WeakTypeTag[Node],

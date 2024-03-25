@@ -39,12 +39,12 @@ private[examples] object MultipleApis {
     Await.result(
       for {
         // Initialize JSON-RPC HTTP & WebSocket server listening on port 9000 for POST requests to '/api'
-        server <- Default.rpcServer(9000, "/api").bind(service1).bind(service2).init()
+        server <- Default.rpcServer(9000, "/api").service(service1).service(service2).init()
 
         // Initialize JSON-RPC HTTP client for sending POST requests to 'http://localhost:9000/api'
         client <- Default.rpcClient(new URI("http://localhost:9000/api")).init()
-        remoteApi1 = client.bind[Api1]
-        remoteApi2 = client.bind[Api2]
+        remoteApi1 = client.proxy[Api1]
+        remoteApi2 = client.proxy[Api2]
 
         // Call the first remote API function
         result <- remoteApi1.hello(1)

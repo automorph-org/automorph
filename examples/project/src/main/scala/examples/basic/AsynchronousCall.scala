@@ -28,11 +28,11 @@ private[examples] object AsynchronousCall {
 
     val run = for {
       // Initialize JSON-RPC HTTP & WebSocket server listening on port 9000 for POST or PUT requests to '/api'
-      server <- Default.rpcServer(9000, "/api", Seq(Post, Put)).bind(service).init()
+      server <- Default.rpcServer(9000, "/api", Seq(Post, Put)).service(service).init()
 
       // Initialize JSON-RPC HTTP client sending POST requests to 'http://localhost:9000/api'
       client <- Default.rpcClient(new URI("http://localhost:9000/api")).init()
-      remoteApi = client.bind[Api]
+      remoteApi = client.proxy[Api]
 
       // Call the remote API function via a proxy instance
       result <- remoteApi.hello(1)

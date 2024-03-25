@@ -34,11 +34,11 @@ private[examples] object DynamicPayload {
 
     val run = for {
       // Initialize JSON-RPC HTTP client sending POST requests to 'http://localhost:9000/api'
-      server <- Default.rpcServer(9000, "/api").bind(service).init()
+      server <- Default.rpcServer(9000, "/api").service(service).init()
 
       // Initialize JSON-RPC HTTP client sending POST requests to 'http://localhost:9000/api'
       client <- Default.rpcClient(new URI("http://localhost:9000/api")).init()
-      remoteApi = client.bind[Api]
+      remoteApi = client.proxy[Api]
 
       // Call the remote API function a proxy instance
       result <- remoteApi.hello("test", Json.fromInt(1))

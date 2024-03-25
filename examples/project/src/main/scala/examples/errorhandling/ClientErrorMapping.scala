@@ -41,11 +41,11 @@ private[examples] object ClientErrorMapping {
     Await.result(
       for {
         // Initialize JSON-RPC HTTP & WebSocket server listening on port 9000 for requests to '/api'
-        server <- Default.rpcServer(9000, "/api").bind(service).init()
+        server <- Default.rpcServer(9000, "/api").service(service).init()
 
         // Initialize custom JSON-RPC HTTP client
         client <- RpcClient.transport(clientTransport).rpcProtocol(rpcProtocol).init()
-        remoteApi = client.bind[Api]
+        remoteApi = client.proxy[Api]
 
         // Call the remote API function via a local proxy and fail with SQLException
         error <- remoteApi.hello(1).failed

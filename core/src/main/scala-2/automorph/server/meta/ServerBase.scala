@@ -26,7 +26,7 @@ private[automorph] trait ServerBase[Node, Codec <: MessageCodec[Node], Effect[_]
   def transport: ServerTransport[Effect, Context, Endpoint]
 
   /**
-   * Creates a copy of this server with added RPC bindings for all public methods of the specified API instance.
+   * Creates a copy of this server with RPC bindings for all public methods of the specified API instance.
    *
    * The binding generation fails if any public API method has one of the following properties:
    *   - does not return the specified effect type
@@ -50,11 +50,11 @@ private[automorph] trait ServerBase[Node, Codec <: MessageCodec[Node], Effect[_]
    * @throws java.lang.IllegalArgumentException
    *   if invalid public methods are found in the API type
    */
-  def bind[Api <: AnyRef](api: Api): RpcServer[Node, Codec, Effect, Context, Endpoint] =
-    macro ServerBase.bindMacro[Node, Codec, Effect, Context, Endpoint, Api]
+  def service[Api <: AnyRef](api: Api): RpcServer[Node, Codec, Effect, Context, Endpoint] =
+    macro ServerBase.serviceMacro[Node, Codec, Effect, Context, Endpoint, Api]
 
   /**
-   * Creates a copy of this server with added RPC bindings for all public methods of the specified API instance.
+   * Creates a copy of this server with RPC bindings for all public methods of the specified API instance.
    *
    * The binding generation fails if any public API method has one of the following properties:
    *   - does not return the specified effect type
@@ -82,15 +82,15 @@ private[automorph] trait ServerBase[Node, Codec <: MessageCodec[Node], Effect[_]
    * @throws java.lang.IllegalArgumentException
    *   if invalid public methods are found in the API type
    */
-  def bind[Api <: AnyRef](
+  def service[Api <: AnyRef](
     api: Api, mapName: String => Iterable[String]
   ): RpcServer[Node, Codec, Effect, Context, Endpoint] =
-    macro ServerBase.bindMapNameMacro[Node, Codec, Effect, Context, Endpoint, Api]
+    macro ServerBase.serviceMapNameMacro[Node, Codec, Effect, Context, Endpoint, Api]
 }
 
 object ServerBase {
 
-  def bindMacro[Node, Codec <: MessageCodec[Node], Effect[_], Context, Endpoint, Api <: AnyRef](c: blackbox.Context)(
+  def serviceMacro[Node, Codec <: MessageCodec[Node], Effect[_], Context, Endpoint, Api <: AnyRef](c: blackbox.Context)(
     api: c.Expr[Api]
   )(implicit
     nodeType: c.WeakTypeTag[Node],
@@ -106,10 +106,10 @@ object ServerBase {
     val mapName = c.Expr[String => Seq[String]](q"""
       (name: String) => Seq(name)
     """)
-    bindMapNameMacro[Node, Codec, Effect, Context, Endpoint, Api](c)(api, mapName)
+    serviceMapNameMacro[Node, Codec, Effect, Context, Endpoint, Api](c)(api, mapName)
   }
 
-  def bindMapNameMacro[Node, Codec <: MessageCodec[Node], Effect[_], Context, Endpoint, Api <: AnyRef](
+  def serviceMapNameMacro[Node, Codec <: MessageCodec[Node], Effect[_], Context, Endpoint, Api <: AnyRef](
     c: blackbox.Context
   )(
     api: c.Expr[Api], mapName: c.Expr[String => Iterable[String]]

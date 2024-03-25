@@ -27,11 +27,11 @@ private[examples] object OneWayMessage {
 
     val run = for {
       // Initialize JSON-RPC HTTP & WebSocket server listening on port 9000 for requests to '/api'
-      server <- Default.rpcServer(9000, "/api").bind(service).init()
+      server <- Default.rpcServer(9000, "/api").service(service).init()
 
       // Initialize JSON-RPC HTTP client sending POST requests to 'http://localhost:9000/api'
       client <- Default.rpcClient(new URI("http://localhost:9000/api")).init()
-      remoteApi = client.bind[Api]
+      remoteApi = client.proxy[Api]
 
       // Call the remote API function dynamically without expecting a response
       _ <- client.tell("hello")("n" -> 1)

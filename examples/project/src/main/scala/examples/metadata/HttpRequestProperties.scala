@@ -32,7 +32,7 @@ private[examples] object HttpRequestProperties {
     val service = new Service
 
     // Initialize JSON-RPC HTTP & WebSocket server listening on port 9000 for requests to '/api'
-    val server = Default.rpcServerCustom(IdentitySystem(), 9000, "/api").bind(service).init()
+    val server = Default.rpcServerCustom(IdentitySystem(), 9000, "/api").service(service).init()
 
     // Initialize JSON-RPC HTTP client for sending POST requests to 'http://localhost:9000/api'
     val client = Default.rpcClientCustom(IdentitySystem(), new URI("http://localhost:9000/api")).init()
@@ -45,7 +45,7 @@ private[examples] object HttpRequestProperties {
       .authorization("Bearer", "value")
 
     // Call the remote API function via a local proxy using implicitly given HTTP request metadata
-    val remoteApi = client.bind[Api]
+    val remoteApi = client.proxy[Api]
     println(
       remoteApi.hello("test")
     )

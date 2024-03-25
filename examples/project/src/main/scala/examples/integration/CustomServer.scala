@@ -44,7 +44,7 @@ private[examples] object CustomServer {
 
     val run = for {
       // Initialize JSON-RPC server using the custom transport layer
-      server <- RpcServer.transport(serverTransport).rpcProtocol(Default.rpcProtocol).bind(service).init()
+      server <- RpcServer.transport(serverTransport).rpcProtocol(Default.rpcProtocol).service(service).init()
 
       // Call the remote API function by passing the request body directly to the RPC server
       rpcResult <- server.processRequest(requestBody, ())

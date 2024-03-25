@@ -31,14 +31,14 @@ private[examples] object Quickstart {
     // Configure JSON-RPC HTTP & WebSocket server to listen on port 9000 for requests to '/api'
     val inactiveServer = Default.rpcServer(9000, "/api")
 
-    // Serve the API implementation to be called remotely
-    val apiServer = inactiveServer.bind(service)
+    // Register the API implementation to be available as a remote service
+    val apiServer = inactiveServer.service(service)
 
     // Configure JSON-RPC HTTP client to send POST requests to 'http://localhost:9000/api'
     val inactiveClient = Default.rpcClient(new URI("http://localhost:9000/api"))
 
     // Create a type-safe local proxy for the remote API from the API trait
-    val remoteApi = inactiveClient.bind[Api]
+    val remoteApi = inactiveClient.proxy[Api]
 
     val run = for {
       // Start the JSON-RPC server

@@ -46,8 +46,8 @@ private[automorph] trait ClientBase[Node, Codec <: MessageCodec[Node], Effect[_]
    * @throws java.lang.IllegalArgumentException
    *   if invalid public methods are found in the API type
    */
-  inline def bind[Api <: AnyRef]: Api =
-    bind[Api](identity)
+  inline def proxy[Api <: AnyRef]: Api =
+    proxy[Api](identity)
 
   /**
    * Creates a remote API proxy with RPC bindings for all public methods of the specified API type.
@@ -72,7 +72,7 @@ private[automorph] trait ClientBase[Node, Codec <: MessageCodec[Node], Effect[_]
    * @throws java.lang.IllegalArgumentException
    *   if invalid public methods are found in the API type
    */
-  inline def bind[Api <: AnyRef](mapName: String => String): Api =
+  inline def proxy[Api <: AnyRef](mapName: String => String): Api =
     // Generate API method bindings
     val bindings = ClientBindingGenerator.generate[Node, Codec, Effect, Context, Api](
       rpcProtocol.messageCodec

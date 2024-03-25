@@ -38,11 +38,11 @@ private[examples] object AmqpTransport {
 
       val run = for {
         // Initialize custom JSON-RPC AMQP server
-        server <- RpcServer.transport(serverTransport).rpcProtocol(Default.rpcProtocol).bind(service).init()
+        server <- RpcServer.transport(serverTransport).rpcProtocol(Default.rpcProtocol).service(service).init()
 
         // Initialize custom JSON-RPC AMQP client
         client <- RpcClient.transport(clientTransport).rpcProtocol(Default.rpcProtocol).init()
-        remoteApi = client.bind[Api]
+        remoteApi = client.proxy[Api]
 
         // Call the remote API function via a local proxy
         result <- remoteApi.hello(1)

@@ -30,7 +30,7 @@ private[automorph] trait ServerBase[Node, Codec <: MessageCodec[Node], Effect[_]
   def apiBindings: ListMap[String, ServerBinding[Node, Effect, Context]]
 
   /**
-   * Creates a copy of this server with added RPC bindings for all public methods of the specified API instance.
+   * Creates a copy of this server with RPC bindings for all public methods of the specified API instance.
    *
    * The binding generation fails if any public API method has one of the following properties:
    *   - does not return the specified effect type
@@ -54,11 +54,11 @@ private[automorph] trait ServerBase[Node, Codec <: MessageCodec[Node], Effect[_]
    * @throws IllegalArgumentException
    *   if invalid public methods are found in the API type
    */
-  inline def bind[Api <: AnyRef](api: Api): RpcServer[Node, Codec, Effect, Context, Endpoint] =
-    bind(api, Seq(_))
+  inline def service[Api <: AnyRef](api: Api): RpcServer[Node, Codec, Effect, Context, Endpoint] =
+    service(api, Seq(_))
 
   /**
-   * Creates a copy of this server with added RPC bindings for all public methods of the specified API instance.
+   * Creates a copy of this server with RPC bindings for all public methods of the specified API instance.
    *
    * The binding generation fails if any public API method has one of the following properties:
    *   - does not return the specified effect type
@@ -86,7 +86,7 @@ private[automorph] trait ServerBase[Node, Codec <: MessageCodec[Node], Effect[_]
    * @throws IllegalArgumentException
    *   if invalid public methods are found in the API type
    */
-  inline def bind[Api <: AnyRef](
+  inline def service[Api <: AnyRef](
     api: Api,
     mapName: String => Iterable[String],
   ): RpcServer[Node, Codec, Effect, Context, Endpoint] =

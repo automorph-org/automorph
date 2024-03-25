@@ -33,11 +33,11 @@ private[examples] object ServerTransport {
     Await.result(
       for {
         // Initialize custom JSON-RPC HTTP & WebSocket server
-        server <- RpcServer.transport(serverTransport).rpcProtocol(Default.rpcProtocol).bind(service).init()
+        server <- RpcServer.transport(serverTransport).rpcProtocol(Default.rpcProtocol).service(service).init()
 
         // Initialize JSON-RPC HTTP client for sending POST requests to 'http://localhost:9000/api'
         client <- Default.rpcClient(new URI("http://localhost:9000/api")).init()
-        remoteApi = client.bind[Api]
+        remoteApi = client.proxy[Api]
 
         // Call the remote API function via a local proxy
         result <- remoteApi.hello(1)

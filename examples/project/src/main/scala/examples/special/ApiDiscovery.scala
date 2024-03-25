@@ -30,7 +30,7 @@ private[examples] object ApiDiscovery {
     Await.result(
       for {
         // Initialize JSON-RPC HTTP & WebSocket server with API discovery enabled
-        server <- Default.rpcServer(9000, "/api").discovery(true).bind(service).init()
+        server <- Default.rpcServer(9000, "/api").discovery(true).service(service).init()
 
         // Initialize JSON-RPC HTTP client for sending POST requests to 'http://localhost:9000/api'
         client <- Default.rpcClient(new URI("http://localhost:9000/api")).init()

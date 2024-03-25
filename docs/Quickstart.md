@@ -45,7 +45,7 @@ dependencies {
 
 ### Server
 
-Serve an API implementation to be called remotely using JSON-RPC over HTTP(S).
+Serve an API implementation using JSON-RPC over HTTP(S).
 
 ```scala
 import automorph.Default
@@ -70,8 +70,8 @@ val api = new ApiImpl
 // Configure JSON-RPC HTTP & WebSocket server to listen on port 9000 for requests to '/api'
 val server = Default.rpcServer(9000, "/api")
 
-// Serve the API implementation to be called remotely
-val apiServer = server.bind(api)
+// Register the API implementation to be available as a remote service
+val apiServer = server.service(api)
 
 val run = for {
   // Start the JSON-RPC server
@@ -85,7 +85,7 @@ Await.result(run, Duration.Inf)
 
 ### Client
 
-Call a remote API using JSON-RPC over HTTP(S) via a type-safe local proxy created from an API trait.
+Call a remote API using JSON-RPC over HTTP(S) via a local proxy created from an API trait.
 
 ```scala
 import automorph.Default
@@ -104,7 +104,7 @@ trait Api {
 val client = Default.rpcClient(new URI("http://localhost:9000/api"))
 
 // Create a type-safe local proxy for the remote API from the API trait
-val remoteApi = client.bind[Api]
+val remoteApi = client.proxy[Api]
 
 val run = for {
   // Initialize the JSON-RPC client
