@@ -357,11 +357,11 @@ val compileScalac3Options = commonScalac3Options ++ Seq(
 )
 val docScalac3Options = commonScalac3Options ++ Seq(
   s"-source-links:src=github://$repositoryPath/master",
-  s"-skip-by-id:$projectName.client.meta,$projectName.handler.meta,examples",
+  s"-skip-by-id:$projectName.client.meta,examples",
 )
 val docScalac2Options = compileScalac2Options ++ Seq(
   "-skip-packages",
-  s"$projectName.client.meta:$projectName.handler.meta:examples",
+  s"$projectName.client.meta:examples",
 )
 ThisBuild / scalaVersion := "3.3.0"
 ThisBuild / crossScalaVersions += "2.13.12"
