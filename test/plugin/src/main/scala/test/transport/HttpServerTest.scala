@@ -8,7 +8,7 @@ import java.net.URI
 
 trait HttpServerTest extends HttpClientServerTest {
 
-  override def clientTransport(fixtureId: String): ClientTransport[Effect, ?] =
+  override def clientTransport(fixtureId: String, server: OptionalServer): ClientTransport[Effect, ?] =
     HttpClient(system, url(fixtureId), HttpMethod.Post)
 
   def url(fixtureId: String): URI =
