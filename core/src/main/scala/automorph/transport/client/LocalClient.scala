@@ -26,7 +26,7 @@ import automorph.util.Extensions.EffectOps
 final case class LocalClient[Effect[_], Context] (
   effectSystem: EffectSystem[Effect],
   context: Context,
-  server: RpcServer[?, MessageCodec[?], Effect, Context, Context],
+  server: RpcServer[?, MessageCodec[?], Effect, Context, ?],
 ) extends ClientTransport[Effect, Context] {
 
   implicit private val system: EffectSystem[Effect] = effectSystem
