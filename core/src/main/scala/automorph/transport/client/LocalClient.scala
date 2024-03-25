@@ -2,7 +2,7 @@ package automorph.transport.local.client
 
 import automorph.RpcException.InvalidResponse
 import automorph.RpcServer
-import automorph.spi.{ClientTransport, EffectSystem, MessageCodec}
+import automorph.spi.{ClientTransport, EffectSystem}
 import automorph.util.Extensions.EffectOps
 
 /**
@@ -26,7 +26,7 @@ import automorph.util.Extensions.EffectOps
 final case class LocalClient[Effect[_], Context] (
   effectSystem: EffectSystem[Effect],
   context: Context,
-  server: RpcServer[?, MessageCodec[?], Effect, Context, ?],
+  server: RpcServer[?, ?, Effect, Context, ?],
 ) extends ClientTransport[Effect, Context] {
 
   implicit private val system: EffectSystem[Effect] = effectSystem

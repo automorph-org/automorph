@@ -1,6 +1,5 @@
 package test.transport
 
-import automorph.RpcServer
 import automorph.spi.{ClientTransport, ServerTransport}
 import automorph.transport.local.client.LocalClient
 import org.scalacheck.{Arbitrary, Gen}
