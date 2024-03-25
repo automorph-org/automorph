@@ -30,7 +30,7 @@ final class RabbitMqFutureTest extends ClientServerTest with Await with Mutex {
   override def arbitraryContext: Arbitrary[Context] =
     AmqpContextGenerator.arbitrary
 
-  override def clientTransport(fixtureId: String): ClientTransport[Effect, Context] =
+  override def clientTransport(fixtureId: String, server: OptionalServer): ClientTransport[Effect, Context] =
     amqpBrokerUrl.map { url =>
       RabbitMqClient[Effect](system, url, fixtureId.replaceAll(" ", "_"))
     }.getOrElse {

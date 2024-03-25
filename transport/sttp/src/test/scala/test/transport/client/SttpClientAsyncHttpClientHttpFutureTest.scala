@@ -23,6 +23,6 @@ final class SttpClientAsyncHttpClientHttpFutureTest extends HttpClientTest {
   override def arbitraryContext: Arbitrary[Context] =
     HttpContextGenerator.arbitrary
 
-  override def clientTransport(fixtureId: String): ClientTransport[Effect, ?] =
+  override def clientTransport(fixtureId: String, server: OptionalServer): ClientTransport[Effect, ?] =
     SttpClient(system, AsyncHttpClientFutureBackend(), url(fixtureId), HttpMethod.Post)
 }
