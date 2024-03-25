@@ -26,7 +26,7 @@ trait HttpClientServerTest extends ClientServerTest {
     val id = fixtureId(protocol)
     val server = RpcServer.transport(serverTransport(id)).rpcProtocol(protocol).discovery(true)
       .bind(simpleApi, mapName).bind(complexApi)
-    val client = RpcClient.transport(typedClientTransport(id)).rpcProtocol(protocol)
+    val client = RpcClient.transport(typedClientTransport(id, Some(server))).rpcProtocol(protocol)
     Fixture(
       id,
       client,

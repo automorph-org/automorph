@@ -51,7 +51,7 @@ trait ProtocolCodecTest extends CoreTest {
 
   def serverTransport(fixtureId: String): ServerTransport[Effect, Context, Unit]
 
-  def typedClientTransport(fixtureId: String, server: OptionalServer = None): ClientTransport[Effect, Context] =
+  def typedClientTransport(fixtureId: String, server: OptionalServer): ClientTransport[Effect, Context] =
     clientTransport(fixtureId, server).asInstanceOf[ClientTransport[Effect, Context]]
 
   def mapName(name: String): Seq[String] =
@@ -249,7 +249,7 @@ trait ProtocolCodecTest extends CoreTest {
     val id = fixtureId(protocol)
     val server = RpcServer.transport(serverTransport(id)).rpcProtocol(protocol).discovery(true)
       .bind(simpleApi, mapName).bind(complexApi)
-    val client = RpcClient.transport(typedClientTransport(id)).rpcProtocol(protocol)
+    val client = RpcClient.transport(typedClientTransport(id, Some(server))).rpcProtocol(protocol)
     Fixture(
       id,
       client,
