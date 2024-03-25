@@ -34,7 +34,9 @@ final class RabbitMqFutureTest extends ClientServerTest with Await with Mutex {
     amqpBrokerUrl.map { url =>
       RabbitMqClient[Effect](system, url, fixtureId.replaceAll(" ", "_"))
     }.getOrElse {
-      val server = fixtures.find(_.id == fixtureId).map(_.server).get
+      server.map(LocalClient[Effect, Context](system, arbitraryContext.arbitrary.sample.get, _)).getOrElse {
+        throw new IllegalStateException("RPC server not defined")
+      }
       LocalClient(system, arbitraryContext.arbitrary.sample.get, server).asInstanceOf[ClientTransport[Effect, Context]]
     }
 
