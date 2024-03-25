@@ -11,11 +11,9 @@ import scala.collection.immutable.ListMap
 import scala.util.{Failure, Success, Try}
 
 /**
- * RPC request handler for bound APIs.
+ * Server RPC request handler for bound APIs.
  *
  * Processes remote API requests and invoke bound API methods.
- *
- * Note: Consider this class to be private and do not use it. It remains public only due to Scala 2 macro limitations.
  *
  * @constructor
  *   Creates a new RPC request handler using specified effect system and RPC protocol plugins with corresponding message
@@ -24,10 +22,10 @@ import scala.util.{Failure, Success, Try}
  *   RPC protocol plugin
  * @param effectSystem
  *   effect system plugin
- * @param apiBindings
- *   API method bindings
  * @param discovery
  *   enable automatic provision of service discovery via RPC functions returning bound API schema
+ * @param apiBindings
+ *   API method bindings
  * @tparam Node
  *   message node type
  * @tparam Codec
@@ -37,12 +35,12 @@ import scala.util.{Failure, Success, Try}
  * @tparam Context
  *   RPC message context type
  */
-final case class ApiRequestHandler[Node, Codec <: MessageCodec[Node], Effect[_], Context](
+private[automorph] final case class ServerRequestHandler[Node, Codec <: MessageCodec[Node], Effect[_], Context](
   effectSystem: EffectSystem[Effect],
   rpcProtocol: RpcProtocol[Node, Codec, Context],
+  discovery: Boolean = false,
   apiBindings: ListMap[String, ServerBinding[Node, Effect, Context]] =
     ListMap[String, ServerBinding[Node, Effect, Context]](),
-  discovery: Boolean = false,
 ) extends RequestHandler[Effect, Context] with Logging {
 
   private val bindings = Option.when(discovery)(apiSchemaBindings).getOrElse(ListMap.empty) ++ apiBindings

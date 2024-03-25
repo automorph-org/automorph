@@ -1,7 +1,8 @@
 package automorph.transport.local.client
 
 import automorph.RpcException.InvalidResponse
-import automorph.spi.{ClientTransport, EffectSystem, RequestHandler}
+import automorph.RpcServer
+import automorph.spi.{ClientTransport, EffectSystem, MessageCodec}
 import automorph.util.Extensions.EffectOps
 
 /**
@@ -13,8 +14,8 @@ import automorph.util.Extensions.EffectOps
  *   effect system plugin
  * @param context
  *   default request context
- * @param handler
- *   RPC request handler
+ * @param server
+ *   RPC server
  * @constructor
  *   Creates a local client transport plugin
  * @tparam Effect
@@ -22,10 +23,10 @@ import automorph.util.Extensions.EffectOps
  * @tparam Context
  *   RPC message context type
  */
-final case class LocalClient[Effect[_], Context](
+final case class LocalClient[Effect[_], Context] (
   effectSystem: EffectSystem[Effect],
   context: Context,
-  handler: RequestHandler[Effect, Context],
+  server: RpcServer[?, MessageCodec[?], Effect, Context, Context],
 ) extends ClientTransport[Effect, Context] {
 
   implicit private val system: EffectSystem[Effect] = effectSystem
@@ -36,7 +37,7 @@ final case class LocalClient[Effect[_], Context](
     requestId: String,
     mediaType: String,
   ): Effect[(Array[Byte], Context)] = {
-    val handlerResult = handler.processRequest(requestBody, requestContext, requestId)
+    val handlerResult = server.processRequest(requestBody, requestContext, requestId)
     handlerResult.flatMap(_.map { result =>
       effectSystem.successful(result.responseBody -> result.context.getOrElse(context))
     }.getOrElse {
@@ -50,7 +51,7 @@ final case class LocalClient[Effect[_], Context](
     requestId: String,
     mediaType: String,
   ): Effect[Unit] =
-    handler.processRequest(requestBody, requestContext, requestId).map(_ => ())
+    server.processRequest(requestBody, requestContext, requestId).map(_ => ())
 
   override def init(): Effect[Unit] =
     effectSystem.successful {}

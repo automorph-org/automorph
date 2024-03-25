@@ -14,8 +14,11 @@ trait LocalTest extends ClientServerTest {
   override def arbitraryContext: Arbitrary[Context] =
     Arbitrary(Gen.asciiPrintableStr)
 
-  override def clientTransport(fixtureId: String): ClientTransport[Effect, ?] =
-    LocalClient(system, arbitraryContext.arbitrary.sample.get, serverTransport.handler)
+  override def clientTransport(fixtureId: String, server: OptionalServer): ClientTransport[Effect, ?] = {
+    server.map(server => LocalClient[Effect, Context](system, arbitraryContext.arbitrary.sample.get, server)).getOrElse {
+      throw new IllegalStateException("RPC server not defined")
+    }
+  }
 
   override def serverTransport(fixtureId: String): ServerTransport[Effect, Context, Unit] =
     serverTransport

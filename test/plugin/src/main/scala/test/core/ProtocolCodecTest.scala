@@ -22,6 +22,8 @@ import test.core.Fixtures.{Apis, Fixture, Functions}
 
 trait ProtocolCodecTest extends CoreTest {
 
+  type OptionalServer = Option[RpcServer[?, ?, Effect, Context, ?]]
+
   @scala.annotation.nowarn("msg=never used")
   implicit private lazy val recordFromTo: FromTo[Record] = {
     implicit val enumFromTo: FromTo[Enum.Enum] = FromTo.join(ToInt, FromInt).bimap(Enum.toOrdinal, Enum.fromOrdinal)
@@ -45,12 +47,12 @@ trait ProtocolCodecTest extends CoreTest {
     )).getOrElse(Seq())
   }
 
-  def clientTransport(fixtureId: String): ClientTransport[Effect, ?]
+  def clientTransport(fixtureId: String, server: OptionalServer = None): ClientTransport[Effect, ?]
 
   def serverTransport(fixtureId: String): ServerTransport[Effect, Context, Unit]
 
-  def typedClientTransport(fixtureId: String): ClientTransport[Effect, Context] =
-    clientTransport(fixtureId).asInstanceOf[ClientTransport[Effect, Context]]
+  def typedClientTransport(fixtureId: String, server: OptionalServer = None): ClientTransport[Effect, Context] =
+    clientTransport(fixtureId, server).asInstanceOf[ClientTransport[Effect, Context]]
 
   def mapName(name: String): Seq[String] =
     name match {

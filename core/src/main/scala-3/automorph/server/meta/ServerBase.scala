@@ -1,8 +1,8 @@
 package automorph.server.meta
 
 import automorph.RpcServer
-import automorph.server.ApiRequestHandler
-import automorph.spi.{ServerTransport, MessageCodec, RequestHandler, RpcProtocol}
+import automorph.server.ServerBinding
+import automorph.spi.{MessageCodec, RpcProtocol, ServerTransport}
 import scala.collection.immutable.ListMap
 
 /**
@@ -25,7 +25,9 @@ private[automorph] trait ServerBase[Node, Codec <: MessageCodec[Node], Effect[_]
 
   def rpcProtocol: RpcProtocol[Node, Codec, Context]
 
-  def handler: RequestHandler[Effect, Context]
+  def discovery: Boolean
+
+  def apiBindings: ListMap[String, ServerBinding[Node, Effect, Context]]
 
   /**
    * Creates a copy of this server with added RPC bindings for all public methods of the specified API instance.
@@ -88,20 +90,10 @@ private[automorph] trait ServerBase[Node, Codec <: MessageCodec[Node], Effect[_]
     api: Api,
     mapName: String => Iterable[String],
   ): RpcServer[Node, Codec, Effect, Context, Endpoint] =
-    val apiBindings = handler match
-      case apiHandler: ApiRequestHandler[?, ?, ?, ?] =>
-        apiHandler.asInstanceOf[ApiRequestHandler[Node, Codec, Effect, Context]].apiBindings
-      case _ => ListMap.empty
     val newApiBindings = ServerBindingGenerator.generate[Node, Codec, Effect, Context, Api](
       rpcProtocol.messageCodec,
       api,
     ).flatMap { binding =>
       mapName(binding.function.name).map(_ -> binding)
     }
-    val apiHandler = ApiRequestHandler(
-      transport.effectSystem,
-      rpcProtocol,
-      apiBindings ++ newApiBindings,
-      discovery = handler.discovery,
-    )
-    RpcServer(transport, rpcProtocol, apiHandler, apiHandler.functions)
+    RpcServer(transport, rpcProtocol, discovery, apiBindings ++ newApiBindings)

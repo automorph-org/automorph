@@ -1,6 +1,6 @@
 package automorph.server.meta
 
-import automorph.spi.{ServerTransport, MessageCodec, RequestHandler, RpcProtocol}
+import automorph.spi.{ServerTransport, MessageCodec, RpcProtocol}
 import automorph.RpcServer
 import scala.language.experimental.macros
 import scala.reflect.macros.blackbox
@@ -24,8 +24,6 @@ private[automorph] trait ServerBase[Node, Codec <: MessageCodec[Node], Effect[_]
   def rpcProtocol: RpcProtocol[Node, Codec, Context]
 
   def transport: ServerTransport[Effect, Context, Endpoint]
-
-  def handler: RequestHandler[Effect, Context]
 
   /**
    * Creates a copy of this server with added RPC bindings for all public methods of the specified API instance.
@@ -128,28 +126,16 @@ object ServerBase {
 
     // This server needs to be assigned to a stable identifier due to macro expansion limitations
     c.Expr[RpcServer[Node, Codec, Effect, Context, Endpoint]](q"""
-      import automorph.server.{ApiRequestHandler, ServerBinding}
+      import automorph.server.ServerBinding
       import automorph.server.meta.ServerBindingGenerator
-      import scala.collection.immutable.ListMap
 
       val server = ${c.prefix}
-      val apiBindings = if (server.handler.isInstanceOf[ApiRequestHandler[?, ?, $effectType, ?]]) {
-        server.handler.asInstanceOf[ApiRequestHandler[$nodeType, $codecType, $effectType, $contextType]].apiBindings
-      } else {
-        ListMap.empty[String, ServerBinding[$nodeType, $effectType, $contextType]]
-      }
       val newApiBindings = ServerBindingGenerator.generate[$nodeType, $codecType, $effectType, $contextType, $apiType](
         server.rpcProtocol.messageCodec, $api
       ).flatMap { binding =>
         $mapName(binding.function.name).map(_ -> binding)
       }
-      val handler = ApiRequestHandler(
-        server.transport.effectSystem,
-        server.rpcProtocol,
-        apiBindings ++ newApiBindings,
-        server.handler.discovery,
-      )
-      automorph.RpcServer(server.transport, server.rpcProtocol, handler, handler.functions)
+      automorph.RpcServer(server.transport, server.rpcProtocol, server.discovery, server.apiBindings ++ newApiBindings)
     """)
   }
 }

@@ -1,9 +1,9 @@
 package automorph
 
-import automorph.server.ApiRequestHandler
+import automorph.server.{ServerRequestHandler, ServerBinding}
 import automorph.server.meta.ServerBase
 import automorph.spi.RequestHandler.Result
-import automorph.spi.{MessageCodec, RequestHandler, RpcProtocol, ServerTransport}
+import automorph.spi.{MessageCodec, RpcProtocol, ServerTransport}
 import scala.collection.immutable.ListMap
 import scala.util.Random
 
@@ -20,10 +20,10 @@ import scala.util.Random
  *   transport layer transport plugin
  * @param rpcProtocol
  *   RPC protocol plugin
- * @param handler
- *   RPC request handler
- * @param functions
- *   bound RPC functions
+ * @param discovery
+ *   enable automatic provision of service discovery via RPC functions returning bound API schema
+ * @param apiBindings
+ *   API method bindings
  * @tparam Node
  *   message node type
  * @tparam Codec
@@ -38,11 +38,14 @@ import scala.util.Random
 final case class RpcServer[Node, Codec <: MessageCodec[Node], Effect[_], Context, Endpoint](
   transport: ServerTransport[Effect, Context, Endpoint],
   rpcProtocol: RpcProtocol[Node, Codec, Context],
-  handler: RequestHandler[Effect, Context],
-  functions: Seq[RpcFunction] = Seq.empty,
+  discovery: Boolean = false,
+  apiBindings: ListMap[String, ServerBinding[Node, Effect, Context]] =
+  ListMap[String, ServerBinding[Node, Effect, Context]]()
 ) extends ServerBase[Node, Codec, Effect, Context, Endpoint] {
 
-  private val configuredTransport = transport.withHandler(handler)
+  private val handler = ServerRequestHandler(transport.effectSystem, rpcProtocol, discovery, apiBindings)
+  private lazy val configuredTransport = transport.withHandler(handler)
+  private lazy val rpcFunctions = handler.functions
 
   /** Transport layer integration endpoint. */
   def endpoint: Endpoint =
@@ -67,6 +70,14 @@ final case class RpcServer[Node, Codec <: MessageCodec[Node], Effect[_], Context
     configuredTransport.effectSystem.map(configuredTransport.close())(_ => this)
 
   /**
+   * Bound RPC functions.
+   *
+   * @return bound RPC functions
+   */
+  def functions: Seq[RpcFunction] =
+    rpcFunctions
+
+  /**
    * Enable or disable automatic provision of service discovery via RPC functions returning bound API schema.
    *
    * @param discovery
@@ -75,7 +86,7 @@ final case class RpcServer[Node, Codec <: MessageCodec[Node], Effect[_], Context
    *   RPC server
    */
   def discovery(discovery: Boolean): RpcServer[Node, Codec, Effect, Context, Endpoint] =
-    copy(handler = handler.discovery(discovery))
+    copy(discovery = discovery)
 
   /**
    * Processes an RPC request by invoking a bound remote function based on the specified RPC request along with request
@@ -109,34 +120,6 @@ final case class RpcServer[Node, Codec <: MessageCodec[Node], Effect[_], Context
 }
 
 object RpcServer {
-
-  /**
-   * Creates a RPC server with specified protocol and transport plugins supporting corresponding message context type.
-   *
-   * @param transport
-   *   server transport layer plugin
-   * @param rpcProtocol
-   *   RPC protocol plugin
-   * @tparam Node
-   *   message node type
-   * @tparam Codec
-   *   message codec plugin type
-   * @tparam Effect
-   *   effect type
-   * @tparam Context
-   *   RPC message context type
-   * @tparam Endpoint
-   *   transport layer transport type
-   * @return
-   *   RPC server
-   */
-  def apply[Node, Codec <: MessageCodec[Node], Effect[_], Context, Endpoint](
-    transport: ServerTransport[Effect, Context, Endpoint],
-    rpcProtocol: RpcProtocol[Node, Codec, Context],
-  ): RpcServer[Node, Codec, Effect, Context, Endpoint] = {
-    val handler = ApiRequestHandler(transport.effectSystem, rpcProtocol, ListMap.empty)
-    RpcServer(transport, rpcProtocol, handler, handler.functions)
-  }
 
   /**
    * Creates an RPC client builder with specified effect transport plugin.
