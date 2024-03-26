@@ -83,7 +83,7 @@ final case class VertxWebSocketEndpoint[Effect[_]](
   override def close(): Effect[Unit] =
     effectSystem.successful {}
 
-  override def withHandler(handler: RequestHandler[Effect, Context]): VertxWebSocketEndpoint[Effect] =
+  override def requestHandler(handler: RequestHandler[Effect, Context]): VertxWebSocketEndpoint[Effect] =
     copy(handler = handler)
 
   private def sendErrorResponse(

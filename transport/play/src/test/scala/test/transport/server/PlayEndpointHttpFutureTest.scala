@@ -38,8 +38,8 @@
 //    private var endpoint = PlayHttpEndpoint(effectSystem)
 //    private var server = Option.empty[ListeningServer]
 //
-//    override def withHandler(handler: RequestHandler[Effect, Context]): ServerTransport[Effect, Context, Unit] = {
-//      endpoint = endpoint.withHandler(handler)
+//    override def requestHandler(handler: RequestHandler[Effect, Context]): ServerTransport[Effect, Context, Unit] = {
+//      endpoint = endpoint.requestHandler(handler)
 //      this
 //    }
 //

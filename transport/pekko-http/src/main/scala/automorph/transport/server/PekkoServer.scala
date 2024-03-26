@@ -106,7 +106,7 @@ final case class PekkoServer[Effect[_]](
       }
     })
 
-  override def withHandler(handler: RequestHandler[Effect, Context]): PekkoServer[Effect] =
+  override def requestHandler(handler: RequestHandler[Effect, Context]): PekkoServer[Effect] =
     copy(handler = handler)
 
   private def createRoute(): Route = {

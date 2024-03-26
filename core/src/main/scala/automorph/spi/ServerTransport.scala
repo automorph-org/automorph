@@ -46,5 +46,5 @@ trait ServerTransport[Effect[_], Context, Endpoint] {
    * @return
    *   server transport
    */
-  def withHandler(handler: RequestHandler[Effect, Context]): ServerTransport[Effect, Context, Endpoint]
+  def requestHandler(handler: RequestHandler[Effect, Context]): ServerTransport[Effect, Context, Endpoint]
 }

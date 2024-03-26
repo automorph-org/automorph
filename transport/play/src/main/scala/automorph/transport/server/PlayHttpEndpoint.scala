@@ -98,7 +98,7 @@ final case class PlayHttpEndpoint[Effect[_]](
   override def close(): Effect[Unit] =
     effectSystem.successful {}
 
-  override def withHandler(handler: RequestHandler[Effect, Context]): PlayHttpEndpoint[Effect] =
+  override def requestHandler(handler: RequestHandler[Effect, Context]): PlayHttpEndpoint[Effect] =
     copy(handler = handler)
 
   private def createErrorResponse(

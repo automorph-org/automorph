@@ -71,7 +71,7 @@ final case class UndertowHttpEndpoint[Effect[_]](
   override def close(): Effect[Unit] =
     effectSystem.successful {}
 
-  override def withHandler(handler: RequestHandler[Effect, Context]): UndertowHttpEndpoint[Effect] =
+  override def requestHandler(handler: RequestHandler[Effect, Context]): UndertowHttpEndpoint[Effect] =
     copy(handler = handler)
 
   private def getRequestProperties(exchange: HttpServerExchange, requestId: String): Map[String, String] = {

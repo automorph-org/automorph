@@ -56,7 +56,7 @@ final case class ZioHttpWebSocketEndpoint[Fault](
   override def close(): IO[Fault, Unit] =
     effectSystem.successful {}
 
-  override def withHandler(
+  override def requestHandler(
     handler: RequestHandler[({ type Effect[A] = IO[Fault, A] })#Effect, Context]
   ): ZioHttpWebSocketEndpoint[Fault] =
     copy(handler = handler)

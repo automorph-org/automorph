@@ -95,7 +95,7 @@ final case class JettyHttpEndpoint[Effect[_]](
   override def close(): Effect[Unit] =
     effectSystem.successful {}
 
-  override def withHandler(handler: RequestHandler[Effect, Context]): JettyHttpEndpoint[Effect] =
+  override def requestHandler(handler: RequestHandler[Effect, Context]): JettyHttpEndpoint[Effect] =
     copy(handler = handler)
 
   private def sendErrorResponse(

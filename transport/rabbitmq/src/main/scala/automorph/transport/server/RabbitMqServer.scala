@@ -81,7 +81,7 @@ final case class RabbitMqServer[Effect[_]](
       session = None
     })
 
-  override def withHandler(handler: RequestHandler[Effect, Context]): RabbitMqServer[Effect] =
+  override def requestHandler(handler: RequestHandler[Effect, Context]): RabbitMqServer[Effect] =
     copy(handler = handler)
 
   private def createConsumer(channel: Channel): DefaultConsumer = {

@@ -94,7 +94,7 @@ final case class UndertowServer[Effect[_]](
       }
     })
 
-  override def withHandler(handler: RequestHandler[Effect, Context]): UndertowServer[Effect] =
+  override def requestHandler(handler: RequestHandler[Effect, Context]): UndertowServer[Effect] =
     copy(handler = handler)
 
   private def createServer(): Undertow = {

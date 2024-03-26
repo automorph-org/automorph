@@ -55,8 +55,8 @@ object TapirVertxHttpFutureTest {
         }
       }.getOrElse(effectSystem.successful {})
 
-    override def withHandler(handler: RequestHandler[Effect, Context]): ServerTransport[Effect, Context, Unit] = {
-      rpcServer = rpcServer.withHandler(handler)
+    override def requestHandler(handler: RequestHandler[Effect, Context]): ServerTransport[Effect, Context, Unit] = {
+      rpcServer = rpcServer.requestHandler(handler)
       val vertx = Vertx.vertx()
       val router = Router.router(vertx)
       VertxFutureServerInterpreter().route(rpcServer.endpoint)(router)

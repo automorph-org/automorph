@@ -69,7 +69,7 @@ final case class NanoServer[Effect[_]](
   private val allowedMethods = methods.map(_.name).toSet
   implicit private val system: EffectSystem[Effect] = effectSystem
 
-  override def withHandler(handler: RequestHandler[Effect, Context]): NanoServer[Effect] = {
+  override def requestHandler(handler: RequestHandler[Effect, Context]): NanoServer[Effect] = {
     this.handler = handler
     this
   }

@@ -90,7 +90,7 @@ final case class VertxServer[Effect[_]](
       ()
     })
 
-  override def withHandler(handler: RequestHandler[Effect, Context]): VertxServer[Effect] =
+  override def requestHandler(handler: RequestHandler[Effect, Context]): VertxServer[Effect] =
     copy(handler = handler)
 
   private def createServer(): HttpServer = {

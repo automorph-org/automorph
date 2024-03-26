@@ -83,7 +83,7 @@ final case class PekkoHttpEndpoint[Effect[_]](
   override def close(): Effect[Unit] =
     effectSystem.successful {}
 
-  override def withHandler(handler: RequestHandler[Effect, Context]): PekkoHttpEndpoint[Effect] =
+  override def requestHandler(handler: RequestHandler[Effect, Context]): PekkoHttpEndpoint[Effect] =
     copy(handler = handler)
 
   private def handleRequest(request: HttpRequest, remoteAddress: RemoteAddress)(

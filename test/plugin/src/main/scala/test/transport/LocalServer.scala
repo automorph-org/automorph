@@ -20,8 +20,8 @@ final case class LocalServer[Effect[_], Context](
   override def close(): Effect[Unit] =
     effectSystem.successful {}
 
-  override def withHandler(handler: RequestHandler[Effect, Context]): ServerTransport[Effect, Context, Unit] = {
-    genericEndpoint = genericEndpoint.withHandler(handler)
+  override def requestHandler(handler: RequestHandler[Effect, Context]): ServerTransport[Effect, Context, Unit] = {
+    genericEndpoint = genericEndpoint.requestHandler(handler)
     this
   }
 }

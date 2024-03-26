@@ -48,8 +48,8 @@
 //    override def run: ZIO[Any, Throwable, Nothing] =
 //      Server.serve(httpApp).provide(Server.defaultWithPort(port))
 //
-//    override def withHandler(handler: RequestHandler[Effect, Context]): ServerTransport[Effect, Context, Unit] = {
-//      endpoint = endpoint.withHandler(handler)
+//    override def requestHandler(handler: RequestHandler[Effect, Context]): ServerTransport[Effect, Context, Unit] = {
+//      endpoint = endpoint.requestHandler(handler)
 //      this
 //    }
 //

@@ -88,7 +88,7 @@ final case class VertxHttpEndpoint[Effect[_]](
   override def close(): Effect[Unit] =
     effectSystem.successful {}
 
-  override def withHandler(handler: RequestHandler[Effect, Context]): VertxHttpEndpoint[Effect] =
+  override def requestHandler(handler: RequestHandler[Effect, Context]): VertxHttpEndpoint[Effect] =
     copy(handler = handler)
 
   private def sendErrorResponse(

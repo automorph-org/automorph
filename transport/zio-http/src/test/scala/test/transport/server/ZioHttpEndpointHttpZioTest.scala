@@ -73,8 +73,8 @@
 //        _ => Console.printLine("STOP").asInstanceOf[zio.URIO[Server, Any]]
 //      ).provide(Server.defaultWithPort(port)).unit
 //
-//    override def withHandler(handler: RequestHandler[Effect, Context]): ServerTransport[Effect, Context, Unit] = {
-//      endpoint = endpoint.withHandler(handler)
+//    override def requestHandler(handler: RequestHandler[Effect, Context]): ServerTransport[Effect, Context, Unit] = {
+//      endpoint = endpoint.requestHandler(handler)
 //      this
 //    }
 //

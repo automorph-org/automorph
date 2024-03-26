@@ -114,7 +114,7 @@ final case class TapirHttpEndpoint[Effect[_]](
   override def close(): Effect[Unit] =
     effectSystem.successful {}
 
-  override def withHandler(handler: RequestHandler[Effect, Context]): TapirHttpEndpoint[Effect] =
+  override def requestHandler(handler: RequestHandler[Effect, Context]): TapirHttpEndpoint[Effect] =
     copy(handler = handler)
 
   private def createErrorResponse(

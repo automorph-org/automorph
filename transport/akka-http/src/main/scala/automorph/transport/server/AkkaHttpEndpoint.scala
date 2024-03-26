@@ -83,7 +83,7 @@ final case class AkkaHttpEndpoint[Effect[_]](
   override def close(): Effect[Unit] =
     effectSystem.successful {}
 
-  override def withHandler(handler: RequestHandler[Effect, Context]): AkkaHttpEndpoint[Effect] =
+  override def requestHandler(handler: RequestHandler[Effect, Context]): AkkaHttpEndpoint[Effect] =
     copy(handler = handler)
 
   private def handleRequest(request: HttpRequest, remoteAddress: RemoteAddress)(
