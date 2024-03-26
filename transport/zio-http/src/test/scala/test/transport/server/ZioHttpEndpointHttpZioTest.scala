@@ -85,7 +85,6 @@
 //        //      runtime.unsafe.run(effect).toTry.get
 //        ZIO.succeed(())
 //      }
-//      println("DDD")
 //      ZIO.succeed(())
 //    }
 ////      run.flatMap(_ => server.map(_.await.map(_ => println("INIT"))).getOrElse(ZIO.succeed(())))
