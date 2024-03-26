@@ -26,7 +26,7 @@ trait ServerTransport[Effect[_], Context, Endpoint] {
    * Starts this server to process incoming requests.
    *
    * @return
-   *   active RPC server
+   *   active server transport
    */
   def init(): Effect[Unit]
 

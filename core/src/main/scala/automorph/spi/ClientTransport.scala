@@ -70,7 +70,7 @@ trait ClientTransport[Effect[_], Context] {
    * Initializes this client to invoke remote APIs.
    *
    * @return
-   *   active RPC server
+   *   active client transport
    */
   def init(): Effect[Unit]
 

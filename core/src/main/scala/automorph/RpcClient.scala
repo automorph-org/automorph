@@ -69,7 +69,7 @@ final case class RpcClient[Node, Codec <: MessageCodec[Node], Effect[_], Context
    * Starts this server to process incoming requests.
    *
    * @return
-   *   active RPC server
+   *   active RPC client
    */
   def init(): Effect[RpcClient[Node, Codec, Effect, Context]] =
     system.map(transport.init())(_ => this)
