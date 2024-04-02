@@ -69,17 +69,40 @@ final case class NanoServer[Effect[_]](
   implicit private val system: EffectSystem[Effect] = effectSystem
   private var handler: RequestHandler[Effect, Context] = RequestHandler.dummy
 
-  private var httpHandler: HttpRequestHandler[Effect, Context, IHTTPSession, Response, IHTTPSession] =
-    HttpRequestHandler(parseHttpRequest, sendHttpResponse, effectSystem, mapException, handler, logger)
+  private var httpHandler =
+    HttpRequestHandler(receiveHttpRequest, sendHttpResponse, Protocol.Http, effectSystem, mapException, handler, logger)
 
-  private var webSocketHandler: HttpRequestHandler[Effect, Context, WebSocketRequest, Array[Byte], WebSocket] =
-    HttpRequestHandler(parseWebSocketRequest, sendWebSocketResponse, effectSystem, mapException, handler, logger)
+  private var webSocketHandler = HttpRequestHandler(
+    receiveWebSocketRequest,
+    sendWebSocketResponse,
+    Protocol.WebSocket,
+    effectSystem,
+    mapException,
+    handler,
+    logger,
+  )
 
   override def requestHandler(handler: RequestHandler[Effect, Context]): NanoServer[Effect] = {
     this.handler = handler
-    httpHandler = HttpRequestHandler(parseHttpRequest, sendHttpResponse, effectSystem, mapException, handler, logger)
+    httpHandler = HttpRequestHandler(
+      receiveHttpRequest,
+      sendHttpResponse,
+      Protocol.Http,
+      effectSystem,
+      mapException,
+      handler,
+      logger,
+    )
     webSocketHandler =
-      HttpRequestHandler(parseWebSocketRequest, sendWebSocketResponse, effectSystem, mapException, handler, logger)
+      HttpRequestHandler(
+        receiveWebSocketRequest,
+        sendWebSocketResponse,
+        Protocol.WebSocket,
+        effectSystem,
+        mapException,
+        handler,
+        logger,
+      )
     this
   }
 
@@ -162,7 +185,7 @@ final case class NanoServer[Effect[_]](
         log.failedReceiveRequest(error, Map(), Protocol.WebSocket.name)
     }
 
-  private def parseHttpRequest(session: IHTTPSession): RequestData[Context] = {
+  private def receiveHttpRequest(session: IHTTPSession): RequestData[Context] = {
     val query = Option(session.getQueryParameterString).filter(_.nonEmpty).map("?" + _).getOrElse("")
     RequestData(
       () => session.getInputStream.readNBytes(session.getBodySize.toInt),
@@ -174,7 +197,7 @@ final case class NanoServer[Effect[_]](
     )
   }
 
-  private def parseWebSocketRequest(request: WebSocketRequest): RequestData[Context] = {
+  private def receiveWebSocketRequest(request: WebSocketRequest): RequestData[Context] = {
     val (session, frame) = request
     val query = Option(session.getQueryParameterString).filter(_.nonEmpty).map("?" + _).getOrElse("")
     RequestData(
@@ -189,13 +212,14 @@ final case class NanoServer[Effect[_]](
   @scala.annotation.nowarn("msg=used")
   private def sendHttpResponse(
     body: Array[Byte],
-    status: Int,
+    statusCode: Int,
+    contentType: String,
     context: Option[Context],
     channel: IHTTPSession,
   ): Response = {
     val response = newFixedLengthResponse(
-      Status.lookup(status),
-      handler.mediaType,
+      Status.lookup(statusCode),
+      contentType,
       body.toInputStream,
       body.length.toLong,
     )
@@ -206,7 +230,8 @@ final case class NanoServer[Effect[_]](
   @scala.annotation.nowarn("msg=used")
   private def sendWebSocketResponse(
     body: Array[Byte],
-    status: Int,
+    statusCode: Int,
+    contentType: String,
     context: Option[Context],
     channel: WebSocket,
   ): Array[Byte] = {

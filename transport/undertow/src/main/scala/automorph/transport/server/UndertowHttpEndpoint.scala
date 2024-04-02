@@ -1,19 +1,18 @@
 package automorph.transport.server
 
-import automorph.log.{LogProperties, Logging, MessageLog}
+import automorph.log.Logging
 import automorph.spi.{EffectSystem, RequestHandler, ServerTransport}
-import automorph.transport.server.UndertowHttpEndpoint.{Context, ReceiverFullBytesCallback, clientAddress, requestQuery, sendErrorResponse}
-import automorph.transport.{HttpContext, HttpMethod, Protocol}
-import automorph.util.Extensions.{ByteArrayOps, EffectOps, StringOps, ThrowableOps, TryOps}
-import automorph.util.{Network, Random}
+import automorph.transport.HttpRequestHandler.RequestData
+import automorph.transport.server.UndertowHttpEndpoint.{Context, HandlerRunnable, HttpRequest, requestQuery}
+import automorph.transport.{HttpContext, HttpMethod, HttpRequestHandler, Protocol}
+import automorph.util.Extensions.ByteArrayOps
+import automorph.util.Network
 import io.undertow.io.Receiver
 import io.undertow.server.{HttpHandler, HttpServerExchange}
-import io.undertow.util.{Headers, HttpString, StatusCodes}
+import io.undertow.util.{Headers, HttpString}
 import io.undertow.websockets.spi.WebSocketHttpExchange
 import java.io.IOException
-import scala.collection.immutable.ListMap
 import scala.jdk.CollectionConverters.{IterableHasAsScala, IteratorHasAsScala}
-import scala.util.Try
 
 /**
  * Undertow HTTP endpoint transport plugin.
@@ -43,24 +42,23 @@ final case class UndertowHttpEndpoint[Effect[_]](
   mapException: Throwable => Int = HttpContext.toStatusCode,
   handler: RequestHandler[Effect, Context] = RequestHandler.dummy[Effect, Context],
 ) extends ServerTransport[Effect, Context, HttpHandler] with Logging {
+  private val httpRequestHandler =
+    HttpRequestHandler(receiveRequest, sendResponse, Protocol.Http, effectSystem, mapException, handler, logger)
+  private val receiver = new Receiver.FullBytesCallback {
 
-  private lazy val httpHandler = new HttpHandler {
-
-    override def handleRequest(exchange: HttpServerExchange): Unit = {
-      // Log the request
-      val requestId = Random.id
-      lazy val requestProperties = getRequestProperties(exchange, requestId)
-      log.receivingRequest(requestProperties)
-      val receiveCallback =
-        ReceiverFullBytesCallback(effectSystem, mapException, handler, log, requestId, requestProperties)
-      Try(
-        exchange.getRequestReceiver.receiveFullBytes(receiveCallback)
-      ).recover { case error =>
-        sendErrorResponse(error, exchange, requestId, requestProperties, handler.mediaType, log)
-      }.get
+    override def handle(exchange: HttpServerExchange, requestBody: Array[Byte]): Unit = {
+      val handlerRunnable = HandlerRunnable(effectSystem, httpRequestHandler, exchange, requestBody)
+      if (exchange.isInIoThread) {
+        exchange.dispatch(handlerRunnable)
+        ()
+      } else handlerRunnable.run()
     }
   }
-  private val log = MessageLog(logger, Protocol.Http.name)
+  private lazy val httpHandler = new HttpHandler {
+
+    override def handleRequest(exchange: HttpServerExchange): Unit =
+      exchange.getRequestReceiver.receiveFullBytes(receiver)
+  }
 
   override def endpoint: HttpHandler =
     httpHandler
@@ -74,68 +72,43 @@ final case class UndertowHttpEndpoint[Effect[_]](
   override def requestHandler(handler: RequestHandler[Effect, Context]): UndertowHttpEndpoint[Effect] =
     copy(handler = handler)
 
-  private def getRequestProperties(exchange: HttpServerExchange, requestId: String): Map[String, String] = {
+  private def receiveRequest(request: HttpRequest): RequestData[Context] = {
+    val (exchange, requestBody) = request
     val query = requestQuery(exchange.getQueryString)
-    val url = s"${exchange.getRequestURI}$query"
-    ListMap(
-      LogProperties.requestId -> requestId,
-      LogProperties.client -> clientAddress(exchange),
-      "URL" -> url,
-      "Method" -> exchange.getRequestMethod.toString,
+    RequestData(
+      () => requestBody,
+      getRequestContext(exchange),
+      Protocol.Http,
+      s"${exchange.getRequestURI}$query",
+      clientAddress(exchange),
+      Some(exchange.getRequestMethod.toString),
     )
-  }
-}
-
-object UndertowHttpEndpoint {
-
-  /** Request context type. */
-  type Context = HttpContext[Either[HttpServerExchange, WebSocketHttpExchange]]
-
-  private[automorph] def requestQuery(query: String) =
-    Option(query).filter(_.nonEmpty).map("?" + _).getOrElse("")
-
-  private def sendErrorResponse(
-    error: Throwable,
-    exchange: HttpServerExchange,
-    requestId: String,
-    requestProperties: => Map[String, String],
-    mediaType: String,
-    log: MessageLog,
-  ): Unit = {
-    log.failedProcessRequest(error, requestProperties)
-    val responseBody = error.description.toByteArray
-    val statusCode = StatusCodes.INTERNAL_SERVER_ERROR
-    sendResponse(responseBody, statusCode, None, exchange, requestId, mediaType, log)
   }
 
   private def sendResponse(
-    responseBody: Array[Byte],
+    body: Array[Byte],
     statusCode: Int,
-    responseContext: Option[Context],
-    exchange: HttpServerExchange,
-    requestId: String,
-    mediaType: String,
-    log: MessageLog,
+    contentType: String,
+    context: Option[Context],
+    channel: HttpServerExchange,
   ): Unit = {
-    // Log the response
-    val responseStatusCode = responseContext.flatMap(_.statusCode).getOrElse(statusCode)
-    lazy val responseProperties = ListMap(
-      LogProperties.requestId -> requestId,
-      LogProperties.client -> clientAddress(exchange),
-      "Status" -> responseStatusCode.toString,
-    )
-    log.sendingResponse(responseProperties)
+    if (!channel.isResponseChannelAvailable) {
+      throw new IOException("Response channel not available")
+    }
+    setResponseContext(channel, context)
+    channel.getResponseHeaders.put(Headers.CONTENT_TYPE, contentType)
+    channel.setStatusCode(statusCode).getResponseSender.send(body.toByteBuffer)
+  }
 
-    // Send the response
-    Try {
-      if (!exchange.isResponseChannelAvailable) {
-        throw new IOException("Response channel not available")
-      }
-      setResponseContext(exchange, responseContext)
-      exchange.getResponseHeaders.put(Headers.CONTENT_TYPE, mediaType)
-      exchange.setStatusCode(responseStatusCode).getResponseSender.send(responseBody.toByteBuffer)
-      log.sentResponse(responseProperties)
-    }.onError(error => log.failedSendResponse(error, responseProperties)).get
+  private def getRequestContext(exchange: HttpServerExchange): Context = {
+    val headers = exchange.getRequestHeaders.asScala.flatMap { headerValues =>
+      headerValues.iterator.asScala.map(value => headerValues.getHeaderName.toString -> value)
+    }.toSeq
+    HttpContext(
+      transportContext = Some(Left(exchange).withRight[WebSocketHttpExchange]),
+      method = Some(HttpMethod.valueOf(exchange.getRequestMethod.toString)),
+      headers = headers,
+    ).url(exchange.getRequestURI)
   }
 
   private def setResponseContext(exchange: HttpServerExchange, responseContext: Option[Context]): Unit = {
@@ -150,67 +123,26 @@ object UndertowHttpEndpoint {
     val address = exchange.getSourceAddress.toString
     Network.address(forwardedFor, address)
   }
+}
 
-  final private case class ReceiverFullBytesCallback[Effect[_]](
-    effectSystem: EffectSystem[Effect],
-    mapException: Throwable => Int,
-    handler: RequestHandler[Effect, Context],
-    log: MessageLog,
-    requestId: String,
-    requestProperties: Map[String, String],
-  ) extends Receiver.FullBytesCallback {
+object UndertowHttpEndpoint {
 
-    override def handle(exchange: HttpServerExchange, message: Array[Byte]): Unit = {
-      log.receivedRequest(requestProperties)
-      val handlerRunnable =
-        HandlerRunnable(effectSystem, mapException, handler, log, exchange, message, requestId, requestProperties)
-      if (exchange.isInIoThread) {
-        exchange.dispatch(handlerRunnable)
-        ()
-      } else handlerRunnable.run()
-    }
-  }
+  /** Request context type. */
+  type Context = HttpContext[Either[HttpServerExchange, WebSocketHttpExchange]]
+
+  private type HttpRequest = (HttpServerExchange, Array[Byte])
+
+  private[automorph] def requestQuery(query: String): String =
+    Option(query).filter(_.nonEmpty).map("?" + _).getOrElse("")
 
   final private case class HandlerRunnable[Effect[_]](
     effectSystem: EffectSystem[Effect],
-    mapException: Throwable => Int,
-    handler: RequestHandler[Effect, Context],
-    log: MessageLog,
+    handler: HttpRequestHandler[Effect, Context, HttpRequest, Unit, HttpServerExchange],
     exchange: HttpServerExchange,
-    message: Array[Byte],
-    requestId: String,
-    requestProperties: Map[String, String],
+    requestBody: Array[Byte],
   ) extends Runnable {
-    implicit private val system: EffectSystem[Effect] = effectSystem
 
     override def run(): Unit =
-      // Process the request
-      Try {
-        val response = handler.processRequest(message, getRequestContext(exchange), requestId)
-        response.either.map(
-          _.fold(
-            error => sendErrorResponse(error, exchange, requestId, requestProperties, handler.mediaType, log),
-            result => {
-              // Send the response
-              val responseBody = result.map(_.responseBody).getOrElse(Array.emptyByteArray)
-              val status = result.flatMap(_.exception).map(mapException).getOrElse(StatusCodes.OK)
-              sendResponse(responseBody, status, result.flatMap(_.context), exchange, requestId, handler.mediaType, log)
-            },
-          )
-        ).runAsync
-      }.failed.foreach { error =>
-        sendErrorResponse(error, exchange, requestId, requestProperties, handler.mediaType, log)
-      }
-
-    private def getRequestContext(exchange: HttpServerExchange): Context = {
-      val headers = exchange.getRequestHeaders.asScala.flatMap { headerValues =>
-        headerValues.iterator.asScala.map(value => headerValues.getHeaderName.toString -> value)
-      }.toSeq
-      HttpContext(
-        transportContext = Some(Left(exchange).withRight[WebSocketHttpExchange]),
-        method = Some(HttpMethod.valueOf(exchange.getRequestMethod.toString)),
-        headers = headers,
-      ).url(exchange.getRequestURI)
-    }
+      effectSystem.runAsync(handler.processRequest((exchange, requestBody), exchange))
   }
 }

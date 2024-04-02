@@ -95,17 +95,31 @@ private[automorph] object Extensions {
   implicit final class TryOps[T](private val tryValue: Try[T]) {
 
     /**
-     * Applies ''onFailure'' on `Failure` or returns this on `Success`.
+     * Invokes ''onFailure'' on `Failure` or returns this on `Success`.
      *
      * @param onFailure
-     *   function to apply if this is a `Failure`
+     *   function to invoke if this is a `Failure`
      * @return
-     *   a transformed `Try`
+     *   the supplied `Try`
      */
     def onError(onFailure: Throwable => Unit): Try[T] =
       tryValue.recoverWith { case error =>
         onFailure(error)
         Failure(error)
+      }
+
+    /**
+     * Invokes ''onSuccess'' on `Success` or returns this on `Success`.
+     *
+     * @param onSuccess
+     *   function to invoke if this is a `Success`
+     * @return
+     *   the supplied `Try`
+     */
+    def onSuccess(onSuccess: T => Unit): Try[T] =
+      tryValue.map { result =>
+        onSuccess(result)
+        result
       }
 
     /**

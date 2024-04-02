@@ -3,7 +3,7 @@ package automorph.transport
 import automorph.log.{LogProperties, Logger, MessageLog}
 import automorph.spi.{EffectSystem, RequestHandler}
 import automorph.transport.HttpRequestHandler.RequestData
-import automorph.util.Extensions.{EffectOps, StringOps, ThrowableOps}
+import automorph.util.Extensions.{EffectOps, StringOps, ThrowableOps, TryOps}
 import automorph.util.Random
 import scala.collection.immutable.ListMap
 import scala.util.Try
@@ -15,8 +15,9 @@ final private[automorph] case class HttpRequestHandler[
   Response,
   Channel,
 ](
-  parseRequest: Request => RequestData[Context],
-  sendResponse: (Array[Byte], Int, Option[Context], Channel) => Response,
+  receiveRequest: Request => RequestData[Context],
+  sendResponse: (Array[Byte], Int, String, Option[Context], Channel) => Response,
+  defaultProtocol: Protocol,
   effectSystem: EffectSystem[Effect],
   mapException: Throwable => Int,
   requestHandler: RequestHandler[Effect, Context],
@@ -28,34 +29,38 @@ final private[automorph] case class HttpRequestHandler[
   implicit private val system: EffectSystem[Effect] = effectSystem
 
   def processRequest(request: Request, channel: Channel): Effect[Response] = {
-    val requestData = parseRequest(request)
-    log.receivingRequest(requestData.properties, requestData.protocol.name)
-    requestData.body
-    log.receivedRequest(requestData.properties)
-
-    // Process the request
+    // Receive the request
+    val requestData = receiveRpcRequest(request)
     Try {
-      requestHandler.processRequest(requestData.body, requestData.context, requestData.id).either.map(
-        _.fold(
-          error => sendErrorResponse(error, channel, requestData),
-          result => {
-            // Send the response
-            val responseBody = result.map(_.responseBody).getOrElse(Array.emptyByteArray)
-            val resultContext = result.flatMap(_.context)
-            val status = result.flatMap(_.exception).map(mapException).orElse(
-              resultContext.flatMap(_.statusCode)
-            ).getOrElse(statusOk)
-            sendResponse(responseBody, status, resultContext, channel, requestData)
-          },
-        )
-      )
+      // Process the request
+      requestHandler.processRequest(requestData.body, requestData.context, requestData.id).either.map(_.fold(
+        error => sendErrorResponse(error, channel, requestData),
+        result => {
+          // Send the response
+          val responseBody = result.map(_.responseBody).getOrElse(Array.emptyByteArray)
+          val resultContext = result.flatMap(_.context)
+          val status = result.flatMap(_.exception).map(mapException).orElse(
+            resultContext.flatMap(_.statusCode)
+          ).getOrElse(statusOk)
+          sendRpcResponse(responseBody, status, resultContext, channel, requestData)
+        },
+      ))
     }.fold(
       error => system.evaluate(sendErrorResponse(error, channel, requestData)),
       identity,
     )
   }
 
-  private def sendResponse(
+  private def receiveRpcRequest(request: Request): RequestData[Context] = {
+    val protocol = defaultProtocol.name
+    log.receivingRequest(Map.empty, protocol)
+    Try(receiveRequest(request)).onSuccess { requestData =>
+      requestData.body
+      log.receivedRequest(requestData.properties, protocol)
+    }.onError(log.failedReceiveRequest(_, Map.empty, protocol)).get
+  }
+
+  private def sendRpcResponse(
     responseBody: Array[Byte],
     status: Int,
     context: Option[Context],
@@ -69,16 +74,17 @@ final private[automorph] case class HttpRequestHandler[
       case Protocol.Http => Some("Status" -> status.toString)
       case _ => None
     }).toMap
-    log.sendingResponse(responseProperties, requestData.protocol.name)
-    val response = sendResponse(responseBody, status, context, channel)
-    log.sentResponse(responseProperties, requestData.protocol.name)
-    response
+    val protocol = requestData.protocol.name
+    log.sendingResponse(responseProperties, protocol)
+    Try(sendResponse(responseBody, status, requestHandler.mediaType, context, channel)).onSuccess(_ =>
+      log.sentResponse(responseProperties, protocol)
+    ).onError(log.failedSendResponse(_, responseProperties, protocol)).get
   }
 
   private def sendErrorResponse(error: Throwable, channel: Channel, requestData: RequestData[Context]): Response = {
-    log.failedProcessRequest(error, requestData.properties)
+    log.failedProcessRequest(error, requestData.properties, requestData.protocol.name)
     val responseBody = error.description.toByteArray
-    sendResponse(responseBody, statusInternalServerError, None, channel, requestData)
+    sendRpcResponse(responseBody, statusInternalServerError, None, channel, requestData)
   }
 }
 
