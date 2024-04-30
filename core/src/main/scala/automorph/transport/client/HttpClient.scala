@@ -179,11 +179,8 @@ final case class HttpClient[Effect[_]](
         ))
     }
 
-  private def effect[T](
-    completableFuture: => CompletableFuture[T],
-    completableSystem: AsyncEffectSystem[Effect],
-  ): Effect[T] =
-    completableSystem.completable[T].flatMap { completable =>
+  private def effect[T](completableFuture: => CompletableFuture[T], asyncSystem: AsyncEffectSystem[Effect]): Effect[T] =
+    asyncSystem.completable[T].flatMap { completable =>
       Try(completableFuture).fold(
         exception => completable.fail(exception).runAsync,
         value => {

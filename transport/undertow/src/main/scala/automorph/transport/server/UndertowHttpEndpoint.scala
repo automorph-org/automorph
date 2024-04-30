@@ -2,10 +2,10 @@ package automorph.transport.server
 
 import automorph.log.Logging
 import automorph.spi.{EffectSystem, RequestHandler, ServerTransport}
-import automorph.transport.HttpRequestHandler.RequestData
-import automorph.transport.server.UndertowHttpEndpoint.{Context, HandlerRunnable, HttpRequest, requestQuery}
+import automorph.transport.HttpRequestHandler.{RequestData, ResponseData}
+import automorph.transport.server.UndertowHttpEndpoint.{Context, HttpRequest, RequestCallback, requestQuery}
 import automorph.transport.{HttpContext, HttpMethod, HttpRequestHandler, Protocol}
-import automorph.util.Extensions.ByteArrayOps
+import automorph.util.Extensions.{ByteArrayOps, EffectOps}
 import automorph.util.Network
 import io.undertow.io.Receiver
 import io.undertow.server.{HttpHandler, HttpServerExchange}
@@ -44,10 +44,10 @@ final case class UndertowHttpEndpoint[Effect[_]](
 ) extends ServerTransport[Effect, Context, HttpHandler] with Logging {
   private val httpRequestHandler =
     HttpRequestHandler(receiveRequest, sendResponse, Protocol.Http, effectSystem, mapException, handler, logger)
-  private val receiver = new Receiver.FullBytesCallback {
+  private val receiverCallback = new Receiver.FullBytesCallback {
 
     override def handle(exchange: HttpServerExchange, requestBody: Array[Byte]): Unit = {
-      val handlerRunnable = HandlerRunnable(effectSystem, httpRequestHandler, exchange, requestBody)
+      val handlerRunnable = RequestCallback(effectSystem, httpRequestHandler, exchange, requestBody)
       if (exchange.isInIoThread) {
         exchange.dispatch(handlerRunnable)
         ()
@@ -57,7 +57,7 @@ final case class UndertowHttpEndpoint[Effect[_]](
   private lazy val httpHandler = new HttpHandler {
 
     override def handleRequest(exchange: HttpServerExchange): Unit =
-      exchange.getRequestReceiver.receiveFullBytes(receiver)
+      exchange.getRequestReceiver.receiveFullBytes(receiverCallback)
   }
 
   override def endpoint: HttpHandler =
@@ -85,19 +85,13 @@ final case class UndertowHttpEndpoint[Effect[_]](
     )
   }
 
-  private def sendResponse(
-    body: Array[Byte],
-    statusCode: Int,
-    contentType: String,
-    context: Option[Context],
-    channel: HttpServerExchange,
-  ): Unit = {
+  private def sendResponse(responseData: ResponseData[Context], channel: HttpServerExchange): Unit = {
     if (!channel.isResponseChannelAvailable) {
       throw new IOException("Response channel not available")
     }
-    setResponseContext(channel, context)
-    channel.getResponseHeaders.put(Headers.CONTENT_TYPE, contentType)
-    channel.setStatusCode(statusCode).getResponseSender.send(body.toByteBuffer)
+    setResponseContext(channel, responseData.context)
+    channel.getResponseHeaders.put(Headers.CONTENT_TYPE, responseData.contentType)
+    channel.setStatusCode(responseData.statusCode).getResponseSender.send(responseData.body.toByteBuffer)
   }
 
   private def getRequestContext(exchange: HttpServerExchange): Context = {
@@ -135,14 +129,15 @@ object UndertowHttpEndpoint {
   private[automorph] def requestQuery(query: String): String =
     Option(query).filter(_.nonEmpty).map("?" + _).getOrElse("")
 
-  final private case class HandlerRunnable[Effect[_]](
+  final private case class RequestCallback[Effect[_]](
     effectSystem: EffectSystem[Effect],
     handler: HttpRequestHandler[Effect, Context, HttpRequest, Unit, HttpServerExchange],
     exchange: HttpServerExchange,
     requestBody: Array[Byte],
   ) extends Runnable {
+    implicit private val system: EffectSystem[Effect] = effectSystem
 
     override def run(): Unit =
-      effectSystem.runAsync(handler.processRequest((exchange, requestBody), exchange))
+      handler.processRequest((exchange, requestBody), exchange).runAsync
   }
 }

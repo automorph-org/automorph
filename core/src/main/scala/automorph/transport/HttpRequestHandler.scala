@@ -2,7 +2,7 @@ package automorph.transport
 
 import automorph.log.{LogProperties, Logger, MessageLog}
 import automorph.spi.{EffectSystem, RequestHandler}
-import automorph.transport.HttpRequestHandler.RequestData
+import automorph.transport.HttpRequestHandler.{RequestData, ResponseData}
 import automorph.util.Extensions.{EffectOps, StringOps, ThrowableOps, TryOps}
 import automorph.util.Random
 import scala.collection.immutable.ListMap
@@ -16,7 +16,7 @@ final private[automorph] case class HttpRequestHandler[
   Channel,
 ](
   receiveRequest: Request => RequestData[Context],
-  sendResponse: (Array[Byte], Int, String, Option[Context], Channel) => Response,
+  sendResponse: (ResponseData[Context], Channel) => Response,
   defaultProtocol: Protocol,
   effectSystem: EffectSystem[Effect],
   mapException: Throwable => Int,
@@ -62,7 +62,7 @@ final private[automorph] case class HttpRequestHandler[
 
   private def sendRpcResponse(
     responseBody: Array[Byte],
-    status: Int,
+    statusCode: Int,
     context: Option[Context],
     channel: Channel,
     requestData: RequestData[Context],
@@ -71,12 +71,14 @@ final private[automorph] case class HttpRequestHandler[
       LogProperties.requestId -> requestData.id,
       LogProperties.client -> requestData.client,
     ) ++ (requestData.protocol match {
-      case Protocol.Http => Some("Status" -> status.toString)
+      case Protocol.Http => Some("Status" -> statusCode.toString)
       case _ => None
     }).toMap
     val protocol = requestData.protocol.name
     log.sendingResponse(responseProperties, protocol)
-    Try(sendResponse(responseBody, status, requestHandler.mediaType, context, channel)).onSuccess(_ =>
+    val contentType = requestHandler.mediaType
+    val responseData = ResponseData(responseBody, context, statusCode, contentType, requestData.client, requestData.id)
+    Try(sendResponse(responseData, channel)).onSuccess(_ =>
       log.sentResponse(responseProperties, protocol)
     ).onError(log.failedSendResponse(_, responseProperties, protocol)).get
   }
@@ -107,4 +109,13 @@ private[automorph] object HttpRequestHandler {
     ) ++ method.map("Method" -> _)
     lazy val body: Array[Byte] = retrieveBody()
   }
+
+  final case class ResponseData[Context](
+    body: Array[Byte],
+    context: Option[Context],
+    statusCode: Int,
+    contentType: String,
+    client: String,
+    id: String,
+  )
 }

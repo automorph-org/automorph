@@ -2,7 +2,7 @@ package automorph.transport.server
 
 import automorph.log.{Logging, MessageLog}
 import automorph.spi.{EffectSystem, RequestHandler, ServerTransport}
-import automorph.transport.HttpRequestHandler.RequestData
+import automorph.transport.HttpRequestHandler.{RequestData, ResponseData}
 import automorph.transport.server.NanoHTTPD.Response.Status
 import automorph.transport.server.NanoHTTPD.{IHTTPSession, Response, newFixedLengthResponse}
 import automorph.transport.server.NanoServer.Context
@@ -77,7 +77,7 @@ final case class NanoServer[Effect[_]](
     sendWebSocketResponse,
     Protocol.WebSocket,
     effectSystem,
-    mapException,
+    _ => 0,
     handler,
     logger,
   )
@@ -210,33 +210,21 @@ final case class NanoServer[Effect[_]](
   }
 
   @scala.annotation.nowarn("msg=used")
-  private def sendHttpResponse(
-    body: Array[Byte],
-    statusCode: Int,
-    contentType: String,
-    context: Option[Context],
-    channel: IHTTPSession,
-  ): Response = {
+  private def sendHttpResponse(responseData: ResponseData[Context], channel: IHTTPSession): Response = {
     val response = newFixedLengthResponse(
-      Status.lookup(statusCode),
-      contentType,
-      body.toInputStream,
-      body.length.toLong,
+      Status.lookup(responseData.statusCode),
+      responseData.contentType,
+      responseData.body.toInputStream,
+      responseData.body.length.toLong,
     )
-    setResponseContext(response, context)
+    setResponseContext(response, responseData.context)
     response
   }
 
   @scala.annotation.nowarn("msg=used")
-  private def sendWebSocketResponse(
-    body: Array[Byte],
-    statusCode: Int,
-    contentType: String,
-    context: Option[Context],
-    channel: WebSocket,
-  ): Array[Byte] = {
-    channel.send(body)
-    body
+  private def sendWebSocketResponse(responseData: ResponseData[Context], channel: WebSocket): Array[Byte] = {
+    channel.send(responseData.body)
+    responseData.body
   }
 
   private def getRequestContext(session: IHTTPSession): Context = {

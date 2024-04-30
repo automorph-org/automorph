@@ -107,7 +107,7 @@ final case class UndertowServer[Effect[_]](
       Predicates.prefix(pathPrefix),
       // WebSocket support
       Option.when(webSocket)(
-        UndertowWebSocketEndpoint(effectSystem, handler).handshakeHandler(httpHandler)
+        UndertowWebSocketEndpoint(effectSystem, handler).httpHandler(httpHandler)
       ).getOrElse(httpHandler),
       ResponseCodeHandler.HANDLE_404,
     )
