@@ -10,8 +10,8 @@ import scala.concurrent.duration.Duration
  * HTTP transport message context.
  *
  * Message transport plugins must use message context properties in the descending order of priority by source:
- *   - This context
- *   - Message properties for specific transport plugin (this.message)
+ *   - Properties of this class
+ *   - Properties of specific transport plugin context (this.transportContext)
  *   - Default values
  *
  * @see
@@ -552,16 +552,6 @@ final case class HttpContext[TransportContext](
     credentials: String,
   ): HttpContext[TransportContext] =
     header(headerName, s"$scheme $credentials", replace = true)
-
-  private[automorph] def overrideUrl(url: URI): URI = {
-    val base = HttpContext().url(url)
-    val scheme = this.scheme.map(base.scheme).getOrElse(base)
-    val authority = this.authority.map(scheme.authority).getOrElse(scheme)
-    val path = this.path.map(authority.path).getOrElse(authority)
-    val fragment = this.fragment.map(path.fragment).getOrElse(path)
-    val query = fragment.parameters(parameters*)
-    query.url.getOrElse(url)
-  }
 }
 
 object HttpContext {

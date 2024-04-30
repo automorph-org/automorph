@@ -2,9 +2,10 @@ package automorph.transport.client
 
 import automorph.log.{LogProperties, Logging, MessageLog}
 import automorph.spi.{ClientTransport, EffectSystem}
+import automorph.transport.HttpClientBase.overrideUrl
 import automorph.transport.client.UrlClient.{Context, Transport}
 import automorph.transport.{HttpContext, HttpMethod, Protocol}
-import automorph.util.Extensions.{EffectOps, TryOps, InputStreamOps}
+import automorph.util.Extensions.{EffectOps, InputStreamOps, TryOps}
 import java.net.{HttpURLConnection, URI}
 import scala.collection.immutable.ListMap
 import scala.concurrent.duration.Duration
@@ -56,15 +57,15 @@ final case class UrlClient[Effect[_]](
       effectSystem.evaluate {
         lazy val responseProperties = ListMap(
           LogProperties.requestId -> requestId,
-          "URL" -> connection.getURL.toExternalForm,
+          LogProperties.url -> connection.getURL.toExternalForm,
         )
 
         // Process the response
         log.receivingResponse(responseProperties)
         connection.getResponseCode
         val responseBody = Option(connection.getErrorStream).getOrElse(connection.getInputStream).toByteArray
-        log.receivedResponse(responseProperties + ("Status" -> connection.getResponseCode.toString))
-        responseBody -> getResponseContext(connection)
+        log.receivedResponse(responseProperties + (LogProperties.status -> connection.getResponseCode.toString))
+        responseBody -> responseContext(connection)
       }
     }
 
@@ -99,8 +100,8 @@ final case class UrlClient[Effect[_]](
       // Log the request
       lazy val requestProperties = ListMap(
         LogProperties.requestId -> requestId,
-        "URL" -> connection.getURL.toExternalForm,
-        "Method" -> httpMethod,
+        LogProperties.url -> connection.getURL.toExternalForm,
+        LogProperties.method -> httpMethod,
       )
       log.sendingRequest(requestProperties)
 
@@ -117,9 +118,8 @@ final case class UrlClient[Effect[_]](
     }
 
   private def createConnection(requestContext: Context): HttpURLConnection = {
-    val requestUrl = requestContext.overrideUrl(
-      requestContext.transportContext.map(_.connection.getURL.toURI).getOrElse(url)
-    )
+    val baseUrl = requestContext.transportContext.map(_.connection.getURL.toURI).getOrElse(url)
+    val requestUrl = overrideUrl(baseUrl, requestContext)
     requestUrl.toURL.openConnection().asInstanceOf[HttpURLConnection]
   }
 
@@ -131,43 +131,47 @@ final case class UrlClient[Effect[_]](
   ): String = {
     // Method
     val transportConnection = requestContext.transportContext.map(_.connection).getOrElse(connection)
-    val requestMethod =
-      requestContext.method.map(_.name).orElse(requestContext.transportContext.map(_.connection.getRequestMethod))
-        .getOrElse(method.name)
+    val contextMethod = requestContext.method.map(_.name)
+    val requestMethod = contextMethod
+      .orElse(requestContext.transportContext.map(_.connection.getRequestMethod))
+      .getOrElse(method.name)
     require(httpMethods.contains(requestMethod), s"Invalid HTTP method: $requestMethod")
     connection.setRequestMethod(requestMethod)
 
     // Headers
-    val transportHeaders = transportConnection.getRequestProperties.asScala.toSeq.flatMap { case (name, values) =>
-      values.asScala.map(name -> _)
-    }
-    (transportHeaders ++ requestContext.headers).foreach { case (name, value) =>
-      connection.setRequestProperty(name, value)
-    }
+    val transportHeaders = transportConnection
+      .getRequestProperties.asScala.toSeq
+      .flatMap { case (name, values) =>
+        values.asScala.map(name -> _)
+      }
+    val headers = transportHeaders ++ requestContext.headers
+    headers.foreach { case (name, value) => connection.setRequestProperty(name, value) }
     connection.setRequestProperty(contentLengthHeader, requestBody.length.toString)
     connection.setRequestProperty(contentTypeHeader, mediaType)
     connection.setRequestProperty(acceptHeader, mediaType)
 
     // Timeout & follow redirects
-    connection
-      .setConnectTimeout(requestContext.timeout.map(_.toMillis.toInt).getOrElse(transportConnection.getConnectTimeout))
+    connection.setConnectTimeout(
+      requestContext.timeout.map(_.toMillis.toInt).getOrElse(transportConnection.getConnectTimeout)
+    )
     connection.setReadTimeout(
       requestContext.timeout.map {
         case Duration.Inf => 0
         case duration => duration.toMillis.toInt
       }.getOrElse(transportConnection.getReadTimeout)
     )
-    connection
-      .setInstanceFollowRedirects(
-        requestContext.followRedirects.getOrElse(transportConnection.getInstanceFollowRedirects)
-      )
+    connection.setInstanceFollowRedirects(
+      requestContext.followRedirects.getOrElse(transportConnection.getInstanceFollowRedirects)
+    )
     requestMethod
   }
 
-  private def getResponseContext(connection: HttpURLConnection): Context =
-    context.statusCode(connection.getResponseCode).headers(connection.getHeaderFields.asScala.toSeq.flatMap {
-      case (name, values) => values.asScala.map(name -> _)
-    }*)
+  private def responseContext(connection: HttpURLConnection): Context =
+    context
+      .statusCode(connection.getResponseCode)
+      .headers(connection.getHeaderFields.asScala.toSeq.flatMap {
+        case (name, values) => values.asScala.map(name -> _)
+      }*)
 }
 
 object UrlClient {

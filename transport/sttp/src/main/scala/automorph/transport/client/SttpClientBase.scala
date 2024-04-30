@@ -2,14 +2,15 @@ package automorph.transport.client
 
 import automorph.log.{LogProperties, Logging, MessageLog}
 import automorph.spi.{ClientTransport, EffectSystem}
-import SttpClient.{Context, Transport}
+import automorph.transport.HttpClientBase.overrideUrl
+import automorph.transport.client.SttpClient.{Context, Transport}
 import automorph.transport.{HttpMethod, Protocol}
 import automorph.util.Extensions.EffectOps
-import java.net.URI
-import scala.collection.immutable.ListMap
 import sttp.capabilities.WebSockets
 import sttp.client3.{Request, Response, SttpBackend, asByteArrayAlways, asWebSocketAlways, basicRequest, ignore}
 import sttp.model.{Header, MediaType, Method, Uri}
+import java.net.URI
+import scala.collection.immutable.ListMap
 
 private[automorph] trait SttpClientBase[Effect[_]] extends ClientTransport[Effect, Context] with Logging {
 
@@ -40,7 +41,7 @@ private[automorph] trait SttpClientBase[Effect[_]] extends ClientTransport[Effec
       send(sttpRequest, requestId, protocol).either.flatMap { result =>
         lazy val responseProperties = ListMap(
           LogProperties.requestId -> requestId,
-          "URL" -> sttpRequest.uri.toString,
+          LogProperties.url -> sttpRequest.uri.toString,
         )
 
         // Process the response
@@ -50,7 +51,7 @@ private[automorph] trait SttpClientBase[Effect[_]] extends ClientTransport[Effec
             effectSystem.failed(error)
           },
           response => {
-            log.receivedResponse(responseProperties + ("Status" -> response.code.toString), protocol.name)
+            log.receivedResponse(responseProperties + (LogProperties.status -> response.code.toString), protocol.name)
             effectSystem.successful(response.body -> getResponseContext(response))
           },
         )
@@ -88,8 +89,8 @@ private[automorph] trait SttpClientBase[Effect[_]] extends ClientTransport[Effec
     // Log the request
     lazy val requestProperties = ListMap(
       LogProperties.requestId -> requestId,
-      "URL" -> sttpRequest.uri.toString,
-    ) ++ Option.when(protocol == Protocol.Http)("Method" -> sttpRequest.method.toString)
+      LogProperties.url -> sttpRequest.uri.toString,
+    ) ++ Option.when(protocol == Protocol.Http)(LogProperties.method -> sttpRequest.method.toString)
     log.sendingRequest(requestProperties, protocol.name)
 
     // Send the request
@@ -115,7 +116,7 @@ private[automorph] trait SttpClientBase[Effect[_]] extends ClientTransport[Effec
   ): Request[Array[Byte], WebSocket] = {
     // URL & method
     val transportRequest = requestContext.transportContext.map(_.request).getOrElse(basicRequest)
-    val requestUrl = Uri(requestContext.overrideUrl(baseUrl))
+    val requestUrl = Uri(overrideUrl(baseUrl, requestContext))
     val requestMethod = Method.unsafeApply(requestContext.method.getOrElse(method).name)
 
     // Headers, timeout & follow redirects

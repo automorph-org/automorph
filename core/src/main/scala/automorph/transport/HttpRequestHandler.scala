@@ -71,7 +71,7 @@ final private[automorph] case class HttpRequestHandler[
       LogProperties.requestId -> requestData.id,
       LogProperties.client -> requestData.client,
     ) ++ (requestData.protocol match {
-      case Protocol.Http => Some("Status" -> statusCode.toString)
+      case Protocol.Http => Some(LogProperties.status -> statusCode.toString)
       case _ => None
     }).toMap
     val protocol = requestData.protocol.name
@@ -104,9 +104,9 @@ private[automorph] object HttpRequestHandler {
     lazy val properties: Map[String, String] = ListMap(
       LogProperties.requestId -> id,
       LogProperties.client -> client,
-      "Protocol" -> protocol.toString,
-      "URL" -> url,
-    ) ++ method.map("Method" -> _)
+      LogProperties.protocol -> protocol.toString,
+      LogProperties.url -> url,
+    ) ++ method.map(LogProperties.method -> _)
     lazy val body: Array[Byte] = retrieveBody()
   }
 
