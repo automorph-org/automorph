@@ -11,16 +11,16 @@ package automorph.spi
  *   effect type
  * @tparam Context
  *   RPC message context type
- * @tparam Endpoint
- *   transport layer endpoint type
+ * @tparam Adapter
+ *   transport layer adapter type
  */
-trait ServerTransport[Effect[_], Context, Endpoint] {
+trait ServerTransport[Effect[_], Context, Adapter] {
 
   /** Effect system plugin. */
   def effectSystem: EffectSystem[Effect]
 
-  /** Transport layer integration endpoint. */
-  def adapter: Endpoint
+  /** Transport layer integration adapter. */
+  def adapter: Adapter
 
   /**
    * Starts this server to process incoming requests.
@@ -46,5 +46,5 @@ trait ServerTransport[Effect[_], Context, Endpoint] {
    * @return
    *   server transport
    */
-  def requestHandler(handler: RequestHandler[Effect, Context]): ServerTransport[Effect, Context, Endpoint]
+  def requestHandler(handler: RequestHandler[Effect, Context]): ServerTransport[Effect, Context, Adapter]
 }

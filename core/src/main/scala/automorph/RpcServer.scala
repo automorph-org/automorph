@@ -32,23 +32,23 @@ import scala.util.Random
  *   effect type
  * @tparam Context
  *   RPC message context type
- * @tparam Endpoint
- *   transport layer endpoint type
+ * @tparam Adapter
+ *   transport layer adapter type
  */
-final case class RpcServer[Node, Codec <: MessageCodec[Node], Effect[_], Context, Endpoint](
-  transport: ServerTransport[Effect, Context, Endpoint],
+final case class RpcServer[Node, Codec <: MessageCodec[Node], Effect[_], Context, Adapter](
+  transport: ServerTransport[Effect, Context, Adapter],
   rpcProtocol: RpcProtocol[Node, Codec, Context],
   discovery: Boolean = false,
   apiBindings: ListMap[String, ServerBinding[Node, Effect, Context]] =
   ListMap[String, ServerBinding[Node, Effect, Context]]()
-) extends ServerBase[Node, Codec, Effect, Context, Endpoint] {
+) extends ServerBase[Node, Codec, Effect, Context, Adapter] {
 
   private val handler = ServerRequestHandler(transport.effectSystem, rpcProtocol, discovery, apiBindings)
   private lazy val configuredTransport = transport.requestHandler(handler)
   private lazy val rpcFunctions = handler.functions
 
-  /** Transport layer integration endpoint. */
-  def endpoint: Endpoint =
+  /** Transport layer integration adapter. */
+  def endpoint: Adapter =
     configuredTransport.adapter
 
   /**
@@ -57,7 +57,7 @@ final case class RpcServer[Node, Codec <: MessageCodec[Node], Effect[_], Context
    * @return
    *   active RPC server
    */
-  def init(): Effect[RpcServer[Node, Codec, Effect, Context, Endpoint]] =
+  def init(): Effect[RpcServer[Node, Codec, Effect, Context, Adapter]] =
     configuredTransport.effectSystem.map(configuredTransport.init())(_ => this)
 
   /**
@@ -66,7 +66,7 @@ final case class RpcServer[Node, Codec <: MessageCodec[Node], Effect[_], Context
    * @return
    *   passive RPC server
    */
-  def close(): Effect[RpcServer[Node, Codec, Effect, Context, Endpoint]] =
+  def close(): Effect[RpcServer[Node, Codec, Effect, Context, Adapter]] =
     configuredTransport.effectSystem.map(configuredTransport.close())(_ => this)
 
   /**
@@ -85,7 +85,7 @@ final case class RpcServer[Node, Codec <: MessageCodec[Node], Effect[_], Context
    * @return
    *   RPC server
    */
-  def discovery(discovery: Boolean): RpcServer[Node, Codec, Effect, Context, Endpoint] =
+  def discovery(discovery: Boolean): RpcServer[Node, Codec, Effect, Context, Adapter] =
     copy(discovery = discovery)
 
   /**
