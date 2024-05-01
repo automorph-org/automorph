@@ -21,7 +21,7 @@ import scala.util.{Failure, Success, Try}
  * @tparam Context
  *   RPC message context type
  */
-private[automorph] trait JsonRpcCore[Node, Codec <: MessageCodec[Node], Context] {
+private[automorph] trait JsonRpcBase[Node, Codec <: MessageCodec[Node], Context] {
   this: JsonRpcProtocol[Node, Codec, Context] =>
 
   /** JSON-RPC message metadata. */

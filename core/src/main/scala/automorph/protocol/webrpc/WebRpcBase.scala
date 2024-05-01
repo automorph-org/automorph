@@ -22,7 +22,7 @@ import scala.util.{Failure, Success, Try}
  * @tparam Context
  *   RPC message context type
  */
-private[automorph] trait WebRpcCore[Node, Codec <: MessageCodec[Node], Context <: HttpContext[?]] {
+private[automorph] trait WebRpcBase[Node, Codec <: MessageCodec[Node], Context <: HttpContext[?]] {
   this: WebRpcProtocol[Node, Codec, Context] =>
 
   /** Web-RPC message metadata. */

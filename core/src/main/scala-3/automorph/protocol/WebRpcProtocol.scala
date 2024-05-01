@@ -1,6 +1,6 @@
 package automorph.protocol
 
-import automorph.protocol.webrpc.{ErrorMapping, ErrorType, Message, WebRpcCore}
+import automorph.protocol.webrpc.{ErrorMapping, ErrorType, Message, WebRpcBase}
 import automorph.schema.OpenApi
 import automorph.spi.{MessageCodec, RpcProtocol}
 import automorph.transport.HttpContext
@@ -56,7 +56,7 @@ final case class WebRpcProtocol[Node, Codec <: MessageCodec[Node], Context <: Ht
   protected val decodeResponse: Node => Message[Node],
   protected val encodeOpenApi: OpenApi => Node,
   protected val encodeString: String => Node,
-) extends WebRpcCore[Node, Codec, Context] with RpcProtocol[Node, Codec, Context]
+) extends WebRpcBase[Node, Codec, Context] with RpcProtocol[Node, Codec, Context]
 
 object WebRpcProtocol extends ErrorMapping:
 

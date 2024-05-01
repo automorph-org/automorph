@@ -1,6 +1,6 @@
 package automorph.protocol
 
-import automorph.protocol.jsonrpc.{ErrorMapping, ErrorType, JsonRpcCore, Message}
+import automorph.protocol.jsonrpc.{ErrorMapping, ErrorType, JsonRpcBase, Message}
 import automorph.schema.{OpenApi, OpenRpc}
 import automorph.spi.{MessageCodec, RpcProtocol}
 import scala.language.experimental.macros
@@ -58,7 +58,7 @@ final case class JsonRpcProtocol[Node, Codec <: MessageCodec[Node], Context](
   protected val encodeOpenRpc: OpenRpc => Node,
   protected val encodeOpenApi: OpenApi => Node,
   protected val encodeStrings: List[String] => Node,
-) extends JsonRpcCore[Node, Codec, Context] with RpcProtocol[Node, Codec, Context]
+) extends JsonRpcBase[Node, Codec, Context] with RpcProtocol[Node, Codec, Context]
 
 object JsonRpcProtocol extends ErrorMapping {
 
