@@ -39,7 +39,7 @@ object TapirVertxHttpFutureTest {
     private var rpcServer = TapirHttpEndpoint(effectSystem)
     private var server = Option.empty[HttpServer]
 
-    override def endpoint: Unit =
+    override def adapter: Unit =
       ()
 
     override def init(): Effect[Unit] =
@@ -59,7 +59,7 @@ object TapirVertxHttpFutureTest {
       rpcServer = rpcServer.requestHandler(handler)
       val vertx = Vertx.vertx()
       val router = Router.router(vertx)
-      VertxFutureServerInterpreter().route(rpcServer.endpoint)(router)
+      VertxFutureServerInterpreter().route(rpcServer.adapter)(router)
       server = Some(vertx.createHttpServer().requestHandler(router))
       this
     }

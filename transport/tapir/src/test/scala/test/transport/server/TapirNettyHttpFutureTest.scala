@@ -36,11 +36,11 @@ object TapirNettyHttpFutureTest {
     private var rpcServer = TapirHttpEndpoint(effectSystem)
     private var server = Option.empty[NettyFutureServerBinding]
 
-    override def endpoint: Unit =
+    override def adapter: Unit =
       ()
 
     override def init(): Effect[Unit] =
-      NettyFutureServer().port(port).addEndpoint(rpcServer.endpoint).start().map { activeServer =>
+      NettyFutureServer().port(port).addEndpoint(rpcServer.adapter).start().map { activeServer =>
         server = Some(activeServer)
       }
 

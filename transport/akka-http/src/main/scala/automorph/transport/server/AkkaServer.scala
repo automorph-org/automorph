@@ -70,7 +70,7 @@ final case class AkkaServer[Effect[_]](
   private val allowedMethods = methods.map(_.name).toSet
   private var server = Option.empty[(ActorSystem[Nothing], Http.ServerBinding)]
 
-  override def endpoint: Unit =
+  override def adapter: Unit =
     ()
 
   override def init(): Effect[Unit] =
@@ -116,7 +116,7 @@ final case class AkkaServer[Effect[_]](
       if (allowedMethods.contains(httpRequest.method.value.toUpperCase)) {
         // Validate URL path
         if (httpRequest.uri.path.toString.startsWith(pathPrefix)) {
-          endpointTransport.endpoint
+          endpointTransport.adapter
         } else {
           complete(NotFound)
         }

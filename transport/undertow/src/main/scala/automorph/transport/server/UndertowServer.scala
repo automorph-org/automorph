@@ -64,7 +64,7 @@ final case class UndertowServer[Effect[_]](
   private val allowedMethods = methods.map(_.name).toSet
   private var active = false
 
-  override def endpoint: Unit =
+  override def adapter: Unit =
     ()
 
   override def init(): Effect[Unit] =
@@ -100,7 +100,7 @@ final case class UndertowServer[Effect[_]](
   private def createServer(): Undertow = {
     // Validate HTTP request method
     val endpointTransport = UndertowHttpEndpoint(effectSystem, mapException, handler)
-    val httpHandler = methodHandler(endpointTransport.endpoint)
+    val httpHandler = methodHandler(endpointTransport.adapter)
 
     // Validate URL path
     val rootHandler = Handlers.predicate(

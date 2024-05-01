@@ -38,7 +38,7 @@ private[examples] object EndpointTransport {
       server <- RpcServer.transport(serverTransport).rpcProtocol(Default.rpcProtocol).service(service).init()
 
       // Use the JSON-RPC HTTP endpoint adapter as an Undertow handler for requests to '/api'
-      pathHandler = Handlers.path().addPrefixPath("/api", server.endpoint)
+      pathHandler = Handlers.path().addPrefixPath("/api", server.adapter)
       apiServer = undertowServer.setHandler(pathHandler).build()
 
       // Start the Undertow server

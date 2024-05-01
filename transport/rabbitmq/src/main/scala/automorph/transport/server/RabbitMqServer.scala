@@ -56,7 +56,7 @@ final case class RabbitMqServer[Effect[_]](
   private val log = MessageLog(logger, RabbitMq.protocol)
   implicit private val system: EffectSystem[Effect] = effectSystem
 
-  override def endpoint: Unit =
+  override def adapter: Unit =
     ()
 
   override def init(): Effect[Unit] =

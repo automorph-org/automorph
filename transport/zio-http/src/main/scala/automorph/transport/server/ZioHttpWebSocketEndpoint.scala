@@ -47,7 +47,7 @@ final case class ZioHttpWebSocketEndpoint[Fault](
   with Logging {
   private val log = MessageLog(logger, Protocol.WebSocket.name)
 
-  override def endpoint: WebSocketChannel => IO[Throwable, Any] =
+  override def adapter: WebSocketChannel => IO[Throwable, Any] =
     channel => handle(channel)
 
   override def init(): IO[Fault, Unit] =

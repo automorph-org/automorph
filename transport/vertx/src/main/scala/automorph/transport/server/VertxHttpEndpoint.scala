@@ -79,7 +79,7 @@ final case class VertxHttpEndpoint[Effect[_]](
   private val log = MessageLog(logger, Protocol.Http.name)
   implicit private val system: EffectSystem[Effect] = effectSystem
 
-  override def endpoint: Handler[HttpServerRequest] =
+  override def adapter: Handler[HttpServerRequest] =
     requestHandler
 
   override def init(): Effect[Unit] =

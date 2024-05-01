@@ -20,7 +20,7 @@ trait ServerTransport[Effect[_], Context, Endpoint] {
   def effectSystem: EffectSystem[Effect]
 
   /** Transport layer integration endpoint. */
-  def endpoint: Endpoint
+  def adapter: Endpoint
 
   /**
    * Starts this server to process incoming requests.

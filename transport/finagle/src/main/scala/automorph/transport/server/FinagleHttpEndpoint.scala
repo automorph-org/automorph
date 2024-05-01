@@ -72,7 +72,7 @@ final case class FinagleHttpEndpoint[Effect[_]](
   implicit private val system: EffectSystem[Effect] = effectSystem
   private val log = MessageLog(logger, Protocol.Http.name)
 
-  override def endpoint: Service[Request, Response] =
+  override def adapter: Service[Request, Response] =
     service
 
   override def init(): Effect[Unit] =

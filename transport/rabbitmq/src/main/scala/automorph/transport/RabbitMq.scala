@@ -33,7 +33,7 @@ object RabbitMq extends Logging {
   private[automorph] val routingKeyProperty = "Routing Key"
 
   /** Consumer tag property. */
-  private[automorph] val consumerTag = "Consumer Tag"
+  private[automorph] val consumerTagProperty = "Consumer Tag"
 
   /** Protocol name. */
   private[automorph] val protocol = "AMQP"
@@ -225,5 +225,5 @@ object RabbitMq extends Logging {
     ListMap() ++ requestId.map(LogProperties.requestId -> _) ++ ListMap(
       routingKeyProperty -> routingKey,
       LogProperties.url -> url,
-    ) ++ consumerTag.map(consumerTag -> _)
+    ) ++ consumerTag.map(consumerTagProperty -> _)
 }

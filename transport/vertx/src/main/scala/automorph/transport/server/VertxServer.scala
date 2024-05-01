@@ -67,7 +67,7 @@ final case class VertxServer[Effect[_]](
   private val messageMethodNotAllowed = "Method Not Allowed"
   private val allowedMethods = methods.map(_.name).toSet
 
-  override def endpoint: Unit =
+  override def adapter: Unit =
     ()
 
   override def init(): Effect[Unit] =
@@ -101,7 +101,7 @@ final case class VertxServer[Effect[_]](
       if (request.path.startsWith(pathPrefix)) {
         // Validate HTTP request method
         if (allowedMethods.contains(request.method.name.toUpperCase)) {
-          endpoint.endpoint.handle(request)
+          endpoint.adapter.handle(request)
         } else {
           request.response.setStatusCode(statusMethodNotAllowed).end(messageMethodNotAllowed)
           ()
@@ -118,7 +118,7 @@ final case class VertxServer[Effect[_]](
       server.webSocketHandler { request =>
         // Validate URL path
         if (request.path.startsWith(pathPrefix)) {
-          webSocketHandler.endpoint.handle(request)
+          webSocketHandler.adapter.handle(request)
         } else {
           request.close((statusWebSocketApplication + statusNotFound).toShort, messageNotFound)
           ()

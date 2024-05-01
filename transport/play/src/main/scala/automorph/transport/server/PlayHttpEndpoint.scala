@@ -89,7 +89,7 @@ final case class PlayHttpEndpoint[Effect[_]](
   private val log = MessageLog(logger, Protocol.Http.name)
   implicit private val system: EffectSystem[Effect] = effectSystem
 
-  override def endpoint: Action[ByteString] =
+  override def adapter: Action[ByteString] =
     action
 
   override def init(): Effect[Unit] =

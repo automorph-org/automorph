@@ -79,7 +79,7 @@ final case class JettyWebSocketEndpoint[Effect[_]](
   private lazy val jettyWebSocketCreator = new JettyWebSocketCreator {
 
     override def createWebSocket(request: JettyServerUpgradeRequest, response: JettyServerUpgradeResponse): AnyRef =
-      endpoint
+      adapter
   }
 
   private val log = MessageLog(logger, Protocol.Http.name)
@@ -89,7 +89,7 @@ final case class JettyWebSocketEndpoint[Effect[_]](
   def creator: JettyWebSocketCreator =
     jettyWebSocketCreator
 
-  override def endpoint: WebSocketAdapter =
+  override def adapter: WebSocketAdapter =
     webSocketAdapter
 
   override def init(): Effect[Unit] =

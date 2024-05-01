@@ -38,12 +38,12 @@ object TapirHttp4sHttpCatsEffectTest {
     private var rpcServer = TapirHttpEndpoint(effectSystem)
     private var server = Option.empty[IO[Unit]]
 
-    override def endpoint: Unit =
+    override def adapter: Unit =
       ()
 
     override def init(): Effect[Unit] =
       effectSystem.evaluate {
-        val service = Http4sServerInterpreter[IO]().toRoutes(rpcServer.endpoint).orNotFound
+        val service = Http4sServerInterpreter[IO]().toRoutes(rpcServer.adapter).orNotFound
         val serverBuilder = EmberServerBuilder.default[IO].withPort(Port.fromInt(port).get).withHttpApp(service)
         server = Some(serverBuilder.build.allocated.unsafeRunSync()._2)
       }

@@ -86,7 +86,7 @@ final case class JettyHttpEndpoint[Effect[_]](
   private val log = MessageLog(logger, Protocol.Http.name)
   implicit private val system: EffectSystem[Effect] = effectSystem
 
-  override def endpoint: HttpServlet =
+  override def adapter: HttpServlet =
     httpServlet
 
   override def init(): Effect[Unit] =

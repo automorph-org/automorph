@@ -70,7 +70,7 @@ final case class TapirHttpEndpoint[Effect[_]](
   private val log = MessageLog(logger, Protocol.Http.name)
   implicit private val system: EffectSystem[Effect] = effectSystem
 
-  override def endpoint: Endpoint[Effect] = {
+  override def adapter: Endpoint[Effect] = {
     // Define server endpoint inputs & outputs
     val endpointMethod = allowedMethod.map(tapir.endpoint.method).getOrElse(tapir.endpoint)
     val endpointPath = pathEndpointInput(prefixPaths).map(path => endpointMethod.in(path)).getOrElse(endpointMethod)

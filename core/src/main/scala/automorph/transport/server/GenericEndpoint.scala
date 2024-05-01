@@ -23,7 +23,7 @@ final case class GenericEndpoint[Effect[_], Context](
   handler: RequestHandler[Effect, Context] = RequestHandler.dummy[Effect, Context],
 ) extends ServerTransport[Effect, Context, Unit] {
 
-  override def endpoint: Unit =
+  override def adapter: Unit =
     ()
 
   override def init(): Effect[Unit] =

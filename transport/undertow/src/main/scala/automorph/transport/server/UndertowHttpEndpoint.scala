@@ -60,7 +60,7 @@ final case class UndertowHttpEndpoint[Effect[_]](
       exchange.getRequestReceiver.receiveFullBytes(receiverCallback)
   }
 
-  override def endpoint: HttpHandler =
+  override def adapter: HttpHandler =
     httpHandler
 
   override def init(): Effect[Unit] =

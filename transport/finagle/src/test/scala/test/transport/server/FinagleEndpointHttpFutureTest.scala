@@ -40,12 +40,12 @@ object FinagleEndpointHttpFutureTest {
     private var rpcServer = FinagleHttpEndpoint(effectSystem)
     private var server = Option.empty[ListeningServer]
 
-    override def endpoint: Unit =
+    override def adapter: Unit =
       ()
 
     override def init(): Effect[Unit] =
       Future {
-        server = Some(Http.serve(s":$port", rpcServer.endpoint))
+        server = Some(Http.serve(s":$port", rpcServer.adapter))
       }
 
     override def close(): Effect[Unit] =

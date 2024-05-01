@@ -55,7 +55,7 @@ final case class PekkoHttpEndpoint[Effect[_]](
   private val log = MessageLog(logger, Protocol.Http.name)
   implicit private val system: EffectSystem[Effect] = effectSystem
 
-  def endpoint: Route =
+  def adapter: Route =
     extractRequest { httpRequest =>
       extractClientIP { remoteAddress =>
         extractMaterializer { implicit materializer =>

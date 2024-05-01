@@ -83,7 +83,7 @@ final case class JettyServer[Effect[_]](
     }
   }
 
-  override def endpoint: Unit =
+  override def adapter: Unit =
     ()
 
   override def init(): Effect[Unit] =
@@ -116,7 +116,7 @@ final case class JettyServer[Effect[_]](
     val servletPath = s"$pathPrefix*"
 
     // Validate URL path
-    servletHandler.addServlet(new ServletHolder(endpointTransport.endpoint), servletPath)
+    servletHandler.addServlet(new ServletHolder(endpointTransport.adapter), servletPath)
 
     // Validate HTTP request method
     servletHandler.addFilter(new FilterHolder(methodFilter), servletPath, util.EnumSet.of(DispatcherType.REQUEST))

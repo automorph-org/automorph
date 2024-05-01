@@ -49,7 +49,7 @@ final case class RpcServer[Node, Codec <: MessageCodec[Node], Effect[_], Context
 
   /** Transport layer integration endpoint. */
   def endpoint: Endpoint =
-    configuredTransport.endpoint
+    configuredTransport.adapter
 
   /**
    * Starts this server to process incoming requests.

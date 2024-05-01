@@ -74,7 +74,7 @@ final case class VertxWebSocketEndpoint[Effect[_]](
   private val log = MessageLog(logger, Protocol.WebSocket.name)
   implicit private val system: EffectSystem[Effect] = effectSystem
 
-  override def endpoint: Handler[ServerWebSocket] =
+  override def adapter: Handler[ServerWebSocket] =
     requestHandler
 
   override def init(): Effect[Unit] =

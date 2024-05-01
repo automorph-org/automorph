@@ -37,12 +37,12 @@ object TapirArmeriaHttpFutureTest {
     private var rpcServer = TapirHttpEndpoint(effectSystem)
     private var server = Option.empty[Server]
 
-    override def endpoint: Unit =
+    override def adapter: Unit =
       ()
 
     override def init(): Effect[Unit] =
       effectSystem.evaluate {
-        val service = ArmeriaFutureServerInterpreter().toService(rpcServer.endpoint)
+        val service = ArmeriaFutureServerInterpreter().toService(rpcServer.adapter)
         val activeServer = Server.builder().http(port).service(service).build()
         activeServer.start().get()
         server = Some(activeServer)

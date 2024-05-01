@@ -65,9 +65,9 @@ final case class UndertowWebSocketEndpoint[Effect[_]](
    *   Undertow handler invoked if a HTTP request does not contain a WebSocket handshake
    */
   def httpHandler(next: HttpHandler): WebSocketProtocolHandshakeHandler =
-    new WebSocketProtocolHandshakeHandler(endpoint, next)
+    new WebSocketProtocolHandshakeHandler(adapter, next)
 
-  override def endpoint: WebSocketConnectionCallback =
+  override def adapter: WebSocketConnectionCallback =
     webSocketConnectionCallback
 
   override def init(): Effect[Unit] =

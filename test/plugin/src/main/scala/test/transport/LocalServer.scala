@@ -11,7 +11,7 @@ final case class LocalServer[Effect[_], Context](
   def handler: RequestHandler[Effect, Context] =
     genericEndpoint.handler
 
-  override def endpoint: Unit =
+  override def adapter: Unit =
     ()
 
   override def init(): Effect[Unit] =

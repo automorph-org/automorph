@@ -52,7 +52,7 @@ final case class ZioHttpEndpoint[Fault](
   private lazy val requestHandler = Handler.fromFunctionZIO(handle)
   private val log = MessageLog(logger, Protocol.Http.name)
 
-  override def endpoint: http.RequestHandler[Any, Response] =
+  override def adapter: http.RequestHandler[Any, Response] =
     requestHandler
 
   override def init(): IO[Fault, Unit] =

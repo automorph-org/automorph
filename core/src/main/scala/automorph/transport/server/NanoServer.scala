@@ -106,7 +106,7 @@ final case class NanoServer[Effect[_]](
     this
   }
 
-  override def endpoint: Unit =
+  override def adapter: Unit =
     ()
 
   override def init(): Effect[Unit] =
