@@ -63,7 +63,7 @@ private[automorph] final case class ServerRequestHandler[Node, Codec <: MessageC
         ),
       rpcRequest => {
         // Invoke requested RPC function
-        lazy val requestProperties = ListMap(LogProperties.requestId -> id) ++ rpcRequest.message.properties
+        lazy val requestProperties = ListMap(LogProperties.requestId -> rpcRequest.id) ++ rpcRequest.message.properties
         lazy val allProperties = requestProperties ++ getMessageBody(rpcRequest.message)
         logger.trace(s"Received ${rpcProtocol.name} request", allProperties)
         callFunction(rpcRequest, context, requestProperties)
@@ -96,7 +96,7 @@ private[automorph] final case class ServerRequestHandler[Node, Codec <: MessageC
     requestProperties: => Map[String, String],
   ): Effect[Option[Result[Context]]] = {
     // Lookup bindings for the specified remote function
-    val responseRequired = rpcRequest.responseRequired
+    val responseRequired = rpcRequest.respond
     logger.debug(s"Processing ${rpcProtocol.name} request", requestProperties)
     bindings.get(rpcRequest.function).map { binding =>
       // Extract bound function argument nodes
@@ -234,7 +234,7 @@ private[automorph] final case class ServerRequestHandler[Node, Codec <: MessageC
       )
 
       // Create response
-      if (rpcRequest.responseRequired) {
+      if (rpcRequest.respond) {
         response(result.toTry, rpcRequest.message, requestProperties)
       } else {
         effectSystem.successful(None)

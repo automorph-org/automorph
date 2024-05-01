@@ -6,7 +6,7 @@ package automorph.protocol.webrpc
  * API methods bound via an RPC request handler can throw this exception to customize Web-RPC error response.
  *
  * @see
- *   [[https://automorph.org/rest-rpc Web-RPC protocol specification]]
+ *   [[https://automorph.org/docs/Web-RPC Web-RPC protocol specification]]
  * @constructor
  *   Creates a new Web-RPC error exception.
  * @param message

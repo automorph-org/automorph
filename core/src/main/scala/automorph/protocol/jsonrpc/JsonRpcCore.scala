@@ -52,56 +52,56 @@ private[automorph] trait JsonRpcCore[Node, Codec <: MessageCodec[Node], Context]
   override def createRequest(
     function: String,
     arguments: Iterable[(String, Node)],
-    responseRequired: Boolean,
-    requestContext: Context,
-    requestId: String,
+    respond: Boolean,
+    context: Context,
+    id: String,
   ): Try[protocol.Request[Node, Metadata, Context]] = {
     // Create request
-    require(requestId.nonEmpty, "Empty request identifier")
-    val id = Option.when(responseRequired)(Right(requestId).withLeft[BigDecimal])
-    val requestMessage = Request(id, function, Right(arguments.toMap)).message
+    require(id.nonEmpty, "Empty request identifier")
+    val requestId = Option.when(respond)(Right(id).withLeft[BigDecimal])
+    val requestMessage = Request(requestId, function, Right(arguments.toMap)).message
 
     // Serialize request
     val messageText = () => Some(messageCodec.text(encodeMessage(requestMessage)))
     Try(messageCodec.serialize(encodeMessage(requestMessage))).recoverWith { case error =>
       Failure(JsonRpcException("Malformed request", ErrorType.ParseError.code, None, error))
     }.map { messageBody =>
-      val message = protocol.Message(id, messageBody, requestMessage.properties, messageText)
+      val message = protocol.Message(requestId, messageBody, requestMessage.properties, messageText)
       val requestArguments = arguments.map(Right.apply[Node, (String, Node)]).toSeq
-      protocol.Request(message, function, requestArguments, responseRequired, requestId, requestContext)
+      protocol.Request(function, requestArguments, respond, context, message, requestId.toString)
     }
   }
 
   override def parseRequest(
-    requestBody: Array[Byte],
-    requestContext: Context,
-    requestId: String,
+    body: Array[Byte],
+    context: Context,
+    id: String,
   ): Either[ParseError[Metadata], protocol.Request[Node, Metadata, Context]] =
     // Deserialize request
-    Try(decodeMessage(messageCodec.deserialize(requestBody))).fold(
+    Try(decodeMessage(messageCodec.deserialize(body))).fold(
       error =>
         Left(ParseError(
           JsonRpcException("Malformed request", ErrorType.ParseError.code, None, error),
-          protocol.Message(None, requestBody),
+          protocol.Message(None, body),
         )),
       requestMessage => {
         // Validate request
         val messageText = () => Some(messageCodec.text(encodeMessage(requestMessage)))
-        val message = protocol.Message(requestMessage.id, requestBody, requestMessage.properties, messageText)
+        val message = protocol.Message(requestMessage.id, body, requestMessage.properties, messageText)
         Try(Request(requestMessage)).fold(
           error => Left(ParseError(error, message)),
-          request => {
-            val requestArguments = request.params
-              .fold(_.map(Left.apply[Node, (String, Node)]), _.map(Right.apply[Node, (String, Node)]).toSeq)
+          request =>
             Right(protocol.Request(
-              message,
               request.method,
-              requestArguments,
+              request.params.fold(
+                _.map(Left.apply[Node, (String, Node)]),
+                _.map(Right.apply[Node, (String, Node)]).toSeq,
+              ),
               request.id.isDefined,
-              requestId,
-              requestContext,
-            ))
-          },
+              context,
+              message,
+              requestMessage.id.toString,
+            )),
         )
       },
     )
@@ -132,37 +132,38 @@ private[automorph] trait JsonRpcCore[Node, Codec <: MessageCodec[Node], Context]
       Failure(JsonRpcException("Malformed response", ErrorType.ParseError.code, None, error))
     }.map { messageBody =>
       val message = protocol.Message(Option(id), messageBody, responseMessage.properties, messageText)
-      protocol.Response(result, message)
+      protocol.Response(result, message, id.toString)
     }
   }
 
   override def parseResponse(
-    responseBody: Array[Byte],
-    responseContext: Context,
+    body: Array[Byte],
+    context: Context,
+    id: String,
   ): Either[ParseError[Metadata], protocol.Response[Node, Metadata]] =
     // Deserialize response
-    Try(decodeMessage(messageCodec.deserialize(responseBody))).fold(
+    Try(decodeMessage(messageCodec.deserialize(body))).fold(
       error =>
         Left(ParseError(
           JsonRpcException("Malformed response", ErrorType.ParseError.code, None, error),
-          protocol.Message(None, responseBody),
+          protocol.Message(None, body),
         )),
       responseMessage => {
         // Validate response
         val messageText = () => Some(messageCodec.text(encodeMessage(responseMessage)))
-        val message = protocol.Message(responseMessage.id, responseBody, responseMessage.properties, messageText)
+        val message = protocol.Message(responseMessage.id, body, responseMessage.properties, messageText)
         Try(Response(responseMessage)).fold(
           error =>
             Left(ParseError(JsonRpcException("Malformed response", ErrorType.ParseError.code, None, error), message)),
           response =>
-            // Check for error
-            response.error.fold(
-              // Check for result
-              response.result match {
-                case None => Left(ParseError(InvalidResponse("Invalid result", None.orNull), message))
-                case Some(result) => Right(protocol.Response(Success(result), message))
-              }
-            )(error => Right(protocol.Response(Failure(mapError(error.message, error.code)), message))),
+            // Extract result or error
+            response.error.fold(response.result match {
+              case None => Left(ParseError(InvalidResponse("Invalid result", None.orNull), message))
+              case Some(result) => Right(protocol.Response(Success(result), message, response.id.toString))
+            }) { error =>
+              val exception = mapError(error.message, error.code)
+              Right(protocol.Response(Failure(exception), message, response.id.toString))
+            },
         )
       },
     )

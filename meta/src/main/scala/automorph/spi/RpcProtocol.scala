@@ -35,11 +35,11 @@ trait RpcProtocol[Node, Codec <: MessageCodec[Node], Context] {
    *   invoked function name
    * @param arguments
    *   named arguments
-   * @param responseRequired
+   * @param respond
    *   true if the request mandates a response, false if there should be no response
-   * @param requestContext
+   * @param context
    *   request context
-   * @param requestId
+   * @param id
    *   request correlation identifier
    * @return
    *   RPC request
@@ -47,27 +47,27 @@ trait RpcProtocol[Node, Codec <: MessageCodec[Node], Context] {
   def createRequest(
     function: String,
     arguments: Iterable[(String, Node)],
-    responseRequired: Boolean,
-    requestContext: Context,
-    requestId: String,
+    respond: Boolean,
+    context: Context,
+    id: String,
   ): Try[Request[Node, Metadata, Context]]
 
   /**
    * Parses an RPC request.
    *
-   * @param requestBody
+   * @param body
    *   RPC request message body
-   * @param requestContext
+   * @param context
    *   request context
-   * @param requestId
+   * @param id
    *   request correlation identifier
    * @return
    *   RPC request if the message is valid or RPC error if the message is invalid
    */
   def parseRequest(
-    requestBody: Array[Byte],
-    requestContext: Context,
-    requestId: String,
+    body: Array[Byte],
+    context: Context,
+    id: String,
   ): Either[ParseError[Metadata], Request[Node, Metadata, Context]]
 
   /**
@@ -85,16 +85,19 @@ trait RpcProtocol[Node, Codec <: MessageCodec[Node], Context] {
   /**
    * Parses an RPC response.
    *
-   * @param responseBody
+   * @param body
    *   RPC response message body
-   * @param responseContext
+   * @param context
    *   response context
+   * @param id
+   *   request correlation identifier
    * @return
    *   RPC response if the message is valid or RPC error if the message is invalid
    */
   def parseResponse(
-    responseBody: Array[Byte],
-    responseContext: Context,
+    body: Array[Byte],
+    context: Context,
+    id: String,
   ): Either[ParseError[Metadata], Response[Node, Metadata]]
 
   /** RPC API schema operations. */

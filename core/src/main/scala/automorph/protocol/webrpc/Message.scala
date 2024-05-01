@@ -6,7 +6,7 @@ import scala.collection.immutable.ListMap
  * Web-RPC protocol message structure.
  *
  * @see
- *   [[https://automorph.org/rest-rpc Web-RPC protocol specification]]
+ *   [[https://automorph.org/docs/Web-RPC Web-RPC protocol specification]]
  * @param result
  *   succesful method call result value
  * @param error

@@ -14,7 +14,7 @@ import automorph.transport.HttpContext
  * @constructor
  *   Creates a Web-RPC 2.0 protocol implementation.
  * @see
- *   [[https://automorph.org/rest-rpc Protocol specification]]
+ *   [[https://automorph.org/docs/Web-RPC Web-RPC protocol specification]]
  * @param messageCodec
  *   message codec plugin
  * @param pathPrefix

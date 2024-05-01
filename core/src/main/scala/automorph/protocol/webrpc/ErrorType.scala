@@ -1,10 +1,10 @@
 package automorph.protocol.webrpc
 
 /**
- * JSON-RPC error type with code.
+ * Web-RPC error type with code.
  *
  * @see
- *   [[https://www.jsonrpc.org/specification JSON-RPC protocol specification]]
+ *   [[https://automorph.org/docs/Web-RPC Web-RPC protocol specification]]
  */
 sealed trait ErrorType {
 
@@ -13,10 +13,10 @@ sealed trait ErrorType {
 }
 
 /**
- * JSON-RPC error types with codes.
+ * Web-RPC error types with codes.
  *
  * @see
- *   [[https://www.jsonrpc.org/specification JSON-RPC protocol specification]]
+ *   [[https://automorph.org/docs/Web-RPC Web-RPC protocol specification]]
  */
 object ErrorType {
 

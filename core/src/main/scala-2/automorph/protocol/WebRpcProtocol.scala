@@ -16,7 +16,7 @@ import scala.reflect.macros.blackbox
  * @constructor
  *   Creates a Web-RPC protocol plugin.
  * @see
- *   [[https://automorph.org/rest-rpc Web-RPC protocol specification]]
+ *   [[https://automorph.org/docs/Web-RPC Web-RPC protocol specification]]
  * @param messageCodec
  *   message codec plugin
  * @param pathPrefix

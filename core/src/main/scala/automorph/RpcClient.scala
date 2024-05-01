@@ -102,13 +102,7 @@ final case class RpcClient[Node, Codec <: MessageCodec[Node], Effect[_], Context
   ): Effect[Result] = {
     // Create request
     val requestId = Random.id
-    rpcProtocol.createRequest(
-      function,
-      arguments,
-      responseRequired = true,
-      requestContext.getOrElse(context),
-      requestId,
-    ).fold(
+    rpcProtocol.createRequest(function, arguments, respond = true, requestContext.getOrElse(context), requestId).fold(
       error => system.failed(error),
       // Send request
       rpcRequest =>
@@ -116,11 +110,12 @@ final case class RpcClient[Node, Codec <: MessageCodec[Node], Effect[_], Context
           lazy val requestProperties = getRequestProperties(rpcRequest, requestId)
           lazy val allProperties = requestProperties ++ getMessageBody(rpcRequest.message)
           logger.trace(s"Sending ${rpcProtocol.name} request", allProperties)
-          transport.call(request.message.body, request.context, requestId, rpcProtocol.messageCodec.mediaType).flatMap {
-            case (responseBody, responseContext) =>
+          transport
+            .call(request.message.body, request.context, requestId, rpcProtocol.messageCodec.mediaType)
+            .flatMap { case (responseBody, responseContext) =>
               // Process response
-              processResponse[Result](responseBody, responseContext, requestProperties, decodeResult)
-          }
+              processResponse[Result](responseBody, responseContext, requestId, requestProperties, decodeResult)
+            }
         },
     )
   }
@@ -149,7 +144,7 @@ final case class RpcClient[Node, Codec <: MessageCodec[Node], Effect[_], Context
     rpcProtocol.createRequest(
       function,
       arguments,
-      responseRequired = false,
+      respond = false,
       requestContext.getOrElse(context),
       requestId,
     ).fold(
@@ -177,9 +172,9 @@ final case class RpcClient[Node, Codec <: MessageCodec[Node], Effect[_], Context
   /**
    * Processes an remote function call response.
    *
-   * @param responseBody
+   * @param body
    *   response message body
-   * @param responseContext
+   * @param context
    *   response context
    * @param requestProperties
    *   request properties
@@ -191,24 +186,25 @@ final case class RpcClient[Node, Codec <: MessageCodec[Node], Effect[_], Context
    *   result value
    */
   private def processResponse[R](
-    responseBody: Array[Byte],
-    responseContext: Context,
+    body: Array[Byte],
+    context: Context,
+    requestId: String,
     requestProperties: => Map[String, String],
     decodeResult: (Node, Context) => R,
   ): Effect[R] =
     // Parse response
-    rpcProtocol.parseResponse(responseBody, responseContext).fold(
+    rpcProtocol.parseResponse(body, context, requestId).fold(
       error => raiseError[R](error.exception, requestProperties),
       rpcResponse => {
-        lazy val allProperties = requestProperties ++ rpcResponse.message.properties ++
-          getMessageBody(rpcResponse.message)
+        lazy val responseProperties = rpcResponse.message.properties
+        lazy val allProperties = requestProperties ++ responseProperties ++ getMessageBody(rpcResponse.message)
         logger.trace(s"Received ${rpcProtocol.name} response", allProperties)
         rpcResponse.result.fold(
           // Raise error
           error => raiseError[R](error, requestProperties),
           // Decode result
           result =>
-            Try(decodeResult(result, responseContext)).fold(
+            Try(decodeResult(result, context)).fold(
               error => raiseError[R](InvalidResponse("Malformed result", error), requestProperties),
               result => {
                 logger.info(s"Performed ${rpcProtocol.name} request", requestProperties)

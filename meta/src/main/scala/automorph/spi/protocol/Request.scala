@@ -5,14 +5,14 @@ package automorph.spi.protocol
  *
  * @constructor
  *   Creates RPC request.
- * @param message
- *   RPC message
  * @param function
  *   invoked function name
  * @param arguments
  *   invoked function arguments by name or by position
- * @param responseRequired
+ * @param respond
  *   true if this request mandates a response, false if there should be no response
+ * @param message
+ *   RPC message
  * @param id
  *   request correlation identifier
  * @tparam Node
@@ -23,10 +23,10 @@ package automorph.spi.protocol
  *   message context type
  */
 final case class Request[Node, Metadata, Context](
-  message: Message[Metadata],
   function: String,
   arguments: Seq[Either[Node, (String, Node)]],
-  responseRequired: Boolean,
-  id: String,
+  respond: Boolean,
   context: Context,
+  message: Message[Metadata],
+  id: String,
 )

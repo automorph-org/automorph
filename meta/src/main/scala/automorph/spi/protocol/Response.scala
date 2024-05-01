@@ -11,6 +11,8 @@ import scala.util.Try
  *   a call result on success or an exception on failure
  * @param message
  *   RPC message
+ * @param id
+ *   request correlation identifier
  * @tparam Node
  *   message node type
  * @tparam Content
@@ -19,4 +21,5 @@ import scala.util.Try
 final case class Response[Node, Content](
   result: Try[Node],
   message: Message[Content],
+  id: String,
 )
