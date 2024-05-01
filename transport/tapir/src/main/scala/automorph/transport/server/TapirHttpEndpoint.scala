@@ -3,7 +3,7 @@ package automorph.transport.server
 import automorph.log.{LogProperties, Logging, MessageLog}
 import automorph.spi.{EffectSystem, ServerTransport, RequestHandler}
 import TapirHttpEndpoint.{
-  Context, Endpoint, MessageFormat, clientAddress, getRequestContext, getRequestProperties, pathComponents,
+  Context, Adapter, MessageFormat, clientAddress, getRequestContext, getRequestProperties, pathComponents,
   pathEndpointInput,
 }
 import sttp.tapir
@@ -53,7 +53,7 @@ final case class TapirHttpEndpoint[Effect[_]](
   method: Option[HttpMethod] = None,
   mapException: Throwable => Int = HttpContext.toStatusCode,
   handler: RequestHandler[Effect, Context] = RequestHandler.dummy[Effect, Context],
-) extends ServerTransport[Effect, Context, Endpoint[Effect]] with Logging {
+) extends ServerTransport[Effect, Context, Adapter[Effect]] with Logging {
 
   private lazy val mediaType = MediaType.parse(handler.mediaType).fold(
     error =>
@@ -70,7 +70,7 @@ final case class TapirHttpEndpoint[Effect[_]](
   private val log = MessageLog(logger, Protocol.Http.name)
   implicit private val system: EffectSystem[Effect] = effectSystem
 
-  override def adapter: Endpoint[Effect] = {
+  override def adapter: Adapter[Effect] = {
     // Define server endpoint inputs & outputs
     val endpointMethod = allowedMethod.map(tapir.endpoint.method).getOrElse(tapir.endpoint)
     val endpointPath = pathEndpointInput(prefixPaths).map(path => endpointMethod.in(path)).getOrElse(endpointMethod)
@@ -153,8 +153,8 @@ object TapirHttpEndpoint {
   /** Request context type. */
   type Context = HttpContext[Unit]
 
-  /** Endpoint type. */
-  type Endpoint[Effect[_]] = ServerEndpoint.Full[
+  /** Adapter type. */
+  type Adapter[Effect[_]] = ServerEndpoint.Full[
     Unit,
     Unit,
     (Array[Byte], List[String], QueryParams, List[Header]),

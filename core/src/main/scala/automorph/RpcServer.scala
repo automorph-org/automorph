@@ -48,7 +48,7 @@ final case class RpcServer[Node, Codec <: MessageCodec[Node], Effect[_], Context
   private lazy val rpcFunctions = handler.functions
 
   /** Transport layer integration adapter. */
-  def endpoint: Adapter =
+  def adapter: Adapter =
     configuredTransport.adapter
 
   /**
