@@ -92,7 +92,6 @@ final case class UndertowWebSocketEndpoint[Effect[_]](
     )
   }
 
-  @scala.annotation.nowarn("msg=used")
   private def sendResponse(responseData: ResponseData[Context], channel: WebSocketChannel): Unit =
     WebSockets.sendBinary(
       responseData.body.toByteBuffer,
