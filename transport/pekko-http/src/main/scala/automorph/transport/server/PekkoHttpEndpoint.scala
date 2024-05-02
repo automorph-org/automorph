@@ -2,20 +2,25 @@ package automorph.transport.server
 
 import automorph.log.{LogProperties, Logging, MessageLog}
 import automorph.spi.{EffectSystem, RequestHandler, ServerTransport}
+import automorph.transport.HttpRequestHandler.{RequestData, ResponseData}
 import automorph.transport.server.PekkoHttpEndpoint.Context
-import automorph.transport.{HttpContext, HttpMethod, Protocol}
-import automorph.util.Extensions.{EffectOps, StringOps, ThrowableOps, TryOps}
-import automorph.util.{Network, Random}
+import automorph.transport.{HttpContext, HttpMethod, HttpRequestHandler, Protocol}
+import automorph.util.Extensions.{EffectOps, ThrowableOps}
+import automorph.util.Network
 import org.apache.pekko.http.scaladsl.model.StatusCodes.InternalServerError
 import org.apache.pekko.http.scaladsl.model.headers.RawHeader
-import org.apache.pekko.http.scaladsl.model.{ContentType, HttpRequest, HttpResponse, RemoteAddress, StatusCode, StatusCodes}
-import org.apache.pekko.http.scaladsl.server.Directives.{complete, extractClientIP, extractExecutionContext, extractMaterializer, extractRequest, onComplete}
+import org.apache.pekko.http.scaladsl.model.{
+  ContentType, HttpEntity, HttpRequest, HttpResponse, RemoteAddress, StatusCode,
+}
+import org.apache.pekko.http.scaladsl.server.Directives.{
+  complete, extractClientIP, extractExecutionContext, extractMaterializer, extractRequest, onComplete,
+}
 import org.apache.pekko.http.scaladsl.server.Route
 import org.apache.pekko.stream.Materializer
+import scala.annotation.unused
 import scala.collection.immutable.ListMap
 import scala.concurrent.duration.{DurationInt, FiniteDuration}
 import scala.concurrent.{ExecutionContext, Future, Promise}
-import scala.util.Try
 
 /**
  * Pekko HTTP endpoint message transport plugin.
@@ -52,10 +57,7 @@ final case class PekkoHttpEndpoint[Effect[_]](
   private lazy val contentType = ContentType.parse(handler.mediaType).swap.map { errors =>
     new IllegalStateException(s"Invalid message content type: ${errors.mkString("\n")}")
   }.swap.toTry.get
-  private val log = MessageLog(logger, Protocol.Http.name)
-  implicit private val system: EffectSystem[Effect] = effectSystem
-
-  def adapter: Route =
+  private lazy val route: Route =
     extractRequest { httpRequest =>
       extractClientIP { remoteAddress =>
         extractMaterializer { implicit materializer =>
@@ -66,8 +68,12 @@ final case class PekkoHttpEndpoint[Effect[_]](
                   log.failedProcessRequest(error, Map())
                   complete(InternalServerError, error.description)
                 },
-                { case (httpResponse, responseProperties) =>
-                  log.sentResponse(responseProperties)
+                { case (httpResponse, responseData) =>
+                  log.sentResponse(ListMap(
+                    LogProperties.requestId -> responseData.id,
+                    LogProperties.client -> responseData.client,
+                    LogProperties.status -> responseData.statusCode.toString,
+                  ))
                   complete(httpResponse)
                 },
               )
@@ -76,6 +82,13 @@ final case class PekkoHttpEndpoint[Effect[_]](
         }
       }
     }
+  private val httpRequestHandler =
+    HttpRequestHandler(receiveRequest, createResponse, Protocol.Http, effectSystem, mapException, handler, logger)
+  private val log = MessageLog(logger, Protocol.Http.name)
+  implicit private val system: EffectSystem[Effect] = effectSystem
+
+  def adapter: Route =
+    route
 
   override def init(): Effect[Unit] =
     effectSystem.successful {}
@@ -90,79 +103,38 @@ final case class PekkoHttpEndpoint[Effect[_]](
     implicit
     materializer: Materializer,
     executionContext: ExecutionContext,
-  ): Future[(HttpResponse, ListMap[String, String])] = {
-
-    // Log the request
-    val requestId = Random.id
-    lazy val requestProperties = getRequestProperties(request, requestId, remoteAddress)
-    log.receivedRequest(requestProperties)
-
-    // Process the request
-    val handleRequestResult = Promise[(HttpResponse, ListMap[String, String])]()
+  ): Future[(HttpResponse, ResponseData[Context])] = {
+    val handleRequestResult = Promise[(HttpResponse, ResponseData[Context])]()
     request.entity.toStrict(readTimeout).flatMap { requestEntity =>
-      Try {
-        val requestBody = requestEntity.data.toArray[Byte]
-        val response = handler.processRequest(requestBody, getRequestContext(request), requestId)
-        response.either.map { processRequestResult =>
-          val response = processRequestResult.fold(
-            error => createErrorResponse(error, contentType, remoteAddress, requestId, requestProperties),
-            result => {
-              // Create the response
-              val responseBody = result.map(_.responseBody).getOrElse(Array.emptyByteArray)
-              val status = result.flatMap(_.exception).map(mapException).map(StatusCode.int2StatusCode)
-                .getOrElse(StatusCodes.OK)
-              createResponse(responseBody, status, contentType, result.flatMap(_.context), remoteAddress, requestId)
-            },
-          )
-          handleRequestResult.success(response)
-        }.runAsync
-      }.foldError { error =>
-        handleRequestResult.success(
-          createErrorResponse(error, contentType, remoteAddress, requestId, requestProperties)
-        )
-      }
+      httpRequestHandler.processRequest((request, requestEntity, remoteAddress), ()).either.map(_.fold(
+        error => handleRequestResult.failure(error),
+        result => handleRequestResult.success(result),
+      ))
       handleRequestResult.future
     }
   }
 
-  private def createErrorResponse(
-    error: Throwable,
-    contentType: ContentType,
-    remoteAddress: RemoteAddress,
-    requestId: String,
-    requestProperties: => Map[String, String],
-  ): (HttpResponse, ListMap[String, String]) = {
-    log.failedProcessRequest(error, requestProperties)
-    val responseBody = error.description.toByteArray
-    createResponse(responseBody, StatusCodes.InternalServerError, contentType, None, remoteAddress, requestId)
+  private def receiveRequest(incomingRequest: (HttpRequest, HttpEntity.Strict, RemoteAddress)): RequestData[Context] = {
+    val (request, requestEntity, remoteAddress) = incomingRequest
+    RequestData(
+      () => requestEntity.data.toArray[Byte],
+      getRequestContext(request),
+      Protocol.Http,
+      request.uri.toString,
+      clientAddress(remoteAddress),
+      Some(request.method.value),
+    )
   }
 
   private def createResponse(
-    responseBody: Array[Byte],
-    statusCode: StatusCode,
-    contentType: ContentType,
-    responseContext: Option[Context],
-    remoteAddress: RemoteAddress,
-    requestId: String,
-  ): (HttpResponse, ListMap[String, String]) = {
-    // Log the response
-    val responseStatusCode = responseContext.flatMap(_.statusCode.map(StatusCode.int2StatusCode)).getOrElse(statusCode)
-    lazy val responseProperties = ListMap(
-      LogProperties.requestId -> requestId,
-      LogProperties.client -> clientAddress(remoteAddress),
-      "Status" -> responseStatusCode.intValue.toString,
-    )
-    log.sendingResponse(responseProperties)
-
-    // Send the response
-    val baseResponse = setResponseContext(HttpResponse(), responseContext)
-    val response = baseResponse.withStatus(responseStatusCode).withHeaders(baseResponse.headers)
-      .withEntity(contentType, responseBody)
-    response -> responseProperties
+    responseData: ResponseData[Context],
+    @unused channel: Unit,
+  ): (HttpResponse, ResponseData[Context]) = {
+    val response = createResponseContext(HttpResponse(), responseData.context)
+      .withStatus(StatusCode.int2StatusCode(responseData.statusCode))
+      .withEntity(contentType, responseData.body)
+    (response, responseData)
   }
-
-  private def setResponseContext(response: HttpResponse, responseContext: Option[Context]): HttpResponse =
-    response.withHeaders(responseContext.toSeq.flatMap(_.headers).map { case (name, value) => RawHeader(name, value) })
 
   private def getRequestContext(request: HttpRequest): Context =
     HttpContext(
@@ -171,21 +143,12 @@ final case class PekkoHttpEndpoint[Effect[_]](
       headers = request.headers.map(header => header.name -> header.value),
     ).url(request.uri.toString)
 
-  private def getRequestProperties(
-    request: HttpRequest,
-    requestId: String,
-    remoteAddress: RemoteAddress,
-  ): Map[String, String] =
-    ListMap(
-      LogProperties.requestId -> requestId,
-      LogProperties.client -> clientAddress(remoteAddress),
-      "URL" -> request.uri.toString,
-      "Method" -> request.method.value,
-    )
+  private def createResponseContext(response: HttpResponse, responseContext: Option[Context]): HttpResponse =
+    response.withHeaders(responseContext.toSeq.flatMap(_.headers).map { case (name, value) => RawHeader(name, value) })
 
   private def clientAddress(remoteAddress: RemoteAddress): String =
-    remoteAddress.toOption.flatMap(address => Option(address.getHostAddress).map(Network.address(None, _)))
-      .getOrElse("")
+    remoteAddress.toOption
+      .flatMap(address => Option(address.getHostAddress).map(Network.address(None, _))).getOrElse("")
 }
 
 object PekkoHttpEndpoint extends Logging {
