@@ -85,13 +85,13 @@ final case class UndertowHttpEndpoint[Effect[_]](
     )
   }
 
-  private def sendResponse(responseData: ResponseData[Context], channel: HttpServerExchange): Unit = {
-    if (!channel.isResponseChannelAvailable) {
+  private def sendResponse(responseData: ResponseData[Context], exchange: HttpServerExchange): Unit = {
+    if (!exchange.isResponseChannelAvailable) {
       throw new IOException("Response channel not available")
     }
-    setResponseContext(channel, responseData.context)
-    channel.getResponseHeaders.put(Headers.CONTENT_TYPE, responseData.contentType)
-    channel.setStatusCode(responseData.statusCode).getResponseSender.send(responseData.body.toByteBuffer)
+    setResponseContext(exchange, responseData.context)
+    exchange.getResponseHeaders.put(Headers.CONTENT_TYPE, responseData.contentType)
+    exchange.setStatusCode(responseData.statusCode).getResponseSender.send(responseData.body.toByteBuffer)
   }
 
   private def getRequestContext(exchange: HttpServerExchange): Context = {
@@ -105,9 +105,9 @@ final case class UndertowHttpEndpoint[Effect[_]](
     ).url(exchange.getRequestURI)
   }
 
-  private def setResponseContext(exchange: HttpServerExchange, responseContext: Option[Context]): Unit = {
+  private def setResponseContext(exchange: HttpServerExchange, context: Option[Context]): Unit = {
     val responseHeaders = exchange.getResponseHeaders
-    responseContext.toSeq.flatMap(_.headers).foreach { case (name, value) =>
+    context.toSeq.flatMap(_.headers).foreach { case (name, value) =>
       responseHeaders.add(new HttpString(name), value)
     }
   }
@@ -126,9 +126,6 @@ object UndertowHttpEndpoint {
 
   private type HttpRequest = (HttpServerExchange, Array[Byte])
 
-  private[automorph] def requestQuery(query: String): String =
-    Option(query).filter(_.nonEmpty).map("?" + _).getOrElse("")
-
   final private case class RequestCallback[Effect[_]](
     effectSystem: EffectSystem[Effect],
     handler: HttpRequestHandler[Effect, Context, HttpRequest, Unit, HttpServerExchange],
@@ -140,4 +137,7 @@ object UndertowHttpEndpoint {
     override def run(): Unit =
       handler.processRequest((exchange, requestBody), exchange).runAsync
   }
+
+  private[automorph] def requestQuery(query: String): String =
+    Option(query).filter(_.nonEmpty).map("?" + _).getOrElse("")
 }

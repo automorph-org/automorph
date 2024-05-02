@@ -185,15 +185,15 @@ final case class NanoServer[Effect[_]](
         log.failedReceiveRequest(error, Map(), Protocol.WebSocket.name)
     }
 
-  private def receiveHttpRequest(session: IHTTPSession): RequestData[Context] = {
-    val query = Option(session.getQueryParameterString).filter(_.nonEmpty).map("?" + _).getOrElse("")
+  private def receiveHttpRequest(request: IHTTPSession): RequestData[Context] = {
+    val query = Option(request.getQueryParameterString).filter(_.nonEmpty).map("?" + _).getOrElse("")
     RequestData(
-      () => session.getInputStream.readNBytes(session.getBodySize.toInt),
-      getRequestContext(session),
+      () => request.getInputStream.readNBytes(request.getBodySize.toInt),
+      getRequestContext(request),
       Protocol.Http,
-      s"${session.getUri}$query",
-      clientAddress(session),
-      Some(session.getMethod.toString),
+      s"${request.getUri}$query",
+      clientAddress(request),
+      Some(request.getMethod.toString),
     )
   }
 
@@ -236,8 +236,8 @@ final case class NanoServer[Effect[_]](
     Option(session.getQueryParameterString).map(http.query).getOrElse(http)
   }
 
-  private def setResponseContext(response: Response, responseContext: Option[Context]): Unit =
-    responseContext.toSeq.flatMap(_.headers).foreach { case (name, value) => response.addHeader(name, value) }
+  private def setResponseContext(response: Response, context: Option[Context]): Unit =
+    context.toSeq.flatMap(_.headers).foreach { case (name, value) => response.addHeader(name, value) }
 
   private def clientAddress(session: IHTTPSession): String = {
     val forwardedFor = Option(session.getHeaders.get(headerXForwardedFor))
