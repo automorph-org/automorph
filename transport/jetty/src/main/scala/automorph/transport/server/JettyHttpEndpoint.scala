@@ -40,9 +40,6 @@ final case class JettyHttpEndpoint[Effect[_]](
   mapException: Throwable => Int = HttpContext.toStatusCode,
   handler: RequestHandler[Effect, Context] = RequestHandler.dummy[Effect, Context],
 ) extends ServerTransport[Effect, Context, HttpServlet] with Logging {
-  private val httpRequestHandler =
-    HttpRequestHandler(receiveRequest, sendResponse, Protocol.Http, effectSystem, mapException, handler, logger)
-
   private lazy val httpServlet = new HttpServlet {
     implicit private val system: EffectSystem[Effect] = effectSystem
 
@@ -53,6 +50,8 @@ final case class JettyHttpEndpoint[Effect[_]](
       }
     }
   }
+  private val httpRequestHandler =
+    HttpRequestHandler(receiveRequest, sendResponse, Protocol.Http, effectSystem, mapException, handler, logger)
 
   override def adapter: HttpServlet =
     httpServlet
