@@ -1,16 +1,15 @@
 package automorph.transport.server
 
-import automorph.log.{LogProperties, Logging}
+import automorph.log.Logging
 import automorph.spi.{EffectSystem, RequestHandler, ServerTransport}
 import automorph.transport.HttpRequestHandler.{RequestData, ResponseData}
-import automorph.transport.server.JettyHttpEndpoint.Context
+import automorph.transport.server.JettyHttpEndpoint.{Context, requestQuery}
 import automorph.transport.{HttpContext, HttpMethod, HttpRequestHandler, Protocol}
 import automorph.util.Extensions.{EffectOps, InputStreamOps}
 import automorph.util.Network
 import jakarta.servlet.AsyncContext
 import jakarta.servlet.http.{HttpServlet, HttpServletRequest, HttpServletResponse}
 import org.eclipse.jetty.http.HttpHeader
-import scala.collection.immutable.ListMap
 import scala.jdk.CollectionConverters.EnumerationHasAsScala
 
 /**
@@ -68,7 +67,7 @@ final case class JettyHttpEndpoint[Effect[_]](
     copy(handler = handler)
 
   private def receiveRequest(request: HttpServletRequest): RequestData[Context] = {
-    val query = Option(request.getQueryString).filter(_.nonEmpty).map("?" + _).getOrElse("")
+    val query = requestQuery(request.getQueryString)
     RequestData(
       () => request.getInputStream.toByteArray,
       getRequestContext(request),
@@ -117,20 +116,6 @@ object JettyHttpEndpoint {
   /** Request context type. */
   type Context = HttpContext[HttpServletRequest]
 
-  private[automorph] def requestProperties(
-    uri: String,
-    queryString: String,
-    method: String,
-    client: String,
-    requestId: String,
-  ): Map[String, String] = {
-    val query = Option(queryString).filter(_.nonEmpty).map("?" + _).getOrElse("")
-    val url = s"$uri$query"
-    ListMap(
-      LogProperties.requestId -> requestId,
-      LogProperties.client -> client,
-      "URL" -> url,
-      "Method" -> method,
-    )
-  }
+  private[automorph] def requestQuery(query: String): String =
+    Option(query).filter(_.nonEmpty).map("?" + _).getOrElse("")
 }

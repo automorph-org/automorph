@@ -2,17 +2,17 @@ package automorph.transport.server
 
 import automorph.log.{LogProperties, Logging, MessageLog}
 import automorph.spi.{EffectSystem, RequestHandler, ServerTransport}
-import automorph.transport.server.JettyHttpEndpoint.{Context, requestProperties}
+import automorph.transport.HttpRequestHandler.{RequestData, ResponseData}
+import automorph.transport.server.JettyHttpEndpoint.{Context, requestQuery}
 import automorph.transport.server.JettyWebSocketEndpoint.ResponseCallback
-import automorph.transport.{HttpContext, HttpMethod, Protocol}
-import automorph.util.Extensions.{ByteArrayOps, EffectOps, StringOps, ThrowableOps}
-import automorph.util.{Network, Random}
+import automorph.transport.{HttpContext, HttpMethod, HttpRequestHandler, Protocol}
+import automorph.util.Extensions.{ByteArrayOps, EffectOps, StringOps}
+import automorph.util.Network
 import org.eclipse.jetty.http.HttpHeader
 import org.eclipse.jetty.websocket.api.{Session, UpgradeRequest, WebSocketAdapter, WriteCallback}
 import org.eclipse.jetty.websocket.server.{JettyServerUpgradeRequest, JettyServerUpgradeResponse, JettyWebSocketCreator}
 import scala.collection.immutable.ListMap
 import scala.jdk.CollectionConverters.{ListHasAsScala, MapHasAsScala}
-import scala.util.Try
 
 /**
  * Jetty WebSocket endpoint message transport plugin.
@@ -42,38 +42,17 @@ final case class JettyWebSocketEndpoint[Effect[_]](
   mapException: Throwable => Int = HttpContext.toStatusCode,
   handler: RequestHandler[Effect, Context] = RequestHandler.dummy[Effect, Context],
 ) extends ServerTransport[Effect, Context, WebSocketAdapter] with Logging {
-
   private lazy val webSocketAdapter = new WebSocketAdapter {
+    implicit private val system: EffectSystem[Effect] = effectSystem
 
-    override def onWebSocketText(message: String): Unit =
-      handle(message.toByteArray)
-
-    override def onWebSocketBinary(payload: Array[Byte], offset: Int, length: Int): Unit =
-      handle(payload)
-
-    private def handle(requestBody: Array[Byte]): Unit = {
-      // Log the request
+    override def onWebSocketText(message: String): Unit = {
       val session = getSession
-      val requestId = Random.id
-      lazy val requestProperties = getRequestProperties(session, requestId)
-      log.receivedRequest(requestProperties)
+      httpRequestHandler.processRequest((message.toByteArray, session), session).runAsync
+    }
 
-      // Process the request
-      Try {
-        val handlerResult = handler.processRequest(requestBody, getRequestContext(session.getUpgradeRequest), requestId)
-        handlerResult.either.map(
-          _.fold(
-            error => sendErrorResponse(error, session, requestId, requestProperties),
-            result => {
-              // Send the response
-              val responseBody = result.map(_.responseBody).getOrElse(Array.emptyByteArray)
-              sendResponse(responseBody, session, requestId)
-            },
-          )
-        ).runAsync
-      }.failed.foreach { error =>
-        sendErrorResponse(error, session, requestId, requestProperties)
-      }
+    override def onWebSocketBinary(payload: Array[Byte], offset: Int, length: Int): Unit = {
+      val session = getSession
+      httpRequestHandler.processRequest((payload, session), session).runAsync
     }
   }
   private lazy val jettyWebSocketCreator = new JettyWebSocketCreator {
@@ -81,9 +60,9 @@ final case class JettyWebSocketEndpoint[Effect[_]](
     override def createWebSocket(request: JettyServerUpgradeRequest, response: JettyServerUpgradeResponse): AnyRef =
       adapter
   }
-
-  private val log = MessageLog(logger, Protocol.Http.name)
-  implicit private val system: EffectSystem[Effect] = effectSystem
+  private val httpRequestHandler =
+    HttpRequestHandler(receiveRequest, sendResponse, Protocol.Http, effectSystem, mapException, handler, logger)
+  private val log = MessageLog(logger, Protocol.WebSocket.name)
 
   /** Jetty WebSocket creator. */
   def creator: JettyWebSocketCreator =
@@ -101,28 +80,25 @@ final case class JettyWebSocketEndpoint[Effect[_]](
   override def requestHandler(handler: RequestHandler[Effect, Context]): JettyWebSocketEndpoint[Effect] =
     copy(handler = handler)
 
-  private def sendErrorResponse(
-    error: Throwable,
-    session: Session,
-    requestId: String,
-    requestProperties: => Map[String, String],
-  ): Unit = {
-    log.failedProcessRequest(error, requestProperties)
-    val responseBody = error.description.toByteArray
-    sendResponse(responseBody, session, requestId)
-  }
-
-  private def sendResponse(responseBody: Array[Byte], session: Session, requestId: String): Unit = {
-    // Log the response
-    lazy val responseProperties = ListMap(
-      LogProperties.requestId -> requestId,
-      LogProperties.client -> clientAddress(session),
+  private def receiveRequest(incomingRequest: (Array[Byte], Session)): RequestData[Context] = {
+    val (requestBody, session) = incomingRequest
+    val request = session.getUpgradeRequest
+    val query = requestQuery(request.getQueryString)
+    RequestData(
+      () => requestBody,
+      getRequestContext(request),
+      Protocol.Http,
+      s"${request.getRequestURI.toString}$query",
+      clientAddress(session),
+      Some(request.getMethod),
     )
-    log.sendingResponse(responseProperties)
-
-    // Send the response
-    session.getRemote.sendBytes(responseBody.toByteBuffer, ResponseCallback(log, responseProperties))
   }
+
+  private def sendResponse(responseData: ResponseData[Context], session: Session): Unit =
+    session.getRemote.sendBytes(
+      responseData.body.toByteBuffer,
+      ResponseCallback(log, responseData.id, responseData.client),
+    )
 
   private def getRequestContext(request: UpgradeRequest): Context = {
     val headers = request.getHeaders.asScala.flatMap { case (name, values) =>
@@ -130,17 +106,6 @@ final case class JettyWebSocketEndpoint[Effect[_]](
     }.toSeq
     HttpContext(transportContext = None, method = Some(HttpMethod.valueOf(request.getMethod)), headers = headers)
       .url(request.getRequestURI)
-  }
-
-  private def getRequestProperties(session: Session, requestId: String): Map[String, String] = {
-    val request = session.getUpgradeRequest
-    requestProperties(
-      request.getRequestURI.toString,
-      request.getQueryString,
-      request.getMethod,
-      clientAddress(session),
-      requestId,
-    )
   }
 
   private def clientAddress(session: Session): String = {
@@ -157,8 +122,13 @@ object JettyWebSocketEndpoint {
 
   final private case class ResponseCallback(
     log: MessageLog,
-    responseProperties: ListMap[String, String],
+    requestId: String,
+    client: String,
   ) extends WriteCallback {
+    private val responseProperties = ListMap(
+      LogProperties.requestId -> requestId,
+      LogProperties.client -> client,
+    )
 
     override def writeFailed(error: Throwable): Unit =
       log.failedSendResponse(error, responseProperties)
