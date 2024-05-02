@@ -42,6 +42,11 @@ final case class UndertowHttpEndpoint[Effect[_]](
   mapException: Throwable => Int = HttpContext.toStatusCode,
   handler: RequestHandler[Effect, Context] = RequestHandler.dummy[Effect, Context],
 ) extends ServerTransport[Effect, Context, HttpHandler] with Logging {
+  private lazy val httpHandler = new HttpHandler {
+
+    override def handleRequest(exchange: HttpServerExchange): Unit =
+      exchange.getRequestReceiver.receiveFullBytes(receiverCallback)
+  }
   private val httpRequestHandler =
     HttpRequestHandler(receiveRequest, sendResponse, Protocol.Http, effectSystem, mapException, handler, logger)
   private val receiverCallback = new Receiver.FullBytesCallback {
@@ -53,11 +58,6 @@ final case class UndertowHttpEndpoint[Effect[_]](
         ()
       } else handlerRunnable.run()
     }
-  }
-  private lazy val httpHandler = new HttpHandler {
-
-    override def handleRequest(exchange: HttpServerExchange): Unit =
-      exchange.getRequestReceiver.receiveFullBytes(receiverCallback)
   }
 
   override def adapter: HttpHandler =
@@ -126,6 +126,9 @@ object UndertowHttpEndpoint {
 
   private type HttpRequest = (HttpServerExchange, Array[Byte])
 
+  private[automorph] def requestQuery(query: String): String =
+    Option(query).filter(_.nonEmpty).map("?" + _).getOrElse("")
+
   final private case class RequestCallback[Effect[_]](
     effectSystem: EffectSystem[Effect],
     handler: HttpRequestHandler[Effect, Context, HttpRequest, Unit, HttpServerExchange],
@@ -137,7 +140,4 @@ object UndertowHttpEndpoint {
     override def run(): Unit =
       handler.processRequest((exchange, requestBody), exchange).runAsync
   }
-
-  private[automorph] def requestQuery(query: String): String =
-    Option(query).filter(_.nonEmpty).map("?" + _).getOrElse("")
 }
