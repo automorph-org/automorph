@@ -4,17 +4,13 @@ import automorph.log.{LogProperties, Logging, MessageLog}
 import automorph.spi.{EffectSystem, RequestHandler, ServerTransport}
 import automorph.transport.HttpRequestHandler.{RequestData, ResponseData}
 import automorph.transport.server.UndertowHttpEndpoint.requestQuery
-import automorph.transport.websocket.endpoint.UndertowWebSocketEndpoint.{
-  ConnectionListener, Context, ResponseCallback, WebSocketRequest,
-}
-import automorph.transport.{HttpContext, HttpRequestHandler, Protocol}
+import automorph.transport.websocket.endpoint.UndertowWebSocketEndpoint.{ConnectionListener, Context, ResponseCallback}
+import automorph.transport.{HttpContext, HttpMethod, HttpRequestHandler, Protocol}
 import automorph.util.Extensions.{ByteArrayOps, ByteBufferOps, EffectOps, StringOps}
 import automorph.util.Network
 import io.undertow.server.{HttpHandler, HttpServerExchange}
-import io.undertow.util.{Headers, Methods}
-import io.undertow.websockets.core.{
-  AbstractReceiveListener, BufferedBinaryMessage, BufferedTextMessage, WebSocketCallback, WebSocketChannel, WebSockets,
-}
+import io.undertow.util.Headers
+import io.undertow.websockets.core.{AbstractReceiveListener, BufferedBinaryMessage, BufferedTextMessage, WebSocketCallback, WebSocketChannel, WebSockets}
 import io.undertow.websockets.spi.WebSocketHttpExchange
 import io.undertow.websockets.{WebSocketConnectionCallback, WebSocketProtocolHandshakeHandler}
 import scala.collection.immutable.ListMap
@@ -79,7 +75,7 @@ final case class UndertowWebSocketEndpoint[Effect[_]](
   override def requestHandler(handler: RequestHandler[Effect, Context]): UndertowWebSocketEndpoint[Effect] =
     copy(handler = handler)
 
-  private def receiveRequest(request: WebSocketRequest): RequestData[Context] = {
+  private def receiveRequest(request: (WebSocketHttpExchange, Array[Byte])): RequestData[Context] = {
     val (exchange, requestBody) = request
     val query = requestQuery(exchange.getQueryString)
     RequestData(
@@ -88,7 +84,7 @@ final case class UndertowWebSocketEndpoint[Effect[_]](
       Protocol.Http,
       s"${exchange.getRequestURI}$query",
       clientAddress(exchange),
-      Some(Methods.GET.toString),
+      Some(HttpMethod.Get.name),
     )
   }
 
@@ -120,11 +116,9 @@ object UndertowWebSocketEndpoint {
   /** Request context type. */
   type Context = HttpContext[Either[HttpServerExchange, WebSocketHttpExchange]]
 
-  private type WebSocketRequest = (WebSocketHttpExchange, Array[Byte])
-
   final private case class ConnectionListener[Effect[_]](
     effectSystem: EffectSystem[Effect],
-    handler: HttpRequestHandler[Effect, Context, WebSocketRequest, Unit, WebSocketChannel],
+    handler: HttpRequestHandler[Effect, Context, (WebSocketHttpExchange, Array[Byte]), Unit, WebSocketChannel],
     exchange: WebSocketHttpExchange,
   ) extends AbstractReceiveListener {
     implicit private val system: EffectSystem[Effect] = effectSystem

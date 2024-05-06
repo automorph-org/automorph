@@ -63,7 +63,6 @@ final case class NanoServer[Effect[_]](
   threads: Int = Runtime.getRuntime.availableProcessors * 2,
 ) extends NanoWSD(port, threads) with Logging with ServerTransport[Effect, Context, Unit] {
   private type WebSocketRequest = (IHTTPSession, WebSocketFrame)
-  private val headerXForwardedFor = "X-Forwarded-For"
   private val log = MessageLog(logger, Protocol.Http.name)
   private val allowedMethods = methods.map(_.name).toSet
   implicit private val system: EffectSystem[Effect] = effectSystem
@@ -240,7 +239,7 @@ final case class NanoServer[Effect[_]](
     context.toSeq.flatMap(_.headers).foreach { case (name, value) => response.addHeader(name, value) }
 
   private def clientAddress(session: IHTTPSession): String = {
-    val forwardedFor = Option(session.getHeaders.get(headerXForwardedFor))
+    val forwardedFor = Option(session.getHeaders.get(HttpRequestHandler.headerXForwardedFor))
     val address = Option(session.getRemoteIpAddress).filter(_.nonEmpty).getOrElse(session.getRemoteHostName)
     Network.address(forwardedFor, address)
   }

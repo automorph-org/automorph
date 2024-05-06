@@ -2,17 +2,17 @@ package automorph.transport.server
 
 import automorph.log.{LogProperties, Logging, MessageLog}
 import automorph.spi.{EffectSystem, RequestHandler, ServerTransport}
+import automorph.transport.HttpRequestHandler.{RequestData, ResponseData}
 import automorph.transport.server.VertxHttpEndpoint.Context
-import automorph.transport.{HttpContext, HttpMethod, Protocol}
-import automorph.util.Extensions.{EffectOps, StringOps, ThrowableOps}
-import automorph.util.{Network, Random}
+import automorph.transport.{HttpContext, HttpMethod, HttpRequestHandler, Protocol}
+import automorph.util.Extensions.EffectOps
+import automorph.util.Network
 import io.vertx.core.buffer.Buffer
 import io.vertx.core.http.{HttpHeaders, HttpServerRequest, HttpServerResponse, ServerWebSocket}
 import io.vertx.core.net.SocketAddress
 import io.vertx.core.{Handler, MultiMap}
 import scala.collection.immutable.ListMap
 import scala.jdk.CollectionConverters.ListHasAsScala
-import scala.util.Try
 
 /**
  * Vert.x HTTP endpoint message transport plugin.
@@ -45,37 +45,15 @@ final case class VertxHttpEndpoint[Effect[_]](
   private lazy val requestHandler = new Handler[HttpServerRequest] {
 
     override def handle(request: HttpServerRequest): Unit = {
-      // Log the request
-      val requestId = Random.id
-      lazy val requestProperties = getRequestProperties(request, requestId)
-      log.receivingRequest(requestProperties)
       request.bodyHandler { buffer =>
-        // Process the request
-        Try {
-          val requestBody = buffer.getBytes
-          log.receivedRequest(requestProperties)
-          val handlerResult = handler.processRequest(requestBody, getRequestContext(request), requestId)
-          handlerResult.either.map(
-            _.fold(
-              error => sendErrorResponse(error, request, requestId, requestProperties),
-              result => {
-                // Send the response
-                val responseBody = result.map(_.responseBody).getOrElse(Array.emptyByteArray)
-                val status = result.flatMap(_.exception).map(mapException).getOrElse(statusOk)
-                sendResponse(responseBody, status, result.flatMap(_.context), request, requestId)
-              },
-            )
-          ).runAsync
-        }.failed.foreach { error =>
-          sendErrorResponse(error, request, requestId, requestProperties)
-        }
+        httpRequestHandler.processRequest((buffer, request), request).runAsync
       }
       ()
     }
   }
 
-  private val statusOk = 200
-  private val statusInternalServerError = 500
+  private val httpRequestHandler =
+    HttpRequestHandler(receiveRequest, sendResponse, Protocol.Http, effectSystem, mapException, handler, logger)
   private val log = MessageLog(logger, Protocol.Http.name)
   implicit private val system: EffectSystem[Effect] = effectSystem
 
@@ -91,37 +69,29 @@ final case class VertxHttpEndpoint[Effect[_]](
   override def requestHandler(handler: RequestHandler[Effect, Context]): VertxHttpEndpoint[Effect] =
     copy(handler = handler)
 
-  private def sendErrorResponse(
-    error: Throwable,
-    request: HttpServerRequest,
-    requestId: String,
-    requestProperties: => Map[String, String],
-  ): Unit = {
-    log.failedProcessRequest(error, requestProperties)
-    val responseBody = error.description.toByteArray
-    sendResponse(responseBody, statusInternalServerError, None, request, requestId)
+  private def receiveRequest(incomingRequest: (Buffer, HttpServerRequest)): RequestData[Context] = {
+    val (body, request) = incomingRequest
+    RequestData(
+      () => body.getBytes,
+      getRequestContext(request),
+      Protocol.Http,
+      request.absoluteURI,
+      clientAddress(request),
+      Some(request.method.name),
+    )
   }
 
-  private def sendResponse(
-    responseBody: Array[Byte],
-    statusCode: Int,
-    responseContext: Option[Context],
-    request: HttpServerRequest,
-    requestId: String,
-  ): Unit = {
-    // Log the response
-    val responseStatusCode = responseContext.flatMap(_.statusCode).getOrElse(statusCode)
+  private def sendResponse(responseData: ResponseData[Context], request: HttpServerRequest): Unit = {
     lazy val responseProperties = ListMap(
-      LogProperties.requestId -> requestId,
-      LogProperties.client -> clientAddress(request),
-      "Status" -> responseStatusCode.toString,
+      LogProperties.requestId -> responseData.id,
+      LogProperties.client -> responseData.client,
     )
-    log.sendingResponse(responseProperties)
-
-    // Send the response
-    setResponseContext(request.response, responseContext)
-      .putHeader(HttpHeaders.CONTENT_TYPE, handler.mediaType).setStatusCode(statusCode)
-      .end(Buffer.buffer(responseBody)).onSuccess(_ => log.sentResponse(responseProperties)).onFailure {
+    setResponseContext(request.response, responseData.context)
+      .putHeader(HttpHeaders.CONTENT_TYPE, responseData.contentType)
+      .setStatusCode(responseData.statusCode)
+      .end(Buffer.buffer(responseData.body))
+      .onSuccess(_ => log.sentResponse(responseProperties))
+      .onFailure {
         error => log.failedSendResponse(error, responseProperties)
       }
     ()
@@ -141,16 +111,8 @@ final case class VertxHttpEndpoint[Effect[_]](
       current.putHeader(name, value)
     }
 
-  private def getRequestProperties(request: HttpServerRequest, requestId: String): Map[String, String] =
-    ListMap(
-      LogProperties.requestId -> requestId,
-      LogProperties.client -> clientAddress(request),
-      "URL" -> request.absoluteURI,
-      "Method" -> request.method.name,
-    )
-
   private def clientAddress(request: HttpServerRequest): String =
-    VertxHttpEndpoint.clientAddress(request.headers(), request.remoteAddress())
+    VertxHttpEndpoint.clientAddress(request.headers, request.remoteAddress)
 }
 
 object VertxHttpEndpoint {
@@ -158,10 +120,8 @@ object VertxHttpEndpoint {
   /** Request context type. */
   type Context = HttpContext[Either[HttpServerRequest, ServerWebSocket]]
 
-  private[automorph] val headerXForwardedFor = "X-Forwarded-For"
-
   private[automorph] def clientAddress(headers: MultiMap, remoteAddress: SocketAddress): String = {
-    val forwardedFor = Option(headers.get(headerXForwardedFor))
+    val forwardedFor = Option(headers.get(HttpRequestHandler.headerXForwardedFor))
     val address = Option(remoteAddress.hostName).orElse(Option(remoteAddress.hostAddress)).getOrElse("")
     Network.address(forwardedFor, address)
   }

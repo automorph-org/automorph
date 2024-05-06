@@ -1,18 +1,17 @@
 package automorph.transport.websocket.endpoint
 
 import automorph.log.{LogProperties, Logging, MessageLog}
-import automorph.spi.{EffectSystem, ServerTransport, RequestHandler}
+import automorph.spi.{EffectSystem, RequestHandler, ServerTransport}
+import automorph.transport.HttpRequestHandler.{RequestData, ResponseData}
 import automorph.transport.server.VertxHttpEndpoint
-import automorph.transport.{HttpContext, Protocol}
 import automorph.transport.websocket.endpoint.VertxWebSocketEndpoint.Context
-import automorph.util.Extensions.{EffectOps, StringOps, ThrowableOps}
-import automorph.util.Random
+import automorph.transport.{HttpContext, HttpMethod, HttpRequestHandler, Protocol}
+import automorph.util.Extensions.EffectOps
 import io.vertx.core.Handler
 import io.vertx.core.buffer.Buffer
 import io.vertx.core.http.{HttpServerRequest, ServerWebSocket}
 import scala.collection.immutable.ListMap
 import scala.jdk.CollectionConverters.ListHasAsScala
-import scala.util.Try
 
 /**
  * Vert.x WebSocket endpoint message transport plugin.
@@ -43,34 +42,15 @@ final case class VertxWebSocketEndpoint[Effect[_]](
   private lazy val requestHandler = new Handler[ServerWebSocket] {
 
     override def handle(session: ServerWebSocket): Unit = {
-      // Log the request
-      val requestId = Random.id
-      lazy val requestProperties = getRequestProperties(session, requestId)
-      log.receivingRequest(requestProperties)
       session.binaryMessageHandler { buffer =>
-        // Process the request
-        Try {
-          val requestBody = buffer.getBytes
-          log.receivedRequest(requestProperties)
-          val handlerResult = handler.processRequest(requestBody, getRequestContext(session), requestId)
-          handlerResult.either.map(
-            _.fold(
-              error => sendErrorResponse(error, session, requestId, requestProperties),
-              result => {
-                // Send the response
-                val responseBody = result.map(_.responseBody).getOrElse(Array.emptyByteArray)
-                sendResponse(responseBody, session, requestId)
-              },
-            )
-          ).runAsync
-        }.failed.foreach { error =>
-          sendErrorResponse(error, session, requestId, requestProperties)
-        }
+        httpRequestHandler.processRequest((buffer, session), session).runAsync
       }
       ()
     }
   }
 
+  private val httpRequestHandler =
+    HttpRequestHandler(receiveRequest, sendResponse, Protocol.Http, effectSystem, _ => 0, handler, logger)
   private val log = MessageLog(logger, Protocol.WebSocket.name)
   implicit private val system: EffectSystem[Effect] = effectSystem
 
@@ -86,42 +66,38 @@ final case class VertxWebSocketEndpoint[Effect[_]](
   override def requestHandler(handler: RequestHandler[Effect, Context]): VertxWebSocketEndpoint[Effect] =
     copy(handler = handler)
 
-  private def sendErrorResponse(
-    error: Throwable,
-    session: ServerWebSocket,
-    requestId: String,
-    requestProperties: => Map[String, String],
-  ): Unit = {
-    log.failedProcessRequest(error, requestProperties)
-    val responseBody = error.description.toByteArray
-    sendResponse(responseBody, session, requestId)
+  private def receiveRequest(incomingRequest: (Buffer, ServerWebSocket)): RequestData[Context] = {
+    val (body, webSocket) = incomingRequest
+    RequestData(
+      () => body.getBytes,
+      getRequestContext(webSocket),
+      Protocol.Http,
+      webSocket.uri,
+      clientAddress(webSocket),
+      Some(HttpMethod.Get.name),
+    )
   }
 
-  private def sendResponse(responseBody: Array[Byte], session: ServerWebSocket, requestId: String): Unit = {
-    // Log the response
-    lazy val responseProperties =
-      ListMap(LogProperties.requestId -> requestId, LogProperties.client -> clientAddress(session))
-    log.sendingResponse(responseProperties)
-
-    // Send the response
-    session.writeBinaryMessage(Buffer.buffer(responseBody)).onSuccess { _ =>
-      log.sentResponse(responseProperties)
-    }.onFailure { error =>
-      log.failedSendResponse(error, responseProperties)
-    }
+  private def sendResponse(responseData: ResponseData[Context], session: ServerWebSocket): Unit = {
+    lazy val responseProperties = ListMap(
+      LogProperties.requestId -> responseData.id,
+      LogProperties.client -> responseData.client,
+    )
+    session.writeBinaryMessage(Buffer.buffer(responseData.body))
+      .onSuccess(_ => log.sentResponse(responseProperties))
+      .onFailure(log.failedSendResponse(_, responseProperties))
     ()
   }
 
-  private def clientAddress(request: ServerWebSocket): String =
-    VertxHttpEndpoint.clientAddress(request.headers(), request.remoteAddress())
-
-  private def getRequestContext(request: ServerWebSocket): Context = {
-    val headers = request.headers.entries.asScala.map(entry => entry.getKey -> entry.getValue).toSeq
-    HttpContext(transportContext = Some(Right(request).withLeft[HttpServerRequest]), headers = headers).url(request.uri)
+  private def getRequestContext(webSocket: ServerWebSocket): Context = {
+    val headers = webSocket.headers.entries.asScala.map(entry => entry.getKey -> entry.getValue).toSeq
+    HttpContext(transportContext = Some(Right(webSocket).withLeft[HttpServerRequest]), headers = headers).url(
+      webSocket.uri
+    )
   }
 
-  private def getRequestProperties(request: ServerWebSocket, requestId: String): Map[String, String] =
-    ListMap(LogProperties.requestId -> requestId, LogProperties.client -> clientAddress(request), "URL" -> request.uri)
+  private def clientAddress(webSocket: ServerWebSocket): String =
+    VertxHttpEndpoint.clientAddress(webSocket.headers, webSocket.remoteAddress)
 }
 
 object VertxWebSocketEndpoint {

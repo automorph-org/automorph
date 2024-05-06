@@ -2,7 +2,7 @@ package automorph.transport
 
 import automorph.log.{LogProperties, Logger, MessageLog}
 import automorph.spi.{EffectSystem, RequestHandler}
-import automorph.transport.HttpRequestHandler.{RequestData, ResponseData}
+import automorph.transport.HttpRequestHandler.{RequestData, ResponseData, contentTypeText}
 import automorph.util.Extensions.{EffectOps, StringOps, ThrowableOps, TryOps}
 import automorph.util.Random
 import scala.collection.immutable.ListMap
@@ -42,13 +42,12 @@ final private[automorph] case class HttpRequestHandler[
           val status = result.flatMap(_.exception).map(mapException).orElse(
             resultContext.flatMap(_.statusCode)
           ).getOrElse(statusOk)
-          sendRpcResponse(responseBody, status, resultContext, channel, requestData)
+          sendRpcResponse(responseBody, requestHandler.mediaType, status, resultContext, channel, requestData)
         },
       ))
-    }.fold(
-      error => system.evaluate(sendErrorResponse(error, channel, requestData)),
-      identity,
-    )
+    }.recover { error =>
+      system.evaluate(sendErrorResponse(error, channel, requestData))
+    }.get
   }
 
   private def receiveRpcRequest(request: Request): RequestData[Context] = {
@@ -62,21 +61,18 @@ final private[automorph] case class HttpRequestHandler[
 
   private def sendRpcResponse(
     responseBody: Array[Byte],
+    contentType: String,
     statusCode: Int,
     context: Option[Context],
     channel: Channel,
     requestData: RequestData[Context],
   ): Response = {
-    lazy val responseProperties = ListMap(
-      LogProperties.requestId -> requestData.id,
-      LogProperties.client -> requestData.client,
-    ) ++ (requestData.protocol match {
+    lazy val responseProperties = requestData.properties ++ (requestData.protocol match {
       case Protocol.Http => Some(LogProperties.status -> statusCode.toString)
       case _ => None
-    }).toMap
+    })
     val protocol = requestData.protocol.name
     log.sendingResponse(responseProperties, protocol)
-    val contentType = requestHandler.mediaType
     val responseData = ResponseData(responseBody, context, statusCode, contentType, requestData.client, requestData.id)
     Try(sendResponse(responseData, channel)).onSuccess(_ =>
       log.sentResponse(responseProperties, protocol)
@@ -86,11 +82,14 @@ final private[automorph] case class HttpRequestHandler[
   private def sendErrorResponse(error: Throwable, channel: Channel, requestData: RequestData[Context]): Response = {
     log.failedProcessRequest(error, requestData.properties, requestData.protocol.name)
     val responseBody = error.description.toByteArray
-    sendRpcResponse(responseBody, statusInternalServerError, None, channel, requestData)
+    sendRpcResponse(responseBody, contentTypeText, statusInternalServerError, None, channel, requestData)
   }
 }
 
 private[automorph] object HttpRequestHandler {
+
+  val headerXForwardedFor = "X-Forwarded-For"
+  val contentTypeText = "text/plain"
 
   final case class RequestData[Context](
     retrieveBody: () => Array[Byte],
