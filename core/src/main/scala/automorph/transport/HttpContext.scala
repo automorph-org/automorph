@@ -396,6 +396,39 @@ final case class HttpContext[TransportContext](
   def statusCode(statusCode: Int): HttpContext[TransportContext] =
     copy(statusCode = Some(statusCode))
 
+  /**
+   * Set follow redirects property.
+   *
+   * @param followRedirects
+   *   follow redirects
+   * @return
+   *   HTTP message context
+   */
+  def followRedirects(followRedirects: Boolean): HttpContext[TransportContext] =
+    copy(followRedirects = Some(followRedirects))
+
+  /**
+   * Set timeout property.
+   *
+   * @param timeout
+   *   timeout
+   * @return
+   *   HTTP message context
+   */
+  def timeout(timeout: Duration): HttpContext[TransportContext] =
+    copy(timeout = Some(timeout))
+
+  /**
+   * Set transport context property.
+   *
+   * @param transportContext
+   *   transport context
+   * @return
+   *   HTTP message context
+   */
+  def transportContext(transportContext: TransportContext): HttpContext[TransportContext] =
+    copy(transportContext = Some(transportContext))
+
   /** `Content-Type` header value. */
   def contentType: Option[String] =
     header(headerContentType)
