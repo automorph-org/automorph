@@ -8,7 +8,7 @@ import akka.http.scaladsl.server.Directives.{
 }
 import akka.http.scaladsl.server.Route
 import akka.stream.Materializer
-import automorph.log.{LogProperties, Logging, MessageLog}
+import automorph.log.Logging
 import automorph.spi.{EffectSystem, RequestHandler, ServerTransport}
 import automorph.transport.HttpRequestHandler.{RequestData, ResponseData}
 import automorph.transport.server.AkkaHttpEndpoint.Context
@@ -16,7 +16,6 @@ import automorph.transport.{HttpContext, HttpMethod, HttpRequestHandler, Protoco
 import automorph.util.Extensions.{EffectOps, ThrowableOps}
 import automorph.util.Network
 import scala.annotation.unused
-import scala.collection.immutable.ListMap
 import scala.concurrent.duration.{DurationInt, FiniteDuration}
 import scala.concurrent.{ExecutionContext, Future, Promise}
 
@@ -60,28 +59,14 @@ final case class AkkaHttpEndpoint[Effect[_]](
       extractClientIP { remoteAddress =>
         extractMaterializer { implicit materializer =>
           extractExecutionContext { implicit executionContext =>
-            onComplete(handleRequest(httpRequest, remoteAddress))(
-              _.fold(
-                error => {
-                  log.failedProcessRequest(error, Map())
-                  complete(InternalServerError, error.description)
-                },
-                { case (httpResponse, responseData) =>
-                  log.sentResponse(ListMap(
-                    LogProperties.requestId -> responseData.id,
-                    LogProperties.client -> responseData.client,
-                    LogProperties.status -> responseData.statusCode.toString,
-                  ))
-                  complete(httpResponse)
-                },
-              )
-            )
+            onComplete(handleRequest(httpRequest, remoteAddress))(_.fold(
+              error => complete(InternalServerError, error.description),
+              response => complete(response),
+            ))
           }
         }
       }
     }
-  private val log = MessageLog(logger, Protocol.Http.name)
-
   private val httpRequestHandler =
     HttpRequestHandler(receiveRequest, createResponse, Protocol.Http, effectSystem, mapException, handler, logger)
   implicit private val system: EffectSystem[Effect] = effectSystem
@@ -102,8 +87,8 @@ final case class AkkaHttpEndpoint[Effect[_]](
     implicit
     materializer: Materializer,
     executionContext: ExecutionContext,
-  ): Future[(HttpResponse, ResponseData[Context])] = {
-    val handleRequestResult = Promise[(HttpResponse, ResponseData[Context])]()
+  ): Future[HttpResponse] = {
+    val handleRequestResult = Promise[HttpResponse]()
     request.entity.toStrict(readTimeout).flatMap { requestEntity =>
       httpRequestHandler.processRequest((request, requestEntity, remoteAddress), ()).either.map(_.fold(
         error => handleRequestResult.failure(error),
@@ -128,12 +113,11 @@ final case class AkkaHttpEndpoint[Effect[_]](
   private def createResponse(
     responseData: ResponseData[Context],
     @unused channel: Unit,
-  ): (HttpResponse, ResponseData[Context]) = {
-    val response = createResponseContext(HttpResponse(), responseData.context)
+    @unused logResponse: Option[Throwable] => Unit,
+  ): HttpResponse =
+    createResponseContext(HttpResponse(), responseData.context)
       .withStatus(StatusCode.int2StatusCode(responseData.statusCode))
       .withEntity(contentType, responseData.body)
-    (response, responseData)
-  }
 
   private def getRequestContext(request: HttpRequest): Context =
     HttpContext(

@@ -1,6 +1,6 @@
 package automorph.transport.websocket.endpoint
 
-import automorph.log.{LogProperties, Logging, MessageLog}
+import automorph.log.Logging
 import automorph.spi.{EffectSystem, RequestHandler, ServerTransport}
 import automorph.transport.HttpRequestHandler.{RequestData, ResponseData}
 import automorph.transport.server.UndertowHttpEndpoint.requestQuery
@@ -10,10 +10,11 @@ import automorph.util.Extensions.{ByteArrayOps, ByteBufferOps, EffectOps, String
 import automorph.util.Network
 import io.undertow.server.{HttpHandler, HttpServerExchange}
 import io.undertow.util.Headers
-import io.undertow.websockets.core.{AbstractReceiveListener, BufferedBinaryMessage, BufferedTextMessage, WebSocketCallback, WebSocketChannel, WebSockets}
+import io.undertow.websockets.core.{
+  AbstractReceiveListener, BufferedBinaryMessage, BufferedTextMessage, WebSocketCallback, WebSocketChannel, WebSockets,
+}
 import io.undertow.websockets.spi.WebSocketHttpExchange
 import io.undertow.websockets.{WebSocketConnectionCallback, WebSocketProtocolHandshakeHandler}
-import scala.collection.immutable.ListMap
 import scala.jdk.CollectionConverters.{ListHasAsScala, MapHasAsScala}
 
 /**
@@ -50,9 +51,16 @@ final case class UndertowWebSocketEndpoint[Effect[_]](
       channel.resumeReceives()
     }
   }
-  private val webSocketHandler =
-    HttpRequestHandler(receiveRequest, sendResponse, Protocol.WebSocket, effectSystem, _ => 0, handler, logger)
-  private val log = MessageLog(logger, Protocol.WebSocket.name)
+  private val webSocketHandler = HttpRequestHandler(
+    receiveRequest,
+    sendResponse,
+    Protocol.WebSocket,
+    effectSystem,
+    _ => 0,
+    handler,
+    logger,
+    logResponse = false,
+  )
 
   /**
    * Creates an Undertow WebSocket handshake HTTP handler for this Undertow WebSocket callback.
@@ -88,13 +96,12 @@ final case class UndertowWebSocketEndpoint[Effect[_]](
     )
   }
 
-  private def sendResponse(responseData: ResponseData[Context], channel: WebSocketChannel): Unit =
-    WebSockets.sendBinary(
-      responseData.body.toByteBuffer,
-      channel,
-      ResponseCallback(log, responseData.id, responseData.client),
-      (),
-    )
+  private def sendResponse(
+    responseData: ResponseData[Context],
+    channel: WebSocketChannel,
+    logResponse: Option[Throwable] => Unit,
+  ): Unit =
+    WebSockets.sendBinary(responseData.body.toByteBuffer, channel, ResponseCallback(logResponse), ())
 
   private def getRequestContext(exchange: WebSocketHttpExchange): Context = {
     val headers = exchange.getRequestHeaders.asScala.view.mapValues(_.asScala).flatMap { case (name, values) =>
@@ -135,20 +142,12 @@ object UndertowWebSocketEndpoint {
     }
   }
 
-  final private case class ResponseCallback(
-    log: MessageLog,
-    requestId: String,
-    client: String,
-  ) extends WebSocketCallback[Unit] {
-    private val responseProperties = ListMap(
-      LogProperties.requestId -> requestId,
-      LogProperties.client -> client,
-    )
+  final private case class ResponseCallback(logResponse: Option[Throwable] => Unit) extends WebSocketCallback[Unit] {
 
     override def complete(channel: WebSocketChannel, context: Unit): Unit =
-      log.sentResponse(responseProperties)
+      logResponse(None)
 
     override def onError(channel: WebSocketChannel, context: Unit, error: Throwable): Unit =
-      log.failedSendResponse(error, responseProperties)
+      logResponse(Some(error))
   }
 }

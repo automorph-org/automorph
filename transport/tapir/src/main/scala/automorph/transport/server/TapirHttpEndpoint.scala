@@ -126,7 +126,11 @@ object TapirHttpEndpoint {
     )
   }
 
-  private def createResponse(responseData: ResponseData[Context], @unused channel: Unit): Response =
+  private def createResponse(
+    responseData: ResponseData[Context],
+    @unused channel: Unit,
+    @unused logResponse: Option[Throwable] => Unit,
+  ): Response =
     (responseData.body, StatusCode(responseData.statusCode), setResponseContext(responseData))
 
   private def getRequestContext(

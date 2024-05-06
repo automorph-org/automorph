@@ -1,6 +1,6 @@
 package automorph.transport.server
 
-import automorph.log.{LogProperties, Logging, MessageLog}
+import automorph.log.Logging
 import automorph.spi.{EffectSystem, RequestHandler, ServerTransport}
 import automorph.transport.HttpRequestHandler.{RequestData, ResponseData}
 import automorph.transport.server.VertxHttpEndpoint.Context
@@ -11,7 +11,6 @@ import io.vertx.core.buffer.Buffer
 import io.vertx.core.http.{HttpHeaders, HttpServerRequest, HttpServerResponse, ServerWebSocket}
 import io.vertx.core.net.SocketAddress
 import io.vertx.core.{Handler, MultiMap}
-import scala.collection.immutable.ListMap
 import scala.jdk.CollectionConverters.ListHasAsScala
 
 /**
@@ -52,9 +51,16 @@ final case class VertxHttpEndpoint[Effect[_]](
     }
   }
 
-  private val httpRequestHandler =
-    HttpRequestHandler(receiveRequest, sendResponse, Protocol.Http, effectSystem, mapException, handler, logger)
-  private val log = MessageLog(logger, Protocol.Http.name)
+  private val httpRequestHandler = HttpRequestHandler(
+    receiveRequest,
+    sendResponse,
+    Protocol.Http,
+    effectSystem,
+    mapException,
+    handler,
+    logger,
+    logResponse = false,
+  )
   implicit private val system: EffectSystem[Effect] = effectSystem
 
   override def adapter: Handler[HttpServerRequest] =
@@ -81,19 +87,17 @@ final case class VertxHttpEndpoint[Effect[_]](
     )
   }
 
-  private def sendResponse(responseData: ResponseData[Context], request: HttpServerRequest): Unit = {
-    lazy val responseProperties = ListMap(
-      LogProperties.requestId -> responseData.id,
-      LogProperties.client -> responseData.client,
-    )
+  private def sendResponse(
+    responseData: ResponseData[Context],
+    request: HttpServerRequest,
+    logResponse: Option[Throwable] => Unit,
+  ): Unit = {
     setResponseContext(request.response, responseData.context)
       .putHeader(HttpHeaders.CONTENT_TYPE, responseData.contentType)
       .setStatusCode(responseData.statusCode)
       .end(Buffer.buffer(responseData.body))
-      .onSuccess(_ => log.sentResponse(responseProperties))
-      .onFailure {
-        error => log.failedSendResponse(error, responseProperties)
-      }
+      .onSuccess(_ => logResponse(None))
+      .onFailure(error => logResponse(Some(error)))
     ()
   }
 

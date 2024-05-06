@@ -1,6 +1,6 @@
 package automorph.transport.server
 
-import automorph.log.{LogProperties, Logging, MessageLog}
+import automorph.log.Logging
 import automorph.spi.{EffectSystem, RequestHandler, ServerTransport}
 import automorph.transport.HttpRequestHandler.{RequestData, ResponseData}
 import automorph.transport.server.JettyHttpEndpoint.{Context, requestQuery}
@@ -11,7 +11,6 @@ import automorph.util.Network
 import org.eclipse.jetty.http.HttpHeader
 import org.eclipse.jetty.websocket.api.{Session, UpgradeRequest, WebSocketAdapter, WriteCallback}
 import org.eclipse.jetty.websocket.server.{JettyServerUpgradeRequest, JettyServerUpgradeResponse, JettyWebSocketCreator}
-import scala.collection.immutable.ListMap
 import scala.jdk.CollectionConverters.{ListHasAsScala, MapHasAsScala}
 
 /**
@@ -60,9 +59,16 @@ final case class JettyWebSocketEndpoint[Effect[_]](
     override def createWebSocket(request: JettyServerUpgradeRequest, response: JettyServerUpgradeResponse): AnyRef =
       adapter
   }
-  private val httpRequestHandler =
-    HttpRequestHandler(receiveRequest, sendResponse, Protocol.Http, effectSystem, mapException, handler, logger)
-  private val log = MessageLog(logger, Protocol.WebSocket.name)
+  private val httpRequestHandler = HttpRequestHandler(
+    receiveRequest,
+    sendResponse,
+    Protocol.Http,
+    effectSystem,
+    mapException,
+    handler,
+    logger,
+    logResponse = false,
+  )
 
   /** Jetty WebSocket creator. */
   def creator: JettyWebSocketCreator =
@@ -94,11 +100,12 @@ final case class JettyWebSocketEndpoint[Effect[_]](
     )
   }
 
-  private def sendResponse(responseData: ResponseData[Context], session: Session): Unit =
-    session.getRemote.sendBytes(
-      responseData.body.toByteBuffer,
-      ResponseCallback(log, responseData.id, responseData.client),
-    )
+  private def sendResponse(
+    responseData: ResponseData[Context],
+    session: Session,
+    logResponse: Option[Throwable] => Unit,
+  ): Unit =
+    session.getRemote.sendBytes(responseData.body.toByteBuffer, ResponseCallback(logResponse))
 
   private def getRequestContext(request: UpgradeRequest): Context = {
     val headers = request.getHeaders.asScala.flatMap { case (name, values) =>
@@ -120,20 +127,12 @@ object JettyWebSocketEndpoint {
   /** Request context type. */
   type Context = JettyHttpEndpoint.Context
 
-  final private case class ResponseCallback(
-    log: MessageLog,
-    requestId: String,
-    client: String,
-  ) extends WriteCallback {
-    private val responseProperties = ListMap(
-      LogProperties.requestId -> requestId,
-      LogProperties.client -> client,
-    )
-
-    override def writeFailed(error: Throwable): Unit =
-      log.failedSendResponse(error, responseProperties)
+  final private case class ResponseCallback(logResponse: Option[Throwable] => Unit) extends WriteCallback {
 
     override def writeSuccess(): Unit =
-      log.sentResponse(responseProperties)
+      logResponse(None)
+
+    override def writeFailed(error: Throwable): Unit =
+      logResponse(Some(error))
   }
 }

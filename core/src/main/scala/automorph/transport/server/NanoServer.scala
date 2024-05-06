@@ -14,6 +14,7 @@ import automorph.util.Network
 import java.io.IOException
 import java.net.URI
 import java.util.concurrent.{ArrayBlockingQueue, BlockingQueue}
+import scala.annotation.unused
 import scala.collection.immutable.ListMap
 import scala.concurrent.duration.{DurationInt, FiniteDuration}
 import scala.jdk.CollectionConverters.MapHasAsScala
@@ -181,7 +182,7 @@ final case class NanoServer[Effect[_]](
         ()
 
       override protected def onException(error: IOException): Unit =
-        log.failedReceiveRequest(error, Map(), Protocol.WebSocket.name)
+        log.failedReceiveRequest(error, Map.empty, Protocol.WebSocket.name)
     }
 
   private def receiveHttpRequest(request: IHTTPSession): RequestData[Context] = {
@@ -209,7 +210,11 @@ final case class NanoServer[Effect[_]](
   }
 
   @scala.annotation.nowarn("msg=used")
-  private def sendHttpResponse(responseData: ResponseData[Context], channel: IHTTPSession): Response = {
+  private def sendHttpResponse(
+    responseData: ResponseData[Context],
+    @unused channel: IHTTPSession,
+    @unused logResponse: Option[Throwable] => Unit,
+  ): Response = {
     val response = newFixedLengthResponse(
       Status.lookup(responseData.statusCode),
       responseData.contentType,
@@ -221,7 +226,11 @@ final case class NanoServer[Effect[_]](
   }
 
   @scala.annotation.nowarn("msg=used")
-  private def sendWebSocketResponse(responseData: ResponseData[Context], channel: WebSocket): Array[Byte] = {
+  private def sendWebSocketResponse(
+    responseData: ResponseData[Context],
+    channel: WebSocket,
+    @unused logResponse: Option[Throwable] => Unit,
+  ): Array[Byte] = {
     channel.send(responseData.body)
     responseData.body
   }

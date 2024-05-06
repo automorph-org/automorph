@@ -1,6 +1,6 @@
 package automorph.transport.websocket.endpoint
 
-import automorph.log.{LogProperties, Logging, MessageLog}
+import automorph.log.Logging
 import automorph.spi.{EffectSystem, RequestHandler, ServerTransport}
 import automorph.transport.HttpRequestHandler.{RequestData, ResponseData}
 import automorph.transport.server.VertxHttpEndpoint
@@ -10,7 +10,6 @@ import automorph.util.Extensions.EffectOps
 import io.vertx.core.Handler
 import io.vertx.core.buffer.Buffer
 import io.vertx.core.http.{HttpServerRequest, ServerWebSocket}
-import scala.collection.immutable.ListMap
 import scala.jdk.CollectionConverters.ListHasAsScala
 
 /**
@@ -49,9 +48,16 @@ final case class VertxWebSocketEndpoint[Effect[_]](
     }
   }
 
-  private val httpRequestHandler =
-    HttpRequestHandler(receiveRequest, sendResponse, Protocol.Http, effectSystem, _ => 0, handler, logger)
-  private val log = MessageLog(logger, Protocol.WebSocket.name)
+  private val httpRequestHandler = HttpRequestHandler(
+    receiveRequest,
+    sendResponse,
+    Protocol.Http,
+    effectSystem,
+    _ => 0,
+    handler,
+    logger,
+    logResponse = false,
+  )
   implicit private val system: EffectSystem[Effect] = effectSystem
 
   override def adapter: Handler[ServerWebSocket] =
@@ -78,14 +84,14 @@ final case class VertxWebSocketEndpoint[Effect[_]](
     )
   }
 
-  private def sendResponse(responseData: ResponseData[Context], session: ServerWebSocket): Unit = {
-    lazy val responseProperties = ListMap(
-      LogProperties.requestId -> responseData.id,
-      LogProperties.client -> responseData.client,
-    )
+  private def sendResponse(
+    responseData: ResponseData[Context],
+    session: ServerWebSocket,
+    logResponse: Option[Throwable] => Unit,
+  ): Unit = {
     session.writeBinaryMessage(Buffer.buffer(responseData.body))
-      .onSuccess(_ => log.sentResponse(responseProperties))
-      .onFailure(log.failedSendResponse(_, responseProperties))
+      .onSuccess(_ => logResponse(None))
+      .onFailure(error => logResponse(Some(error)))
     ()
   }
 

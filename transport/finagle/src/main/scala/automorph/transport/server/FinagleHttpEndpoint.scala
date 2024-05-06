@@ -11,6 +11,7 @@ import com.twitter.finagle.Service
 import com.twitter.finagle.http.{Request, Response, Status}
 import com.twitter.io.{Buf, Reader}
 import com.twitter.util.{Future, Promise}
+import scala.annotation.unused
 
 /**
  * Finagle HTTP endpoint message transport plugin.
@@ -69,7 +70,11 @@ final case class FinagleHttpEndpoint[Effect[_]](
       Some(request.method.toString),
     )
 
-  private def createResponse(responseData: ResponseData[Context], request: Request): Response = {
+  private def createResponse(
+    responseData: ResponseData[Context],
+    request: Request,
+    @unused logResponse: Option[Throwable] => Unit,
+  ): Response = {
     val response = Response(
       request.version,
       Status(responseData.statusCode),

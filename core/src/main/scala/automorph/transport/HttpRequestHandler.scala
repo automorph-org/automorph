@@ -16,12 +16,13 @@ final private[automorph] case class HttpRequestHandler[
   Channel,
 ](
   receiveRequest: Request => RequestData[Context],
-  sendResponse: (ResponseData[Context], Channel) => Response,
+  sendResponse: (ResponseData[Context], Channel, Option[Throwable] => Unit) => Response,
   defaultProtocol: Protocol,
   effectSystem: EffectSystem[Effect],
   mapException: Throwable => Int,
   requestHandler: RequestHandler[Effect, Context],
   logger: Logger,
+  logResponse: Boolean = true,
 ) {
   private val log = MessageLog(logger, Protocol.Http.name)
   private val statusOk = 200
@@ -74,9 +75,15 @@ final private[automorph] case class HttpRequestHandler[
     val protocol = requestData.protocol.name
     log.sendingResponse(responseProperties, protocol)
     val responseData = ResponseData(responseBody, context, statusCode, contentType, requestData.client, requestData.id)
-    Try(sendResponse(responseData, channel)).onSuccess(_ =>
-      log.sentResponse(responseProperties, protocol)
-    ).onError(log.failedSendResponse(_, responseProperties, protocol)).get
+    val responseResult = Try(sendResponse(responseData, channel, logResponseResult(responseProperties, protocol)))
+    if (logResponse) {
+      responseResult
+        .onSuccess(_ => log.sentResponse(responseProperties, protocol))
+        .onError(log.failedSendResponse(_, responseProperties, protocol))
+        .get
+    } else {
+      responseResult.get
+    }
   }
 
   private def sendErrorResponse(error: Throwable, channel: Channel, requestData: RequestData[Context]): Response = {
@@ -84,6 +91,9 @@ final private[automorph] case class HttpRequestHandler[
     val responseBody = error.description.toByteArray
     sendRpcResponse(responseBody, contentTypeText, statusInternalServerError, None, channel, requestData)
   }
+
+  private def logResponseResult(properties: Map[String, String], protocol: String)(error: Option[Throwable]): Unit =
+    error.fold(log.sentResponse(properties, protocol))(log.failedSendResponse(_, properties, protocol))
 }
 
 private[automorph] object HttpRequestHandler {
