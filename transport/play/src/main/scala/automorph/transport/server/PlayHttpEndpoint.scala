@@ -1,19 +1,19 @@
 package automorph.transport.server
 
-import automorph.log.{LogProperties, Logging, MessageLog}
-import automorph.spi.{EffectSystem, ServerTransport, RequestHandler}
-import PlayHttpEndpoint.{Context, headerXForwardedFor}
-import automorph.transport.{HttpContext, HttpMethod, Protocol}
-import automorph.util.Extensions.{EffectOps, StringOps, ThrowableOps, TryOps}
-import automorph.util.{Network, Random}
+import automorph.log.Logging
+import automorph.spi.{EffectSystem, RequestHandler, ServerTransport}
+import automorph.transport.HttpRequestHandler.{RequestData, ResponseData}
+import automorph.transport.server.PlayHttpEndpoint.{Context, headerXForwardedFor}
+import automorph.transport.{HttpContext, HttpMethod, HttpRequestHandler, Protocol}
+import automorph.util.Extensions.EffectOps
+import automorph.util.Network
 import org.apache.pekko.stream.Materializer
 import org.apache.pekko.util.ByteString
 import play.api.http.HttpEntity
-import play.api.mvc.Results.{InternalServerError, Ok, Status}
+import play.api.mvc.Results.Status
 import play.api.mvc.{Action, BodyParser, PlayBodyParsers, Request, Result}
-import scala.collection.immutable.ListMap
+import scala.annotation.unused
 import scala.concurrent.{ExecutionContext, Future, Promise}
-import scala.util.Try
 
 /**
  * Play HTTP endpoint message transport plugin.
@@ -54,39 +54,17 @@ final case class PlayHttpEndpoint[Effect[_]](
     override def parser: BodyParser[ByteString] =
       PlayBodyParsers().byteString
 
-    override def apply(request: Request[ByteString]): Future[Result] = {
-      // Log the request
-      val requestId = Random.id
-      lazy val requestProperties = getRequestProperties(request, requestId)
-      log.receivedRequest(requestProperties)
-
-      // Process the request
-      Try {
-        val requestBody = request.body.toArray
-        runAsFuture {
-          val handlerResult = handler.processRequest(requestBody, getRequestContext(request), requestId)
-          handlerResult.either.map(
-            _.fold(
-              error => createErrorResponse(error, request, requestId, requestProperties),
-              result => {
-                // Send the response
-                val responseBody = result.map(_.responseBody).getOrElse(Array.emptyByteArray)
-                val status = result.flatMap(_.exception).map(mapException).map(Status.apply).getOrElse(Ok)
-                createResponse(responseBody, status, result.flatMap(_.context), request, requestId)
-              },
-            )
-          )
-        }
-      }.foldError { error =>
-        Future.successful(createErrorResponse(error, request, requestId, requestProperties))
+    override def apply(request: Request[ByteString]): Future[Result] =
+      runAsFuture {
+        httpRequestHandler.processRequest(request, ())
       }
-    }
 
     override def executionContext: ExecutionContext =
       suppliedExecutionContext
   }
   private val suppliedExecutionContext = executionContext
-  private val log = MessageLog(logger, Protocol.Http.name)
+  private val httpRequestHandler =
+    HttpRequestHandler(receiveRequest, createResponse, Protocol.Http, effectSystem, mapException, handler, logger)
   implicit private val system: EffectSystem[Effect] = effectSystem
 
   override def adapter: Action[ByteString] =
@@ -101,37 +79,23 @@ final case class PlayHttpEndpoint[Effect[_]](
   override def requestHandler(handler: RequestHandler[Effect, Context]): PlayHttpEndpoint[Effect] =
     copy(handler = handler)
 
-  private def createErrorResponse(
-    error: Throwable,
-    request: Request[ByteString],
-    requestId: String,
-    requestProperties: => Map[String, String],
-  ): Result = {
-    log.failedProcessRequest(error, requestProperties)
-    val responseBody = error.trace.mkString("\n").toByteArray
-    createResponse(responseBody, InternalServerError, None, request, requestId)
-  }
-
-  private def createResponse(
-    responseBody: Array[Byte],
-    status: Status,
-    responseContext: Option[Context],
-    request: Request[ByteString],
-    requestId: String,
-  ): Result = {
-    // Log the response
-    val responseStatus = responseContext.flatMap(_.statusCode.map(Status.apply)).getOrElse(status)
-    lazy val responseProperties = ListMap(
-      LogProperties.requestId -> requestId,
-      LogProperties.client -> clientAddress(request),
-      "Status" -> responseStatus.toString,
+  private def receiveRequest(request: Request[ByteString]): RequestData[Context] =
+    RequestData(
+      () => request.body.toArray,
+      getRequestContext(request),
+      Protocol.Http,
+      request.uri,
+      clientAddress(request),
+      Some(request.method),
     )
 
-    // Send the response
-    val response = responseStatus.sendEntity(HttpEntity.Strict.apply(ByteString(responseBody), Some(handler.mediaType)))
-    setResponseContext(response, responseContext)
-    log.sendingResponse(responseProperties)
-    response
+  private def createResponse(
+    responseData: ResponseData[Context],
+    @unused session: Unit,
+    @unused logResponse: Option[Throwable] => Unit,
+  ): Result = {
+    val httpEntity = HttpEntity.Strict.apply(ByteString(responseData.body), Some(handler.mediaType))
+    setResponseContext(Status(responseData.statusCode).sendEntity(httpEntity), responseData.context)
   }
 
   private def getRequestContext(request: Request[ByteString]): Context =
@@ -143,14 +107,6 @@ final case class PlayHttpEndpoint[Effect[_]](
 
   private def setResponseContext(response: Result, responseContext: Option[Context]): Result =
     response.withHeaders(responseContext.toSeq.flatMap(_.headers)*)
-
-  private def getRequestProperties(request: Request[ByteString], requestId: String): Map[String, String] =
-    ListMap(
-      LogProperties.requestId -> requestId,
-      LogProperties.client -> clientAddress(request),
-      "URL" -> request.uri,
-      "Method" -> request.method,
-    )
 
   private def clientAddress(request: Request[ByteString]): String = {
     val forwardedFor = request.headers.headers.find(_._1 == headerXForwardedFor).map(_._2)
