@@ -51,6 +51,12 @@ final private[automorph] case class HttpRequestHandler[
     }.get
   }
 
+  def processReceiveError(error: Throwable, requestData: RequestData[Context], channel: Channel): Response = {
+    log.failedReceiveRequest(error, requestData.properties, requestData.protocol.name)
+    val responseBody = error.description.toByteArray
+    sendRpcResponse(responseBody, contentTypeText, statusInternalServerError, None, channel, requestData)
+  }
+
   private def receiveRpcRequest(request: Request): RequestData[Context] = {
     val protocol = defaultProtocol.name
     log.receivingRequest(Map.empty, protocol)

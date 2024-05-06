@@ -77,7 +77,7 @@ final case class VertxWebSocketEndpoint[Effect[_]](
     RequestData(
       () => body.getBytes,
       getRequestContext(webSocket),
-      Protocol.Http,
+      Protocol.WebSocket,
       webSocket.uri,
       clientAddress(webSocket),
       Some(HttpMethod.Get.name),

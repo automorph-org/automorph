@@ -93,7 +93,7 @@ final case class JettyWebSocketEndpoint[Effect[_]](
     RequestData(
       () => requestBody,
       getRequestContext(request),
-      Protocol.Http,
+      Protocol.WebSocket,
       s"${request.getRequestURI.toString}$query",
       clientAddress(session),
       Some(request.getMethod),
