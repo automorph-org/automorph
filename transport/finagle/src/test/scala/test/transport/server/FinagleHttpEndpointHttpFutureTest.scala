@@ -6,12 +6,12 @@ import automorph.transport.server.FinagleHttpEndpoint
 import com.twitter.finagle.{Http, ListeningServer}
 import com.twitter.util.{Return, Throw}
 import org.scalacheck.Arbitrary
-import test.transport.server.FinagleEndpointHttpFutureTest.FinagleServer
+import test.transport.server.FinagleHttpEndpointHttpFutureTest.FinagleServer
 import test.transport.{HttpContextGenerator, HttpServerTest}
 import scala.concurrent.ExecutionContext.Implicits.global
 import scala.concurrent.{Future, Promise}
 
-final class FinagleEndpointHttpFutureTest extends HttpServerTest {
+final class FinagleHttpEndpointHttpFutureTest extends HttpServerTest {
 
   type Effect[T] = Future[T]
   type Context = FinagleHttpEndpoint.Context
@@ -28,7 +28,7 @@ final class FinagleEndpointHttpFutureTest extends HttpServerTest {
     FinagleServer(system, port(fixtureId))
 }
 
-object FinagleEndpointHttpFutureTest {
+object FinagleHttpEndpointHttpFutureTest {
 
   type Effect[T] = Future[T]
   type Context = FinagleHttpEndpoint.Context
