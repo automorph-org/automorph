@@ -47,11 +47,11 @@ final case class JettyHttpEndpoint[Effect[_]](
     override def service(request: HttpServletRequest, response: HttpServletResponse): Unit = {
       val asyncContext = request.startAsync()
       asyncContext.start { () =>
-        httpRequestHandler.processRequest(request, (response, asyncContext)).runAsync
+        httpHandler.processRequest(request, (response, asyncContext)).runAsync
       }
     }
   }
-  private val httpRequestHandler =
+  private val httpHandler =
     HttpRequestHandler(receiveRequest, sendResponse, Protocol.Http, effectSystem, mapException, handler, logger)
 
   override def adapter: HttpServlet =
@@ -71,7 +71,7 @@ final case class JettyHttpEndpoint[Effect[_]](
     RequestData(
       () => request.getInputStream.toByteArray,
       getRequestContext(request),
-      Protocol.Http,
+      httpHandler.protocol,
       s"${request.getRequestURI}$query",
       clientAddress(request),
       Some(request.getMethod),

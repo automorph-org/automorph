@@ -79,7 +79,7 @@ final case class UndertowHttpEndpoint[Effect[_]](
     RequestData(
       () => requestBody,
       getRequestContext(exchange),
-      Protocol.Http,
+      httpRequestHandler.protocol,
       s"${exchange.getRequestURI}$query",
       clientAddress(exchange),
       Some(exchange.getRequestMethod.toString),

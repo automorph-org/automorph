@@ -43,8 +43,8 @@ final case class FinagleHttpEndpoint[Effect[_]](
 ) extends ServerTransport[Effect, Context, Service[Request, Response]] with Logging {
 
   private lazy val service: Service[Request, Response] = (request: Request) =>
-    runAsFuture(httpRequestHandler.processRequest(request, request))
-  private val httpRequestHandler =
+    runAsFuture(httpHandler.processRequest(request, request))
+  private val httpHandler =
     HttpRequestHandler(receiveRequest, createResponse, Protocol.Http, effectSystem, mapException, handler, logger)
   implicit private val system: EffectSystem[Effect] = effectSystem
 
@@ -64,7 +64,7 @@ final case class FinagleHttpEndpoint[Effect[_]](
     RequestData(
       () => Buf.ByteArray.Owned.extract(request.content),
       getRequestContext(request),
-      Protocol.Http,
+      httpHandler.protocol,
       request.uri,
       clientAddress(request),
       Some(request.method.toString),

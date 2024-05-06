@@ -69,7 +69,7 @@ final case class PekkoHttpEndpoint[Effect[_]](
         }
       }
     }
-  private val httpRequestHandler =
+  private val httpHandler =
     HttpRequestHandler(receiveRequest, createResponse, Protocol.Http, effectSystem, mapException, handler, logger)
   implicit private val system: EffectSystem[Effect] = effectSystem
 
@@ -92,7 +92,7 @@ final case class PekkoHttpEndpoint[Effect[_]](
   ): Future[HttpResponse] = {
     val handleRequestResult = Promise[HttpResponse]()
     request.entity.toStrict(readTimeout).flatMap { requestEntity =>
-      httpRequestHandler.processRequest((request, requestEntity, remoteAddress), ()).either.map(_.fold(
+      httpHandler.processRequest((request, requestEntity, remoteAddress), ()).either.map(_.fold(
         error => handleRequestResult.failure(error),
         result => handleRequestResult.success(result),
       ))
@@ -105,7 +105,7 @@ final case class PekkoHttpEndpoint[Effect[_]](
     RequestData(
       () => requestEntity.data.toArray[Byte],
       getRequestContext(request),
-      Protocol.Http,
+      httpHandler.protocol,
       request.uri.toString,
       clientAddress(remoteAddress),
       Some(request.method.value),

@@ -46,12 +46,12 @@ final case class JettyWebSocketEndpoint[Effect[_]](
 
     override def onWebSocketText(message: String): Unit = {
       val session = getSession
-      httpRequestHandler.processRequest((message.toByteArray, session), session).runAsync
+      webSocketHandler.processRequest((message.toByteArray, session), session).runAsync
     }
 
     override def onWebSocketBinary(payload: Array[Byte], offset: Int, length: Int): Unit = {
       val session = getSession
-      httpRequestHandler.processRequest((payload, session), session).runAsync
+      webSocketHandler.processRequest((payload, session), session).runAsync
     }
   }
   private lazy val jettyWebSocketCreator = new JettyWebSocketCreator {
@@ -59,10 +59,10 @@ final case class JettyWebSocketEndpoint[Effect[_]](
     override def createWebSocket(request: JettyServerUpgradeRequest, response: JettyServerUpgradeResponse): AnyRef =
       adapter
   }
-  private val httpRequestHandler = HttpRequestHandler(
+  private val webSocketHandler = HttpRequestHandler(
     receiveRequest,
     sendResponse,
-    Protocol.Http,
+    Protocol.WebSocket,
     effectSystem,
     mapException,
     handler,
@@ -93,7 +93,7 @@ final case class JettyWebSocketEndpoint[Effect[_]](
     RequestData(
       () => requestBody,
       getRequestContext(request),
-      Protocol.WebSocket,
+      webSocketHandler.protocol,
       s"${request.getRequestURI.toString}$query",
       clientAddress(session),
       Some(request.getMethod),

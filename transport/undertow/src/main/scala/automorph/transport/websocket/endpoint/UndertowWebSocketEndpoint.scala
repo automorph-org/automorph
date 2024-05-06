@@ -89,7 +89,7 @@ final case class UndertowWebSocketEndpoint[Effect[_]](
     RequestData(
       () => requestBody,
       getRequestContext(exchange),
-      Protocol.WebSocket,
+      webSocketHandler.protocol,
       s"${exchange.getRequestURI}$query",
       clientAddress(exchange),
       Some(HttpMethod.Get.name),

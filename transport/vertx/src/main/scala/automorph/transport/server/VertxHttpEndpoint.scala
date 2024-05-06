@@ -45,13 +45,13 @@ final case class VertxHttpEndpoint[Effect[_]](
 
     override def handle(request: HttpServerRequest): Unit = {
       request.bodyHandler { buffer =>
-        httpRequestHandler.processRequest((buffer, request), request).runAsync
+        httpHandler.processRequest((buffer, request), request).runAsync
       }
       ()
     }
   }
 
-  private val httpRequestHandler = HttpRequestHandler(
+  private val httpHandler = HttpRequestHandler(
     receiveRequest,
     sendResponse,
     Protocol.Http,
@@ -80,7 +80,7 @@ final case class VertxHttpEndpoint[Effect[_]](
     RequestData(
       () => body.getBytes,
       getRequestContext(request),
-      Protocol.Http,
+      httpHandler.protocol,
       request.absoluteURI,
       clientAddress(request),
       Some(request.method.name),

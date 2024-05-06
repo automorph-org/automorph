@@ -42,16 +42,16 @@ final case class VertxWebSocketEndpoint[Effect[_]](
 
     override def handle(session: ServerWebSocket): Unit = {
       session.binaryMessageHandler { buffer =>
-        httpRequestHandler.processRequest((buffer, session), session).runAsync
+        webSocketHandler.processRequest((buffer, session), session).runAsync
       }
       ()
     }
   }
 
-  private val httpRequestHandler = HttpRequestHandler(
+  private val webSocketHandler = HttpRequestHandler(
     receiveRequest,
     sendResponse,
-    Protocol.Http,
+    Protocol.WebSocket,
     effectSystem,
     _ => 0,
     handler,
@@ -77,7 +77,7 @@ final case class VertxWebSocketEndpoint[Effect[_]](
     RequestData(
       () => body.getBytes,
       getRequestContext(webSocket),
-      Protocol.WebSocket,
+      webSocketHandler.protocol,
       webSocket.uri,
       clientAddress(webSocket),
       Some(HttpMethod.Get.name),

@@ -190,7 +190,7 @@ final case class NanoServer[Effect[_]](
     RequestData(
       () => request.getInputStream.readNBytes(request.getBodySize.toInt),
       getRequestContext(request),
-      Protocol.Http,
+      httpHandler.protocol,
       s"${request.getUri}$query",
       clientAddress(request),
       Some(request.getMethod.toString),

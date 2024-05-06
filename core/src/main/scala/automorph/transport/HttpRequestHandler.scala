@@ -17,7 +17,7 @@ final private[automorph] case class HttpRequestHandler[
 ](
   receiveRequest: Request => RequestData[Context],
   sendResponse: (ResponseData[Context], Channel, Option[Throwable] => Unit) => Response,
-  defaultProtocol: Protocol,
+  protocol: Protocol,
   effectSystem: EffectSystem[Effect],
   mapException: Throwable => Int,
   requestHandler: RequestHandler[Effect, Context],
@@ -58,12 +58,12 @@ final private[automorph] case class HttpRequestHandler[
   }
 
   private def receiveRpcRequest(request: Request): RequestData[Context] = {
-    val protocol = defaultProtocol.name
-    log.receivingRequest(Map.empty, protocol)
+    val protocolName = protocol.name
+    log.receivingRequest(Map.empty, protocolName)
     Try(receiveRequest(request)).onSuccess { requestData =>
       requestData.body
-      log.receivedRequest(requestData.properties, protocol)
-    }.onError(log.failedReceiveRequest(_, Map.empty, protocol)).get
+      log.receivedRequest(requestData.properties, protocolName)
+    }.onError(log.failedReceiveRequest(_, Map.empty, protocolName)).get
   }
 
   private def sendRpcResponse(
@@ -78,14 +78,14 @@ final private[automorph] case class HttpRequestHandler[
       case Protocol.Http => Some(LogProperties.status -> statusCode.toString)
       case _ => None
     })
-    val protocol = requestData.protocol.name
-    log.sendingResponse(responseProperties, protocol)
+    val protocolName = requestData.protocol.name
+    log.sendingResponse(responseProperties, protocolName)
     val responseData = ResponseData(responseBody, context, statusCode, contentType, requestData.client, requestData.id)
-    val responseResult = Try(sendResponse(responseData, channel, logResponseResult(responseProperties, protocol)))
+    val responseResult = Try(sendResponse(responseData, channel, logResponseResult(responseProperties, protocolName)))
     if (logResponse) {
       responseResult
-        .onSuccess(_ => log.sentResponse(responseProperties, protocol))
-        .onError(log.failedSendResponse(_, responseProperties, protocol))
+        .onSuccess(_ => log.sentResponse(responseProperties, protocolName))
+        .onError(log.failedSendResponse(_, responseProperties, protocolName))
         .get
     } else {
       responseResult.get
