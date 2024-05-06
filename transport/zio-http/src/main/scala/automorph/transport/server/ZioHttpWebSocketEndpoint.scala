@@ -1,16 +1,14 @@
 package automorph.transport.server
 
-import automorph.log.{LogProperties, Logging, MessageLog}
-import automorph.spi.{EffectSystem, ServerTransport, RequestHandler}
-import automorph.transport.Protocol
+import automorph.log.Logging
+import automorph.spi.{EffectSystem, RequestHandler, ServerTransport}
+import automorph.transport.HttpRequestHandler.{RequestData, ResponseData}
 import automorph.transport.server.ZioHttpWebSocketEndpoint.Context
-import automorph.util.Extensions.{StringOps, ThrowableOps, TryOps}
-import automorph.util.Random
+import automorph.transport.{HttpContext, HttpRequestHandler, Protocol}
 import zio.http.ChannelEvent.{ExceptionCaught, Read}
 import zio.http.{WebSocketChannel, WebSocketFrame}
-import zio.{Chunk, IO, Trace, ZIO}
-import scala.collection.immutable.ListMap
-import scala.util.Try
+import zio.{Chunk, IO, ZIO}
+import scala.annotation.unused
 
 /**
  * ZIO HTTP WebSocket endpoint message transport plugin.
@@ -30,8 +28,6 @@ import scala.util.Try
  *   effect system plugin
  * @param handler
  *   RPC request handler
- * @tparam Environment
- *   ZIO environment type
  * @tparam Fault
  *   ZIO error type
  */
@@ -39,13 +35,10 @@ final case class ZioHttpWebSocketEndpoint[Fault](
   effectSystem: EffectSystem[({ type Effect[A] = IO[Fault, A] })#Effect],
   handler: RequestHandler[({ type Effect[A] = IO[Fault, A] })#Effect, Context] =
     RequestHandler.dummy[({ type Effect[A] = IO[Fault, A] })#Effect, Context],
-) extends ServerTransport[
-    ({ type Effect[A] = IO[Fault, A] })#Effect,
-    Context,
-    WebSocketChannel => IO[Throwable, Any],
-  ]
+) extends ServerTransport[({ type Effect[A] = IO[Fault, A] })#Effect, Context, WebSocketChannel => IO[Throwable, Any]]
   with Logging {
-  private val log = MessageLog(logger, Protocol.WebSocket.name)
+  private val webSocketHandler =
+    HttpRequestHandler.apply(receiveRequest, createResponse, Protocol.WebSocket, effectSystem, _ => 0, handler, logger)
 
   override def adapter: WebSocketChannel => IO[Throwable, Any] =
     channel => handle(channel)
@@ -61,73 +54,32 @@ final case class ZioHttpWebSocketEndpoint[Fault](
   ): ZioHttpWebSocketEndpoint[Fault] =
     copy(handler = handler)
 
-  private def handle(channel: WebSocketChannel): IO[Throwable, Any] =
+  private def handle(channel: WebSocketChannel): IO[Throwable, Unit] =
     channel.receiveAll {
       case Read(WebSocketFrame.Binary(request)) =>
-        // Log the request
-        val requestId = Random.id
-        lazy val requestProperties = getRequestProperties(requestId)
-        log.receivedRequest(requestProperties)
-
-        // Process the request
-        Try {
-          val requestBody = request.toArray
-          val handlerResult = handler.processRequest(requestBody, (), requestId)
-          handlerResult.fold(
-            _ => {
-              val message = s"Failed to process ${Protocol.WebSocket.name} request"
-              createErrorResponse(message, implicitly[Trace], requestId, requestProperties)
-            },
-            result => {
-              // Create the response
-              val responseBody = result.map(_.responseBody).getOrElse(Array.emptyByteArray)
-              createResponse(responseBody, requestId)
-            },
-          )
-        }.foldError { error =>
-          ZIO.succeed(createErrorResponse(error, requestId, requestProperties))
-        }.flatMap(frame => channel.send(Read(frame)))
-      case ExceptionCaught(cause) => ZIO.attempt(log.failedProcessRequest(cause, Map()))
+        webSocketHandler.processRequest(request, ()).mapError(_ => new RuntimeException()).flatMap { frame =>
+          channel.send(Read(frame))
+        }
+      case ExceptionCaught(cause) =>
+        // FIXME - check if the following is required to obtain error details: implicitly[Trace].toString.toByteArray
+        val frame = webSocketHandler.processReceiveError(cause, receiveRequest(Chunk.empty), ())
+        channel.send(Read(frame))
       case _ => ZIO.unit
     }
 
-  private def createErrorResponse(
-    error: Throwable,
-    requestId: String,
-    requestProperties: => Map[String, String],
-  ): WebSocketFrame = {
-    log.failedProcessRequest(error, requestProperties)
-    val responseBody = error.trace.mkString("\n").toByteArray
-    createResponse(responseBody, requestId)
-  }
+  private def receiveRequest(body: Chunk[Byte]): RequestData[Context] =
+    RequestData(() => body.toArray, HttpContext(), webSocketHandler.protocol, "", "", None)
 
-  private def createErrorResponse(
-    message: String,
-    trace: Trace,
-    requestId: String,
-    requestProperties: => Map[String, String],
-  ): WebSocketFrame = {
-    logger.error(s"$message\n$trace", requestProperties)
-    val responseBody = trace.toString.toByteArray
-    createResponse(responseBody, requestId)
-  }
-
-  private def createResponse(responseBody: Array[Byte], requestId: String): WebSocketFrame = {
-    // Log the response
-    lazy val responseProperties = ListMap(LogProperties.requestId -> requestId)
-
-    // Create the response
-    val response = WebSocketFrame.Binary(Chunk.fromArray(responseBody))
-    log.sendingResponse(responseProperties)
-    response
-  }
-
-  private def getRequestProperties(requestId: String): Map[String, String] =
-    ListMap(LogProperties.requestId -> requestId)
+  private def createResponse(
+    responseData: ResponseData[Context],
+    @unused session: Unit,
+    @unused logResponse: Option[Throwable] => Unit,
+  ): WebSocketFrame =
+    WebSocketFrame.Binary(Chunk.fromArray(responseData.body))
 }
 
 object ZioHttpWebSocketEndpoint {
 
   /** Request context type. */
-  type Context = Unit
+  type Context = HttpContext[Unit]
 }
