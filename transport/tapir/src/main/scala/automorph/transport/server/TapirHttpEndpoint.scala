@@ -68,7 +68,7 @@ final case class TapirHttpEndpoint[Effect[_]](
   private val allowedMethod = method.map(httpMethod => Method(httpMethod.name))
   private val prefixPaths = pathComponents(pathPrefix)
   private val baseContext = HttpContext[Unit]().url(baseUrl)
-  private val httpRequestHandler =
+  private val httpHandler =
     HttpRequestHandler(receiveRequest, createResponse, Protocol.Http, effectSystem, mapException, handler, logger)
   implicit private val system: EffectSystem[Effect] = effectSystem
 
@@ -82,7 +82,7 @@ final case class TapirHttpEndpoint[Effect[_]](
     // Define server endpoint request processing logic
     endpointOutput.serverLogic { request =>
       val fullRequest = request.copy(_2 = prefixPaths ++ request._2)
-      httpRequestHandler.processRequest((fullRequest, method, baseContext), ()).map(Right.apply)
+      httpHandler.processRequest((fullRequest, method, baseContext), ()).map(Right.apply)
     }
   }
 

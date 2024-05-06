@@ -56,14 +56,14 @@ final case class PlayHttpEndpoint[Effect[_]](
 
     override def apply(request: Request[ByteString]): Future[Result] =
       runAsFuture {
-        httpRequestHandler.processRequest(request, ())
+        httpHandler.processRequest(request, ())
       }
 
     override def executionContext: ExecutionContext =
       suppliedExecutionContext
   }
   private val suppliedExecutionContext = executionContext
-  private val httpRequestHandler =
+  private val httpHandler =
     HttpRequestHandler(receiveRequest, createResponse, Protocol.Http, effectSystem, mapException, handler, logger)
   implicit private val system: EffectSystem[Effect] = effectSystem
 
@@ -83,7 +83,7 @@ final case class PlayHttpEndpoint[Effect[_]](
     RequestData(
       () => request.body.toArray,
       getRequestContext(request),
-      Protocol.Http,
+      httpHandler.protocol,
       request.uri,
       clientAddress(request),
       Some(request.method),
