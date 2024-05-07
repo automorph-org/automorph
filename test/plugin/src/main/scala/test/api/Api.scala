@@ -14,10 +14,10 @@ trait SimpleApi[Effect[_]] {
   def method(argument: String): Effect[String]
 }
 
-final case class SimpleApiImpl[Effect[_]](backend: EffectSystem[Effect]) extends SimpleApi[Effect] {
+final case class SimpleApiImpl[Effect[_]](system: EffectSystem[Effect]) extends SimpleApi[Effect] {
 
   override def method(argument: String): Effect[String] =
-    backend.successful(argument)
+    system.successful(argument)
 }
 
 trait ComplexApi[Effect[_], Context] {

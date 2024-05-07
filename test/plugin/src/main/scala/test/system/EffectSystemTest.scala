@@ -1,8 +1,8 @@
 package test.system
 
 import automorph.spi.EffectSystem
-import scala.util.{Failure, Success, Try}
 import test.base.BaseTest
+import scala.util.{Failure, Success, Try}
 
 /**
  * Effect system test.
@@ -15,13 +15,13 @@ trait EffectSystemTest[Effect[_]] extends BaseTest {
 
   sealed case class TestException(message: String) extends RuntimeException(message)
 
-  val text = "test"
-  val number = 0
-  val error: TestException = TestException(text)
+  private val text = "test"
+  private val number = 0
+  private val error = TestException(text)
 
   def system: EffectSystem[Effect]
 
-  def run[T](effect: Effect[T]): Either[Throwable, T]
+  def run[T](effect: => Effect[T]): Either[Throwable, T]
 
   "" - {
     "Evaluate" - {
@@ -84,6 +84,20 @@ trait EffectSystemTest[Effect[_]] extends BaseTest {
     }
     "RunAsync" in {
       system.runAsync(system.evaluate(text))
+    }
+    "Completable" - {
+      "Success" in {
+        val effect = system.flatMap(system.completable[String]) { completable =>
+          system.flatMap(completable.succeed(text))(_ => completable.effect)
+        }
+        run(effect).shouldEqual(Right(text))
+      }
+      "Failure" in {
+        lazy val effect = system.flatMap(system.completable[String]) { completable =>
+          system.flatMap(completable.fail(error))(_ => completable.effect)
+        }
+        run(effect).shouldEqual(Left(error))
+      }
     }
   }
 }

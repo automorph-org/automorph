@@ -6,10 +6,10 @@ import scala.concurrent.Future
 import scala.util.Try
 import test.base.Await
 
-final class FutureTest extends AsyncEffectSystemTest[Future] with Await {
+final class FutureSystemTest extends EffectSystemTest[Future] with Await {
 
   lazy val system: FutureSystem = FutureSystem()
 
-  def run[T](effect: Future[T]): Either[Throwable, T] =
+  def run[T](effect: => Future[T]): Either[Throwable, T] =
     Try(await(effect)).toEither
 }

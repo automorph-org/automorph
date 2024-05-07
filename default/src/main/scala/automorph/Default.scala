@@ -1,7 +1,7 @@
 package automorph
 
 import automorph.meta.DefaultRpcProtocol
-import automorph.spi.AsyncEffectSystem
+import automorph.spi.EffectSystem
 import automorph.system.FutureSystem
 import automorph.transport.client.HttpClient
 import automorph.transport.server.{UndertowHttpEndpoint, UndertowServer}
@@ -182,6 +182,6 @@ object Default extends DefaultRpcProtocol with DefaultTransport {
    * @return
    *   asynchronous effect system plugin
    */
-  def effectSystem(implicit executionContext: ExecutionContext): AsyncEffectSystem[Effect] =
+  def effectSystem(implicit executionContext: ExecutionContext): EffectSystem[Effect] =
     FutureSystem()
 }

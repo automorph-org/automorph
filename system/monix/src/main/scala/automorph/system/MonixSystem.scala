@@ -1,7 +1,7 @@
 package automorph.system
 
-import automorph.spi.AsyncEffectSystem
-import automorph.spi.AsyncEffectSystem.Completable
+import automorph.spi.EffectSystem
+import automorph.spi.EffectSystem.Completable
 import monix.catnap.MVar
 import monix.eval.Task
 import monix.execution.Scheduler
@@ -18,7 +18,7 @@ import monix.execution.Scheduler
  * @param scheduler
  *   task scheduler
  */
-final case class MonixSystem()(implicit val scheduler: Scheduler) extends AsyncEffectSystem[Task] {
+final case class MonixSystem()(implicit val scheduler: Scheduler) extends EffectSystem[Task] {
 
   override def evaluate[T](value: => T): Task[T] =
     Task.evalAsync(value)

@@ -1,6 +1,6 @@
 package automorph.transport
 
-import automorph.spi.{AsyncEffectSystem, EffectSystem}
+import automorph.spi.EffectSystem
 import automorph.util.Extensions.EffectOps
 import java.net.URI
 import java.util.concurrent.CompletableFuture
@@ -20,7 +20,7 @@ private[automorph] object HttpClientBase {
 
   def completableEffect[T, Effect[_]](
     future: => CompletableFuture[T],
-    asyncSystem: AsyncEffectSystem[Effect],
+    asyncSystem: EffectSystem[Effect],
   ): Effect[T] = {
     implicit val effectSystem: EffectSystem[Effect] = asyncSystem
     asyncSystem.completable[T].flatMap { completable =>

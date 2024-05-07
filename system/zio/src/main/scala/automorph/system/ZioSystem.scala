@@ -1,7 +1,7 @@
 package automorph.system
 
-import automorph.spi.AsyncEffectSystem
-import automorph.spi.AsyncEffectSystem.Completable
+import automorph.spi.EffectSystem
+import automorph.spi.EffectSystem.Completable
 import zio.{IO, Queue, Runtime, Trace, Unsafe, ZIO}
 
 /**
@@ -26,7 +26,7 @@ final case class ZioSystem[Fault](
   mapException: Throwable => Fault,
   mapError: (Fault, Trace) => Throwable = ZioSystem.mapError,
 )(implicit val runtime: Runtime[Any])
-  extends AsyncEffectSystem[({ type Effect[A] = IO[Fault, A] })#Effect] {
+  extends EffectSystem[({ type Effect[A] = IO[Fault, A] })#Effect] {
 
   override def evaluate[T](value: => T): IO[Fault, T] =
     ZIO.attempt(value).mapError(mapException)

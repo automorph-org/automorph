@@ -1,8 +1,8 @@
 package test.transport.local
 
+import automorph.spi.EffectSystem
 import automorph.system.IdentitySystem
 import automorph.system.IdentitySystem.Identity
-import automorph.spi.EffectSystem
 import test.transport.LocalTest
 
 final class LocalIdentityTest extends LocalTest {

@@ -5,10 +5,10 @@ import automorph.system.IdentitySystem
 import automorph.system.IdentitySystem.Identity
 import scala.util.Try
 
-final class IdentityTest extends EffectSystemTest[Identity] {
+final class IdentitySystemTest extends EffectSystemTest[Identity] {
 
   lazy val system: EffectSystem[Identity] = IdentitySystem()
 
-  def run[T](effect: Identity[T]): Either[Throwable, T] =
+  def run[T](effect: => Identity[T]): Either[Throwable, T] =
     Try(effect).toEither
 }

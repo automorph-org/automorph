@@ -3,18 +3,14 @@ package automorph.transport.server
 import automorph.log.Logging
 import automorph.spi.{EffectSystem, RequestHandler, ServerTransport}
 import automorph.transport.HttpRequestHandler.{RequestData, ResponseData}
-import automorph.transport.server.TapirHttpEndpoint.{
-  Adapter, Context, MessageFormat, createResponse, pathComponents, pathEndpointInput, receiveRequest,
-}
+import automorph.transport.server.TapirHttpEndpoint.{Adapter, Context, MessageFormat, createResponse, pathComponents, pathEndpointInput, receiveRequest}
 import automorph.transport.{HttpContext, HttpMethod, HttpRequestHandler, Protocol}
 import automorph.util.Extensions.EffectOps
 import sttp.model.{Header, MediaType, Method, QueryParams, StatusCode}
 import sttp.tapir
 import sttp.tapir.Codec.id
 import sttp.tapir.server.ServerEndpoint
-import sttp.tapir.{
-  CodecFormat, EndpointIO, EndpointInput, RawBodyType, Schema, headers, paths, queryParams, statusCode, stringToPath,
-}
+import sttp.tapir.{CodecFormat, EndpointIO, EndpointInput, RawBodyType, Schema, headers, paths, queryParams, statusCode, stringToPath}
 import scala.annotation.unused
 
 /**

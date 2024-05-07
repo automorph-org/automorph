@@ -1,6 +1,9 @@
 package automorph.system
 
 import automorph.spi.EffectSystem
+import automorph.spi.EffectSystem.Completable
+import scala.concurrent.duration.Duration
+import scala.concurrent.{Await, Promise}
 import scala.util.{Failure, Success, Try}
 
 /**
@@ -32,6 +35,22 @@ final case class TrySystem() extends EffectSystem[Try] {
 
   override def runAsync[T](effect: Try[T]): Unit =
     ()
+
+  override def completable[T]: Try[EffectSystem.Completable[Try, T]] =
+    Success(CompletableFuture())
+
+  sealed private case class CompletableFuture[T]() extends Completable[Try, T]() {
+    private val promise: Promise[T] = Promise()
+
+    override def effect: Try[T] =
+      Try(Await.result(promise.future, Duration.Inf))
+
+    override def succeed(value: T): Try[Unit] =
+      Try(promise.success(value))
+
+    override def fail(exception: Throwable): Try[Unit] =
+      Try(promise.failure(exception))
+  }
 }
 
 object TrySystem {

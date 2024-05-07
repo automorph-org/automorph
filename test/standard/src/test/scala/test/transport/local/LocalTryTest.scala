@@ -1,7 +1,7 @@
 package test.transport.local
 
-import automorph.system.TrySystem
 import automorph.spi.EffectSystem
+import automorph.system.TrySystem
 import test.transport.LocalTest
 import scala.util.Try
 

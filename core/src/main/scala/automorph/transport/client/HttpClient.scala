@@ -1,8 +1,8 @@
 package automorph.transport.client
 
 import automorph.log.{LogProperties, Logging, MessageLog}
-import automorph.spi.AsyncEffectSystem.Completable
-import automorph.spi.{AsyncEffectSystem, ClientTransport, EffectSystem}
+import automorph.spi.EffectSystem.Completable
+import automorph.spi.{EffectSystem, ClientTransport}
 import automorph.transport.HttpClientBase.{completableEffect, overrideUrl}
 import automorph.transport.client.HttpClient.{Context, Response, Transport}
 import automorph.transport.{HttpContext, HttpMethod, Protocol}
@@ -144,21 +144,12 @@ final case class HttpClient[Effect[_]](
   }
 
   private def sendHttp(httpRequest: HttpRequest): Effect[Response] =
-    effectSystem match {
-      case asyncSystem: AsyncEffectSystem[?] =>
-        completableEffect(
-          httpClient.sendAsync(httpRequest, BodyHandlers.ofByteArray),
-          asyncSystem.asInstanceOf[AsyncEffectSystem[Effect]],
-        ).map(httpResponse)
-      case _ => effectSystem.evaluate(httpResponse(httpClient.send(httpRequest, BodyHandlers.ofByteArray)))
-    }
+    completableEffect(httpClient.sendAsync(httpRequest, BodyHandlers.ofByteArray), effectSystem).map(httpResponse)
 
   private def sendWebSocket(webSocketRequest: (Effect[WebSocket], Effect[Response], Array[Byte])): Effect[Response] = {
     val (webSocketEffect, resultEffect, requestBody) = webSocketRequest
-    withCompletable { asyncSystem =>
-      webSocketEffect.flatMap { webSocket =>
-        completableEffect(webSocket.sendBinary(requestBody.toByteBuffer, true), asyncSystem).flatMap(_ => resultEffect)
-      }
+    webSocketEffect.flatMap { webSocket =>
+      completableEffect(webSocket.sendBinary(requestBody.toByteBuffer, true), effectSystem).flatMap(_ => resultEffect)
     }
   }
 
@@ -168,16 +159,6 @@ final case class HttpClient[Effect[_]](
       .flatMap { case (name, values) => values.asScala.map(name -> _) }
     Response(response.body, Some(response.statusCode), headers)
   }
-
-  private def withCompletable[T](function: AsyncEffectSystem[Effect] => Effect[T]): Effect[T] =
-    effectSystem match {
-      case asyncSystem: AsyncEffectSystem[?] =>
-        function(asyncSystem.asInstanceOf[AsyncEffectSystem[Effect]])
-      case _ => effectSystem.failed(new IllegalArgumentException(
-          s"""WebSocket protocol not available for effect system
-            | not supporting completable effects: ${effectSystem.getClass.getName}""".stripMargin
-        ))
-    }
 
   private def createRequest(
     requestBody: Array[Byte],
@@ -191,15 +172,13 @@ final case class HttpClient[Effect[_]](
     requestUrl.getScheme.toLowerCase match {
       case scheme if scheme.startsWith(webSocketsSchemePrefix) =>
         // Create WebSocket request
-        withCompletable(asyncSystem =>
-          effectSystem.evaluate {
-            val completableResponse = asyncSystem.completable[Response]
-            val response = completableResponse.flatMap(_.effect)
-            val webSocketBuilder = createWebSocketBuilder(requestContext)
-            val webSocket = connectWebSocket(webSocketBuilder, requestUrl, completableResponse, asyncSystem)
-            Right((webSocket, response, requestBody)) -> requestUrl
-          }
-        )
+        effectSystem.evaluate {
+          val completableResponse = effectSystem.completable[Response]
+          val response = completableResponse.flatMap(_.effect)
+          val webSocketBuilder = createWebSocketBuilder(requestContext)
+          val webSocket = connectWebSocket(webSocketBuilder, requestUrl, completableResponse)
+          Right((webSocket, response, requestBody)) -> requestUrl
+        }
       case _ =>
         // Create HTTP request
         effectSystem.evaluate {
@@ -243,10 +222,9 @@ final case class HttpClient[Effect[_]](
     builder: WebSocket.Builder,
     requestUrl: URI,
     responseEffect: Effect[Completable[Effect, Response]],
-    asyncSystem: AsyncEffectSystem[Effect],
   ): Effect[WebSocket] =
     responseEffect.flatMap(response =>
-      completableEffect(builder.buildAsync(requestUrl, webSocketListener(response)), asyncSystem)
+      completableEffect(builder.buildAsync(requestUrl, webSocketListener(response)), effectSystem)
     )
 
   private def webSocketListener(response: Completable[Effect, Response]) =

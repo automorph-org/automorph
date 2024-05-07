@@ -9,12 +9,8 @@ import automorph.util.Extensions.{EffectOps, ThrowableOps}
 import automorph.util.Network
 import org.apache.pekko.http.scaladsl.model.StatusCodes.InternalServerError
 import org.apache.pekko.http.scaladsl.model.headers.RawHeader
-import org.apache.pekko.http.scaladsl.model.{
-  ContentType, HttpEntity, HttpRequest, HttpResponse, RemoteAddress, StatusCode,
-}
-import org.apache.pekko.http.scaladsl.server.Directives.{
-  complete, extractClientIP, extractExecutionContext, extractMaterializer, extractRequest, onComplete,
-}
+import org.apache.pekko.http.scaladsl.model.{ContentType, HttpEntity, HttpRequest, HttpResponse, RemoteAddress, StatusCode}
+import org.apache.pekko.http.scaladsl.server.Directives.{complete, extractClientIP, extractExecutionContext, extractMaterializer, extractRequest, onComplete}
 import org.apache.pekko.http.scaladsl.server.Route
 import org.apache.pekko.stream.Materializer
 import scala.annotation.unused

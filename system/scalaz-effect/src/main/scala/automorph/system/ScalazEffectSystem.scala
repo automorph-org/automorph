@@ -1,8 +1,10 @@
 package automorph.system
 
 import automorph.spi.EffectSystem
-import scala.concurrent.{ExecutionContext, Future}
+import automorph.spi.EffectSystem.Completable
 import scalaz.effect.IO
+import scala.concurrent.duration.Duration
+import scala.concurrent.{Await, ExecutionContext, Future, Promise}
 
 /**
  * Scalaz effect system plugin using `IO` as an effect type.
@@ -36,6 +38,22 @@ final case class ScalazEffectSystem()(implicit val executionContext: ExecutionCo
   override def runAsync[T](effect: IO[T]): Unit = {
     Future(effect)
     ()
+  }
+
+  override def completable[T]: IO[EffectSystem.Completable[IO, T]] =
+    IO(CompletableFuture())
+
+  sealed private case class CompletableFuture[T]() extends Completable[IO, T]() {
+    private val promise: Promise[T] = Promise()
+
+    override def effect: IO[T] =
+      IO(Await.result(promise.future, Duration.Inf))
+
+    override def succeed(value: T): IO[Unit] =
+      IO(promise.success(value))
+
+    override def fail(exception: Throwable): IO[Unit] =
+      IO(promise.failure(exception))
   }
 }
 
