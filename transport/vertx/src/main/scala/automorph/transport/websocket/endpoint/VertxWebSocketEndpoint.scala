@@ -88,12 +88,13 @@ final case class VertxWebSocketEndpoint[Effect[_]](
     responseData: ResponseData[Context],
     session: ServerWebSocket,
     logResponse: Option[Throwable] => Unit,
-  ): Unit = {
-    session.writeBinaryMessage(Buffer.buffer(responseData.body))
-      .onSuccess(_ => logResponse(None))
-      .onFailure(error => logResponse(Some(error)))
-    ()
-  }
+  ): Effect[Unit] =
+    effectSystem.evaluate {
+      session.writeBinaryMessage(Buffer.buffer(responseData.body))
+        .onSuccess(_ => logResponse(None))
+        .onFailure(error => logResponse(Some(error)))
+      ()
+    }
 
   private def getRequestContext(webSocket: ServerWebSocket): Context = {
     val headers = webSocket.headers.entries.asScala.map(entry => entry.getKey -> entry.getValue).toSeq

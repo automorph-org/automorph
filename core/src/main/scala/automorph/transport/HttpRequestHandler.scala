@@ -16,7 +16,7 @@ final private[automorph] case class HttpRequestHandler[
   Channel,
 ](
   receiveRequest: Request => RequestData[Context],
-  sendResponse: (ResponseData[Context], Channel, Option[Throwable] => Unit) => Response,
+  sendResponse: (ResponseData[Context], Channel, Option[Throwable] => Unit) => Effect[Response],
   protocol: Protocol,
   effectSystem: EffectSystem[Effect],
   mapException: Throwable => Int,
@@ -34,24 +34,24 @@ final private[automorph] case class HttpRequestHandler[
     val requestData = receiveRpcRequest(request)
     Try {
       // Process the request
-      requestHandler.processRequest(requestData.body, requestData.context, requestData.id).either.map(_.fold(
+      requestHandler.processRequest(requestData.body, requestData.context, requestData.id).either.flatMap(_.fold(
         error => sendErrorResponse(error, channel, requestData),
         result => {
           // Send the response
           val responseBody = result.map(_.responseBody).getOrElse(Array.emptyByteArray)
           val resultContext = result.flatMap(_.context)
-          val status = result.flatMap(_.exception).map(mapException).orElse(
+          val statusCode = result.flatMap(_.exception).map(mapException).orElse(
             resultContext.flatMap(_.statusCode)
           ).getOrElse(statusOk)
-          sendRpcResponse(responseBody, requestHandler.mediaType, status, resultContext, channel, requestData)
+          sendRpcResponse(responseBody, requestHandler.mediaType, statusCode, resultContext, channel, requestData)
         },
       ))
     }.recover { error =>
-      system.evaluate(sendErrorResponse(error, channel, requestData))
+      sendErrorResponse(error, channel, requestData)
     }.get
   }
 
-  def processReceiveError(error: Throwable, requestData: RequestData[Context], channel: Channel): Response = {
+  def processReceiveError(error: Throwable, requestData: RequestData[Context], channel: Channel): Effect[Response] = {
     log.failedReceiveRequest(error, requestData.properties, requestData.protocol.name)
     val responseBody = error.description.toByteArray
     sendRpcResponse(responseBody, contentTypeText, statusInternalServerError, None, channel, requestData)
@@ -73,26 +73,30 @@ final private[automorph] case class HttpRequestHandler[
     context: Option[Context],
     channel: Channel,
     requestData: RequestData[Context],
-  ): Response = {
+  ): Effect[Response] = {
     lazy val responseProperties = requestData.properties ++ (requestData.protocol match {
       case Protocol.Http => Some(LogProperties.status -> statusCode.toString)
       case _ => None
     })
-    val protocolName = requestData.protocol.name
-    log.sendingResponse(responseProperties, protocolName)
-    val responseData = ResponseData(responseBody, context, statusCode, contentType, requestData.client, requestData.id)
-    val responseResult = Try(sendResponse(responseData, channel, logResponseResult(responseProperties, protocolName)))
-    if (logResponse) {
-      responseResult
-        .onSuccess(_ => log.sentResponse(responseProperties, protocolName))
-        .onError(log.failedSendResponse(_, responseProperties, protocolName))
-        .get
-    } else {
-      responseResult.get
+    val protocol = requestData.protocol.name
+    val client = requestData.client
+    log.sendingResponse(responseProperties, protocol)
+    val responseData = ResponseData(responseBody, context, statusCode, contentType, client, requestData.id)
+    sendResponse(responseData, channel, logResponseResult(responseProperties, protocol)).either.flatMap {
+      case Left(error) =>
+        log.failedSendResponse(error, responseProperties, protocol)
+        sendErrorResponse(error, channel, requestData)
+      case Right(result) =>
+        log.sentResponse(responseProperties, protocol)
+        system.successful(result)
     }
   }
 
-  private def sendErrorResponse(error: Throwable, channel: Channel, requestData: RequestData[Context]): Response = {
+  private def sendErrorResponse(
+    error: Throwable,
+    channel: Channel,
+    requestData: RequestData[Context],
+  ): Effect[Response] = {
     log.failedProcessRequest(error, requestData.properties, requestData.protocol.name)
     val responseBody = error.description.toByteArray
     sendRpcResponse(responseBody, contentTypeText, statusInternalServerError, None, channel, requestData)

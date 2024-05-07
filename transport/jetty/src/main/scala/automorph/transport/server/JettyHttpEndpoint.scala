@@ -82,16 +82,18 @@ final case class JettyHttpEndpoint[Effect[_]](
     responseData: ResponseData[Context],
     channel: (HttpServletResponse, AsyncContext),
     @unused logResponse: Option[Throwable] => Unit,
-  ): Unit = {
+  ): Effect[Unit] = {
     val (response, asyncContext) = channel
     setResponseContext(response, responseData.context)
     response.setContentType(handler.mediaType)
     response.setStatus(responseData.statusCode)
-    val outputStream = response.getOutputStream
-    outputStream.write(responseData.body)
-    outputStream.flush()
-    outputStream.close()
-    asyncContext.complete()
+    effectSystem.evaluate {
+      val outputStream = response.getOutputStream
+      outputStream.write(responseData.body)
+      outputStream.flush()
+      outputStream.close()
+      asyncContext.complete()
+    }
   }
 
   private def setResponseContext(response: HttpServletResponse, context: Option[Context]): Unit =

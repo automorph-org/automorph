@@ -93,9 +93,10 @@ final case class PlayHttpEndpoint[Effect[_]](
     responseData: ResponseData[Context],
     @unused session: Unit,
     @unused logResponse: Option[Throwable] => Unit,
-  ): Result = {
+  ): Effect[Result] = {
     val httpEntity = HttpEntity.Strict.apply(ByteString(responseData.body), Some(handler.mediaType))
-    setResponseContext(Status(responseData.statusCode).sendEntity(httpEntity), responseData.context)
+    val result = setResponseContext(Status(responseData.statusCode).sendEntity(httpEntity), responseData.context)
+    effectSystem.successful(result)
   }
 
   private def getRequestContext(request: Request[ByteString]): Context =

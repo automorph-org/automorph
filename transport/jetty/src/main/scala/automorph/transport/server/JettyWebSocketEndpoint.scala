@@ -104,8 +104,10 @@ final case class JettyWebSocketEndpoint[Effect[_]](
     responseData: ResponseData[Context],
     session: Session,
     logResponse: Option[Throwable] => Unit,
-  ): Unit =
-    session.getRemote.sendBytes(responseData.body.toByteBuffer, ResponseCallback(logResponse))
+  ): Effect[Unit] =
+    effectSystem.evaluate(
+      session.getRemote.sendBytes(responseData.body.toByteBuffer, ResponseCallback(logResponse))
+    )
 
   private def getRequestContext(request: UpgradeRequest): Context = {
     val headers = request.getHeaders.asScala.flatMap { case (name, values) =>

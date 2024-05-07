@@ -3,7 +3,9 @@ package automorph.transport.server
 import akka.http.scaladsl.model.StatusCodes.InternalServerError
 import akka.http.scaladsl.model.headers.RawHeader
 import akka.http.scaladsl.model.{ContentType, HttpEntity, HttpRequest, HttpResponse, RemoteAddress, StatusCode}
-import akka.http.scaladsl.server.Directives.{complete, extractClientIP, extractExecutionContext, extractMaterializer, extractRequest, onComplete}
+import akka.http.scaladsl.server.Directives.{
+  complete, extractClientIP, extractExecutionContext, extractMaterializer, extractRequest, onComplete,
+}
 import akka.http.scaladsl.server.Route
 import akka.stream.Materializer
 import automorph.log.Logging
@@ -112,10 +114,12 @@ final case class AkkaHttpEndpoint[Effect[_]](
     responseData: ResponseData[Context],
     @unused channel: Unit,
     @unused logResponse: Option[Throwable] => Unit,
-  ): HttpResponse =
-    createResponseContext(HttpResponse(), responseData.context)
-      .withStatus(StatusCode.int2StatusCode(responseData.statusCode))
-      .withEntity(contentType, responseData.body)
+  ): Effect[HttpResponse] =
+    effectSystem.successful(
+      createResponseContext(HttpResponse(), responseData.context)
+        .withStatus(StatusCode.int2StatusCode(responseData.statusCode))
+        .withEntity(contentType, responseData.body)
+    )
 
   private def getRequestContext(request: HttpRequest): Context =
     HttpContext(

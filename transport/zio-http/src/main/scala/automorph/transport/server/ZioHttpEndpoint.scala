@@ -63,11 +63,13 @@ final case class ZioHttpEndpoint[Fault](
     copy(handler = handler)
 
   private def handle(request: Request): IO[Response, Response] =
-    request.body.asArray.mapError(
-      // FIXME - check if the following is required to obtain error details: implicitly[Trace].toString.toByteArray
-      error => httpHandler.processReceiveError(error, receiveRequest((Array.emptyByteArray, request)), ())
-    ).flatMap { requestBody =>
-      httpHandler.processRequest((requestBody, request), ()).mapError(_ => Response())
+    request.body.asArray.either.flatMap {
+      case Left(error) =>
+        // FIXME - check if the following is required to obtain error details: implicitly[Trace].toString.toByteArray
+        val requestData = receiveRequest((Array.emptyByteArray, request))
+        httpHandler.processReceiveError(error, requestData, ()).mapError(_ => Response())
+      case Right(requestBody) =>
+        httpHandler.processRequest((requestBody, request), ()).mapError(_ => Response())
     }
 
   private def receiveRequest(incomingRequest: (Array[Byte], Request)): RequestData[Context] = {
@@ -86,13 +88,16 @@ final case class ZioHttpEndpoint[Fault](
     responseData: ResponseData[Context],
     @unused session: Unit,
     @unused logResponse: Option[Throwable] => Unit,
-  ): Response = {
-    val response = Response(
-      Status.fromInt(responseData.statusCode).getOrElse(Status.Ok),
-      Headers(Header.ContentType(mediaType)),
-      Body.fromChunk(Chunk.fromArray(responseData.body)),
+  ): IO[Fault, Response] = {
+    val response = setResponseContext(
+      Response(
+        Status.fromInt(responseData.statusCode).getOrElse(Status.Ok),
+        Headers(Header.ContentType(mediaType)),
+        Body.fromChunk(Chunk.fromArray(responseData.body)),
+      ),
+      responseData.context,
     )
-    setResponseContext(response, responseData.context)
+    effectSystem.successful(response)
   }
 
   private def getRequestContext(request: Request): Context =

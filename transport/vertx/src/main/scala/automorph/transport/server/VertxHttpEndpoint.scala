@@ -91,15 +91,16 @@ final case class VertxHttpEndpoint[Effect[_]](
     responseData: ResponseData[Context],
     request: HttpServerRequest,
     logResponse: Option[Throwable] => Unit,
-  ): Unit = {
-    setResponseContext(request.response, responseData.context)
-      .putHeader(HttpHeaders.CONTENT_TYPE, responseData.contentType)
-      .setStatusCode(responseData.statusCode)
-      .end(Buffer.buffer(responseData.body))
-      .onSuccess(_ => logResponse(None))
-      .onFailure(error => logResponse(Some(error)))
-    ()
-  }
+  ): Effect[Unit] =
+    effectSystem.evaluate {
+      setResponseContext(request.response, responseData.context)
+        .putHeader(HttpHeaders.CONTENT_TYPE, responseData.contentType)
+        .setStatusCode(responseData.statusCode)
+        .end(Buffer.buffer(responseData.body))
+        .onSuccess(_ => logResponse(None))
+        .onFailure(error => logResponse(Some(error)))
+      ()
+    }
 
   private def getRequestContext(request: HttpServerRequest): Context = {
     val headers = request.headers.entries.asScala.map(entry => entry.getKey -> entry.getValue).toSeq

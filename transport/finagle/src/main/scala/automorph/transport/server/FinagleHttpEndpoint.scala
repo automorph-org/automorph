@@ -74,7 +74,7 @@ final case class FinagleHttpEndpoint[Effect[_]](
     responseData: ResponseData[Context],
     request: Request,
     @unused logResponse: Option[Throwable] => Unit,
-  ): Response = {
+  ): Effect[Response] = {
     val response = Response(
       request.version,
       Status(responseData.statusCode),
@@ -82,7 +82,7 @@ final case class FinagleHttpEndpoint[Effect[_]](
     )
     response.contentType = responseData.contentType
     setResponseContext(response, responseData.context)
-    response
+    effectSystem.successful(response)
   }
 
   private def getRequestContext(request: Request): Context =

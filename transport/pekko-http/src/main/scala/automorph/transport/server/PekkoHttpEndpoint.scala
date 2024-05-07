@@ -112,10 +112,12 @@ final case class PekkoHttpEndpoint[Effect[_]](
     responseData: ResponseData[Context],
     @unused channel: Unit,
     @unused logResponse: Option[Throwable] => Unit,
-  ): HttpResponse =
-    createResponseContext(HttpResponse(), responseData.context)
-      .withStatus(StatusCode.int2StatusCode(responseData.statusCode))
-      .withEntity(contentType, responseData.body)
+  ): Effect[HttpResponse] =
+    effectSystem.successful(
+      createResponseContext(HttpResponse(), responseData.context)
+        .withStatus(StatusCode.int2StatusCode(responseData.statusCode))
+        .withEntity(contentType, responseData.body)
+    )
 
   private def getRequestContext(request: HttpRequest): Context =
     HttpContext(

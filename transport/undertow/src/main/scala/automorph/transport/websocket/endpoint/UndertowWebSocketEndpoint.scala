@@ -98,8 +98,10 @@ final case class UndertowWebSocketEndpoint[Effect[_]](
     responseData: ResponseData[Context],
     channel: WebSocketChannel,
     logResponse: Option[Throwable] => Unit,
-  ): Unit =
-    WebSockets.sendBinary(responseData.body.toByteBuffer, channel, ResponseCallback(logResponse), ())
+  ): Effect[Unit] =
+    effectSystem.evaluate(
+      WebSockets.sendBinary(responseData.body.toByteBuffer, channel, ResponseCallback(logResponse), ())
+    )
 
   private def getRequestContext(exchange: WebSocketHttpExchange): Context = {
     val headers = exchange.getRequestHeaders.asScala.view.mapValues(_.asScala).flatMap { case (name, values) =>

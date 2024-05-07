@@ -3,14 +3,18 @@ package automorph.transport.server
 import automorph.log.Logging
 import automorph.spi.{EffectSystem, RequestHandler, ServerTransport}
 import automorph.transport.HttpRequestHandler.{RequestData, ResponseData}
-import automorph.transport.server.TapirHttpEndpoint.{Adapter, Context, MessageFormat, createResponse, pathComponents, pathEndpointInput, receiveRequest}
+import automorph.transport.server.TapirHttpEndpoint.{
+  Adapter, Context, MessageFormat, createResponse, pathComponents, pathEndpointInput, receiveRequest,
+}
 import automorph.transport.{HttpContext, HttpMethod, HttpRequestHandler, Protocol}
 import automorph.util.Extensions.EffectOps
 import sttp.model.{Header, MediaType, Method, QueryParams, StatusCode}
 import sttp.tapir
 import sttp.tapir.Codec.id
 import sttp.tapir.server.ServerEndpoint
-import sttp.tapir.{CodecFormat, EndpointIO, EndpointInput, RawBodyType, Schema, headers, paths, queryParams, statusCode, stringToPath}
+import sttp.tapir.{
+  CodecFormat, EndpointIO, EndpointInput, RawBodyType, Schema, headers, paths, queryParams, statusCode, stringToPath,
+}
 import scala.annotation.unused
 
 /**
@@ -65,7 +69,15 @@ final case class TapirHttpEndpoint[Effect[_]](
   private val prefixPaths = pathComponents(pathPrefix)
   private val baseContext = HttpContext[Unit]().url(baseUrl)
   private val httpHandler =
-    HttpRequestHandler(receiveRequest, createResponse, Protocol.Http, effectSystem, mapException, handler, logger)
+    HttpRequestHandler(
+      receiveRequest,
+      createResponse(effectSystem),
+      Protocol.Http,
+      effectSystem,
+      mapException,
+      handler,
+      logger,
+    )
   implicit private val system: EffectSystem[Effect] = effectSystem
 
   override def adapter: Adapter[Effect] = {
@@ -122,12 +134,12 @@ object TapirHttpEndpoint {
     )
   }
 
-  private def createResponse(
+  private def createResponse[Effect[_]](effectSystem: EffectSystem[Effect])(
     responseData: ResponseData[Context],
     @unused channel: Unit,
     @unused logResponse: Option[Throwable] => Unit,
-  ): Response =
-    (responseData.body, StatusCode(responseData.statusCode), setResponseContext(responseData))
+  ): Effect[Response] =
+    effectSystem.successful((responseData.body, StatusCode(responseData.statusCode), setResponseContext(responseData)))
 
   private def getRequestContext(
     request: Request,

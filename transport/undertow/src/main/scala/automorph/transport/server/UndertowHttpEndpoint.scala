@@ -90,13 +90,14 @@ final case class UndertowHttpEndpoint[Effect[_]](
     responseData: ResponseData[Context],
     exchange: HttpServerExchange,
     @unused logResponse: Option[Throwable] => Unit,
-  ): Unit = {
+  ): Effect[Unit] = {
     if (!exchange.isResponseChannelAvailable) {
       throw new IOException("Response channel not available")
     }
     setResponseContext(exchange, responseData.context)
     exchange.getResponseHeaders.put(Headers.CONTENT_TYPE, responseData.contentType)
-    exchange.setStatusCode(responseData.statusCode).getResponseSender.send(responseData.body.toByteBuffer)
+    exchange.setStatusCode(responseData.statusCode)
+    effectSystem.evaluate(exchange.getResponseSender.send(responseData.body.toByteBuffer))
   }
 
   private def getRequestContext(exchange: HttpServerExchange): Context = {

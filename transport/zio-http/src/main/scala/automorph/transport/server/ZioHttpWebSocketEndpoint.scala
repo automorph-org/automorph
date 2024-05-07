@@ -62,8 +62,11 @@ final case class ZioHttpWebSocketEndpoint[Fault](
         }
       case ExceptionCaught(cause) =>
         // FIXME - check if the following is required to obtain error details: implicitly[Trace].toString.toByteArray
-        val frame = webSocketHandler.processReceiveError(cause, receiveRequest(Chunk.empty), ())
-        channel.send(Read(frame))
+        webSocketHandler.processReceiveError(cause, receiveRequest(Chunk.empty), ())
+          .mapError(_ => new RuntimeException(s"Error sending ${Protocol.WebSocket.name} response"))
+          .flatMap { frame =>
+            channel.send(Read(frame))
+          }
       case _ => ZIO.unit
     }
 
@@ -74,8 +77,8 @@ final case class ZioHttpWebSocketEndpoint[Fault](
     responseData: ResponseData[Context],
     @unused session: Unit,
     @unused logResponse: Option[Throwable] => Unit,
-  ): WebSocketFrame =
-    WebSocketFrame.Binary(Chunk.fromArray(responseData.body))
+  ): IO[Fault, WebSocketFrame] =
+    effectSystem.successful(WebSocketFrame.Binary(Chunk.fromArray(responseData.body)))
 }
 
 object ZioHttpWebSocketEndpoint {
