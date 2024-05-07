@@ -48,16 +48,8 @@ final case class VertxWebSocketEndpoint[Effect[_]](
     }
   }
 
-  private val webSocketHandler = HttpRequestHandler(
-    receiveRequest,
-    sendResponse,
-    Protocol.WebSocket,
-    effectSystem,
-    _ => 0,
-    handler,
-    logger,
-    logResponse = false,
-  )
+  private val webSocketHandler =
+    HttpRequestHandler(receiveRequest, sendResponse, Protocol.WebSocket, effectSystem, _ => 0, handler, logger)
   implicit private val system: EffectSystem[Effect] = effectSystem
 
   override def adapter: Handler[ServerWebSocket] =
@@ -84,16 +76,12 @@ final case class VertxWebSocketEndpoint[Effect[_]](
     )
   }
 
-  private def sendResponse(
-    responseData: ResponseData[Context],
-    session: ServerWebSocket,
-    logResponse: Option[Throwable] => Unit,
-  ): Effect[Unit] =
-    effectSystem.evaluate {
+  private def sendResponse(responseData: ResponseData[Context], session: ServerWebSocket): Effect[Unit] =
+    effectSystem.completable[Unit].flatMap { completable =>
       session.writeBinaryMessage(Buffer.buffer(responseData.body))
-        .onSuccess(_ => logResponse(None))
-        .onFailure(error => logResponse(Some(error)))
-      ()
+        .onSuccess(_ => completable.succeed(()))
+        .onFailure(completable.fail)
+      completable.effect
     }
 
   private def getRequestContext(webSocket: ServerWebSocket): Context = {

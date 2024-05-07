@@ -209,12 +209,7 @@ final case class NanoServer[Effect[_]](
     )
   }
 
-  @scala.annotation.nowarn("msg=used")
-  private def sendHttpResponse(
-    responseData: ResponseData[Context],
-    @unused channel: IHTTPSession,
-    @unused logResponse: Option[Throwable] => Unit,
-  ): Effect[Response] = {
+  private def sendHttpResponse(responseData: ResponseData[Context], @unused channel: IHTTPSession): Effect[Response] = {
     val response = newFixedLengthResponse(
       Status.lookup(responseData.statusCode),
       responseData.contentType,
@@ -225,11 +220,7 @@ final case class NanoServer[Effect[_]](
     effectSystem.successful(response)
   }
 
-  private def sendWebSocketResponse(
-    responseData: ResponseData[Context],
-    channel: WebSocket,
-    @unused logResponse: Option[Throwable] => Unit,
-  ): Effect[Unit] =
+  private def sendWebSocketResponse(responseData: ResponseData[Context], channel: WebSocket): Effect[Unit] =
     effectSystem.evaluate(channel.send(responseData.body))
 
   private def getRequestContext(session: IHTTPSession): Context = {

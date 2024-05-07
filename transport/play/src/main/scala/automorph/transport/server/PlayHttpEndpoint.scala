@@ -89,11 +89,7 @@ final case class PlayHttpEndpoint[Effect[_]](
       Some(request.method),
     )
 
-  private def createResponse(
-    responseData: ResponseData[Context],
-    @unused session: Unit,
-    @unused logResponse: Option[Throwable] => Unit,
-  ): Effect[Result] = {
+  private def createResponse(responseData: ResponseData[Context], @unused session: Unit): Effect[Result] = {
     val httpEntity = HttpEntity.Strict.apply(ByteString(responseData.body), Some(handler.mediaType))
     val result = setResponseContext(Status(responseData.statusCode).sendEntity(httpEntity), responseData.context)
     effectSystem.successful(result)

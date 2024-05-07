@@ -10,7 +10,6 @@ import automorph.util.Network
 import jakarta.servlet.AsyncContext
 import jakarta.servlet.http.{HttpServlet, HttpServletRequest, HttpServletResponse}
 import org.eclipse.jetty.http.HttpHeader
-import scala.annotation.unused
 import scala.jdk.CollectionConverters.EnumerationHasAsScala
 
 /**
@@ -81,7 +80,6 @@ final case class JettyHttpEndpoint[Effect[_]](
   private def sendResponse(
     responseData: ResponseData[Context],
     channel: (HttpServletResponse, AsyncContext),
-    @unused logResponse: Option[Throwable] => Unit,
   ): Effect[Unit] = {
     val (response, asyncContext) = channel
     setResponseContext(response, responseData.context)

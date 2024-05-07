@@ -38,7 +38,7 @@ final case class ZioHttpWebSocketEndpoint[Fault](
 ) extends ServerTransport[({ type Effect[A] = IO[Fault, A] })#Effect, Context, WebSocketChannel => IO[Throwable, Any]]
   with Logging {
   private val webSocketHandler =
-    HttpRequestHandler.apply(receiveRequest, createResponse, Protocol.WebSocket, effectSystem, _ => 0, handler, logger)
+    HttpRequestHandler(receiveRequest, createResponse, Protocol.WebSocket, effectSystem, _ => 0, handler, logger)
 
   override def adapter: WebSocketChannel => IO[Throwable, Any] =
     channel => handle(channel)
@@ -73,11 +73,7 @@ final case class ZioHttpWebSocketEndpoint[Fault](
   private def receiveRequest(body: Chunk[Byte]): RequestData[Context] =
     RequestData(() => body.toArray, HttpContext(), webSocketHandler.protocol, "", "", None)
 
-  private def createResponse(
-    responseData: ResponseData[Context],
-    @unused session: Unit,
-    @unused logResponse: Option[Throwable] => Unit,
-  ): IO[Fault, WebSocketFrame] =
+  private def createResponse(responseData: ResponseData[Context], @unused session: Unit): IO[Fault, WebSocketFrame] =
     effectSystem.successful(WebSocketFrame.Binary(Chunk.fromArray(responseData.body)))
 }
 

@@ -16,13 +16,12 @@ final private[automorph] case class HttpRequestHandler[
   Channel,
 ](
   receiveRequest: Request => RequestData[Context],
-  sendResponse: (ResponseData[Context], Channel, Option[Throwable] => Unit) => Effect[Response],
+  sendResponse: (ResponseData[Context], Channel) => Effect[Response],
   protocol: Protocol,
   effectSystem: EffectSystem[Effect],
   mapException: Throwable => Int,
   requestHandler: RequestHandler[Effect, Context],
   logger: Logger,
-  logResponse: Boolean = true,
 ) {
   private val log = MessageLog(logger, Protocol.Http.name)
   private val statusOk = 200
@@ -82,7 +81,7 @@ final private[automorph] case class HttpRequestHandler[
     val client = requestData.client
     log.sendingResponse(responseProperties, protocol)
     val responseData = ResponseData(responseBody, context, statusCode, contentType, client, requestData.id)
-    sendResponse(responseData, channel, logResponseResult(responseProperties, protocol)).either.flatMap {
+    sendResponse(responseData, channel).either.flatMap {
       case Left(error) =>
         log.failedSendResponse(error, responseProperties, protocol)
         sendErrorResponse(error, channel, requestData)
@@ -101,9 +100,6 @@ final private[automorph] case class HttpRequestHandler[
     val responseBody = error.description.toByteArray
     sendRpcResponse(responseBody, contentTypeText, statusInternalServerError, None, channel, requestData)
   }
-
-  private def logResponseResult(properties: Map[String, String], protocol: String)(error: Option[Throwable]): Unit =
-    error.fold(log.sentResponse(properties, protocol))(log.failedSendResponse(_, properties, protocol))
 }
 
 private[automorph] object HttpRequestHandler {

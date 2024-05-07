@@ -12,7 +12,6 @@ import io.undertow.server.{HttpHandler, HttpServerExchange}
 import io.undertow.util.{Headers, HttpString}
 import io.undertow.websockets.spi.WebSocketHttpExchange
 import java.io.IOException
-import scala.annotation.unused
 import scala.jdk.CollectionConverters.{IterableHasAsScala, IteratorHasAsScala}
 
 /**
@@ -86,11 +85,7 @@ final case class UndertowHttpEndpoint[Effect[_]](
     )
   }
 
-  private def sendResponse(
-    responseData: ResponseData[Context],
-    exchange: HttpServerExchange,
-    @unused logResponse: Option[Throwable] => Unit,
-  ): Effect[Unit] = {
+  private def sendResponse(responseData: ResponseData[Context], exchange: HttpServerExchange): Effect[Unit] = {
     if (!exchange.isResponseChannelAvailable) {
       throw new IOException("Response channel not available")
     }

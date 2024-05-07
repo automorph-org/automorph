@@ -1,6 +1,7 @@
 package automorph.transport.server
 
 import automorph.log.Logging
+import automorph.spi.EffectSystem.Completable
 import automorph.spi.{EffectSystem, RequestHandler, ServerTransport}
 import automorph.transport.HttpRequestHandler.{RequestData, ResponseData}
 import automorph.transport.server.JettyHttpEndpoint.{Context, requestQuery}
@@ -59,16 +60,9 @@ final case class JettyWebSocketEndpoint[Effect[_]](
     override def createWebSocket(request: JettyServerUpgradeRequest, response: JettyServerUpgradeResponse): AnyRef =
       adapter
   }
-  private val webSocketHandler = HttpRequestHandler(
-    receiveRequest,
-    sendResponse,
-    Protocol.WebSocket,
-    effectSystem,
-    mapException,
-    handler,
-    logger,
-    logResponse = false,
-  )
+  private val webSocketHandler =
+    HttpRequestHandler(receiveRequest, sendResponse, Protocol.WebSocket, effectSystem, mapException, handler, logger)
+  implicit private val system: EffectSystem[Effect] = effectSystem
 
   /** Jetty WebSocket creator. */
   def creator: JettyWebSocketCreator =
@@ -100,14 +94,11 @@ final case class JettyWebSocketEndpoint[Effect[_]](
     )
   }
 
-  private def sendResponse(
-    responseData: ResponseData[Context],
-    session: Session,
-    logResponse: Option[Throwable] => Unit,
-  ): Effect[Unit] =
-    effectSystem.evaluate(
-      session.getRemote.sendBytes(responseData.body.toByteBuffer, ResponseCallback(logResponse))
-    )
+  private def sendResponse(responseData: ResponseData[Context], session: Session): Effect[Unit] =
+    effectSystem.completable[Unit].flatMap { completable =>
+      session.getRemote.sendBytes(responseData.body.toByteBuffer, ResponseCallback(completable))
+      completable.effect
+    }
 
   private def getRequestContext(request: UpgradeRequest): Context = {
     val headers = request.getHeaders.asScala.flatMap { case (name, values) =>
@@ -129,12 +120,12 @@ object JettyWebSocketEndpoint {
   /** Request context type. */
   type Context = JettyHttpEndpoint.Context
 
-  final private case class ResponseCallback(logResponse: Option[Throwable] => Unit) extends WriteCallback {
+  final private case class ResponseCallback[Effect[_]](completable: Completable[Effect, Unit]) extends WriteCallback {
 
     override def writeSuccess(): Unit =
-      logResponse(None)
+      completable.succeed(())
 
     override def writeFailed(error: Throwable): Unit =
-      logResponse(Some(error))
+      completable.fail(error)
   }
 }

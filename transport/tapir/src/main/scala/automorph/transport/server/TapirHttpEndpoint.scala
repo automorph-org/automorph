@@ -137,9 +137,10 @@ object TapirHttpEndpoint {
   private def createResponse[Effect[_]](effectSystem: EffectSystem[Effect])(
     responseData: ResponseData[Context],
     @unused channel: Unit,
-    @unused logResponse: Option[Throwable] => Unit,
   ): Effect[Response] =
-    effectSystem.successful((responseData.body, StatusCode(responseData.statusCode), setResponseContext(responseData)))
+    effectSystem.successful(
+      (responseData.body, StatusCode(responseData.statusCode), setResponseContext(responseData))
+    )
 
   private def getRequestContext(
     request: Request,

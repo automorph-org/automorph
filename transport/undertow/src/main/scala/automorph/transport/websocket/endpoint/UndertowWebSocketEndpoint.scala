@@ -52,16 +52,8 @@ final case class UndertowWebSocketEndpoint[Effect[_]](
       channel.resumeReceives()
     }
   }
-  private val webSocketHandler = HttpRequestHandler(
-    receiveRequest,
-    sendResponse,
-    Protocol.WebSocket,
-    effectSystem,
-    _ => 0,
-    handler,
-    logger,
-    logResponse = false,
-  )
+  private val webSocketHandler =
+    HttpRequestHandler(receiveRequest, sendResponse, Protocol.WebSocket, effectSystem, _ => 0, handler, logger)
   implicit private val system: EffectSystem[Effect] = effectSystem
 
   /**
@@ -98,11 +90,7 @@ final case class UndertowWebSocketEndpoint[Effect[_]](
     )
   }
 
-  private def sendResponse(
-    responseData: ResponseData[Context],
-    channel: WebSocketChannel,
-    logResponse: Option[Throwable] => Unit,
-  ): Effect[Unit] =
+  private def sendResponse(responseData: ResponseData[Context], channel: WebSocketChannel): Effect[Unit] =
     effectSystem.completable[Unit].flatMap { completable =>
       WebSockets.sendBinary(responseData.body.toByteBuffer, channel, ResponseCallback(completable), ())
       completable.effect

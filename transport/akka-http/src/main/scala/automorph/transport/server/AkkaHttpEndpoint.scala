@@ -110,11 +110,7 @@ final case class AkkaHttpEndpoint[Effect[_]](
     )
   }
 
-  private def createResponse(
-    responseData: ResponseData[Context],
-    @unused channel: Unit,
-    @unused logResponse: Option[Throwable] => Unit,
-  ): Effect[HttpResponse] =
+  private def createResponse(responseData: ResponseData[Context], @unused channel: Unit): Effect[HttpResponse] =
     effectSystem.successful(
       createResponseContext(HttpResponse(), responseData.context)
         .withStatus(StatusCode.int2StatusCode(responseData.statusCode))

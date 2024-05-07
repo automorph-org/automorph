@@ -51,16 +51,8 @@ final case class VertxHttpEndpoint[Effect[_]](
     }
   }
 
-  private val httpHandler = HttpRequestHandler(
-    receiveRequest,
-    sendResponse,
-    Protocol.Http,
-    effectSystem,
-    mapException,
-    handler,
-    logger,
-    logResponse = false,
-  )
+  private val httpHandler =
+    HttpRequestHandler(receiveRequest, sendResponse, Protocol.Http, effectSystem, mapException, handler, logger)
   implicit private val system: EffectSystem[Effect] = effectSystem
 
   override def adapter: Handler[HttpServerRequest] =
@@ -87,19 +79,15 @@ final case class VertxHttpEndpoint[Effect[_]](
     )
   }
 
-  private def sendResponse(
-    responseData: ResponseData[Context],
-    request: HttpServerRequest,
-    logResponse: Option[Throwable] => Unit,
-  ): Effect[Unit] =
-    effectSystem.evaluate {
+  private def sendResponse(responseData: ResponseData[Context], request: HttpServerRequest): Effect[Unit] =
+    effectSystem.completable[Unit].flatMap { completable =>
       setResponseContext(request.response, responseData.context)
         .putHeader(HttpHeaders.CONTENT_TYPE, responseData.contentType)
         .setStatusCode(responseData.statusCode)
         .end(Buffer.buffer(responseData.body))
-        .onSuccess(_ => logResponse(None))
-        .onFailure(error => logResponse(Some(error)))
-      ()
+        .onSuccess(_ => completable.succeed(()))
+        .onFailure(completable.fail)
+      completable.effect
     }
 
   private def getRequestContext(request: HttpServerRequest): Context = {

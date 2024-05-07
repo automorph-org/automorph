@@ -84,11 +84,7 @@ final case class ZioHttpEndpoint[Fault](
     )
   }
 
-  private def createResponse(
-    responseData: ResponseData[Context],
-    @unused session: Unit,
-    @unused logResponse: Option[Throwable] => Unit,
-  ): IO[Fault, Response] = {
+  private def createResponse(responseData: ResponseData[Context], @unused session: Unit): IO[Fault, Response] = {
     val response = setResponseContext(
       Response(
         Status.fromInt(responseData.statusCode).getOrElse(Status.Ok),
