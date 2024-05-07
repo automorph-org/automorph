@@ -135,10 +135,10 @@ object EffectSystem {
   trait Completable[Effect[_], T] {
 
     /**
-     * Effect containing an externally supplied result value or an exception.
+     * Effect containing an externally supplied result value or an error.
      *
      * @return
-     *   effect containing an externally supplied result value or an exception
+     *   effect containing an externally supplied result value or an error
      */
     def effect: Effect[T]
 
@@ -153,7 +153,7 @@ object EffectSystem {
     def succeed(value: T): Effect[Unit]
 
     /**
-     * Completes the effect with an exception.
+     * Completes the effect with an error.
      *
      * @param exception
      *   exception

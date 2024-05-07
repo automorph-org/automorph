@@ -1,6 +1,7 @@
 package automorph.transport.websocket.endpoint
 
 import automorph.log.Logging
+import automorph.spi.EffectSystem.Completable
 import automorph.spi.{EffectSystem, RequestHandler, ServerTransport}
 import automorph.transport.HttpRequestHandler.{RequestData, ResponseData}
 import automorph.transport.server.UndertowHttpEndpoint.requestQuery
@@ -10,7 +11,9 @@ import automorph.util.Extensions.{ByteArrayOps, ByteBufferOps, EffectOps, String
 import automorph.util.Network
 import io.undertow.server.{HttpHandler, HttpServerExchange}
 import io.undertow.util.Headers
-import io.undertow.websockets.core.{AbstractReceiveListener, BufferedBinaryMessage, BufferedTextMessage, WebSocketCallback, WebSocketChannel, WebSockets}
+import io.undertow.websockets.core.{
+  AbstractReceiveListener, BufferedBinaryMessage, BufferedTextMessage, WebSocketCallback, WebSocketChannel, WebSockets,
+}
 import io.undertow.websockets.spi.WebSocketHttpExchange
 import io.undertow.websockets.{WebSocketConnectionCallback, WebSocketProtocolHandshakeHandler}
 import scala.jdk.CollectionConverters.{ListHasAsScala, MapHasAsScala}
@@ -59,6 +62,7 @@ final case class UndertowWebSocketEndpoint[Effect[_]](
     logger,
     logResponse = false,
   )
+  implicit private val system: EffectSystem[Effect] = effectSystem
 
   /**
    * Creates an Undertow WebSocket handshake HTTP handler for this Undertow WebSocket callback.
@@ -99,9 +103,10 @@ final case class UndertowWebSocketEndpoint[Effect[_]](
     channel: WebSocketChannel,
     logResponse: Option[Throwable] => Unit,
   ): Effect[Unit] =
-    effectSystem.evaluate(
-      WebSockets.sendBinary(responseData.body.toByteBuffer, channel, ResponseCallback(logResponse), ())
-    )
+    effectSystem.completable[Unit].flatMap { completable =>
+      WebSockets.sendBinary(responseData.body.toByteBuffer, channel, ResponseCallback(completable), ())
+      completable.effect
+    }
 
   private def getRequestContext(exchange: WebSocketHttpExchange): Context = {
     val headers = exchange.getRequestHeaders.asScala.view.mapValues(_.asScala).flatMap { case (name, values) =>
@@ -142,12 +147,13 @@ object UndertowWebSocketEndpoint {
     }
   }
 
-  final private case class ResponseCallback(logResponse: Option[Throwable] => Unit) extends WebSocketCallback[Unit] {
+  final private case class ResponseCallback[Effect[_]](completable: Completable[Effect, Unit])
+    extends WebSocketCallback[Unit] {
 
     override def complete(channel: WebSocketChannel, context: Unit): Unit =
-      logResponse(None)
+      completable.succeed(())
 
     override def onError(channel: WebSocketChannel, context: Unit, error: Throwable): Unit =
-      logResponse(Some(error))
+      completable.fail(error)
   }
 }
