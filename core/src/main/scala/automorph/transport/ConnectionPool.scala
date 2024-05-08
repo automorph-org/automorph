@@ -4,7 +4,7 @@ import automorph.log.Logger
 import automorph.spi.EffectSystem
 import automorph.spi.EffectSystem.Completable
 import automorph.transport.ConnectionPool.{
-  Action, ReportError, UseConnection, EnqeueUsage, AddConnection, OpenConnection, ServeUsage,
+  Action, ReportError, UseConnection, EnqueueUsage, AddConnection, OpenConnection, ServeUsage,
 }
 import automorph.util.Extensions.EffectOps
 import scala.collection.mutable
@@ -31,7 +31,7 @@ final private[automorph] case class ConnectionPool[Effect[_], Connection](
           openConnection.filter(_ => managedConnections < maxConnections).map { open =>
             managedConnections += 1
             OpenConnection(open)
-          }.getOrElse(EnqeueUsage[Effect, Connection]())
+          }.getOrElse(EnqueueUsage[Effect, Connection]())
         }
       } else {
         ReportError[Effect, Connection]()
@@ -95,7 +95,7 @@ final private[automorph] case class ConnectionPool[Effect[_], Connection](
             logger.debug(s"Opened ${protocol.name} connection")
             effectSystem.successful(connection)
         }
-      case EnqeueUsage() =>
+      case EnqueueUsage() =>
         effectSystem.completable[Connection].flatMap { usage =>
           pendingUsages.addOne(usage)
           usage.effect
@@ -112,7 +112,7 @@ private[automorph] object ConnectionPool {
 
   final case class OpenConnection[Effect[_], Connection](open: () => Effect[Connection])
     extends Action[Effect, Connection]
-  final case class EnqeueUsage[Effect[_], Connection]() extends Action[Effect, Connection]
+  final case class EnqueueUsage[Effect[_], Connection]() extends Action[Effect, Connection]
 
   final case class ServeUsage[Effect[_], Connection](usage: Completable[Effect, Connection])
     extends Action[Effect, Connection]
