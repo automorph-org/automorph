@@ -86,7 +86,9 @@ final private[automorph] case class ConnectionPool[Effect[_], Connection](
         logger.trace(s"Opening ${protocol.name} connection")
         open().either.flatMap {
           case Left(error) =>
-            this.synchronized(managedConnections -= 1)
+            this.synchronized {
+              managedConnections -= 1
+            }
             logger.error(s"Failed to open ${protocol.name} connection")
             effectSystem.failed(error)
           case Right(connection) =>
