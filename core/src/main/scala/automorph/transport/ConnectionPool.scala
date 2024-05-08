@@ -4,7 +4,7 @@ import automorph.log.Logger
 import automorph.spi.EffectSystem
 import automorph.spi.EffectSystem.Completable
 import automorph.transport.ConnectionPool.{
-  Action, ReportError, ReturnConnection, QueueRequest, AddConnection, OpenConnection, ServeRequest,
+  Action, ReportError, UseConnection, QueueRequest, AddConnection, OpenConnection, ServeRequest,
 }
 import automorph.util.Extensions.EffectOps
 import scala.collection.mutable
@@ -27,7 +27,7 @@ final private[automorph] case class ConnectionPool[Effect[_], Connection](
   def using[T](use: Connection => Effect[T]): Effect[T] = {
     val action = this.synchronized {
       if (active) {
-        unusedConnections.removeHeadOption().map(ReturnConnection.apply[Effect, Connection]).getOrElse {
+        unusedConnections.removeHeadOption().map(UseConnection.apply[Effect, Connection]).getOrElse {
           openConnection.filter(_ => managedConnections < maxConnections).map { open =>
             managedConnections += 1
             OpenConnection(open)
@@ -98,7 +98,7 @@ final private[automorph] case class ConnectionPool[Effect[_], Connection](
           pendingRequests.addOne(request)
           request.effect
         }
-      case ReturnConnection(connection) => system.successful(connection)
+      case UseConnection(connection) => system.successful(connection)
       case _ => system.failed(new IllegalStateException(closedMessage))
     }
 }
@@ -106,7 +106,7 @@ final private[automorph] case class ConnectionPool[Effect[_], Connection](
 private[automorph] object ConnectionPool {
   sealed trait Action[Effect[_], Connection]
 
-  final case class ReturnConnection[Effect[_], Connection](connection: Connection) extends Action[Effect, Connection]
+  final case class UseConnection[Effect[_], Connection](connection: Connection) extends Action[Effect, Connection]
 
   final case class OpenConnection[Effect[_], Connection](open: () => Effect[Connection])
     extends Action[Effect, Connection]
