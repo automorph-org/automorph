@@ -79,15 +79,17 @@ final case class PlayHttpEndpoint[Effect[_]](
   override def requestHandler(handler: RequestHandler[Effect, Context]): PlayHttpEndpoint[Effect] =
     copy(handler = handler)
 
-  private def receiveRequest(request: Request[ByteString]): RequestData[Context] =
-    RequestData(
-      () => request.body.toArray,
+  private def receiveRequest(request: Request[ByteString]): (RequestData[Context], Effect[Array[Byte]]) = {
+    val requestData = RequestData(
       getRequestContext(request),
       httpHandler.protocol,
       request.uri,
       clientAddress(request),
       Some(request.method),
     )
+    val requestBody = effectSystem.evaluate(request.body.toArray)
+    (requestData, requestBody)
+  }
 
   private def createResponse(responseData: ResponseData[Context], @unused session: Unit): Effect[Result] = {
     val httpEntity = HttpEntity.Strict.apply(ByteString(responseData.body), Some(handler.mediaType))

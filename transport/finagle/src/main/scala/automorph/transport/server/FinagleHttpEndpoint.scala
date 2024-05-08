@@ -59,15 +59,17 @@ final case class FinagleHttpEndpoint[Effect[_]](
   override def requestHandler(handler: RequestHandler[Effect, Context]): FinagleHttpEndpoint[Effect] =
     copy(handler = handler)
 
-  private def receiveRequest(request: Request): RequestData[Context] =
-    RequestData(
-      () => Buf.ByteArray.Owned.extract(request.content),
+  private def receiveRequest(request: Request): (RequestData[Context], Effect[Array[Byte]]) = {
+    val requestData = RequestData(
       getRequestContext(request),
       httpHandler.protocol,
       request.uri,
       clientAddress(request),
       Some(request.method.toString),
     )
+    val requestBody = effectSystem.evaluate(Buf.ByteArray.Owned.extract(request.content))
+    (requestData, requestBody)
+  }
 
   private def createResponse(responseData: ResponseData[Context], request: Request): Effect[Response] = {
     val response = Response(

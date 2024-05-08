@@ -1,11 +1,11 @@
 package automorph.transport.server
 
-import automorph.log.{Logging, MessageLog}
+import automorph.log.{Logger, Logging, MessageLog}
 import automorph.spi.{EffectSystem, RequestHandler, ServerTransport}
 import automorph.transport.HttpRequestHandler.{RequestData, ResponseData}
 import automorph.transport.server.NanoHTTPD.Response.Status
 import automorph.transport.server.NanoHTTPD.{IHTTPSession, Response, newFixedLengthResponse}
-import automorph.transport.server.NanoServer.Context
+import automorph.transport.server.NanoServer.{Context, WebSocketListener, WebSocketRequest}
 import automorph.transport.server.NanoWSD.WebSocketFrame.CloseCode
 import automorph.transport.server.NanoWSD.{WebSocket, WebSocketFrame}
 import automorph.transport.{HttpContext, HttpMethod, HttpRequestHandler, Protocol}
@@ -63,8 +63,6 @@ final case class NanoServer[Effect[_]](
   readTimeout: FiniteDuration = 30.seconds,
   threads: Int = Runtime.getRuntime.availableProcessors * 2,
 ) extends NanoWSD(port, threads) with Logging with ServerTransport[Effect, Context, Unit] {
-  private type WebSocketRequest = (IHTTPSession, WebSocketFrame)
-  private val log = MessageLog(logger, Protocol.Http.name)
   private val allowedMethods = methods.map(_.name).toSet
   implicit private val system: EffectSystem[Effect] = effectSystem
   private var handler: RequestHandler[Effect, Context] = RequestHandler.dummy
@@ -165,48 +163,32 @@ final case class NanoServer[Effect[_]](
    *   WebSocket handler
    */
   override protected def openWebSocket(session: IHTTPSession): WebSocket =
-    new WebSocket(session) {
+    WebSocketListener(session, webSocket, effectSystem, webSocketHandler, logger)
 
-      override protected def onOpen(): Unit =
-        if (!webSocket) {
-          this.close(CloseCode.PolicyViolation, "WebSocket support disabled", true)
-        }
-
-      override protected def onClose(code: WebSocketFrame.CloseCode, reason: String, initiatedByRemote: Boolean): Unit =
-        ()
-
-      protected def onMessage(frame: WebSocketFrame): Unit =
-        webSocketHandler.processRequest((session, frame), this).runAsync
-
-      override protected def onPong(pong: WebSocketFrame): Unit =
-        ()
-
-      override protected def onException(error: IOException): Unit =
-        log.failedReceiveRequest(error, Map.empty, Protocol.WebSocket.name)
-    }
-
-  private def receiveHttpRequest(request: IHTTPSession): RequestData[Context] = {
+  private def receiveHttpRequest(request: IHTTPSession): (RequestData[Context], Effect[Array[Byte]]) = {
     val query = Option(request.getQueryParameterString).filter(_.nonEmpty).map("?" + _).getOrElse("")
-    RequestData(
-      () => request.getInputStream.readNBytes(request.getBodySize.toInt),
+    val requestData = RequestData(
       getRequestContext(request),
       httpHandler.protocol,
       s"${request.getUri}$query",
       clientAddress(request),
       Some(request.getMethod.toString),
     )
+    val requestBody = effectSystem.evaluate(request.getInputStream.readNBytes(request.getBodySize.toInt))
+    (requestData, requestBody)
   }
 
-  private def receiveWebSocketRequest(request: WebSocketRequest): RequestData[Context] = {
+  private def receiveWebSocketRequest(request: WebSocketRequest): (RequestData[Context], Effect[Array[Byte]]) = {
     val (session, frame) = request
     val query = Option(session.getQueryParameterString).filter(_.nonEmpty).map("?" + _).getOrElse("")
-    RequestData(
-      () => frame.getBinaryPayload,
+    val requestData = RequestData(
       getRequestContext(session),
       Protocol.WebSocket,
       s"${session.getUri}$query",
       clientAddress(session),
     )
+    val requestBody = effectSystem.evaluate(frame.getBinaryPayload)
+    (requestData, requestBody)
   }
 
   private def sendHttpResponse(responseData: ResponseData[Context], @unused channel: IHTTPSession): Effect[Response] = {
@@ -246,4 +228,34 @@ object NanoServer {
 
   /** Request context type. */
   type Context = HttpContext[IHTTPSession]
+
+  private type WebSocketRequest = (IHTTPSession, WebSocketFrame)
+
+  final private case class WebSocketListener[Effect[_]](
+    session: IHTTPSession,
+    webSocket: Boolean,
+    effectSystem: EffectSystem[Effect],
+    handler: HttpRequestHandler[Effect, Context, WebSocketRequest, Unit, WebSocket],
+    logger: Logger,
+  ) extends WebSocket(session) {
+    private val log = MessageLog(logger, Protocol.WebSocket.name)
+    implicit private val system: EffectSystem[Effect] = effectSystem
+
+    override protected def onOpen(): Unit =
+      if (!webSocket) {
+        this.close(CloseCode.PolicyViolation, "WebSocket support disabled", true)
+      }
+
+    override protected def onClose(code: WebSocketFrame.CloseCode, reason: String, initiatedByRemote: Boolean): Unit =
+      ()
+
+    protected def onMessage(frame: WebSocketFrame): Unit =
+      handler.processRequest((session, frame), this).runAsync
+
+    override protected def onPong(pong: WebSocketFrame): Unit =
+      ()
+
+    override protected def onException(error: IOException): Unit =
+      log.failedReceiveRequest(error, Map.empty, Protocol.WebSocket.name)
+  }
 }

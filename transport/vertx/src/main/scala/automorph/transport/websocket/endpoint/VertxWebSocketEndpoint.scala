@@ -40,12 +40,8 @@ final case class VertxWebSocketEndpoint[Effect[_]](
 
   private lazy val requestHandler = new Handler[ServerWebSocket] {
 
-    override def handle(session: ServerWebSocket): Unit = {
-      session.binaryMessageHandler { buffer =>
-        webSocketHandler.processRequest((buffer, session), session).runAsync
-      }
-      ()
-    }
+    override def handle(session: ServerWebSocket): Unit =
+      webSocketHandler.processRequest(session, session).runAsync
   }
 
   private val webSocketHandler =
@@ -64,23 +60,27 @@ final case class VertxWebSocketEndpoint[Effect[_]](
   override def requestHandler(handler: RequestHandler[Effect, Context]): VertxWebSocketEndpoint[Effect] =
     copy(handler = handler)
 
-  private def receiveRequest(incomingRequest: (Buffer, ServerWebSocket)): RequestData[Context] = {
-    val (body, webSocket) = incomingRequest
-    RequestData(
-      () => body.getBytes,
+  private def receiveRequest(webSocket: ServerWebSocket): (RequestData[Context], Effect[Array[Byte]]) = {
+    val requestData = RequestData(
       getRequestContext(webSocket),
       webSocketHandler.protocol,
       webSocket.uri,
       clientAddress(webSocket),
       Some(HttpMethod.Get.name),
     )
+    val requestBody = effectSystem.completable[Array[Byte]].flatMap { completable =>
+      webSocket.binaryMessageHandler(buffer => completable.succeed(buffer.getBytes).runAsync)
+      webSocket.exceptionHandler(error => completable.fail(error).runAsync)
+      completable.effect
+    }
+    (requestData, requestBody)
   }
 
   private def sendResponse(responseData: ResponseData[Context], session: ServerWebSocket): Effect[Unit] =
     effectSystem.completable[Unit].flatMap { completable =>
       session.writeBinaryMessage(Buffer.buffer(responseData.body))
-        .onSuccess(_ => completable.succeed(()))
-        .onFailure(completable.fail)
+        .onSuccess(_ => completable.succeed(()).runAsync)
+        .onFailure(error => completable.fail(error).runAsync)
       completable.effect
     }
 

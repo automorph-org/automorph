@@ -63,25 +63,21 @@ final case class ZioHttpEndpoint[Fault](
     copy(handler = handler)
 
   private def handle(request: Request): IO[Response, Response] =
-    request.body.asArray.either.flatMap {
-      case Left(error) =>
-        // FIXME - check if the following is required to obtain error details: implicitly[Trace].toString.toByteArray
-        val requestData = receiveRequest((Array.emptyByteArray, request))
-        httpHandler.processReceiveError(error, requestData, ()).mapError(_ => Response())
-      case Right(requestBody) =>
-        httpHandler.processRequest((requestBody, request), ()).mapError(_ => Response())
-    }
+    httpHandler.processRequest(request, ()).mapError(_ => Response())
 
-  private def receiveRequest(incomingRequest: (Array[Byte], Request)): RequestData[Context] = {
-    val (body, request) = incomingRequest
-    RequestData(
-      () => body,
+  private def receiveRequest(request: Request): (RequestData[Context], IO[Fault, Array[Byte]]) = {
+    val requestData = RequestData(
       getRequestContext(request),
       httpHandler.protocol,
       request.url.toString,
       clientAddress(request),
       Some(request.method.name),
     )
+    val requestBody = request.body.asArray.either.flatMap {
+      case Left(error) => effectSystem.failed(error)
+      case Right(body) => effectSystem.successful(body)
+    }
+    (requestData, requestBody)
   }
 
   private def createResponse(responseData: ResponseData[Context], @unused session: Unit): IO[Fault, Response] = {

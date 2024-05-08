@@ -98,16 +98,19 @@ final case class AkkaHttpEndpoint[Effect[_]](
     }
   }
 
-  private def receiveRequest(incomingRequest: (HttpRequest, HttpEntity.Strict, RemoteAddress)): RequestData[Context] = {
+  private def receiveRequest(
+    incomingRequest: (HttpRequest, HttpEntity.Strict, RemoteAddress)
+  ): (RequestData[Context], Effect[Array[Byte]]) = {
     val (request, requestEntity, remoteAddress) = incomingRequest
-    RequestData(
-      () => requestEntity.data.toArray[Byte],
+    val requestData = RequestData(
       getRequestContext(request),
       httpHandler.protocol,
       request.uri.toString,
       clientAddress(remoteAddress),
       Some(request.method.value),
     )
+    val requestBody = effectSystem.evaluate(requestEntity.data.toArray[Byte])
+    (requestData, requestBody)
   }
 
   private def createResponse(responseData: ResponseData[Context], @unused channel: Unit): Effect[HttpResponse] =

@@ -72,17 +72,18 @@ final case class UndertowHttpEndpoint[Effect[_]](
   override def requestHandler(handler: RequestHandler[Effect, Context]): UndertowHttpEndpoint[Effect] =
     copy(handler = handler)
 
-  private def receiveRequest(request: HttpRequest): RequestData[Context] = {
-    val (exchange, requestBody) = request
+  private def receiveRequest(request: HttpRequest): (RequestData[Context], Effect[Array[Byte]]) = {
+    val (exchange, body) = request
     val query = requestQuery(exchange.getQueryString)
-    RequestData(
-      () => requestBody,
+    val requestData = RequestData(
       getRequestContext(exchange),
       httpRequestHandler.protocol,
       s"${exchange.getRequestURI}$query",
       clientAddress(exchange),
       Some(exchange.getRequestMethod.toString),
     )
+    val requestBody = effectSystem.successful(body)
+    (requestData, requestBody)
   }
 
   private def sendResponse(responseData: ResponseData[Context], exchange: HttpServerExchange): Effect[Unit] = {

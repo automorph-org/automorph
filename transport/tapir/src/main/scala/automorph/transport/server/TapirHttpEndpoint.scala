@@ -70,7 +70,7 @@ final case class TapirHttpEndpoint[Effect[_]](
   private val baseContext = HttpContext[Unit]().url(baseUrl)
   private val httpHandler =
     HttpRequestHandler(
-      receiveRequest,
+      receiveRequest(effectSystem),
       createResponse(effectSystem),
       Protocol.Http,
       effectSystem,
@@ -120,18 +120,20 @@ object TapirHttpEndpoint {
   private val trailingSlashPattern = "/+$".r
   private val multiSlashPattern = "/+".r
 
-  private def receiveRequest(incomingRequest: (Request, Option[HttpMethod], HttpContext[Unit]))
-    : RequestData[Context] = {
+  private def receiveRequest[Effect[_]](effectSystem: EffectSystem[Effect])(
+    incomingRequest: (Request, Option[HttpMethod], HttpContext[Unit])
+  ): (RequestData[Context], Effect[Array[Byte]]) = {
     val (request, method, baseContext) = incomingRequest
     val requestContext = getRequestContext(request, method, baseContext)
-    RequestData(
-      () => request._1,
+    val requestData = RequestData(
       requestContext,
       Protocol.Http,
       requestContext.url.map(_.toString).getOrElse(""),
       "",
       method.map(_.name),
     )
+    val requestBody = effectSystem.successful(request._1)
+    (requestData, requestBody)
   }
 
   private def createResponse[Effect[_]](effectSystem: EffectSystem[Effect])(

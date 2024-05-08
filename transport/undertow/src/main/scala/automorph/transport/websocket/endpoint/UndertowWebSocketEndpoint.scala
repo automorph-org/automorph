@@ -77,22 +77,26 @@ final case class UndertowWebSocketEndpoint[Effect[_]](
   override def requestHandler(handler: RequestHandler[Effect, Context]): UndertowWebSocketEndpoint[Effect] =
     copy(handler = handler)
 
-  private def receiveRequest(request: (WebSocketHttpExchange, Array[Byte])): RequestData[Context] = {
-    val (exchange, requestBody) = request
+  private def receiveRequest(
+    request: (WebSocketHttpExchange, Array[Byte])
+  ): (RequestData[Context], Effect[Array[Byte]]) = {
+    val (exchange, body) = request
     val query = requestQuery(exchange.getQueryString)
-    RequestData(
-      () => requestBody,
+    val requestData = RequestData(
       getRequestContext(exchange),
       webSocketHandler.protocol,
       s"${exchange.getRequestURI}$query",
       clientAddress(exchange),
       Some(HttpMethod.Get.name),
     )
+    val requestBody = effectSystem.successful(body)
+    (requestData, requestBody)
   }
 
   private def sendResponse(responseData: ResponseData[Context], channel: WebSocketChannel): Effect[Unit] =
     effectSystem.completable[Unit].flatMap { completable =>
-      WebSockets.sendBinary(responseData.body.toByteBuffer, channel, ResponseCallback(completable), ())
+      val responseCallback = ResponseCallback(completable, effectSystem)
+      WebSockets.sendBinary(responseData.body.toByteBuffer, channel, responseCallback, ())
       completable.effect
     }
 
@@ -130,18 +134,21 @@ object UndertowWebSocketEndpoint {
     override def onFullBinaryMessage(channel: WebSocketChannel, message: BufferedBinaryMessage): Unit = {
       val data = message.getData
       handler.processRequest((exchange, WebSockets.mergeBuffers(data.getResource*).toByteArray), channel).either.map(
-        _ => data.discard()
+        _ => data.free()
       ).runAsync
     }
   }
 
-  final private case class ResponseCallback[Effect[_]](completable: Completable[Effect, Unit])
-    extends WebSocketCallback[Unit] {
+  final private case class ResponseCallback[Effect[_]](
+    completable: Completable[Effect, Unit],
+    effectSystem: EffectSystem[Effect],
+  ) extends WebSocketCallback[Unit] {
+    implicit private val system: EffectSystem[Effect] = effectSystem
 
     override def complete(channel: WebSocketChannel, context: Unit): Unit =
-      completable.succeed(())
+      completable.succeed(()).runAsync
 
     override def onError(channel: WebSocketChannel, context: Unit, error: Throwable): Unit =
-      completable.fail(error)
+      completable.fail(error).runAsync
   }
 }

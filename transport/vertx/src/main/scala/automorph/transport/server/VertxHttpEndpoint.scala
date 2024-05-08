@@ -45,7 +45,7 @@ final case class VertxHttpEndpoint[Effect[_]](
 
     override def handle(request: HttpServerRequest): Unit = {
       request.bodyHandler { buffer =>
-        httpHandler.processRequest((buffer, request), request).runAsync
+        httpHandler.processRequest((request, buffer), request).runAsync
       }
       ()
     }
@@ -67,16 +67,19 @@ final case class VertxHttpEndpoint[Effect[_]](
   override def requestHandler(handler: RequestHandler[Effect, Context]): VertxHttpEndpoint[Effect] =
     copy(handler = handler)
 
-  private def receiveRequest(incomingRequest: (Buffer, HttpServerRequest)): RequestData[Context] = {
-    val (body, request) = incomingRequest
-    RequestData(
-      () => body.getBytes,
+  private def receiveRequest(
+    incomingRequest: (HttpServerRequest, Buffer)
+  ): (RequestData[Context], Effect[Array[Byte]]) = {
+    val (request, body) = incomingRequest
+    val requestData = RequestData(
       getRequestContext(request),
       httpHandler.protocol,
       request.absoluteURI,
       clientAddress(request),
       Some(request.method.name),
     )
+    val requestBody = effectSystem.evaluate(body.getBytes)
+    (requestData, requestBody)
   }
 
   private def sendResponse(responseData: ResponseData[Context], request: HttpServerRequest): Effect[Unit] =
@@ -85,8 +88,8 @@ final case class VertxHttpEndpoint[Effect[_]](
         .putHeader(HttpHeaders.CONTENT_TYPE, responseData.contentType)
         .setStatusCode(responseData.statusCode)
         .end(Buffer.buffer(responseData.body))
-        .onSuccess(_ => completable.succeed(()))
-        .onFailure(completable.fail)
+        .onSuccess(_ => completable.succeed(()).runAsync)
+        .onFailure(error => completable.fail(error).runAsync)
       completable.effect
     }
 

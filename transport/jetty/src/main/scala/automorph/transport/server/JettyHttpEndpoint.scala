@@ -65,16 +65,17 @@ final case class JettyHttpEndpoint[Effect[_]](
   override def requestHandler(handler: RequestHandler[Effect, Context]): JettyHttpEndpoint[Effect] =
     copy(handler = handler)
 
-  private def receiveRequest(request: HttpServletRequest): RequestData[Context] = {
+  private def receiveRequest(request: HttpServletRequest): (RequestData[Context], Effect[Array[Byte]]) = {
     val query = requestQuery(request.getQueryString)
-    RequestData(
-      () => request.getInputStream.toByteArray,
+    val requestData = RequestData(
       getRequestContext(request),
       httpHandler.protocol,
       s"${request.getRequestURI}$query",
       clientAddress(request),
       Some(request.getMethod),
     )
+    val requestBody = effectSystem.evaluate(request.getInputStream.toByteArray)
+    (requestData, requestBody)
   }
 
   private def sendResponse(

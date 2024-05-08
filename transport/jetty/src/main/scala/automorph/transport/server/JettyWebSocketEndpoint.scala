@@ -47,12 +47,12 @@ final case class JettyWebSocketEndpoint[Effect[_]](
 
     override def onWebSocketText(message: String): Unit = {
       val session = getSession
-      webSocketHandler.processRequest((message.toByteArray, session), session).runAsync
+      webSocketHandler.processRequest((session, message.toByteArray), session).runAsync
     }
 
     override def onWebSocketBinary(payload: Array[Byte], offset: Int, length: Int): Unit = {
       val session = getSession
-      webSocketHandler.processRequest((payload, session), session).runAsync
+      webSocketHandler.processRequest((session, payload), session).runAsync
     }
   }
   private lazy val jettyWebSocketCreator = new JettyWebSocketCreator {
@@ -80,23 +80,25 @@ final case class JettyWebSocketEndpoint[Effect[_]](
   override def requestHandler(handler: RequestHandler[Effect, Context]): JettyWebSocketEndpoint[Effect] =
     copy(handler = handler)
 
-  private def receiveRequest(incomingRequest: (Array[Byte], Session)): RequestData[Context] = {
-    val (requestBody, session) = incomingRequest
+  private def receiveRequest(incomingRequest: (Session, Array[Byte])): (RequestData[Context], Effect[Array[Byte]]) = {
+    val (session, body) = incomingRequest
     val request = session.getUpgradeRequest
     val query = requestQuery(request.getQueryString)
-    RequestData(
-      () => requestBody,
+    val requestData = RequestData(
       getRequestContext(request),
       webSocketHandler.protocol,
       s"${request.getRequestURI.toString}$query",
       clientAddress(session),
       Some(request.getMethod),
     )
+    val requestBody = effectSystem.successful(body)
+    (requestData, requestBody)
   }
 
   private def sendResponse(responseData: ResponseData[Context], session: Session): Effect[Unit] =
     effectSystem.completable[Unit].flatMap { completable =>
-      session.getRemote.sendBytes(responseData.body.toByteBuffer, ResponseCallback(completable))
+      val responseCallback = ResponseCallback(completable, effectSystem)
+      session.getRemote.sendBytes(responseData.body.toByteBuffer, responseCallback)
       completable.effect
     }
 
@@ -120,12 +122,16 @@ object JettyWebSocketEndpoint {
   /** Request context type. */
   type Context = JettyHttpEndpoint.Context
 
-  final private case class ResponseCallback[Effect[_]](completable: Completable[Effect, Unit]) extends WriteCallback {
+  final private case class ResponseCallback[Effect[_]](
+    completable: Completable[Effect, Unit],
+    effectSystem: EffectSystem[Effect],
+  ) extends WriteCallback {
+    implicit private val system: EffectSystem[Effect] = effectSystem
 
     override def writeSuccess(): Unit =
-      completable.succeed(())
+      completable.succeed(()).runAsync
 
     override def writeFailed(error: Throwable): Unit =
-      completable.fail(error)
+      completable.fail(error).runAsync
   }
 }

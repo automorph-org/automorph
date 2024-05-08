@@ -15,7 +15,7 @@ final private[automorph] case class HttpRequestHandler[
   Response,
   Channel,
 ](
-  receiveRequest: Request => RequestData[Context],
+  receiveRequest: Request => (RequestData[Context], Effect[Array[Byte]]),
   sendResponse: (ResponseData[Context], Channel) => Effect[Response],
   protocol: Protocol,
   effectSystem: EffectSystem[Effect],
@@ -28,41 +28,34 @@ final private[automorph] case class HttpRequestHandler[
   private val statusInternalServerError = 500
   implicit private val system: EffectSystem[Effect] = effectSystem
 
-  def processRequest(request: Request, channel: Channel): Effect[Response] = {
+  def processRequest(request: Request, channel: Channel): Effect[Response] =
     // Receive the request
-    val requestData = receiveRpcRequest(request)
-    Try {
-      // Process the request
-      requestHandler.processRequest(requestData.body, requestData.context, requestData.id).either.flatMap(_.fold(
-        error => sendErrorResponse(error, channel, requestData),
-        result => {
-          // Send the response
-          val responseBody = result.map(_.responseBody).getOrElse(Array.emptyByteArray)
-          val resultContext = result.flatMap(_.context)
-          val statusCode = result.flatMap(_.exception).map(mapException).orElse(
-            resultContext.flatMap(_.statusCode)
-          ).getOrElse(statusOk)
-          sendRpcResponse(responseBody, requestHandler.mediaType, statusCode, resultContext, channel, requestData)
-        },
-      ))
-    }.recover { error =>
-      sendErrorResponse(error, channel, requestData)
-    }.get
-  }
+    receiveRpcRequest(request).flatMap { case (requestData, requestBody) =>
+      Try {
+        // Process the request
+        requestHandler.processRequest(requestBody, requestData.context, requestData.id).either.flatMap(_.fold(
+          error => sendErrorResponse(error, channel, requestData),
+          result => {
+            // Send the response
+            val responseBody = result.map(_.responseBody).getOrElse(Array.emptyByteArray)
+            val resultContext = result.flatMap(_.context)
+            val statusCode = result.flatMap(_.exception).map(mapException).orElse(
+              resultContext.flatMap(_.statusCode)
+            ).getOrElse(statusOk)
+            sendRpcResponse(responseBody, requestHandler.mediaType, statusCode, resultContext, channel, requestData)
+          },
+        ))
+      }.recover(sendErrorResponse(_, channel, requestData)).get
+    }
 
-  def processReceiveError(error: Throwable, requestData: RequestData[Context], channel: Channel): Effect[Response] = {
-    log.failedReceiveRequest(error, requestData.properties, requestData.protocol.name)
-    val responseBody = error.description.toByteArray
-    sendRpcResponse(responseBody, contentTypeText, statusInternalServerError, None, channel, requestData)
-  }
-
-  private def receiveRpcRequest(request: Request): RequestData[Context] = {
-    val protocolName = protocol.name
-    log.receivingRequest(Map.empty, protocolName)
-    Try(receiveRequest(request)).onSuccess { requestData =>
-      requestData.body
-      log.receivedRequest(requestData.properties, protocolName)
-    }.onError(log.failedReceiveRequest(_, Map.empty, protocolName)).get
+  private def receiveRpcRequest(request: Request): Effect[(RequestData[Context], Array[Byte])] = {
+    log.receivingRequest(Map.empty, protocol.name)
+    Try(receiveRequest(request)).map { case (requestData, retrieveBody) =>
+      retrieveBody.map { requestBody =>
+        log.receivedRequest(requestData.properties, protocol.name)
+        (requestData, requestBody)
+      }
+    }.onError(log.failedReceiveRequest(_, Map.empty, protocol.name)).get
   }
 
   private def sendRpcResponse(
@@ -108,7 +101,6 @@ private[automorph] object HttpRequestHandler {
   val contentTypeText = "text/plain"
 
   final case class RequestData[Context](
-    retrieveBody: () => Array[Byte],
     context: Context,
     protocol: Protocol,
     url: String,
@@ -122,7 +114,6 @@ private[automorph] object HttpRequestHandler {
       LogProperties.protocol -> protocol.toString,
       LogProperties.url -> url,
     ) ++ method.map(LogProperties.method -> _)
-    lazy val body: Array[Byte] = retrieveBody()
   }
 
   final case class ResponseData[Context](
