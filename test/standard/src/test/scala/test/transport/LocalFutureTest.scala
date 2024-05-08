@@ -1,8 +1,7 @@
-package test.transport.local
+package test.transport
 
 import automorph.spi.EffectSystem
 import automorph.system.FutureSystem
-import test.transport.LocalTest
 import scala.concurrent.ExecutionContext.Implicits.global
 import scala.concurrent.Future
 

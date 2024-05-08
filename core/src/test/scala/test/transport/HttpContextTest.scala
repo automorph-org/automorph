@@ -5,6 +5,7 @@ import automorph.transport.{HttpContext, HttpMethod}
 import java.net.URI
 import scala.collection.immutable.Seq
 import test.base.BaseTest
+import scala.concurrent.duration.Duration
 
 final class HttpContextTest extends BaseTest {
   private val url = new URI("test://test:test@test:0/test?a=b&c=d#test")
@@ -20,6 +21,9 @@ final class HttpContextTest extends BaseTest {
   private val method = HttpMethod.Get
   private val headers = Seq("a" -> "b", "c" -> "d")
   private val statusCode = 0
+  private val followRedirects = true
+  private val timeout = Duration.Zero
+  private val transportContext = 0
   private val contentType = "test/test"
   private val contentLength = "0"
   private val cookies = Seq("a" -> "b", "c" -> "d")
@@ -151,6 +155,21 @@ final class HttpContextTest extends BaseTest {
       HttpContext().statusCode.shouldBe(empty)
       HttpContext().statusCode(statusCode).statusCode.value.shouldBe(statusCode)
       HttpContext(statusCode = Some(statusCode)).statusCode.value.shouldBe(statusCode)
+    }
+    "Follow Redirects" in {
+      HttpContext().followRedirects.shouldBe(empty)
+      HttpContext().followRedirects(followRedirects).followRedirects.value.shouldBe(followRedirects)
+      HttpContext(followRedirects = Some(followRedirects)).followRedirects.value.shouldBe(followRedirects)
+    }
+    "Timeout" in {
+      HttpContext().timeout.shouldBe(empty)
+      HttpContext().timeout(timeout).timeout.value.shouldBe(timeout)
+      HttpContext(timeout = Some(timeout)).timeout.value.shouldBe(timeout)
+    }
+    "Transport Context" in {
+      HttpContext[Int]().transportContext.shouldBe(empty)
+      HttpContext[Int]().transportContext(transportContext).transportContext.value.shouldBe(transportContext)
+      HttpContext[Int](transportContext = Some(transportContext)).transportContext.value.shouldBe(transportContext)
     }
     "Content Type" in {
       HttpContext().contentType.shouldBe(empty)

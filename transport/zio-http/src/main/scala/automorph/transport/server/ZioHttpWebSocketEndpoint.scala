@@ -76,7 +76,7 @@ final case class ZioHttpWebSocketEndpoint[Fault](
   private def sendResponse(responseData: ResponseData[Context], channel: WebSocketChannel): IO[Fault, Unit] =
     channel.send(Read(WebSocketFrame.Binary(Chunk.fromArray(responseData.body)))).either.flatMap {
       case Left(error) => effectSystem.failed(error)
-      case Right(()) => effectSystem.successful(())
+      case Right(()) => effectSystem.successful {}
     }
 }
 
