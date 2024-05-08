@@ -23,7 +23,7 @@ final private[automorph] case class ConnectionPool[Effect[_], Connection](
   private var managedConnections = 0
   implicit private val system: EffectSystem[Effect] = effectSystem
 
-  def using[T](function: Connection => Effect[T]): Effect[T] = {
+  def using[T](useConnection: Connection => Effect[T]): Effect[T] = {
     val action = this.synchronized {
       if (active) {
         unusedConnections.drop(1).headOption.map(FreeConnection.apply[Effect, Connection]).getOrElse {
@@ -37,7 +37,7 @@ final private[automorph] case class ConnectionPool[Effect[_], Connection](
       }
     }
     provideConnection(action).flatMap { connection =>
-      function(connection).either.flatMap {
+      useConnection(connection).either.flatMap {
         case Left(error) => add(connection).flatMap(_ => effectSystem.failed(error))
         case Right(result) => add(connection).map(_ => result)
       }
