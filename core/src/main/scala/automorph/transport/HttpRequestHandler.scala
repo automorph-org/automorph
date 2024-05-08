@@ -15,8 +15,8 @@ final private[automorph] case class HttpRequestHandler[
   Response,
   Channel,
 ](
-  receiveRequest: Request => (RequestData[Context], Effect[Array[Byte]]),
-  sendResponse: (ResponseData[Context], Channel) => Effect[Response],
+  private val receiveRequest: Request => (RequestData[Context], Effect[Array[Byte]]),
+  private val sendResponse: (ResponseData[Context], Channel) => Effect[Response],
   protocol: Protocol,
   effectSystem: EffectSystem[Effect],
   mapException: Throwable => Int,

@@ -10,11 +10,11 @@ import automorph.util.Extensions.EffectOps
 import scala.collection.mutable
 
 final private[automorph] case class ConnectionPool[Effect[_], Connection](
-  openConnection: Option[() => Effect[Connection]],
-  closeConnection: Connection => Effect[Unit],
+  private val openConnection: Option[() => Effect[Connection]],
+  private val closeConnection: Connection => Effect[Unit],
   maxConnections: Int,
-  effectSystem: EffectSystem[Effect],
   protocol: Protocol,
+  effectSystem: EffectSystem[Effect],
   logger: Logger,
 ) {
   private val pendingRequests = mutable.Queue.empty[Completable[Effect, Connection]]
