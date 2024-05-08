@@ -18,7 +18,7 @@ final private[automorph] case class ConnectionPool[Effect[_], Connection](
   logger: Logger,
 ) {
   private val pendingRequests = mutable.Queue.empty[Completable[Effect, Connection]]
-  private val availableConnections = mutable.HashSet.empty[Connection]
+  private val unusedConnections = mutable.HashSet.empty[Connection]
   private var active = false
   private var totalConnections = 0
   implicit private val system: EffectSystem[Effect] = effectSystem
@@ -26,7 +26,7 @@ final private[automorph] case class ConnectionPool[Effect[_], Connection](
   def usingConnection[T](function: Connection => Effect[T]): Effect[T] = {
     val action = this.synchronized {
       if (active) {
-        availableConnections.drop(1).headOption.map(FreeConnection.apply[Effect, Connection]).getOrElse {
+        unusedConnections.drop(1).headOption.map(FreeConnection.apply[Effect, Connection]).getOrElse {
           openConnection.filter(_ => totalConnections < maxConnections).map { open =>
             totalConnections += 1
             OpenConnection(open)
@@ -48,7 +48,7 @@ final private[automorph] case class ConnectionPool[Effect[_], Connection](
     val action = this.synchronized {
       if (active) {
         pendingRequests.removeHeadOption().map(PendingRequest(_)).getOrElse {
-          availableConnections.add(connection)
+          unusedConnections.add(connection)
           NoRequest[Effect, Connection]()
         }
       } else {
@@ -72,7 +72,7 @@ final private[automorph] case class ConnectionPool[Effect[_], Connection](
   def close(): Effect[ConnectionPool[Effect, Connection]] = {
     val connections = this.synchronized {
       active = false
-      availableConnections.dropWhile(_ => true)
+      unusedConnections.dropWhile(_ => true)
     }
     connections.foldLeft(effectSystem.successful {}) { case (effect, connection) =>
       effect.flatMap(_ => closeConnection(connection).either.map(_ => ()))
