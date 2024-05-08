@@ -13,8 +13,8 @@ final private[automorph] case class ConnectionPool[Effect[_], Connection](
   openConnection: Option[() => Effect[Connection]],
   closeConnection: Connection => Effect[Unit],
   maxConnections: Int,
-  protocol: Protocol,
   effectSystem: EffectSystem[Effect],
+  protocol: Protocol,
   logger: Logger,
 ) {
   private val pendingRequests = mutable.Queue.empty[Completable[Effect, Connection]]
