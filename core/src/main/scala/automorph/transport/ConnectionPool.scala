@@ -4,7 +4,7 @@ import automorph.log.Logger
 import automorph.spi.EffectSystem
 import automorph.spi.EffectSystem.Completable
 import automorph.transport.ConnectionPool.{
-  Action, ReportError, UseConnection, QueueRequest, AddConnection, OpenConnection, ServeRequest,
+  Action, ReportError, UseConnection, EnqeueUsage, AddConnection, OpenConnection, ServeUsage,
 }
 import automorph.util.Extensions.EffectOps
 import scala.collection.mutable
@@ -17,7 +17,7 @@ final private[automorph] case class ConnectionPool[Effect[_], Connection](
   effectSystem: EffectSystem[Effect],
   logger: Logger,
 ) {
-  private val pendingRequests = mutable.Queue.empty[Completable[Effect, Connection]]
+  private val pendingUsages = mutable.Queue.empty[Completable[Effect, Connection]]
   private val unusedConnections = mutable.Stack.empty[Connection]
   private var active = false
   private var managedConnections = 0
@@ -31,7 +31,7 @@ final private[automorph] case class ConnectionPool[Effect[_], Connection](
           openConnection.filter(_ => managedConnections < maxConnections).map { open =>
             managedConnections += 1
             OpenConnection(open)
-          }.getOrElse(QueueRequest[Effect, Connection]())
+          }.getOrElse(EnqeueUsage[Effect, Connection]())
         }
       } else {
         ReportError[Effect, Connection]()
@@ -48,7 +48,7 @@ final private[automorph] case class ConnectionPool[Effect[_], Connection](
   def add(connection: Connection): Effect[Unit] = {
     val action = this.synchronized {
       if (active) {
-        pendingRequests.removeHeadOption().map(ServeRequest(_)).getOrElse {
+        pendingUsages.removeHeadOption().map(ServeUsage(_)).getOrElse {
           unusedConnections.addOne(connection)
           AddConnection[Effect, Connection]()
         }
@@ -57,7 +57,7 @@ final private[automorph] case class ConnectionPool[Effect[_], Connection](
       }
     }
     action match {
-      case ServeRequest(request) => request.succeed(connection)
+      case ServeUsage(usage) => usage.succeed(connection)
       case AddConnection() => effectSystem.successful {}
       case _ => system.failed(new IllegalStateException(closedMessage))
     }
@@ -93,10 +93,10 @@ final private[automorph] case class ConnectionPool[Effect[_], Connection](
             logger.debug(s"Opened ${protocol.name} connection")
             effectSystem.successful(connection)
         }
-      case QueueRequest() =>
-        effectSystem.completable[Connection].flatMap { request =>
-          pendingRequests.addOne(request)
-          request.effect
+      case EnqeueUsage() =>
+        effectSystem.completable[Connection].flatMap { usage =>
+          pendingUsages.addOne(usage)
+          usage.effect
         }
       case UseConnection(connection) => system.successful(connection)
       case _ => system.failed(new IllegalStateException(closedMessage))
@@ -110,9 +110,9 @@ private[automorph] object ConnectionPool {
 
   final case class OpenConnection[Effect[_], Connection](open: () => Effect[Connection])
     extends Action[Effect, Connection]
-  final case class QueueRequest[Effect[_], Connection]() extends Action[Effect, Connection]
+  final case class EnqeueUsage[Effect[_], Connection]() extends Action[Effect, Connection]
 
-  final case class ServeRequest[Effect[_], Connection](request: Completable[Effect, Connection])
+  final case class ServeUsage[Effect[_], Connection](usage: Completable[Effect, Connection])
     extends Action[Effect, Connection]
   final case class AddConnection[Effect[_], Connection]() extends Action[Effect, Connection]
   final case class ReportError[Effect[_], Connection]() extends Action[Effect, Connection]
