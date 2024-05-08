@@ -23,7 +23,7 @@ final private[automorph] case class HttpRequestHandler[
   requestHandler: RequestHandler[Effect, Context],
   logger: Logger,
 ) {
-  private val log = MessageLog(logger, Protocol.Http.name)
+  private val log = MessageLog(logger, protocol.name)
   private val statusOk = 200
   private val statusInternalServerError = 500
   implicit private val system: EffectSystem[Effect] = effectSystem
