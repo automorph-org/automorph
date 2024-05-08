@@ -187,7 +187,7 @@ final case class NanoServer[Effect[_]](
       s"${session.getUri}$query",
       clientAddress(session),
     )
-    val requestBody = effectSystem.evaluate(frame.getBinaryPayload)
+    val requestBody = effectSystem.successful(frame.getBinaryPayload)
     (requestData, requestBody)
   }
 
