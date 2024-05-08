@@ -20,15 +20,15 @@ final private[automorph] case class ConnectionPool[Effect[_], Connection](
   private val pendingRequests = mutable.Queue.empty[Completable[Effect, Connection]]
   private val unusedConnections = mutable.HashSet.empty[Connection]
   private var active = false
-  private var totalConnections = 0
+  private var managedConnections = 0
   implicit private val system: EffectSystem[Effect] = effectSystem
 
   def usingConnection[T](function: Connection => Effect[T]): Effect[T] = {
     val action = this.synchronized {
       if (active) {
         unusedConnections.drop(1).headOption.map(FreeConnection.apply[Effect, Connection]).getOrElse {
-          openConnection.filter(_ => totalConnections < maxConnections).map { open =>
-            totalConnections += 1
+          openConnection.filter(_ => managedConnections < maxConnections).map { open =>
+            managedConnections += 1
             OpenConnection(open)
           }.getOrElse(NoConnection[Effect, Connection]())
         }
@@ -85,7 +85,7 @@ final private[automorph] case class ConnectionPool[Effect[_], Connection](
         logger.trace(s"Opening ${protocol.name} connection")
         open().either.flatMap {
           case Left(error) =>
-            this.synchronized(totalConnections -= 1)
+            this.synchronized(managedConnections -= 1)
             logger.error(s"Failed to open ${protocol.name} connection")
             effectSystem.failed(error)
           case Right(connection) =>
