@@ -53,7 +53,7 @@ final case class JettyClient[Effect[_]](
   httpClient: HttpClient = new HttpClient,
 ) extends ClientTransport[Effect, Context] with Logging {
 
-  private type GenericRequest = Either[Request, (Effect[websocket.api.Session], Effect[Response], Array[Byte])]
+  private type GenericRequest = Either[Request, (Effect[Session], Effect[Response], Array[Byte])]
   private type Response = (Array[Byte], Option[Int], Seq[(String, String)])
 
   private val webSocketsSchemePrefix = "ws"
