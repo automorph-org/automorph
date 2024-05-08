@@ -18,7 +18,7 @@ final private[automorph] case class ConnectionPool[Effect[_], Connection](
   logger: Logger,
 ) {
   private val pendingRequests = mutable.Queue.empty[Completable[Effect, Connection]]
-  private val unusedConnections = mutable.HashSet.empty[Connection]
+  private val unusedConnections = mutable.Stack.empty[Connection]
   private var active = false
   private var managedConnections = 0
   private val closedMessage = "Connection pool is closed"
@@ -27,7 +27,7 @@ final private[automorph] case class ConnectionPool[Effect[_], Connection](
   def using[T](use: Connection => Effect[T]): Effect[T] = {
     val action = this.synchronized {
       if (active) {
-        unusedConnections.drop(1).headOption.map(ReturnConnection.apply[Effect, Connection]).getOrElse {
+        unusedConnections.removeHeadOption().map(ReturnConnection.apply[Effect, Connection]).getOrElse {
           openConnection.filter(_ => managedConnections < maxConnections).map { open =>
             managedConnections += 1
             OpenConnection(open)
@@ -49,7 +49,7 @@ final private[automorph] case class ConnectionPool[Effect[_], Connection](
     val action = this.synchronized {
       if (active) {
         pendingRequests.removeHeadOption().map(ServeRequest(_)).getOrElse {
-          unusedConnections.add(connection)
+          unusedConnections.addOne(connection)
           AddConnection[Effect, Connection]()
         }
       } else {
