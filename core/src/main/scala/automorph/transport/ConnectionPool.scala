@@ -19,9 +19,9 @@ final private[automorph] case class ConnectionPool[Effect[_], Connection](
 ) {
   private val pendingRequests = mutable.Queue.empty[Completable[Effect, Connection]]
   private val freeConnections = mutable.HashSet.empty[Connection]
-  implicit private val system: EffectSystem[Effect] = effectSystem
   private var active = false
   private var totalConnections = 0
+  implicit private val system: EffectSystem[Effect] = effectSystem
 
   def usingConnection[T](function: Connection => Effect[T]): Effect[T] = {
     val action = this.synchronized {
