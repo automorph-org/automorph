@@ -48,7 +48,7 @@ final private[automorph] case class ConnectionPool[Effect[_], Connection](
   def add(connection: Connection): Effect[Unit] = {
     val action = this.synchronized {
       if (active) {
-        pendingUsages.removeHeadOption().map(ServeUsage(_)).getOrElse {
+        pendingUsages.removeHeadOption().map(ServeUsage.apply).getOrElse {
           unusedConnections.addOne(connection)
           AddConnection[Effect, Connection]()
         }
