@@ -13,8 +13,6 @@ import scala.util.{Failure, Success, Try}
 @scala.annotation.nowarn("msg=dead code")
 trait EffectSystemTest[Effect[_]] extends BaseTest {
 
-  sealed case class TestException(message: String) extends RuntimeException(message)
-
   private val text = "test"
   private val number = 0
   private val error = TestException(text)
@@ -22,6 +20,8 @@ trait EffectSystemTest[Effect[_]] extends BaseTest {
   def system: EffectSystem[Effect]
 
   def run[T](effect: => Effect[T]): Either[Throwable, T]
+
+  sealed private case class TestException(message: String) extends RuntimeException(message)
 
   "" - {
     "Evaluate" - {
@@ -52,7 +52,7 @@ trait EffectSystemTest[Effect[_]] extends BaseTest {
         run(effect).shouldEqual(Right(s"$text$number"))
       }
       "Failure" in {
-        Try(system.map(system.failed(error))(_ => ())) match {
+        Try(system.map(system.failed[String](error))(_ => ())) match {
           case Success(effect) => run(effect).shouldEqual(Left(error))
           case Failure(error) => error.shouldEqual(error)
         }
@@ -64,7 +64,7 @@ trait EffectSystemTest[Effect[_]] extends BaseTest {
         run(effect).shouldEqual(Right(s"$text$number"))
       }
       "Failure" in {
-        Try(system.flatMap(system.failed(error))(_ => system.successful {})) match {
+        Try(system.flatMap(system.failed[String](error))(_ => system.successful {})) match {
           case Success(effect) => run(effect).shouldEqual(Left(error))
           case Failure(error) => error.shouldEqual(error)
         }
@@ -72,14 +72,40 @@ trait EffectSystemTest[Effect[_]] extends BaseTest {
     }
     "Either" - {
       "Success" in {
-        val effect = system.either(system.successful(text))
-        run(effect).shouldEqual(Right(Right(text)))
+        val effect = system.either(system.successful(true))
+        run(effect).shouldEqual(Right(Right(true)))
       }
       "Failure" in {
-        Try(system.either(system.failed(error))) match {
+        Try(system.either(system.failed[Boolean](error))) match {
           case Success(effect) => run(effect).shouldEqual(Right(Left(error)))
           case Failure(error) => error.shouldEqual(error)
         }
+      }
+    }
+    "Fold" - {
+      "Success" in {
+        val effect = system.fold(system.successful {})(_ => false, _ => true)
+        run(effect).shouldEqual(Right(true))
+      }
+      "Failure" in {
+        val effect = system.fold(system.failed[Boolean](error))(_ => false, _ => true)
+        run(effect).shouldEqual(Right(false))
+      }
+    }
+    "FlatFold" - {
+      "Success" in {
+        val effect = system.flatFold(system.successful {})(
+          _ => system.successful(false),
+          _ => system.successful(true),
+        )
+        run(effect).shouldEqual(Right(true))
+      }
+      "Failure" in {
+        val effect = system.flatFold(system.failed[Boolean](error))(
+          _ => system.successful(false),
+          _ => system.successful(true),
+        )
+        run(effect).shouldEqual(Right(false))
       }
     }
     "RunAsync" in {

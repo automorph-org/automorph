@@ -32,6 +32,21 @@ final case class MonixSystem()(implicit val scheduler: Scheduler) extends Effect
   override def either[T](effect: => Task[T]): Task[Either[Throwable, T]] =
     effect.attempt
 
+  override def fold[T, R](effect: => Task[T])(failure: Throwable => R, success: T => R): Task[R] =
+    effect.attempt.map {
+      case Left(error) => failure(error)
+      case Right(result) => success(result)
+    }
+
+  override def flatFold[T, R](effect: => Task[T])(failure: Throwable => Task[R], success: T => Task[R]): Task[R] =
+    effect.attempt.flatMap {
+      case Left(error) => failure(error)
+      case Right(result) => success(result)
+    }
+
+  override def map[T, R](effect: Task[T])(function: T => R): Task[R] =
+    effect.map(function)
+
   override def flatMap[T, R](effect: Task[T])(function: T => Task[R]): Task[R] =
     effect.flatMap(function)
 
@@ -65,11 +80,6 @@ final case class MonixSystem()(implicit val scheduler: Scheduler) extends Effect
 
 object MonixSystem {
 
-  /**
-   * Effect type.
-   *
-   * @tparam T
-   *   value type
-   */
+  /** Effect type. */
   type Effect[T] = Task[T]
 }

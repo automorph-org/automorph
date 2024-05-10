@@ -40,8 +40,12 @@ final case class VertxWebSocketEndpoint[Effect[_]](
 
   private lazy val requestHandler = new Handler[ServerWebSocket] {
 
-    override def handle(session: ServerWebSocket): Unit =
-      webSocketHandler.processRequest(session, session).runAsync
+    override def handle(session: ServerWebSocket): Unit = {
+      session.binaryMessageHandler { buffer =>
+        webSocketHandler.processRequest((buffer, session), session).runAsync
+      }
+      ()
+    }
   }
 
   private val webSocketHandler =
@@ -60,7 +64,10 @@ final case class VertxWebSocketEndpoint[Effect[_]](
   override def requestHandler(handler: RequestHandler[Effect, Context]): VertxWebSocketEndpoint[Effect] =
     copy(handler = handler)
 
-  private def receiveRequest(webSocket: ServerWebSocket): (RequestData[Context], Effect[Array[Byte]]) = {
+  private def receiveRequest(
+    incomingRequest: (Buffer, ServerWebSocket)
+  ): (RequestData[Context], Effect[Array[Byte]]) = {
+    val (body, webSocket) = incomingRequest
     val requestData = RequestData(
       getRequestContext(webSocket),
       webSocketHandler.protocol,
@@ -68,11 +75,7 @@ final case class VertxWebSocketEndpoint[Effect[_]](
       clientAddress(webSocket),
       Some(HttpMethod.Get.name),
     )
-    val requestBody = effectSystem.completable[Array[Byte]].flatMap { completable =>
-      webSocket.binaryMessageHandler(buffer => completable.succeed(buffer.getBytes).runAsync)
-      webSocket.exceptionHandler(error => completable.fail(error).runAsync)
-      completable.effect
-    }
+    lazy val requestBody = effectSystem.evaluate(body.getBytes)
     (requestData, requestBody)
   }
 

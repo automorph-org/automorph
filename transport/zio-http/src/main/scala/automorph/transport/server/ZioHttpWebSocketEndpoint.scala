@@ -65,8 +65,8 @@ final case class ZioHttpWebSocketEndpoint[Fault](
         case Read(WebSocketFrame.Binary(request)) => completable.succeed(request.toArray)
         case ExceptionCaught(cause) => completable.fail(cause)
         case _ => completable.fail(
-          new IllegalStateException(s"Error processing ${Protocol.WebSocket.name} request")
-        )
+            new IllegalStateException(s"Error processing ${Protocol.WebSocket.name} request")
+          )
       }
       completable.effect
     }
@@ -74,10 +74,10 @@ final case class ZioHttpWebSocketEndpoint[Fault](
   }
 
   private def sendResponse(responseData: ResponseData[Context], channel: WebSocketChannel): IO[Fault, Unit] =
-    channel.send(Read(WebSocketFrame.Binary(Chunk.fromArray(responseData.body)))).either.flatMap {
-      case Left(error) => effectSystem.failed(error)
-      case Right(()) => effectSystem.successful {}
-    }
+    channel.send(Read(WebSocketFrame.Binary(Chunk.fromArray(responseData.body)))).foldZIO(
+      error => effectSystem.failed(error),
+      _ => effectSystem.successful {},
+    )
 }
 
 object ZioHttpWebSocketEndpoint {

@@ -69,30 +69,26 @@ final case class HttpClient[Effect[_]](
     requestId: String,
     mediaType: String,
   ): Effect[(Array[Byte], Context)] =
-    // Send the request
+    // Create the request
     createRequest(requestBody, mediaType, requestContext).flatMap { case (request, requestUrl) =>
       val protocol = request.fold(_ => Protocol.Http, _ => Protocol.WebSocket)
-      send(request, requestUrl, requestId, protocol).either.flatMap { result =>
-        lazy val responseProperties = ListMap(
-          LogProperties.requestId -> requestId,
-          LogProperties.url -> requestUrl.toString,
-        )
+      lazy val responseProperties = ListMap(
+        LogProperties.requestId -> requestId,
+        LogProperties.url -> requestUrl.toString,
+      )
 
-        // Process the response
-        result.fold(
-          error => {
-            log.failedReceiveResponse(error, responseProperties, protocol.name)
-            effectSystem.failed(error)
-          },
-          response => {
-            log.receivedResponse(
-              responseProperties ++ response.statusCode.map(LogProperties.status -> _.toString),
-              protocol.name,
-            )
-            effectSystem.successful(response.body -> responseContext(response))
-          },
-        )
-      }
+      // Send the request and process the response
+      send(request, requestUrl, requestId, protocol).flatFold(
+        error => {
+          log.failedReceiveResponse(error, responseProperties, protocol.name)
+          effectSystem.failed(error)
+        },
+        response => {
+          lazy val allProperties = responseProperties ++ response.statusCode.map(LogProperties.status -> _.toString)
+          log.receivedResponse(allProperties, protocol.name)
+          effectSystem.successful(response.body -> responseContext(response))
+        },
+      )
     }
 
   override def tell(
@@ -129,17 +125,15 @@ final case class HttpClient[Effect[_]](
       LogProperties.url -> requestUrl.toString,
     ) ++ request.swap.toOption.map(httpRequest => LogProperties.method -> httpRequest.method)
     log.sendingRequest(requestProperties, protocol.name)
-    request.fold(sendHttp, sendWebSocket).either.flatMap(
-      _.fold(
-        error => {
-          log.failedSendRequest(error, requestProperties, protocol.name)
-          effectSystem.failed(error)
-        },
-        response => {
-          log.sentRequest(requestProperties, protocol.name)
-          effectSystem.successful(response)
-        },
-      )
+    request.fold(sendHttp, sendWebSocket).flatFold(
+      error => {
+        log.failedSendRequest(error, requestProperties, protocol.name)
+        effectSystem.failed(error)
+      },
+      response => {
+        log.sentRequest(requestProperties, protocol.name)
+        effectSystem.successful(response)
+      },
     )
   }
 

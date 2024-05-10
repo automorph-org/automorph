@@ -67,31 +67,29 @@ final case class JettyClient[Effect[_]](
     requestId: String,
     mediaType: String,
   ): Effect[(Array[Byte], Context)] =
-    // Send the request
+    // Create the request
     createRequest(requestBody, mediaType, requestContext).flatMap { case (request, requestUrl) =>
       val protocol = request.fold(_ => Protocol.Http, _ => Protocol.WebSocket)
-      send(request, requestUrl, requestId, protocol).either.flatMap { result =>
-        lazy val responseProperties = ListMap(
-          LogProperties.requestId -> requestId,
-          LogProperties.url -> requestUrl.toString,
-        )
+      lazy val responseProperties = ListMap(
+        LogProperties.requestId -> requestId,
+        LogProperties.url -> requestUrl.toString,
+      )
 
-        // Process the response
-        result.fold(
-          error => {
-            log.failedReceiveResponse(error, responseProperties, protocol.name)
-            effectSystem.failed(error)
-          },
-          response => {
-            val (responseBody, statusCode, _) = response
-            log.receivedResponse(
-              responseProperties ++ statusCode.map(LogProperties.status -> _.toString),
-              protocol.name,
-            )
-            effectSystem.successful(responseBody -> responseContext(response))
-          },
-        )
-      }
+      // Send the request and process the response
+      send(request, requestUrl, requestId, protocol).flatFold(
+        error => {
+          log.failedReceiveResponse(error, responseProperties, protocol.name)
+          effectSystem.failed(error)
+        },
+        response => {
+          val (responseBody, statusCode, _) = response
+          log.receivedResponse(
+            responseProperties ++ statusCode.map(LogProperties.status -> _.toString),
+            protocol.name,
+          )
+          effectSystem.successful(responseBody -> responseContext(response))
+        },
+      )
     }
 
   override def tell(
@@ -136,7 +134,7 @@ final case class JettyClient[Effect[_]](
       LogProperties.url -> requestUrl.toString,
     ) ++ request.swap.toOption.map(_.getMethod).map(LogProperties.method -> _)
     log.sendingRequest(requestProperties, protocol.name)
-    response.either.flatMap(_.fold(
+    response.flatFold(
       error => {
         log.failedSendRequest(error, requestProperties, protocol.name)
         effectSystem.failed(error)
@@ -145,7 +143,7 @@ final case class JettyClient[Effect[_]](
         log.sentRequest(requestProperties, protocol.name)
         effectSystem.successful(response)
       },
-    ))
+    )
   }
 
   private def sendHttp(httpRequest: Request): Effect[Response] =
@@ -283,7 +281,7 @@ final case class JettyClient[Effect[_]](
 
   private def responseContext(response: Response): Context = {
     val (_, statusCode, headers) = response
-    statusCode.map(context.statusCode).getOrElse(context).headers(headers*)
+    statusCode.map(code => context.statusCode(code)).getOrElse(context).headers(headers*)
   }
 }
 

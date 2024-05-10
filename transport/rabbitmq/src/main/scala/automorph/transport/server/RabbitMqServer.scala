@@ -50,11 +50,11 @@ final case class RabbitMqServer[Effect[_]](
 ) extends ServerTransport[Effect, Context, Unit] with Logging {
 
   private val exchange = RabbitMq.directExchange
-  private var session = Option.empty[RabbitMq.Session]
   private val serverId = RabbitMq.applicationId(getClass.getName)
   private val urlText = url.toString
   private val log = MessageLog(logger, RabbitMq.protocol)
   implicit private val system: EffectSystem[Effect] = effectSystem
+  private var session = Option.empty[RabbitMq.Session]
 
   override def adapter: Unit =
     ()
@@ -104,15 +104,13 @@ final case class RabbitMqServer[Effect[_]](
             Try {
               val requestContext = RabbitMq.messageContext(amqpProperties)
               val handlerResult = handler.processRequest(requestBody, requestContext, actualRequestId)
-              handlerResult.either.map(
-                _.fold(
-                  error => sendErrorResponse(error, replyTo, requestProperties, actualRequestId),
-                  result => {
-                    // Send the response
-                    val responseBody = result.map(_.responseBody).getOrElse(Array.emptyByteArray)
-                    sendResponse(responseBody, replyTo, result.flatMap(_.context), requestProperties, actualRequestId)
-                  },
-                )
+              handlerResult.fold(
+                error => sendErrorResponse(error, replyTo, requestProperties, actualRequestId),
+                result => {
+                  // Send the response
+                  val responseBody = result.map(_.responseBody).getOrElse(Array.emptyByteArray)
+                  sendResponse(responseBody, replyTo, result.flatMap(_.context), requestProperties, actualRequestId)
+                },
               ).runAsync
             }.foldError { error =>
               sendErrorResponse(error, replyTo, requestProperties, actualRequestId)

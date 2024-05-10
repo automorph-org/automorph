@@ -115,7 +115,10 @@ final case class PlayHttpEndpoint[Effect[_]](
 
   private def runAsFuture[T](value: => Effect[T]): Future[T] = {
     val promise = Promise[T]()
-    value.either.map(_.fold(error => promise.failure(error), result => promise.success(result))).runAsync
+    value.fold(
+      error => promise.failure(error),
+      result => promise.success(result),
+    ).runAsync
     promise.future
   }
 }

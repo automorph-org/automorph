@@ -95,44 +95,44 @@ private[automorph] object Extensions {
   implicit final class TryOps[T](private val tryValue: Try[T]) {
 
     /**
-     * Invokes ''onFailure'' on `Failure` or returns this on `Success`.
+     * Invokes ''failure'' on `Failure` or returns this on `Success`.
      *
-     * @param onFailure
+     * @param failure
      *   function to invoke if this is a `Failure`
      * @return
      *   the supplied `Try`
      */
-    def onError(onFailure: Throwable => Unit): Try[T] =
+    def onError(failure: Throwable => Unit): Try[T] =
       tryValue.recoverWith { case error =>
-        onFailure(error)
+        failure(error)
         Failure(error)
       }
 
     /**
-     * Invokes ''onSuccess'' on `Success` or returns this on `Success`.
+     * Invokes ''success'' on `Success` or returns this on `Success`.
      *
-     * @param onSuccess
+     * @param success
      *   function to invoke if this is a `Success`
      * @return
      *   the supplied `Try`
      */
-    def onSuccess(onSuccess: T => Unit): Try[T] =
+    def success(success: T => Unit): Try[T] =
       tryValue.map { result =>
-        onSuccess(result)
+        success(result)
         result
       }
 
     /**
-     * Applies ''onFailure'' on `Failure`.
+     * Applies ''failure'' on `Failure`.
      *
-     * @param onFailure
+     * @param failure
      *   function to apply if this is a `Failure`
      * @return
      *   applied function result or success value
      */
-    def foldError(onFailure: Throwable => T): T =
+    def foldError(failure: Throwable => T): T =
       tryValue match {
-        case Failure(error) => onFailure(error)
+        case Failure(error) => failure(error)
         case Success(value) => value
       }
   }
@@ -149,6 +149,39 @@ private[automorph] object Extensions {
      */
     def either(implicit system: EffectSystem[Effect]): Effect[Either[Throwable, T]] =
       system.either(effect)
+
+    /**
+     * Creates a new effect by applying `failure` if an effect failed or `success` if an effect succeeded.
+     *
+     * @param failure
+     *   function applied if the effect failed
+     * @param success
+     *   function applied if the effect succeded
+     * @tparam R
+     *   function result type
+     * @return
+     *   transformed effectful value
+     */
+    def fold[R](failure: Throwable => R, success: T => R)(implicit system: EffectSystem[Effect]): Effect[R] =
+      system.fold(effect)(failure, success)
+
+    /**
+     * Creates a new effect by applying `failure` if an effect failed or `success` if an effect succeeded.
+     *
+     * @param failure
+     *   effectful function applied if the effect failed
+     * @param success
+     *   effectful function applied if the effect succeded
+     * @tparam R
+     *   function result type
+     * @return
+     *   transformed effectful value
+     */
+    def flatFold[R](
+      failure: Throwable => Effect[R],
+      success: T => Effect[R],
+    )(implicit system: EffectSystem[Effect]): Effect[R] =
+      system.flatFold(effect)(failure, success)
 
     /**
      * Creates a new effect by applying a function to an effect's value.

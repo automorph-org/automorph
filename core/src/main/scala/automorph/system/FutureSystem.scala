@@ -3,7 +3,7 @@ package automorph.system
 import automorph.spi.EffectSystem
 import automorph.spi.EffectSystem.Completable
 import scala.concurrent.{ExecutionContext, Future, Promise}
-import scala.util.Success
+import scala.util.{Failure, Success}
 
 /**
  * Asynchronous effect system plugin using Future as an effect type.
@@ -31,6 +31,21 @@ final case class FutureSystem()(implicit val executionContext: ExecutionContext)
   override def either[T](effect: => Future[T]): Future[Either[Throwable, T]] =
     effect.transform(value => Success(value.toEither))
 
+  override def fold[T, R](effect: => Future[T])(failure: Throwable => R, success: T => R): Future[R] =
+    effect.transform {
+      case Success(value) => Success(success(value))
+      case Failure(error) => Success(failure(error))
+    }
+
+  override def flatFold[T, R](effect: => Future[T])(failure: Throwable => Future[R], success: T => Future[R]): Future[R] =
+    effect.transformWith {
+      case Success(value) => success(value)
+      case Failure(error) => failure(error)
+    }
+
+  override def map[T, R](effect: Future[T])(function: T => R): Future[R] =
+    effect.map(function)
+
   override def flatMap[T, R](effect: Future[T])(function: T => Future[R]): Future[R] =
     effect.flatMap(function)
 
@@ -56,11 +71,6 @@ final case class FutureSystem()(implicit val executionContext: ExecutionContext)
 
 object FutureSystem {
 
-  /**
-   * Effect type.
-   *
-   * @tparam T
-   *   value type
-   */
+  /** Effect type. */
   type Effect[T] = Future[T]
 }

@@ -41,6 +41,7 @@ final case class VertxHttpEndpoint[Effect[_]](
   mapException: Throwable => Int = HttpContext.toStatusCode,
   handler: RequestHandler[Effect, Context] = RequestHandler.dummy[Effect, Context],
 ) extends ServerTransport[Effect, Context, Handler[HttpServerRequest]] with Logging {
+
   private lazy val requestHandler = new Handler[HttpServerRequest] {
 
     override def handle(request: HttpServerRequest): Unit = {
@@ -78,7 +79,7 @@ final case class VertxHttpEndpoint[Effect[_]](
       clientAddress(request),
       Some(request.method.name),
     )
-    val requestBody = effectSystem.evaluate(body.getBytes)
+    lazy val requestBody = effectSystem.evaluate(body.getBytes)
     (requestData, requestBody)
   }
 

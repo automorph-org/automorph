@@ -33,6 +33,18 @@ final case class IdentitySystem() extends EffectSystem[Identity] {
   override def either[T](effect: => T): Either[Throwable, T] =
     Try(effect).toEither
 
+  override def fold[T, R](effect: => Identity[T])(failure: Throwable => R, success: T => R): Identity[R] =
+    Try(effect).toEither.fold(failure, success)
+
+  override def flatFold[T, R](effect: => Identity[T])(
+    failure: Throwable => Identity[R],
+    success: T => Identity[R],
+  ): Identity[R] =
+    Try(effect).toEither.fold(failure, success)
+
+  override def map[T, R](effect: Identity[T])(function: T => R): Identity[R] =
+    function(effect)
+
   override def flatMap[T, R](effect: T)(function: T => R): R =
     function(effect)
 
@@ -58,19 +70,9 @@ final case class IdentitySystem() extends EffectSystem[Identity] {
 
 object IdentitySystem {
 
-  /**
-   * Effect type.
-   *
-   * @tparam T
-   *   value type
-   */
+  /** Effect type. */
   type Effect[T] = Identity[T]
 
-  /**
-   * Identity type.
-   *
-   * @tparam T
-   *   value type
-   */
+  /** Identity type. */
   type Identity[T] = T
 }

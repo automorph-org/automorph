@@ -32,6 +32,21 @@ final case class ScalazEffectSystem()(implicit val executionContext: ExecutionCo
   override def either[T](effect: => IO[T]): IO[Either[Throwable, T]] =
     effect.catchLeft.map(_.toEither)
 
+  override def fold[T, R](effect: => IO[T])(failure: Throwable => R, success: T => R): IO[R] =
+    effect.catchLeft.map(_.toEither match {
+      case Left(error) => failure(error)
+      case Right(result) => success(result)
+    })
+
+  override def flatFold[T, R](effect: => IO[T])(failure: Throwable => IO[R], success: T => IO[R]): IO[R] =
+    effect.catchLeft.flatMap(_.toEither match {
+      case Left(error) => failure(error)
+      case Right(result) => success(result)
+    })
+
+  override def map[T, R](effect: IO[T])(function: T => R): IO[R] =
+    effect.map(function)
+
   override def flatMap[T, R](effect: IO[T])(function: T => IO[R]): IO[R] =
     effect.flatMap(function)
 
@@ -59,11 +74,6 @@ final case class ScalazEffectSystem()(implicit val executionContext: ExecutionCo
 
 object ScalazEffectSystem {
 
-  /**
-   * Effect type.
-   *
-   * @tparam T
-   *   value type
-   */
+  /** Effect type. */
   type Effect[T] = IO[T]
 }

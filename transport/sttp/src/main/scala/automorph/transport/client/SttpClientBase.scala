@@ -35,27 +35,25 @@ private[automorph] trait SttpClientBase[Effect[_]] extends ClientTransport[Effec
     requestId: String,
     mediaType: String,
   ): Effect[(Array[Byte], Context)] = {
-    // Send the request
+    // Create the request
     val sttpRequest = createRequest(requestBody, mediaType, requestContext)
-    transportProtocol(sttpRequest).flatMap { protocol =>
-      send(sttpRequest, requestId, protocol).either.flatMap { result =>
-        lazy val responseProperties = ListMap(
-          LogProperties.requestId -> requestId,
-          LogProperties.url -> sttpRequest.uri.toString,
-        )
+    lazy val responseProperties = ListMap(
+      LogProperties.requestId -> requestId,
+      LogProperties.url -> sttpRequest.uri.toString,
+    )
 
-        // Process the response
-        result.fold(
-          error => {
-            log.failedReceiveResponse(error, responseProperties, protocol.name)
-            effectSystem.failed(error)
-          },
-          response => {
-            log.receivedResponse(responseProperties + (LogProperties.status -> response.code.toString), protocol.name)
-            effectSystem.successful(response.body -> getResponseContext(response))
-          },
-        )
-      }
+    // Send the request and process the response
+    transportProtocol(sttpRequest).flatMap { protocol =>
+      send(sttpRequest, requestId, protocol).flatFold(
+        error => {
+          log.failedReceiveResponse(error, responseProperties, protocol.name)
+          effectSystem.failed(error)
+        },
+        response => {
+          log.receivedResponse(responseProperties + (LogProperties.status -> response.code.toString), protocol.name)
+          effectSystem.successful(response.body -> getResponseContext(response))
+        },
+      )
     }
   }
 
@@ -95,17 +93,15 @@ private[automorph] trait SttpClientBase[Effect[_]] extends ClientTransport[Effec
 
     // Send the request
     val response = sttpRequest.send(backend.asInstanceOf[SttpBackend[Effect, WebSockets]])
-    response.either.flatMap(
-      _.fold(
-        error => {
-          log.failedSendRequest(error, requestProperties, protocol.name)
-          effectSystem.failed(error)
-        },
-        response => {
-          log.sentRequest(requestProperties, protocol.name)
-          effectSystem.successful(response)
-        },
-      )
+    response.flatFold(
+      error => {
+        log.failedSendRequest(error, requestProperties, protocol.name)
+        effectSystem.failed(error)
+      },
+      response => {
+        log.sentRequest(requestProperties, protocol.name)
+        effectSystem.successful(response)
+      },
     )
   }
 

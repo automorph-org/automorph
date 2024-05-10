@@ -33,7 +33,7 @@ final private[automorph] case class HttpRequestHandler[
     receiveRpcRequest(request).flatMap { case (requestData, requestBody) =>
       Try {
         // Process the request
-        requestHandler.processRequest(requestBody, requestData.context, requestData.id).either.flatMap(_.fold(
+        requestHandler.processRequest(requestBody, requestData.context, requestData.id).flatFold(
           error => sendErrorResponse(error, channel, requestData),
           result => {
             // Send the response
@@ -44,7 +44,7 @@ final private[automorph] case class HttpRequestHandler[
             ).getOrElse(statusOk)
             sendRpcResponse(responseBody, requestHandler.mediaType, statusCode, resultContext, channel, requestData)
           },
-        ))
+        )
       }.recover(sendErrorResponse(_, channel, requestData)).get
     }
 
@@ -74,14 +74,16 @@ final private[automorph] case class HttpRequestHandler[
     val client = requestData.client
     log.sendingResponse(responseProperties, protocol)
     val responseData = ResponseData(responseBody, context, statusCode, contentType, client, requestData.id)
-    sendResponse(responseData, channel).either.flatMap {
-      case Left(error) =>
+    sendResponse(responseData, channel).flatFold(
+      error => {
         log.failedSendResponse(error, responseProperties, protocol)
         sendErrorResponse(error, channel, requestData)
-      case Right(result) =>
+      },
+      result => {
         log.sentResponse(responseProperties, protocol)
         system.successful(result)
-    }
+      },
+    )
   }
 
   private def sendErrorResponse(

@@ -90,10 +90,10 @@ final case class AkkaHttpEndpoint[Effect[_]](
   ): Future[HttpResponse] = {
     val handleRequestResult = Promise[HttpResponse]()
     request.entity.toStrict(readTimeout).flatMap { requestEntity =>
-      httpHandler.processRequest((request, requestEntity, remoteAddress), ()).either.map(_.fold(
+      httpHandler.processRequest((request, requestEntity, remoteAddress), ()).fold(
         error => handleRequestResult.failure(error),
         result => handleRequestResult.success(result),
-      ))
+      )
       handleRequestResult.future
     }
   }

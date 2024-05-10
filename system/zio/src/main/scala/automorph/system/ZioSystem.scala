@@ -43,6 +43,18 @@ final case class ZioSystem[Fault](
       value => Right(value),
     )
 
+  override def fold[T, R](effect: => IO[Fault, T])(failure: Throwable => R, success: T => R): IO[Fault, R] =
+    effect.fold(error => failure(mapError(error, implicitly[Trace])), success)
+
+  override def flatFold[T, R](effect: => IO[Fault, T])(
+    failure: Throwable => IO[Fault, R],
+    success: T => IO[Fault, R],
+  ): IO[Fault, R] =
+    effect.foldZIO(error => failure(mapError(error, implicitly[Trace])), success)
+
+  override def map[T, R](effect: IO[Fault, T])(function: T => R): IO[Fault, R] =
+    effect.map(function)
+
   override def flatMap[T, R](effect: IO[Fault, T])(function: T => IO[Fault, R]): IO[Fault, R] =
     effect.flatMap(function)
 
@@ -76,14 +88,7 @@ final case class ZioSystem[Fault](
 
 object ZioSystem {
 
-  /**
-   * ZIO effect type without environment requirements and with specified error type.
-   *
-   * @tparam T
-   *   effectful value type
-   * @tparam Fault
-   *   ZIO error type
-   */
+  /** ZIO effect type without environment requirements and with specified error type. */
   type Effect[T, Fault] = IO[Fault, T]
 
   /**

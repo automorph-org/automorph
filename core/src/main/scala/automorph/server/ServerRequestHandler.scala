@@ -35,7 +35,7 @@ import scala.util.{Failure, Success, Try}
  * @tparam Context
  *   RPC message context type
  */
-private[automorph] final case class ServerRequestHandler[Node, Codec <: MessageCodec[Node], Effect[_], Context](
+final private[automorph] case class ServerRequestHandler[Node, Codec <: MessageCodec[Node], Effect[_], Context](
   effectSystem: EffectSystem[Effect],
   rpcProtocol: RpcProtocol[Node, Codec, Context],
   discovery: Boolean = false,
@@ -43,13 +43,12 @@ private[automorph] final case class ServerRequestHandler[Node, Codec <: MessageC
     ListMap[String, ServerBinding[Node, Effect, Context]](),
 ) extends RequestHandler[Effect, Context] with Logging {
 
-  private val bindings = Option.when(discovery)(apiSchemaBindings).getOrElse(ListMap.empty) ++ apiBindings
-  implicit private val system: EffectSystem[Effect] = effectSystem
-
   /** Bound RPC functions. */
   lazy val functions: Seq[RpcFunction] = bindings.map { case (name, binding) =>
     binding.function.copy(name = name)
   }.toSeq
+  private val bindings = Option.when(discovery)(apiSchemaBindings).getOrElse(ListMap.empty) ++ apiBindings
+  implicit private val system: EffectSystem[Effect] = effectSystem
 
   override def processRequest(requestBody: Array[Byte], context: Context, id: String): Effect[Option[Result[Context]]] =
     // Parse request
@@ -75,6 +74,13 @@ private[automorph] final case class ServerRequestHandler[Node, Codec <: MessageC
 
   override def mediaType: String =
     rpcProtocol.messageCodec.mediaType
+
+  override def toString: String = {
+    val plugins = Map[String, Any]("system" -> effectSystem, "protocol" -> rpcProtocol).map { case (name, plugin) =>
+      s"$name = ${plugin.getClass.getName}"
+    }.mkString(", ")
+    s"${this.getClass.getName}($plugins)"
+  }
 
   /**
    * Calls remote function specified in a request and creates a response.
@@ -227,18 +233,38 @@ private[automorph] final case class ServerRequestHandler[Node, Codec <: MessageC
     rpcRequest: Request[Node, rpcProtocol.Metadata, Context],
     requestProperties: => Map[String, String],
   ): Effect[Option[Result[Context]]] =
-    callResult.either.flatMap { result =>
-      result.fold(
-        error => logger.error(s"Failed to process ${rpcProtocol.name} request", error, requestProperties),
-        _ => logger.info(s"Processed ${rpcProtocol.name} request", requestProperties),
-      )
+    callResult.flatFold(
+      error => {
+        logger.error(s"Failed to process ${rpcProtocol.name} request", error, requestProperties)
+        createResponse(Failure(error), rpcRequest, requestProperties)
+      },
+      result => {
+        logger.info(s"Processed ${rpcProtocol.name} request", requestProperties)
+        createResponse(Success(result), rpcRequest, requestProperties)
+      },
+    )
 
-      // Create response
-      if (rpcRequest.respond) {
-        response(result.toTry, rpcRequest.message, requestProperties)
-      } else {
-        effectSystem.successful(None)
-      }
+  /**
+   * Creates a handler result containing an RPC response for the specified result.
+   *
+   * @param result
+   *   remote function call result
+   * @param rpcRequest
+   *   RPC request
+   * @param requestProperties
+   *   request properties
+   * @return
+   *   handler result
+   */
+  private def createResponse(
+    result: Try[(Node, Option[Context])],
+    rpcRequest: Request[Node, rpcProtocol.Metadata, Context],
+    requestProperties: => Map[String, String],
+  ): Effect[Option[Result[Context]]] =
+    if (rpcRequest.respond) {
+      response(result, rpcRequest.message, requestProperties)
+    } else {
+      effectSystem.successful(None)
     }
 
   /**
@@ -268,7 +294,7 @@ private[automorph] final case class ServerRequestHandler[Node, Codec <: MessageC
   }
 
   /**
-   * Creates a handler result containing an RPC response for the specified resul value.
+   * Creates a handler result containing an RPC response for the specified result value.
    *
    * @param result
    *   a call result on success or an exception on failure
@@ -313,11 +339,4 @@ private[automorph] final case class ServerRequestHandler[Node, Codec <: MessageC
         acceptsContext = false,
       )
     }*)
-
-  override def toString: String = {
-    val plugins = Map[String, Any]("system" -> effectSystem, "protocol" -> rpcProtocol).map { case (name, plugin) =>
-      s"$name = ${plugin.getClass.getName}"
-    }.mkString(", ")
-    s"${this.getClass.getName}($plugins)"
-  }
 }

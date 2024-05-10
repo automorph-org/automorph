@@ -32,6 +32,21 @@ final case class CatsEffectSystem()(implicit val runtime: IORuntime) extends Eff
   override def either[T](effect: => IO[T]): IO[Either[Throwable, T]] =
     effect.attempt
 
+  override def fold[T, R](effect: => IO[T])(failure: Throwable => R, success: T => R): IO[R] =
+    effect.attempt.map {
+      case Left(error) => failure(error)
+      case Right(result) => success(result)
+    }
+
+  override def flatFold[T, R](effect: => IO[T])(failure: Throwable => IO[R], success: T => IO[R]): IO[R] =
+    effect.attempt.flatMap {
+      case Left(error) => failure(error)
+      case Right(result) => success(result)
+    }
+
+  override def map[T, R](effect: IO[T])(function: T => R): IO[R] =
+    effect.map(function)
+
   override def flatMap[T, R](effect: IO[T])(function: T => IO[R]): IO[R] =
     effect.flatMap(function)
 
@@ -65,11 +80,6 @@ final case class CatsEffectSystem()(implicit val runtime: IORuntime) extends Eff
 
 object CatsEffectSystem {
 
-  /**
-   * Effect type.
-   *
-   * @tparam T
-   *   value type
-   */
+  /** Effect type. */
   type Effect[T] = IO[T]
 }

@@ -30,6 +30,15 @@ final case class TrySystem() extends EffectSystem[Try] {
   override def either[T](effect: => Try[T]): Try[Either[Throwable, T]] =
     Success(effect.toEither)
 
+  override def fold[T, R](effect: => Try[T])(failure: Throwable => R, success: T => R): Try[R] =
+    Success(effect.fold(failure, success))
+
+  override def flatFold[T, R](effect: => Try[T])(failure: Throwable => Try[R], success: T => Try[R]): Try[R] =
+    effect.fold(failure, success)
+
+  override def map[T, R](effect: Try[T])(function: T => R): Try[R] =
+    effect.map(function)
+
   override def flatMap[T, R](effect: Try[T])(function: T => Try[R]): Try[R] =
     effect.flatMap(function)
 
@@ -55,11 +64,6 @@ final case class TrySystem() extends EffectSystem[Try] {
 
 object TrySystem {
 
-  /**
-   * Effect type.
-   *
-   * @tparam T
-   *   value type
-   */
+  /** Effect type. */
   type Effect[T] = Try[T]
 }

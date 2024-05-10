@@ -19,10 +19,10 @@ final private[automorph] case class ConnectionPool[Effect[_], Connection](
 ) {
   private val pendingUsages = mutable.Queue.empty[Completable[Effect, Connection]]
   private val unusedConnections = mutable.Stack.empty[Connection]
-  private var active = false
-  private var managedConnections = 0
   private val closedMessage = "Connection pool is closed"
   implicit private val system: EffectSystem[Effect] = effectSystem
+  private var active = false
+  private var managedConnections = 0
 
   def using[T](use: Connection => Effect[T]): Effect[T] = {
     val action = this.synchronized {
@@ -38,10 +38,10 @@ final private[automorph] case class ConnectionPool[Effect[_], Connection](
       }
     }
     provideConnection(action).flatMap { connection =>
-      use(connection).either.flatMap {
-        case Left(error) => add(connection).flatMap(_ => effectSystem.failed(error))
-        case Right(result) => add(connection).map(_ => result)
-      }
+      use(connection).flatFold(
+        error => add(connection).flatMap(_ => effectSystem.failed(error)),
+        result => add(connection).map(_ => result),
+      )
     }
   }
 
@@ -84,17 +84,19 @@ final private[automorph] case class ConnectionPool[Effect[_], Connection](
     action match {
       case OpenConnection(open) =>
         logger.trace(s"Opening ${protocol.name} connection")
-        open().either.flatMap {
-          case Left(error) =>
+        open().flatFold(
+          error => {
             this.synchronized {
               managedConnections -= 1
             }
             logger.error(s"Failed to open ${protocol.name} connection")
             effectSystem.failed(error)
-          case Right(connection) =>
+          },
+          connection => {
             logger.debug(s"Opened ${protocol.name} connection")
             effectSystem.successful(connection)
-        }
+          },
+        )
       case EnqueueUsage() =>
         effectSystem.completable[Connection].flatMap { usage =>
           pendingUsages.addOne(usage)

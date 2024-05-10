@@ -67,20 +67,40 @@ trait EffectSystem[Effect[_]] {
   def either[T](effect: => Effect[T]): Effect[Either[Throwable, T]]
 
   /**
-   * Creates a new effect by applying an effectful function to an effect's value.
+   * Creates a new effect by applying `onFailure` if an effect failed or `onSuccess` if an effect succeeded.
    *
    * @param effect
    *   effectful value
-   * @param function
-   *   effectful function applied to the specified effect's value
+   * @param onFailure
+   *   function applied if the effect failed
+   * @param onSuccess
+   *   function applied if the effect succeded
    * @tparam T
    *   effectful value type
    * @tparam R
-   *   effectful function result type
+   *   function result type
    * @return
-   *   effect containing the transformed value
+   *   transformed effectful value
    */
-  def flatMap[T, R](effect: Effect[T])(function: T => Effect[R]): Effect[R]
+  def fold[T, R](effect: => Effect[T])(onFailure: Throwable => R, onSuccess: T => R): Effect[R]
+
+  /**
+   * Creates a new effect by applying `onFailure` if an effect failed or `onSuccess` if an effect succeeded.
+   *
+   * @param effect
+   *   effectful value
+   * @param onFailure
+   *   effectful function applied if the effect failed
+   * @param onSuccess
+   *   effectul function applied if the effect succeded
+   * @tparam T
+   *   effectful value type
+   * @tparam R
+   *   function result type
+   * @return
+   *   transformed effectful value
+   */
+  def flatFold[T, R](effect: => Effect[T])(onFailure: Throwable => Effect[R], onSuccess: T => Effect[R]): Effect[R]
 
   /**
    * Creates a new effect by applying a function to an effect's value.
@@ -96,8 +116,23 @@ trait EffectSystem[Effect[_]] {
    * @return
    *   transformed effectful value
    */
-  def map[T, R](effect: Effect[T])(function: T => R): Effect[R] =
-    flatMap(effect)(value => successful(function(value)))
+  def map[T, R](effect: Effect[T])(function: T => R): Effect[R]
+
+  /**
+   * Creates a new effect by applying an effectful function to an effect's value.
+   *
+   * @param effect
+   *   effectful value
+   * @param function
+   *   effectful function applied to the specified effect's value
+   * @tparam T
+   *   effectful value type
+   * @tparam R
+   *   effectful function result type
+   * @return
+   *   effect containing the transformed value
+   */
+  def flatMap[T, R](effect: Effect[T])(function: T => Effect[R]): Effect[R]
 
   /**
    * Executes an effect asynchronously without blocking and discard the result.

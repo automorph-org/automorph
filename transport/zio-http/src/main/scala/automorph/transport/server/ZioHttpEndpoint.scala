@@ -73,10 +73,10 @@ final case class ZioHttpEndpoint[Fault](
       clientAddress(request),
       Some(request.method.name),
     )
-    val requestBody = request.body.asArray.either.flatMap {
-      case Left(error) => effectSystem.failed(error)
-      case Right(body) => effectSystem.successful(body)
-    }
+    val requestBody = request.body.asArray.foldZIO(
+      error => effectSystem.failed(error),
+      body => effectSystem.successful(body),
+    )
     (requestData, requestBody)
   }
 
