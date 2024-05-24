@@ -22,41 +22,36 @@ trait ClientTransport[Effect[_], Context] {
    *
    * An optional request context is used to supply additional information needed to send the request.
    *
-   * @param requestBody
+   * @param body
    *   request message body
-   * @param requestContext
+   * @param context
    *   request context
-   * @param requestId
+   * @param id
    *   request correlation identifier
    * @param mediaType
    *   message media (MIME) type.
    * @return
    *   response message and context
    */
-  def call(
-    requestBody: Array[Byte],
-    requestContext: Context,
-    requestId: String,
-    mediaType: String,
-  ): Effect[(Array[Byte], Context)]
+  def call(body: Array[Byte], context: Context, id: String, mediaType: String): Effect[(Array[Byte], Context)]
 
   /**
    * Sends a request to a remote endpoint without waiting for a response.
    *
    * An optional request context is used to supply additional information needed to send the request.
    *
-   * @param requestBody
+   * @param body
    *   request message body
-   * @param requestContext
+   * @param context
    *   request context
-   * @param requestId
+   * @param id
    *   request correlation identifier
    * @param mediaType
    *   message media (MIME) type.
    * @return
    *   nothing
    */
-  def tell(requestBody: Array[Byte], requestContext: Context, requestId: String, mediaType: String): Effect[Unit]
+  def tell(body: Array[Byte], context: Context, id: String, mediaType: String): Effect[Unit]
 
   /**
    * Creates default request context based on the configuration of this client transport.

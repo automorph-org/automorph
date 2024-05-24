@@ -84,7 +84,7 @@ private[automorph] trait JsonRpcBase[Node, Codec <: MessageCodec[Node], Context]
           JsonRpcException("Malformed request", ErrorType.ParseError.code, None, error),
           protocol.Message(None, body),
         )),
-      requestMessage => {
+      { requestMessage =>
         // Validate request
         val messageText = () => Some(messageCodec.text(encodeMessage(requestMessage)))
         val message = protocol.Message(requestMessage.id, body, requestMessage.properties, messageText)
@@ -110,7 +110,7 @@ private[automorph] trait JsonRpcBase[Node, Codec <: MessageCodec[Node], Context]
     // Create response
     val id = requestMetadata.getOrElse(unknownId)
     val responseMessage = result.fold(
-      error => {
+      { error =>
         val responseError = error match {
           case JsonRpcException(message, code, data, _) => ResponseError(message, code, data.asInstanceOf[Option[Node]])
           case _ =>

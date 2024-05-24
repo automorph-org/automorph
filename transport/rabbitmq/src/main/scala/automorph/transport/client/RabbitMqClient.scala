@@ -57,22 +57,22 @@ final case class RabbitMqClient[Effect[_]](
   implicit private val system: EffectSystem[Effect] = effectSystem
 
   override def call(
-    requestBody: Array[Byte],
-    requestContext: Context,
-    requestId: String,
+    body: Array[Byte],
+    context: Context,
+    id: String,
     mediaType: String,
   ): Effect[Response] =
     effectSystem.completable[Response].flatMap { response =>
-      send(requestBody, requestId, mediaType, requestContext, Some(response)).flatMap(_ => response.effect)
+      send(body, id, mediaType, context, Some(response)).flatMap(_ => response.effect)
     }
 
   override def tell(
-    requestBody: Array[Byte],
-    requestContext: Context,
-    requestId: String,
+    body: Array[Byte],
+    context: Context,
+    id: String,
     mediaType: String,
   ): Effect[Unit] =
-    send(requestBody, requestId, mediaType, requestContext, None)
+    send(body, id, mediaType, context, None)
 
   override def context: Context =
     RabbitMq.Transport.context

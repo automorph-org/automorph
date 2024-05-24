@@ -8,6 +8,13 @@ import scala.util.Try
 
 private[automorph] object HttpClientBase {
 
+  val webSocketSchemePrefix = "ws"
+  val webSocketCloseStatusCode = 1000
+  val webSocketCloseReason = ""
+  val webSocketUnexpectedMessage = s"Unexpected ${Protocol.WebSocket} message"
+  val webSocketConnectionClosed = s"${Protocol.WebSocket} connection closed"
+  private val missingResult = "Missing completable future result"
+
   def overrideUrl[TransportContext](url: URI, context: HttpContext[TransportContext]): URI = {
     val base = HttpContext[TransportContext]().url(url)
     val scheme = context.scheme.map(base.scheme).getOrElse(base)
@@ -25,14 +32,12 @@ private[automorph] object HttpClientBase {
     implicit val effectSystem: EffectSystem[Effect] = asyncSystem
     asyncSystem.completable[T].flatMap { completable =>
       Try(future).fold(
-        exception => completable.fail(exception).runAsync,
-        value => {
+        error => completable.fail(error).runAsync,
+        { value =>
           value.handle { case (result, error) =>
             Option(result)
               .map(value => completable.succeed(value).runAsync)
-              .getOrElse(completable.fail(
-                Option(error).getOrElse(new IllegalStateException("Missing completable future result"))
-              ).runAsync)
+              .getOrElse(completable.fail(Option(error).getOrElse(new IllegalStateException(missingResult))).runAsync)
           }
           ()
         },

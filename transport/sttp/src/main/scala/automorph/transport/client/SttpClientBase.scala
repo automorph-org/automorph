@@ -2,7 +2,7 @@ package automorph.transport.client
 
 import automorph.log.{LogProperties, Logging, MessageLog}
 import automorph.spi.{ClientTransport, EffectSystem}
-import automorph.transport.HttpClientBase.overrideUrl
+import automorph.transport.HttpClientBase.{overrideUrl, webSocketSchemePrefix}
 import automorph.transport.client.SttpClient.{Context, Transport}
 import automorph.transport.{HttpMethod, Protocol}
 import automorph.util.Extensions.EffectOps
@@ -16,7 +16,6 @@ private[automorph] trait SttpClientBase[Effect[_]] extends ClientTransport[Effec
 
   private type WebSocket = sttp.capabilities.Effect[Effect] & WebSockets
 
-  private val webSocketsSchemePrefix = "ws"
   private val baseUrl = Uri(url).toJavaUri
   private val log = MessageLog(logger, Protocol.Http.name)
   implicit private val system: EffectSystem[Effect] = effectSystem
@@ -30,26 +29,26 @@ private[automorph] trait SttpClientBase[Effect[_]] extends ClientTransport[Effec
   def webSocket: Boolean
 
   override def call(
-    requestBody: Array[Byte],
-    requestContext: Context,
-    requestId: String,
+    body: Array[Byte],
+    context: Context,
+    id: String,
     mediaType: String,
   ): Effect[(Array[Byte], Context)] = {
     // Create the request
-    val sttpRequest = createRequest(requestBody, mediaType, requestContext)
+    val sttpRequest = createRequest(body, mediaType, context)
     lazy val responseProperties = ListMap(
-      LogProperties.requestId -> requestId,
+      LogProperties.requestId -> id,
       LogProperties.url -> sttpRequest.uri.toString,
     )
 
     // Send the request and process the response
     transportProtocol(sttpRequest).flatMap { protocol =>
-      send(sttpRequest, requestId, protocol).flatFold(
-        error => {
+      send(sttpRequest, id, protocol).flatFold(
+        { error =>
           log.failedReceiveResponse(error, responseProperties, protocol.name)
           effectSystem.failed(error)
         },
-        response => {
+        { response =>
           log.receivedResponse(responseProperties + (LogProperties.status -> response.code.toString), protocol.name)
           effectSystem.successful(response.body -> getResponseContext(response))
         },
@@ -58,15 +57,15 @@ private[automorph] trait SttpClientBase[Effect[_]] extends ClientTransport[Effec
   }
 
   override def tell(
-    requestBody: Array[Byte],
-    requestContext: Context,
-    requestId: String,
+    body: Array[Byte],
+    context: Context,
+    id: String,
     mediaType: String,
   ): Effect[Unit] = {
-    val sttpRequest = createRequest(requestBody, mediaType, requestContext)
+    val sttpRequest = createRequest(body, mediaType, context)
     transportProtocol(sttpRequest).flatMap {
-      case Protocol.Http => send(sttpRequest.response(ignore), requestId, Protocol.Http).map(_ => ())
-      case Protocol.WebSocket => send(sttpRequest, requestId, Protocol.WebSocket).map(_ => ())
+      case Protocol.Http => send(sttpRequest.response(ignore), id, Protocol.Http).map(_ => ())
+      case Protocol.WebSocket => send(sttpRequest, id, Protocol.WebSocket).map(_ => ())
     }
   }
 
@@ -94,11 +93,11 @@ private[automorph] trait SttpClientBase[Effect[_]] extends ClientTransport[Effec
     // Send the request
     val response = sttpRequest.send(backend.asInstanceOf[SttpBackend[Effect, WebSockets]])
     response.flatFold(
-      error => {
+      { error =>
         log.failedSendRequest(error, requestProperties, protocol.name)
         effectSystem.failed(error)
       },
-      response => {
+      { response =>
         log.sentRequest(requestProperties, protocol.name)
         effectSystem.successful(response)
       },
@@ -126,7 +125,7 @@ private[automorph] trait SttpClientBase[Effect[_]] extends ClientTransport[Effec
 
     // Body & response type
     requestUrl.toString.toLowerCase match {
-      case scheme if scheme.startsWith(webSocketsSchemePrefix) =>
+      case scheme if scheme.startsWith(webSocketSchemePrefix) =>
         // Create WebSocket request
         sttpRequest.response(asWebSocketAlways { webSocket =>
           webSocket.sendBinary(requestBody).flatMap(_ => webSocket.receiveBinary(true))

@@ -100,7 +100,7 @@ private[automorph] trait WebRpcBase[Node, Codec <: MessageCodec[Node], Context <
   override def createResponse(result: Try[Node], requestMetadata: Metadata): Try[protocol.Response[Node, Metadata]] = {
     // Create response
     val responseMessage = result.fold(
-      error => {
+      { error =>
         val responseError = error match {
           case WebRpcException(message, code, _) => ResponseError(message, code)
           case _ =>
@@ -133,7 +133,7 @@ private[automorph] trait WebRpcBase[Node, Codec <: MessageCodec[Node], Context <
     // Deserialize response
     Try(decodeResponse(messageCodec.deserialize(body))).fold(
       error => Left(ParseError(InvalidResponse("Malformed response", error), protocol.Message(id, body))),
-      responseMessage => {
+      { responseMessage =>
         // Validate response
         val messageText = () => Some(messageCodec.text(encodeResponse(responseMessage)))
         val message = protocol.Message(id, body, responseMessage.properties, messageText)

@@ -11,8 +11,8 @@ import java.util.concurrent.atomic.AtomicBoolean
 import scala.collection.concurrent.TrieMap
 import scala.collection.mutable
 
-final private[automorph] case class ConnectionPool[Effect[_], Connection](
-  openConnection: Option[() => Effect[Connection]],
+final private[automorph] case class ConnectionPool[Effect[_], Endpoint, Connection](
+  openConnection: Option[Endpoint => Effect[Connection]],
   closeConnection: Connection => Effect[Unit],
   maxConnectionsPerTarget: Option[Int],
   protocol: Protocol,
@@ -24,19 +24,19 @@ final private[automorph] case class ConnectionPool[Effect[_], Connection](
   private val closedMessage = "Connection pool is closed"
   implicit private val system: EffectSystem[Effect] = effectSystem
 
-  def using[T](target: String, use: Connection => Effect[T]): Effect[T] =
+  def using[T](peerId: String, endpoint: Endpoint, use: Connection => Effect[T]): Effect[T] =
     if (active.get) {
-      val pool = pools(target)
+      val pool = pools(peerId)
       val action = pool.synchronized {
-        pool.unusedConnections.removeHeadOption().map(UseConnection.apply[Effect, Connection]).getOrElse {
+        pool.unusedConnections.removeHeadOption().map(UseConnection.apply[Effect, Endpoint, Connection]).getOrElse {
           lazy val newConnectionAllowed = maxConnectionsPerTarget.forall(pool.managedConnections < _)
           openConnection.filter(_ => newConnectionAllowed).map { open =>
             pool.managedConnections += 1
             OpenConnection(open)
-          }.getOrElse(EnqueueUsage[Effect, Connection]())
+          }.getOrElse(EnqueueUsage[Effect, Endpoint, Connection]())
         }
       }
-      provideConnection(pool, action).flatMap { connection =>
+      provideConnection(pool, endpoint, action).flatMap { connection =>
         use(connection).flatFold(
           error => addConnection(pool, connection).flatMap(_ => effectSystem.failed(error)),
           result => addConnection(pool, connection).map(_ => result),
@@ -46,20 +46,20 @@ final private[automorph] case class ConnectionPool[Effect[_], Connection](
       system.failed(new IllegalStateException(closedMessage))
     }
 
-  def add(target: String, connection: Connection): Effect[Unit] =
+  def add(peerId: String, connection: Connection): Effect[Unit] =
     if (active.get) {
-      val pool = pools(target)
+      val pool = pools(peerId)
       addConnection(pool, connection)
     } else {
       system.failed(new IllegalStateException(closedMessage))
     }
 
-  def init(): Effect[ConnectionPool[Effect, Connection]] = {
+  def init(): Effect[Unit] = {
     active.set(true)
-    system.successful(this)
+    system.successful {}
   }
 
-  def close(): Effect[ConnectionPool[Effect, Connection]] = {
+  def close(): Effect[Unit] = {
     active.set(false)
     val connections = pools.values.flatMap(pool =>
       pool.synchronized {
@@ -68,7 +68,7 @@ final private[automorph] case class ConnectionPool[Effect[_], Connection](
     ).toSeq
     connections.foldLeft(effectSystem.successful {}) { case (effect, connection) =>
       effect.flatMap(_ => closeConnection(connection).either.map(_ => ()))
-    }.map(_ => this)
+    }
   }
 
   private def addConnection(pool: Pool[Effect, Connection], connection: Connection): Effect[Unit] = {
@@ -86,12 +86,13 @@ final private[automorph] case class ConnectionPool[Effect[_], Connection](
 
   private def provideConnection(
     pool: Pool[Effect, Connection],
-    action: ProvideAction[Effect, Connection],
+    context: Endpoint,
+    action: ProvideAction[Effect, Endpoint, Connection],
   ): Effect[Connection] =
     action match {
       case OpenConnection(open) =>
         logger.trace(s"Opening ${protocol.name} connection")
-        open().flatFold(
+        open(context).flatFold(
           error => {
             pool.synchronized {
               pool.managedConnections -= 1
@@ -115,7 +116,7 @@ final private[automorph] case class ConnectionPool[Effect[_], Connection](
 
 private[automorph] object ConnectionPool {
 
-  sealed trait ProvideAction[Effect[_], Connection]
+  sealed trait ProvideAction[Effect[_], Context, Connection]
 
   sealed trait AddAction[Effect[_], Connection]
 
@@ -126,12 +127,12 @@ private[automorph] object ConnectionPool {
     var managedConnections: Int = 0,
   )
 
-  final case class UseConnection[Effect[_], Connection](connection: Connection)
-    extends ProvideAction[Effect, Connection]
+  final case class UseConnection[Effect[_], Context, Connection](connection: Connection)
+    extends ProvideAction[Effect, Context, Connection]
 
-  final case class OpenConnection[Effect[_], Connection](open: () => Effect[Connection])
-    extends ProvideAction[Effect, Connection]
-  final case class EnqueueUsage[Effect[_], Connection]() extends ProvideAction[Effect, Connection]
+  final case class OpenConnection[Effect[_], Context, Connection](open: Context => Effect[Connection])
+    extends ProvideAction[Effect, Context, Connection]
+  final case class EnqueueUsage[Effect[_], Context, Connection]() extends ProvideAction[Effect, Context, Connection]
 
   final case class ServeUsage[Effect[_], Connection](usage: Completable[Effect, Connection])
     extends AddAction[Effect, Connection]

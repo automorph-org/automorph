@@ -32,12 +32,12 @@ final case class LocalClient[Effect[_], Context] (
   implicit private val system: EffectSystem[Effect] = effectSystem
 
   override def call(
-    requestBody: Array[Byte],
-    requestContext: Context,
-    requestId: String,
+    body: Array[Byte],
+    context: Context,
+    id: String,
     mediaType: String,
   ): Effect[(Array[Byte], Context)] = {
-    val handlerResult = server.processRequest(requestBody, requestContext, requestId)
+    val handlerResult = server.processRequest(body, context, id)
     handlerResult.flatMap(_.map { result =>
       effectSystem.successful(result.responseBody -> result.context.getOrElse(context))
     }.getOrElse {
@@ -46,12 +46,12 @@ final case class LocalClient[Effect[_], Context] (
   }
 
   override def tell(
-    requestBody: Array[Byte],
-    requestContext: Context,
-    requestId: String,
+    body: Array[Byte],
+    context: Context,
+    id: String,
     mediaType: String,
   ): Effect[Unit] =
-    server.processRequest(requestBody, requestContext, requestId).map(_ => ())
+    server.processRequest(body, context, id).map(_ => ())
 
   override def init(): Effect[Unit] =
     effectSystem.successful {}

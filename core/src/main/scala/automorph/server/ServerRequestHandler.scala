@@ -50,9 +50,9 @@ final private[automorph] case class ServerRequestHandler[Node, Codec <: MessageC
   private val bindings = Option.when(discovery)(apiSchemaBindings).getOrElse(ListMap.empty) ++ apiBindings
   implicit private val system: EffectSystem[Effect] = effectSystem
 
-  override def processRequest(requestBody: Array[Byte], context: Context, id: String): Effect[Option[Result[Context]]] =
+  override def processRequest(body: Array[Byte], context: Context, id: String): Effect[Option[Result[Context]]] =
     // Parse request
-    rpcProtocol.parseRequest(requestBody, context, id).fold(
+    rpcProtocol.parseRequest(body, context, id).fold(
       error =>
         errorResponse(
           error.exception,
@@ -60,7 +60,7 @@ final private[automorph] case class ServerRequestHandler[Node, Codec <: MessageC
           responseRequired = true,
           ListMap(LogProperties.requestId -> id),
         ),
-      rpcRequest => {
+      { rpcRequest =>
         // Invoke requested RPC function
         lazy val requestProperties = ListMap(LogProperties.requestId -> rpcRequest.id) ++ rpcRequest.message.properties
         lazy val allProperties = requestProperties ++ getMessageBody(rpcRequest.message)
@@ -114,7 +114,7 @@ final private[automorph] case class ServerRequestHandler[Node, Codec <: MessageC
         binding.call(arguments, context)
       }.fold(
         error => errorResponse(error, rpcRequest.message, responseRequired, requestProperties),
-        result => {
+        { result =>
           // Encode bound API method result
           val contextualResultNode = result.asInstanceOf[Effect[Any]].map { resultValue =>
             encodeResult(resultValue, binding)
@@ -234,11 +234,11 @@ final private[automorph] case class ServerRequestHandler[Node, Codec <: MessageC
     requestProperties: => Map[String, String],
   ): Effect[Option[Result[Context]]] =
     callResult.flatFold(
-      error => {
+      { error =>
         logger.error(s"Failed to process ${rpcProtocol.name} request", error, requestProperties)
         createResponse(Failure(error), rpcRequest, requestProperties)
       },
-      result => {
+      { result =>
         logger.info(s"Processed ${rpcProtocol.name} request", requestProperties)
         createResponse(Success(result), rpcRequest, requestProperties)
       },
@@ -312,7 +312,7 @@ final private[automorph] case class ServerRequestHandler[Node, Codec <: MessageC
   ): Effect[Option[Result[Context]]] =
     rpcProtocol.createResponse(result.map(_._1), message.metadata).fold(
       error => effectSystem.failed(error),
-      rpcResponse => {
+      { rpcResponse =>
         val responseBody = rpcResponse.message.body
         lazy val allProperties = rpcResponse.message.properties ++ requestProperties ++
           getMessageBody(rpcResponse.message)

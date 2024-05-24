@@ -18,7 +18,7 @@ trait RequestHandler[Effect[_], Context] {
    * Processes an RPC request by invoking a bound remote function based on the specified RPC request along with request
    * context and return an RPC response.
    *
-   * @param requestBody
+   * @param body
    *   request message body
    * @param context
    *   request context
@@ -27,7 +27,7 @@ trait RequestHandler[Effect[_], Context] {
    * @return
    *   request processing result
    */
-  def processRequest(requestBody: Array[Byte], context: Context, id: String): Effect[Option[Result[Context]]]
+  def processRequest(body: Array[Byte], context: Context, id: String): Effect[Option[Result[Context]]]
 
   /**
    * Enable or disable automatic provision of service discovery via RPC functions returning bound API schema.
@@ -70,7 +70,7 @@ object RequestHandler {
 
   final private case class DummyRequestHandler[Effect[_], Context]() extends RequestHandler[Effect, Context] {
 
-    def processRequest(requestBody: Array[Byte], context: Context, id: String): Effect[Option[Result[Context]]] =
+    def processRequest(body: Array[Byte], context: Context, id: String): Effect[Option[Result[Context]]] =
       error
 
     override def discovery(enabled: Boolean): RequestHandler[Effect, Context] =

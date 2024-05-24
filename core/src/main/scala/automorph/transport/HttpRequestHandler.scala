@@ -35,7 +35,7 @@ final private[automorph] case class HttpRequestHandler[
         // Process the request
         requestHandler.processRequest(requestBody, requestData.context, requestData.id).flatFold(
           error => sendErrorResponse(error, channel, requestData),
-          result => {
+          { result =>
             // Send the response
             val responseBody = result.map(_.responseBody).getOrElse(Array.emptyByteArray)
             val resultContext = result.flatMap(_.context)
@@ -75,11 +75,11 @@ final private[automorph] case class HttpRequestHandler[
     log.sendingResponse(responseProperties, protocol)
     val responseData = ResponseData(responseBody, context, statusCode, contentType, client, requestData.id)
     sendResponse(responseData, channel).flatFold(
-      error => {
+      { error =>
         log.failedSendResponse(error, responseProperties, protocol)
         sendErrorResponse(error, channel, requestData)
       },
-      result => {
+      { result =>
         log.sentResponse(responseProperties, protocol)
         system.successful(result)
       },

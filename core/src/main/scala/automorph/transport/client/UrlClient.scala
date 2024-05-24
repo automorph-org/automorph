@@ -47,16 +47,16 @@ final case class UrlClient[Effect[_]](
   System.setProperty("sun.net.http.allowRestrictedHeaders", "true")
 
   override def call(
-    requestBody: Array[Byte],
-    requestContext: Context,
-    requestId: String,
+    body: Array[Byte],
+    context: Context,
+    id: String,
     mediaType: String,
   ): Effect[(Array[Byte], Context)] =
     // Send the request
-    send(requestBody, requestId, mediaType, requestContext).flatMap { connection =>
+    send(body, id, mediaType, context).flatMap { connection =>
       effectSystem.evaluate {
         lazy val responseProperties = ListMap(
-          LogProperties.requestId -> requestId,
+          LogProperties.requestId -> id,
           LogProperties.url -> connection.getURL.toExternalForm,
         )
 
@@ -70,12 +70,12 @@ final case class UrlClient[Effect[_]](
     }
 
   override def tell(
-    requestBody: Array[Byte],
-    requestContext: Context,
-    requestId: String,
+    body: Array[Byte],
+    context: Context,
+    id: String,
     mediaType: String,
   ): Effect[Unit] =
-    send(requestBody, requestId, mediaType, requestContext).map(_ => ())
+    send(body, id, mediaType, context).map(_ => ())
 
   override def context: Context =
     Transport.context.url(url).method(method)
@@ -94,7 +94,7 @@ final case class UrlClient[Effect[_]](
   ): Effect[HttpURLConnection] =
     effectSystem.evaluate {
       // Create the request
-      val connection = createConnection(requestContext)
+      val connection = openConnection(requestContext)
       val httpMethod = setConnectionProperties(connection, request, mediaType, requestContext)
 
       // Log the request
@@ -117,7 +117,7 @@ final case class UrlClient[Effect[_]](
       connection
     }
 
-  private def createConnection(requestContext: Context): HttpURLConnection = {
+  private def openConnection(requestContext: Context): HttpURLConnection = {
     val baseUrl = requestContext.transportContext.map(_.connection.getURL.toURI).getOrElse(url)
     val requestUrl = overrideUrl(baseUrl, requestContext)
     requestUrl.toURL.openConnection().asInstanceOf[HttpURLConnection]

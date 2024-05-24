@@ -195,7 +195,7 @@ final case class RpcClient[Node, Codec <: MessageCodec[Node], Effect[_], Context
     // Parse response
     rpcProtocol.parseResponse(body, context, requestId).fold(
       error => raiseError[R](error.exception, requestProperties),
-      rpcResponse => {
+      { rpcResponse =>
         lazy val responseProperties = rpcResponse.message.properties
         lazy val allProperties = requestProperties ++ responseProperties ++ getMessageBody(rpcResponse.message)
         logger.trace(s"Received ${rpcProtocol.name} response", allProperties)

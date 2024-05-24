@@ -106,7 +106,7 @@ final case class RabbitMqServer[Effect[_]](
               val handlerResult = handler.processRequest(requestBody, requestContext, actualRequestId)
               handlerResult.fold(
                 error => sendErrorResponse(error, replyTo, requestProperties, actualRequestId),
-                result => {
+                { result =>
                   // Send the response
                   val responseBody = result.map(_.responseBody).getOrElse(Array.emptyByteArray)
                   sendResponse(responseBody, replyTo, result.flatMap(_.context), requestProperties, actualRequestId)
