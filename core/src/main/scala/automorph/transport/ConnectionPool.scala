@@ -4,32 +4,36 @@ import automorph.log.Logger
 import automorph.spi.EffectSystem
 import automorph.spi.EffectSystem.Completable
 import automorph.transport.ConnectionPool.{
-  Action, ReportError, UseConnection, EnqueueUsage, AddConnection, OpenConnection, ServeUsage,
+  Action, AddConnection, EnqueueUsage, OpenConnection, ReportError, ServeUsage, UseConnection,
 }
 import automorph.util.Extensions.EffectOps
 import scala.collection.mutable
 
 final private[automorph] case class ConnectionPool[Effect[_], Connection](
-  private val openConnection: Option[() => Effect[Connection]],
-  private val closeConnection: Connection => Effect[Unit],
-  maxConnections: Int,
+  openConnection: Option[() => Effect[Connection]],
+  closeConnection: Connection => Effect[Unit],
+  maxConnectionsPerTarget: Option[Int],
   protocol: Protocol,
   effectSystem: EffectSystem[Effect],
   logger: Logger,
 ) {
-  private val pendingUsages = mutable.Queue.empty[Completable[Effect, Connection]]
-  private val unusedConnections = mutable.Stack.empty[Connection]
+  private val pendingUsages =
+    mutable.HashMap[String, mutable.Queue[Completable[Effect, Connection]]]().withDefaultValue(mutable.Queue.empty)
+  private val unusedConnections =
+    mutable.HashMap[String, mutable.Stack[Connection]]().withDefaultValue(mutable.Stack.empty)
+  private val managedConnections = mutable.HashMap[String, Int]().withDefaultValue(0)
   private val closedMessage = "Connection pool is closed"
   implicit private val system: EffectSystem[Effect] = effectSystem
   private var active = false
-  private var managedConnections = 0
 
-  def using[T](use: Connection => Effect[T]): Effect[T] = {
+  def using[T](target: String, use: Connection => Effect[T]): Effect[T] = {
     val action = this.synchronized {
       if (active) {
-        unusedConnections.removeHeadOption().map(UseConnection.apply[Effect, Connection]).getOrElse {
-          openConnection.filter(_ => managedConnections < maxConnections).map { open =>
-            managedConnections += 1
+        unusedConnections(target).removeHeadOption().map(UseConnection.apply[Effect, Connection]).getOrElse {
+          lazy val targetManagedConnections = managedConnections(target)
+          lazy val newConnectionAllowed = maxConnectionsPerTarget.forall(targetManagedConnections < _)
+          openConnection.filter(_ => newConnectionAllowed).map { open =>
+            managedConnections.put(target, targetManagedConnections + 1)
             OpenConnection(open)
           }.getOrElse(EnqueueUsage[Effect, Connection]())
         }
@@ -37,19 +41,19 @@ final private[automorph] case class ConnectionPool[Effect[_], Connection](
         ReportError[Effect, Connection]()
       }
     }
-    provideConnection(action).flatMap { connection =>
+    provideConnection(target, action).flatMap { connection =>
       use(connection).flatFold(
-        error => add(connection).flatMap(_ => effectSystem.failed(error)),
-        result => add(connection).map(_ => result),
+        error => add(target, connection).flatMap(_ => effectSystem.failed(error)),
+        result => add(target, connection).map(_ => result),
       )
     }
   }
 
-  def add(connection: Connection): Effect[Unit] = {
+  def add(target: String, connection: Connection): Effect[Unit] = {
     val action = this.synchronized {
       if (active) {
-        pendingUsages.removeHeadOption().map(ServeUsage.apply).getOrElse {
-          unusedConnections.addOne(connection)
+        pendingUsages(target).removeHeadOption().map(ServeUsage.apply).getOrElse {
+          unusedConnections(target).addOne(connection)
           AddConnection[Effect, Connection]()
         }
       } else {
@@ -73,21 +77,21 @@ final private[automorph] case class ConnectionPool[Effect[_], Connection](
   def close(): Effect[ConnectionPool[Effect, Connection]] = {
     val connections = this.synchronized {
       active = false
-      unusedConnections.dropWhile(_ => true)
+      unusedConnections.values.flatMap(_.dropWhile(_ => true))
     }
     connections.foldLeft(effectSystem.successful {}) { case (effect, connection) =>
       effect.flatMap(_ => closeConnection(connection).either.map(_ => ()))
     }.map(_ => this)
   }
 
-  private def provideConnection(action: Action[Effect, Connection]): Effect[Connection] =
+  private def provideConnection(target: String, action: Action[Effect, Connection]): Effect[Connection] =
     action match {
       case OpenConnection(open) =>
         logger.trace(s"Opening ${protocol.name} connection")
         open().flatFold(
           error => {
             this.synchronized {
-              managedConnections -= 1
+              managedConnections.put(target, managedConnections(target) - 1)
             }
             logger.error(s"Failed to open ${protocol.name} connection")
             effectSystem.failed(error)
@@ -99,7 +103,7 @@ final private[automorph] case class ConnectionPool[Effect[_], Connection](
         )
       case EnqueueUsage() =>
         effectSystem.completable[Connection].flatMap { usage =>
-          pendingUsages.addOne(usage)
+          pendingUsages(target).addOne(usage)
           usage.effect
         }
       case UseConnection(connection) => system.successful(connection)

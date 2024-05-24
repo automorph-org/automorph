@@ -2,10 +2,10 @@ package automorph.transport.client
 
 import automorph.log.{LogProperties, Logging, MessageLog}
 import automorph.spi.EffectSystem.Completable
-import automorph.spi.{EffectSystem, ClientTransport}
+import automorph.spi.{ClientTransport, EffectSystem}
 import automorph.transport.HttpClientBase.{completableEffect, overrideUrl}
 import automorph.transport.client.HttpClient.{Context, Response, Transport}
-import automorph.transport.{HttpContext, HttpMethod, Protocol}
+import automorph.transport.{ConnectionPool, HttpContext, HttpMethod, Protocol}
 import automorph.util.Extensions.{ByteArrayOps, ByteBufferOps, EffectOps}
 import java.net.URI
 import java.net.http.HttpClient.Builder
