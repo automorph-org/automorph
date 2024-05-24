@@ -4,16 +4,16 @@ import automorph.log.{LogProperties, Logger, Logging, MessageLog}
 import automorph.spi.EffectSystem.Completable
 import automorph.spi.{ClientTransport, EffectSystem}
 import automorph.transport.HttpClientBase.{completableEffect, overrideUrl}
-import automorph.transport.client.JettyClient.{Context, Response, Transport, FrameListener}
+import automorph.transport.client.JettyClient.{Context, FrameListener, Response, Transport}
 import automorph.transport.{HttpContext, HttpMethod, Protocol}
 import automorph.util.Extensions.{ByteArrayOps, EffectOps}
 import org.eclipse.jetty.client.api.{Request, Result}
 import org.eclipse.jetty.client.util.{BufferingResponseListener, BytesRequestContent}
 import org.eclipse.jetty.client.{HttpClient, api}
+import org.eclipse.jetty.http
 import org.eclipse.jetty.http.HttpHeader
 import org.eclipse.jetty.websocket.api.{Session, WebSocketListener, WriteCallback}
 import org.eclipse.jetty.websocket.client.{ClientUpgradeRequest, WebSocketClient}
-import org.eclipse.jetty.{http, websocket}
 import java.net.URI
 import java.util
 import java.util.concurrent.TimeUnit
