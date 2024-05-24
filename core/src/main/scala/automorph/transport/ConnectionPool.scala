@@ -14,7 +14,7 @@ import scala.collection.mutable
 final private[automorph] case class ConnectionPool[Effect[_], Endpoint, Connection](
   openConnection: Option[Endpoint => Effect[Connection]],
   closeConnection: Connection => Effect[Unit],
-  maxConnectionsPerTarget: Option[Int],
+  maxPeerConnections: Option[Int],
   protocol: Protocol,
   effectSystem: EffectSystem[Effect],
   logger: Logger,
@@ -29,7 +29,7 @@ final private[automorph] case class ConnectionPool[Effect[_], Endpoint, Connecti
       val pool = pools(peerId)
       val action = pool.synchronized {
         pool.unusedConnections.removeHeadOption().map(UseConnection.apply[Effect, Endpoint, Connection]).getOrElse {
-          lazy val newConnectionAllowed = maxConnectionsPerTarget.forall(pool.managedConnections < _)
+          lazy val newConnectionAllowed = maxPeerConnections.forall(pool.managedConnections < _)
           openConnection.filter(_ => newConnectionAllowed).map { open =>
             pool.managedConnections += 1
             OpenConnection(open)
