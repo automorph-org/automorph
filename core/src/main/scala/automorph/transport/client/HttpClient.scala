@@ -61,6 +61,7 @@ final case class HttpClient[Effect[_]](
   private val webSocketsSchemePrefix = "ws"
   private val httpClient = builder.build
   private val log = MessageLog(logger, Protocol.Http.name)
+  private val webSocketConnectionPool = ConnectionPool(null, null, None, Protocol.WebSocket, effectSystem, logger)
   implicit private val system: EffectSystem[Effect] = effectSystem
 
   override def call(
@@ -221,7 +222,7 @@ final case class HttpClient[Effect[_]](
       completableEffect(builder.buildAsync(requestUrl, webSocketListener(response)), effectSystem)
     )
 
-  private def webSocketListener(response: Completable[Effect, Response]) =
+  private def webSocketListener(response: Completable[Effect, Response]): Listener =
     new Listener {
 
       private val buffers = ArrayBuffer.empty[ByteBuffer]
