@@ -1,11 +1,11 @@
 package automorph.transport.client
 
-import automorph.log.{LogProperties, Logging, MessageLog}
+import automorph.log.{LogProperties, Logger, Logging, MessageLog}
 import automorph.spi.EffectSystem.Completable
 import automorph.spi.{ClientTransport, EffectSystem}
 import automorph.transport.HttpClientBase.{completableEffect, overrideUrl}
-import automorph.transport.client.HttpClient.{Context, Response, Transport}
-import automorph.transport.{ConnectionPool, HttpContext, HttpMethod, Protocol}
+import automorph.transport.client.HttpClient.{Context, FrameListener, Response, Transport}
+import automorph.transport.{HttpContext, HttpMethod, Protocol}
 import automorph.util.Extensions.{ByteArrayOps, ByteBufferOps, EffectOps}
 import java.net.URI
 import java.net.http.HttpClient.Builder
@@ -61,7 +61,7 @@ final case class HttpClient[Effect[_]](
   private val webSocketsSchemePrefix = "ws"
   private val httpClient = builder.build
   private val log = MessageLog(logger, Protocol.Http.name)
-  private val webSocketConnectionPool = ConnectionPool(null, null, None, Protocol.WebSocket, effectSystem, logger)
+//  private val webSocketConnectionPool = ConnectionPool(null, null, None, Protocol.WebSocket, effectSystem, logger)
   implicit private val system: EffectSystem[Effect] = effectSystem
 
   override def call(
@@ -167,12 +167,12 @@ final case class HttpClient[Effect[_]](
     requestUrl.getScheme.toLowerCase match {
       case scheme if scheme.startsWith(webSocketsSchemePrefix) =>
         // Create WebSocket request
-        effectSystem.evaluate {
-          val completableResponse = effectSystem.completable[Response]
-          val response = completableResponse.flatMap(_.effect)
+        effectSystem.completable[Response].map { expectedResponse =>
+          val response = expectedResponse.effect
           val webSocketBuilder = createWebSocketBuilder(requestContext)
-          val webSocket = connectWebSocket(webSocketBuilder, requestUrl, completableResponse)
-          Right((webSocket, response, requestBody)) -> requestUrl
+          val frameListener = FrameListener(requestUrl, effectSystem, logger, Some(expectedResponse))
+          val session = completableEffect(webSocketBuilder.buildAsync(requestUrl, frameListener), effectSystem)
+          Right((session, response, requestBody)) -> requestUrl
         }
       case _ =>
         // Create HTTP request
@@ -213,45 +213,6 @@ final case class HttpClient[Effect[_]](
       .getOrElse(headersBuilder).build
   }
 
-  private def connectWebSocket(
-    builder: WebSocket.Builder,
-    requestUrl: URI,
-    responseEffect: Effect[Completable[Effect, Response]],
-  ): Effect[WebSocket] =
-    responseEffect.flatMap(response =>
-      completableEffect(builder.buildAsync(requestUrl, webSocketListener(response)), effectSystem)
-    )
-
-  private def webSocketListener(response: Completable[Effect, Response]): Listener =
-    new Listener {
-
-      private val buffers = ArrayBuffer.empty[ByteBuffer]
-
-      override def onBinary(webSocket: WebSocket, data: ByteBuffer, last: Boolean): CompletionStage[?] = {
-        buffers += data
-        if (last) {
-          val responseBody = buffers match {
-            case ArrayBuffer(buffer) => buffer.toByteArray
-            case _ =>
-              val response = ByteBuffer.allocate(buffers.map(_.capacity).sum)
-              buffers.foreach(response.put)
-              response.toByteArray
-          }
-          buffers.clear()
-          response.succeed(Response(responseBody, None, Seq.empty)).runAsync
-        }
-        super.onBinary(webSocket, data, last)
-      }
-
-      override def onClose(webSocket: WebSocket, statusCode: Int, reason: String): CompletionStage[?] =
-        super.onClose(webSocket, statusCode, reason)
-
-      override def onError(webSocket: WebSocket, error: Throwable): Unit = {
-        response.fail(error)
-        super.onError(webSocket, error)
-      }
-    }
-
   private def createWebSocketBuilder(httpContext: Context): WebSocket.Builder = {
     // Headers
     val transportBuilder = httpContext.transportContext.map(_.request).getOrElse(HttpRequest.newBuilder)
@@ -287,6 +248,52 @@ object HttpClient {
     statusCode: Option[Int],
     headers: Seq[(String, String)],
   )
+
+  final private case class FrameListener[Effect[_]](
+    url: URI,
+    effectSystem: EffectSystem[Effect],
+    logger: Logger,
+    var expectedResponse: Option[Completable[Effect, Response]] = None,
+  ) extends Listener {
+
+    private val buffers = ArrayBuffer.empty[ByteBuffer]
+    private val unexpectedResponseMessage = s"Unexpected ${Protocol.WebSocket} response"
+
+    override def onBinary(webSocket: WebSocket, data: ByteBuffer, last: Boolean): CompletionStage[?] = {
+      buffers += data
+      if (last) {
+        val responseBody = buffers match {
+          case ArrayBuffer(buffer) => buffer.toByteArray
+          case _ =>
+            val response = ByteBuffer.allocate(buffers.map(_.capacity).sum)
+            buffers.foreach(response.put)
+            response.toByteArray
+        }
+        buffers.clear()
+        expectedResponse.map { response =>
+          expectedResponse = None
+          effectSystem.runAsync(response.succeed(Response(responseBody, None, Seq.empty)))
+        }.getOrElse(logger.error(unexpectedResponseMessage, Map(LogProperties.url -> url)))
+      }
+      super.onBinary(webSocket, data, last)
+    }
+
+    override def onError(webSocket: WebSocket, error: Throwable): Unit = {
+      expectedResponse.map { response =>
+        expectedResponse = None
+        response.fail(error)
+      }.getOrElse(logger.error(unexpectedResponseMessage, Map(LogProperties.url -> url)))
+      super.onError(webSocket, error)
+    }
+
+    override def onClose(webSocket: WebSocket, statusCode: Int, reason: String): CompletionStage[?] = {
+      expectedResponse.map { response =>
+        expectedResponse = None
+        response.fail(new IllegalStateException("Connection closed"))
+      }.getOrElse(logger.error(unexpectedResponseMessage, Map(LogProperties.url -> url)))
+      super.onClose(webSocket, statusCode, reason)
+    }
+  }
 
   object Transport {
 

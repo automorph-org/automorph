@@ -1,10 +1,10 @@
 package automorph.transport.client
 
-import automorph.log.{LogProperties, Logging, MessageLog}
+import automorph.log.{LogProperties, Logger, Logging, MessageLog}
 import automorph.spi.EffectSystem.Completable
-import automorph.spi.{EffectSystem, ClientTransport}
+import automorph.spi.{ClientTransport, EffectSystem}
 import automorph.transport.HttpClientBase.{completableEffect, overrideUrl}
-import automorph.transport.client.JettyClient.{Context, Transport}
+import automorph.transport.client.JettyClient.{Context, Response, Transport, FrameListener}
 import automorph.transport.{HttpContext, HttpMethod, Protocol}
 import automorph.util.Extensions.{ByteArrayOps, EffectOps}
 import org.eclipse.jetty.client.api.{Request, Result}
@@ -54,7 +54,6 @@ final case class JettyClient[Effect[_]](
 ) extends ClientTransport[Effect, Context] with Logging {
 
   private type GenericRequest = Either[Request, (Effect[Session], Effect[Response], Array[Byte])]
-  private type Response = (Array[Byte], Option[Int], Seq[(String, String)])
 
   private val webSocketsSchemePrefix = "ws"
   private val webSocketClient = new WebSocketClient(httpClient)
@@ -147,32 +146,32 @@ final case class JettyClient[Effect[_]](
   }
 
   private def sendHttp(httpRequest: Request): Effect[Response] =
-    effectSystem.completable[Response].flatMap { completableResponse =>
+    effectSystem.completable[Response].flatMap { expectedResponse =>
       val responseListener = new BufferingResponseListener {
 
         override def onComplete(result: Result): Unit =
           Option(result.getResponseFailure)
-            .map(error => completableResponse.fail(error).runAsync)
-            .getOrElse(completableResponse.succeed(httpResponse(result.getResponse, getContent)).runAsync)
+            .map(error => expectedResponse.fail(error).runAsync)
+            .getOrElse(expectedResponse.succeed(httpResponse(result.getResponse, getContent)).runAsync)
       }
       httpRequest.send(responseListener)
-      completableResponse.effect
+      expectedResponse.effect
     }
 
   private def sendWebSocket(webSocketRequest: (Effect[Session], Effect[Response], Array[Byte])): Effect[Response] = {
     val (webSocketEffect, resultEffect, requestBody) = webSocketRequest
-    effectSystem.completable[Unit].flatMap { completableRequestSent =>
+    effectSystem.completable[Unit].flatMap { expectedRequestSent =>
       webSocketEffect.flatMap { webSocket =>
         val writeCallback = new WriteCallback {
 
           override def writeSuccess(): Unit =
-            completableRequestSent.succeed {}.runAsync
+            expectedRequestSent.succeed {}.runAsync
 
           override def writeFailed(error: Throwable): Unit =
-            completableRequestSent.fail(error).runAsync
+            expectedRequestSent.fail(error).runAsync
         }
         webSocket.getRemote.sendBytes(requestBody.toByteBuffer, writeCallback)
-        completableRequestSent.effect.flatMap(_ => resultEffect)
+        expectedRequestSent.effect.flatMap(_ => resultEffect)
       }
     }
   }
@@ -192,12 +191,13 @@ final case class JettyClient[Effect[_]](
     requestUrl.getScheme.toLowerCase match {
       case scheme if scheme.startsWith(webSocketsSchemePrefix) =>
         // Create WebSocket request
-        effectSystem.evaluate {
-          val completableResponse = effectSystem.completable[Response]
-          val response = completableResponse.flatMap(_.effect)
+        effectSystem.completable[Response].map { expectedResponse =>
+          val response = expectedResponse.effect
           val upgradeRequest = createWebSocketRequest(requestContext, requestUrl)
-          val webSocket = connectWebSocket(upgradeRequest, requestUrl, completableResponse)
-          Right((webSocket, response, requestBody)) -> requestUrl
+          val frameListener = FrameListener(url, effectSystem, logger, Some(expectedResponse))
+          val session =
+            completableEffect(webSocketClient.connect(frameListener, requestUrl, upgradeRequest), effectSystem)
+          Right((session, response, requestBody)) -> requestUrl
         }
       case _ =>
         // Create HTTP request
@@ -240,27 +240,6 @@ final case class JettyClient[Effect[_]](
       .getOrElse(timeoutRequest)
   }
 
-  private def connectWebSocket(
-    upgradeRequest: ClientUpgradeRequest,
-    requestUrl: URI,
-    responseEffect: Effect[Completable[Effect, Response]],
-  ): Effect[websocket.api.Session] =
-    responseEffect.flatMap { response =>
-      completableEffect(webSocketClient.connect(webSocketListener(response), requestUrl, upgradeRequest), effectSystem)
-    }
-
-  private def webSocketListener(response: Completable[Effect, Response]): WebSocketListener =
-    new WebSocketListener {
-
-      override def onWebSocketBinary(payload: Array[Byte], offset: Int, length: Int): Unit = {
-        val responseBody = util.Arrays.copyOfRange(payload, offset, offset + length)
-        response.succeed((responseBody, None, Seq())).runAsync
-      }
-
-      override def onWebSocketError(error: Throwable): Unit =
-        response.fail(error).runAsync
-    }
-
   private def createWebSocketRequest(httpContext: Context, requestUrl: URI): ClientUpgradeRequest = {
     // Headers
     val transportRequest = httpContext
@@ -289,9 +268,34 @@ object JettyClient {
 
   /** Request context type. */
   type Context = HttpContext[Transport]
+  private type Response = (Array[Byte], Option[Int], Seq[(String, String)])
 
   /** Transport-specific context. */
   final case class Transport(request: Request)
+
+  final private case class FrameListener[Effect[_]](
+    url: URI,
+    effectSystem: EffectSystem[Effect],
+    logger: Logger,
+    var expectedResponse: Option[Completable[Effect, Response]] = None,
+  ) extends WebSocketListener {
+
+    private val unexpectedResponseMessage = s"Unexpected ${Protocol.WebSocket} response"
+
+    override def onWebSocketBinary(payload: Array[Byte], offset: Int, length: Int): Unit = {
+      val responseBody = util.Arrays.copyOfRange(payload, offset, offset + length)
+      expectedResponse.map { response =>
+        expectedResponse = None
+        effectSystem.runAsync(response.succeed((responseBody, None, Seq())))
+      }.getOrElse(logger.error(unexpectedResponseMessage, Map(LogProperties.url -> url)))
+    }
+
+    override def onWebSocketError(error: Throwable): Unit =
+      expectedResponse.map { response =>
+        expectedResponse = None
+        effectSystem.runAsync(response.fail(error))
+      }.getOrElse(logger.error(unexpectedResponseMessage, Map(LogProperties.url -> url)))
+  }
 
   object Transport {
 

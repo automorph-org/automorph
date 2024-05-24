@@ -128,15 +128,14 @@ private[automorph] trait SttpClientBase[Effect[_]] extends ClientTransport[Effec
     requestUrl.toString.toLowerCase match {
       case scheme if scheme.startsWith(webSocketsSchemePrefix) =>
         // Create WebSocket request
-        sttpRequest.response(asWebSocketAlways(sendWebSocket(requestBody)))
+        sttpRequest.response(asWebSocketAlways { webSocket =>
+          webSocket.sendBinary(requestBody).flatMap(_ => webSocket.receiveBinary(true))
+        })
       case _ =>
         // Create HTTP request
         sttpRequest.body(requestBody).response(asByteArrayAlways)
     }
   }
-
-  private def sendWebSocket(request: Array[Byte]): sttp.ws.WebSocket[Effect] => Effect[Array[Byte]] =
-    webSocket => webSocket.sendBinary(request).flatMap(_ => webSocket.receiveBinary(true))
 
   private def getResponseContext(response: Response[Array[Byte]]): Context =
     context.statusCode(response.code.code).headers(response.headers.map { header =>

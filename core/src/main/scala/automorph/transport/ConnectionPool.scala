@@ -120,8 +120,9 @@ private[automorph] object ConnectionPool {
   sealed trait AddAction[Effect[_], Connection]
 
   final case class Pool[Effect[_], Connection](
-    pendingUsages: mutable.Queue[Completable[Effect, Connection]] = mutable.Queue.empty,
-    unusedConnections: mutable.Stack[Connection] = mutable.Stack.empty,
+    pendingUsages: mutable.Queue[Completable[Effect, Connection]] =
+      mutable.Queue.empty[Completable[Effect, Connection]],
+    unusedConnections: mutable.Stack[Connection] = mutable.Stack.empty[Connection],
     var managedConnections: Int = 0,
   )
 
