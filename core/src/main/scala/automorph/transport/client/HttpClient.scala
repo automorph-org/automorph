@@ -230,9 +230,13 @@ final case class HttpClient[Effect[_]](
     httpClient.connectTimeout.toScala.map(headersBuilder.connectTimeout).getOrElse(headersBuilder)
   }
 
-  private def openWebSocket(endpoint: (WebSocket.Builder, URI)): Effect[(WebSocket, FrameListener[Effect])] = {
+  private def openWebSocket(
+    endpoint: (WebSocket.Builder, URI),
+    connectionId: Int,
+  ): Effect[(WebSocket, FrameListener[Effect])] = {
     val (webSocketBuilder, requestUrl) = endpoint
-    val frameListener = FrameListener(requestUrl, effectSystem, logger)
+    val removeConnection = () => webSocketConnectionPool.remove(requestUrl.toString, connectionId)
+    val frameListener = FrameListener(requestUrl, removeConnection, effectSystem, logger)
     completableEffect(webSocketBuilder.buildAsync(requestUrl, frameListener), effectSystem).map(_ -> frameListener)
   }
 
@@ -262,6 +266,7 @@ object HttpClient {
 
   final private case class FrameListener[Effect[_]](
     url: URI,
+    removeConnection: () => Unit,
     effectSystem: EffectSystem[Effect],
     logger: Logger,
     var expectedResponse: Option[Completable[Effect, Response]] = None,
@@ -289,6 +294,7 @@ object HttpClient {
     }
 
     override def onError(webSocket: WebSocket, error: Throwable): Unit = {
+      removeConnection()
       expectedResponse.map { response =>
         expectedResponse = None
         effectSystem.runAsync(response.fail(error))
@@ -297,6 +303,7 @@ object HttpClient {
     }
 
     override def onClose(webSocket: WebSocket, statusCode: Int, reason: String): CompletionStage[?] = {
+      removeConnection()
       expectedResponse.foreach { response =>
         expectedResponse = None
         effectSystem.runAsync(response.fail(new IllegalStateException(webSocketConnectionClosed)))

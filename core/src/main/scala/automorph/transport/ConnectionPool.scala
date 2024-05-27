@@ -3,16 +3,14 @@ package automorph.transport
 import automorph.log.Logger
 import automorph.spi.EffectSystem
 import automorph.spi.EffectSystem.Completable
-import automorph.transport.ConnectionPool.{
-  AddConnection, EnqueueUsage, OpenConnection, Pool, ProvideAction, ServeUsage, UseConnection,
-}
+import automorph.transport.ConnectionPool.{EnqueueUse, OpenConnection, Pool, Action, UseConnection}
 import automorph.util.Extensions.EffectOps
-import java.util.concurrent.atomic.AtomicBoolean
+import java.util.concurrent.atomic.{AtomicBoolean, AtomicInteger}
 import scala.collection.concurrent.TrieMap
 import scala.collection.mutable
 
 final private[automorph] case class ConnectionPool[Effect[_], Endpoint, Connection](
-  openConnection: Option[Endpoint => Effect[Connection]],
+  openConnection: Option[(Endpoint, Int) => Effect[Connection]],
   closeConnection: Connection => Effect[Unit],
   maxPeerConnections: Option[Int],
   protocol: Protocol,
@@ -28,18 +26,20 @@ final private[automorph] case class ConnectionPool[Effect[_], Endpoint, Connecti
     if (active.get) {
       val pool = pools(peerId)
       val action = pool.synchronized {
-        pool.unusedConnections.removeHeadOption().map(UseConnection.apply[Effect, Endpoint, Connection]).getOrElse {
+        pool.unusedConnections.removeHeadOption().map { case (connection, connectionId) =>
+          UseConnection[Effect, Endpoint, Connection](connection, connectionId)
+        }.getOrElse {
           lazy val newConnectionAllowed = maxPeerConnections.forall(pool.managedConnections < _)
           openConnection.filter(_ => newConnectionAllowed).map { open =>
             pool.managedConnections += 1
             OpenConnection(open)
-          }.getOrElse(EnqueueUsage[Effect, Endpoint, Connection]())
+          }.getOrElse(EnqueueUse[Effect, Endpoint, Connection]())
         }
       }
-      provideConnection(pool, endpoint, action).flatMap { connection =>
+      provideConnection(pool, endpoint, action).flatMap { case (connection, connectionId) =>
         use(connection).flatFold(
-          error => addConnection(pool, connection).flatMap(_ => effectSystem.failed(error)),
-          result => addConnection(pool, connection).map(_ => result),
+          error => addConnection(pool, connection, connectionId).flatMap(_ => system.failed(error)),
+          result => addConnection(pool, connection, connectionId).map(_ => result),
         )
       }
     } else {
@@ -49,92 +49,112 @@ final private[automorph] case class ConnectionPool[Effect[_], Endpoint, Connecti
   def add(peerId: String, connection: Connection): Effect[Unit] =
     if (active.get) {
       val pool = pools(peerId)
-      addConnection(pool, connection)
+      addConnection(pool, connection, pool.nextId.getAndAdd(1))
     } else {
       system.failed(new IllegalStateException(closedMessage))
     }
 
-  def init(): Effect[Unit] = {
-    active.set(true)
-    system.successful {}
-  }
-
-  def close(): Effect[Unit] = {
-    active.set(false)
-    val connections = pools.values.flatMap(pool =>
-      pool.synchronized {
-        pool.unusedConnections.dropWhile(_ => true)
+  def remove(peerId: String, connectionId: Int): Unit = {
+    if (!active.get) {
+      throw new IllegalStateException(closedMessage)
+    }
+    val pool = pools(peerId)
+    pool.synchronized {
+      pool.unusedConnections.removeFirst(_._2 == connectionId).map(_ => ()).getOrElse {
+        pool.removedIds += connectionId
+        ()
       }
-    ).toSeq
-    connections.foldLeft(effectSystem.successful {}) { case (effect, connection) =>
-      effect.flatMap(_ => closeConnection(connection).either.map(_ => ()))
     }
   }
 
-  private def addConnection(pool: Pool[Effect, Connection], connection: Connection): Effect[Unit] = {
-    val action = pool.synchronized {
-      pool.pendingUsages.removeHeadOption().map(ServeUsage.apply).getOrElse {
-        pool.unusedConnections.addOne(connection)
-        AddConnection[Effect, Connection]()
+  def init(): Effect[Unit] =
+    system.evaluate {
+      active.set(true)
+    }
+
+  def close(): Effect[Unit] =
+    system.evaluate {
+      active.set(false)
+      pools.values.flatMap(pool =>
+        pool.synchronized {
+          pool.managedConnections = 0
+          pool.nextId.set(0)
+          pool.removedIds.clear()
+          pool.unusedConnections.dropWhile(_ => true)
+        }
+      ).toSeq
+    }.flatMap { connections =>
+      connections.foldLeft(system.successful {}) { case (effect, (connection, _)) =>
+        effect.flatMap(_ => closeConnection(connection).either.map(_ => ()))
       }
     }
-    action match {
-      case ServeUsage(usage) => usage.succeed(connection)
-      case AddConnection() => effectSystem.successful {}
+
+  private def addConnection(pool: Pool[Effect, Connection], connection: Connection, connectionId: Int): Effect[Unit] =
+    if (active.get) {
+      system.evaluate {
+        pool.synchronized {
+          if (pool.removedIds.contains(connectionId)) {
+            pool.removedIds -= connectionId
+          } else {
+            pool.pendingUses.removeHeadOption().getOrElse {
+              pool.unusedConnections.addOne(connection -> connectionId)
+            }
+          }
+        }
+        ()
+      }
+    } else {
+      closeConnection(connection)
     }
-  }
 
   private def provideConnection(
     pool: Pool[Effect, Connection],
-    context: Endpoint,
-    action: ProvideAction[Effect, Endpoint, Connection],
-  ): Effect[Connection] =
+    endpoint: Endpoint,
+    action: Action[Effect, Endpoint, Connection],
+  ): Effect[(Connection, Int)] =
     action match {
       case OpenConnection(open) =>
         logger.trace(s"Opening ${protocol.name} connection")
-        open(context).flatFold(
+        val connectionId = pool.nextId.getAndAdd(1)
+        open(endpoint, connectionId).flatFold(
           error => {
             pool.synchronized {
               pool.managedConnections -= 1
             }
             logger.error(s"Failed to open ${protocol.name} connection")
-            effectSystem.failed(error)
+            system.failed(error)
           },
           connection => {
             logger.debug(s"Opened ${protocol.name} connection")
-            effectSystem.successful(connection)
+            system.successful(connection -> connectionId)
           },
         )
-      case EnqueueUsage() =>
-        effectSystem.completable[Connection].flatMap { usage =>
-          pool.pendingUsages.addOne(usage)
-          usage.effect
+      case EnqueueUse() =>
+        system.completable[(Connection, Int)].flatMap { use =>
+          pool.pendingUses.addOne(use)
+          use.effect
         }
-      case UseConnection(connection) => system.successful(connection)
+      case UseConnection(connection, connectionId) => system.successful(connection, connectionId)
     }
 }
 
 private[automorph] object ConnectionPool {
 
-  sealed trait ProvideAction[Effect[_], Context, Connection]
-
-  sealed trait AddAction[Effect[_], Connection]
+  sealed trait Action[Effect[_], Context, Connection]
 
   final case class Pool[Effect[_], Connection](
-    pendingUsages: mutable.Queue[Completable[Effect, Connection]] =
-      mutable.Queue.empty[Completable[Effect, Connection]],
-    unusedConnections: mutable.Stack[Connection] = mutable.Stack.empty[Connection],
+    pendingUses: mutable.Queue[Completable[Effect, (Connection, Int)]] =
+      mutable.Queue.empty[Completable[Effect, (Connection, Int)]],
+    unusedConnections: mutable.Stack[(Connection, Int)] = mutable.Stack.empty[(Connection, Int)],
+    nextId: AtomicInteger = new AtomicInteger(0),
+    removedIds: mutable.HashSet[Int] = new mutable.HashSet,
     var managedConnections: Int = 0,
   )
 
-  final case class UseConnection[Effect[_], Context, Connection](connection: Connection)
-    extends ProvideAction[Effect, Context, Connection]
+  final case class UseConnection[Effect[_], Endpoint, Connection](connection: Connection, connectionId: Int)
+    extends Action[Effect, Endpoint, Connection]
 
-  final case class OpenConnection[Effect[_], Context, Connection](open: Context => Effect[Connection])
-    extends ProvideAction[Effect, Context, Connection]
-  final case class EnqueueUsage[Effect[_], Context, Connection]() extends ProvideAction[Effect, Context, Connection]
-
-  final case class ServeUsage[Effect[_], Connection](usage: Completable[Effect, Connection])
-    extends AddAction[Effect, Connection]
-  final case class AddConnection[Effect[_], Connection]() extends AddAction[Effect, Connection]
+  final case class OpenConnection[Effect[_], Endpoint, Connection](open: (Endpoint, Int) => Effect[Connection])
+    extends Action[Effect, Endpoint, Connection]
+  final case class EnqueueUse[Effect[_], Endpoint, Connection]() extends Action[Effect, Endpoint, Connection]
 }

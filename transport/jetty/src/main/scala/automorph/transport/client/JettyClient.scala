@@ -268,9 +268,13 @@ final case class JettyClient[Effect[_]](
     statusCode.map(code => context.statusCode(code)).getOrElse(context).headers(headers*)
   }
 
-  private def openWebSocket(endpoint: (ClientUpgradeRequest, URI)): Effect[(Session, FrameListener[Effect])] = {
+  private def openWebSocket(
+    endpoint: (ClientUpgradeRequest, URI),
+    connectionId: Int,
+  ): Effect[(Session, FrameListener[Effect])] = {
     val (clientUpgradeRequest, requestUrl) = endpoint
-    val frameListener = FrameListener(requestUrl, effectSystem, logger)
+    val removeConnection = () => webSocketConnectionPool.remove(requestUrl.toString, connectionId)
+    val frameListener = FrameListener(requestUrl, removeConnection, effectSystem, logger)
     completableEffect(webSocketClient.connect(frameListener, requestUrl, clientUpgradeRequest), effectSystem)
       .map(_ -> frameListener)
   }
@@ -292,6 +296,7 @@ object JettyClient {
 
   final private case class FrameListener[Effect[_]](
     url: URI,
+    removeConnection: () => Unit,
     effectSystem: EffectSystem[Effect],
     logger: Logger,
     var expectedResponse: Option[Completable[Effect, Response]] = None,
@@ -305,17 +310,21 @@ object JettyClient {
       }.getOrElse(logger.error(webSocketUnexpectedMessage, Map(LogProperties.url -> url)))
     }
 
-    override def onWebSocketError(error: Throwable): Unit =
+    override def onWebSocketError(error: Throwable): Unit = {
+      removeConnection()
       expectedResponse.map { response =>
         expectedResponse = None
         effectSystem.runAsync(response.fail(error))
       }.getOrElse(logger.error(webSocketUnexpectedMessage, Map(LogProperties.url -> url)))
+    }
 
-    override def onWebSocketClose(statusCode: Int, reason: String): Unit =
+    override def onWebSocketClose(statusCode: Int, reason: String): Unit = {
+      removeConnection()
       expectedResponse.foreach { response =>
         expectedResponse = None
         effectSystem.runAsync(response.fail(new IllegalStateException(webSocketConnectionClosed)))
       }
+    }
   }
 
   object Transport {
