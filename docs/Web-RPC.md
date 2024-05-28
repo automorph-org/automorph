@@ -20,17 +20,17 @@ JSON payload into function calls on the remote site.
 Such translation requires deciding how to represent REST API call data and metadata using the underlying transport
 protocol. This includes determining the message format, its structure, transport protocol meta-data such as various
 headers and so on. There are many ways how to do this ultimately achieving exactly the same result using slightly
-differrent means. And while some good practices can be discussed, there does not seem to be an agreed upon standard.
+different means. And while some good practices can be discussed, there does not seem to be an agreed upon standard.
 
 These are virtually the same concerns which various [RPC](https://en.wikipedia.org/wiki/Remote_procedure_call) or
 messaging protocols need to solve. Consequently, creation of a typical REST API requires additional effort largely
-equivalent to designing and implementing an unique custom RPC protocol.
+equivalent to designing and implementing a unique custom RPC protocol.
 
 
 ### Goals
 
 Web-RPC is an attempt to demonstrate that the REST-compatible remote API functionality required by web applications
-and online services can be achieved without effectivelly ending up designing a RPC protocol for each API.
+and online services can be achieved without effectively ending up designing an RPC protocol for each API.
 
 Web-RPC can be understood to be any of the following:
 - Minimalistic sibling of [JSON-RPC](https://www.jsonrpc.org/specification) using HTTP as transport protocol
@@ -44,17 +44,17 @@ Web-RPC can be understood to be any of the following:
 - Structured messages in JSON format
 - API function name as a last URL path element
 - API function arguments can be supplied either in the request body or as URL query parameters
-- Meta-data in HTTP headers
+- Call meta-data in HTTP headers
 
 
 ## Request
 
 ### HTTP method
 
-HTTP methods are not specified by the API but chosen by the client from the following options depending on the desired
-call semantics:
-- POST - standard non-cached call with arguments either in the request body
-- GET - cacheable call with arguments as URL query parameters only
+HTTP methods are not specified by the API but chosen by the client from the following options
+depending on the desired call semantics:
+- POST - standard function call with arguments either in the request body or as URL query parameters
+- GET - pure function call with cacheable result and arguments as URL query parameters only
 
 ### URL format
 
@@ -74,7 +74,7 @@ http://example.org/api/hello?some=world&n=1
 Identically named invoked function arguments must not be supplied both in the request body and as URL query parameter.
 Such an ambiguous call must cause an error.
 
-### Structured request body
+### Standard request
 
 All invoked function arguments must be supplied in the request body consisting of a JSON object with its field names
 representing the remote function parameter names and field values their respective argument values. Invoked function
@@ -87,7 +87,7 @@ arguments must not be specified as URL query parameters
 **Remote call**
 
 ```scala
-hello(some = "world", n = 1)
+rpcClient.hello(some = "world", n = 1)
 ```
 
 **Request headers**
@@ -106,18 +106,18 @@ Content-Type: application/json
 }
 ```
 
-### Empty request body
+### Cacheable request
 
 All invoked function arguments must be supplied as URL query parameters with query parameter names representing the
 remote function parameter names and query parameter values their respective argument values. Multiple instances of
-identically named query parameters must not be used.
+identically named query parameters must not be used. Request body must be empty.
 
 - Method: GET
 
 **Remote call**
 
 ```scala
-remoteApi.hello(some = "world", n = 1)
+rpcClient.hello(some = "world", n = 1)
 ```
 
 **Request headers**
