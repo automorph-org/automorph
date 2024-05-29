@@ -58,8 +58,8 @@ depending on the desired call semantics:
 
 ### URL format
 
-- URL path components following an API endpoint prefix must specify the invoked function
-- URL query parameters for cacheable requests may specify additional arguments for the invoked function
+- URL path components following an API endpoint prefix must specify the invoked remote function name
+- URL query parameters for cacheable requests may specify additional arguments for the remote function
 
 Identically named invoked function arguments must not be supplied both in the request body and as URL query parameter.
 Such an ambiguous call must cause an error.
@@ -82,9 +82,9 @@ http://example.org/api/hello?some=world&n=1
 
 ### Standard request
 
-All invoked function arguments must be supplied in the request body consisting of a JSON object with its field names
-representing the remote function parameter names and field values their respective argument values. Invoked function
-arguments must not be specified as URL query parameters
+- All invoked function arguments must be supplied in the request body as a JSON object.
+- Request body field names represent remote function argument names and field values their respective values.
+- Remote function arguments must not be specified as URL query parameters
 
 - Message format: JSON
 - Method: POST
@@ -116,9 +116,10 @@ Content-Type: application/json
 
 ### Cacheable request
 
-All invoked function arguments must be supplied as URL query parameters with query parameter names representing the
-remote function parameter names and query parameter values their respective argument values. Multiple instances of
-identically named query parameters must not be used. Request body must be empty.
+- All invoked function arguments must be supplied as request URL query parameters.
+- Query parameter names represent remote function argument names and query parameter values their respective values.
+- Multiple instances of identically named query parameters must not be used.
+- Request body must be empty.
 
 - Method: GET
 
