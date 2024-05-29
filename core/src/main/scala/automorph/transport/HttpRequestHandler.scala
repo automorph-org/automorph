@@ -2,7 +2,7 @@ package automorph.transport
 
 import automorph.log.{LogProperties, Logging, MessageLog}
 import automorph.spi.{EffectSystem, RequestHandler}
-import automorph.transport.HttpRequestHandler.{RequestMetadata, ResponseData, contentTypeText}
+import automorph.transport.HttpRequestHandler.{RequestMetadata, ResponseData, contentTypeText, headerLongPolling, valueLongPolling}
 import automorph.util.Extensions.{EffectOps, StringOps, ThrowableOps, TryOps}
 import automorph.util.Random
 import scala.collection.immutable.ListMap
@@ -25,29 +25,35 @@ final private[automorph] case class HttpRequestHandler[
   private val log = MessageLog(logger, protocol.name)
   private val statusOk = 200
   private val statusInternalServerError = 500
-  private val connectionPool =
+  private val responsePool =
     ConnectionPool[Effect, String, Channel](None, _ => system.successful {}, None, protocol, effectSystem)
   implicit private val system: EffectSystem[Effect] = effectSystem
   // FIXME - remove
-  Seq(connectionPool)
+  Seq(responsePool)
 
   def processRequest(request: Request, channel: Channel): Effect[Response] =
     // Receive the request
     receiveRpcRequest(request).flatMap { case (requestMetadata, requestBody) =>
       Try {
-        // Process the request
-        requestHandler.processRequest(requestBody, requestMetadata.context, requestMetadata.id).flatFold(
-          error => sendErrorResponse(error, channel, requestMetadata),
-          { result =>
-            // Send the response
-            val responseBody = result.map(_.responseBody).getOrElse(Array.emptyByteArray)
-            val resultContext = result.flatMap(_.context)
-            val statusCode = result.flatMap(_.exception).map(mapException).orElse(
-              resultContext.flatMap(_.statusCode)
-            ).getOrElse(statusOk)
-            sendRpcResponse(responseBody, requestHandler.mediaType, statusCode, resultContext, channel, requestMetadata)
-          },
-        )
+        if (requestMetadata.context.header(headerLongPolling).exists(_.toLowerCase == valueLongPolling)) {
+          // Register long polling connection
+          responsePool.add(requestMetadata.client, channel)
+          ???
+        } else {
+          // Process the request
+          requestHandler.processRequest(requestBody, requestMetadata.context, requestMetadata.id).flatFold(
+            error => sendErrorResponse(error, channel, requestMetadata),
+            { result =>
+              // Send the response
+              val responseBody = result.map(_.responseBody).getOrElse(Array.emptyByteArray)
+              val resultContext = result.flatMap(_.context)
+              val statusCode = result.flatMap(_.exception).map(mapException).orElse(
+                resultContext.flatMap(_.statusCode)
+              ).getOrElse(statusOk)
+              sendRpcResponse(responseBody, requestHandler.mediaType, statusCode, resultContext, channel, requestMetadata)
+            },
+          )
+        }
       }.recover(sendErrorResponse(_, channel, requestMetadata)).get
     }
 
@@ -103,9 +109,10 @@ final private[automorph] case class HttpRequestHandler[
 private[automorph] object HttpRequestHandler {
 
   val headerXForwardedFor = "X-Forwarded-For"
-  val headerPoll = "RPC-Long-Polling"
+  val headerLongPolling = "RPC-Long-Polling"
   val headerNodeId = "RPC-Node-Id"
   val headerCallId = "RPC-Call-Id"
+  val valueLongPolling = "true"
   val contentTypeText = "text/plain"
 
   /**
