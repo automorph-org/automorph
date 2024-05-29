@@ -1,9 +1,9 @@
 package automorph.transport
 
-import automorph.log.Logger
+import automorph.log.Logging
 import automorph.spi.EffectSystem
 import automorph.spi.EffectSystem.Completable
-import automorph.transport.ConnectionPool.{EnqueueUse, OpenConnection, Pool, Action, UseConnection}
+import automorph.transport.ConnectionPool.{Action, EnqueueUse, OpenConnection, Pool, UseConnection}
 import automorph.util.Extensions.EffectOps
 import java.util.concurrent.atomic.{AtomicBoolean, AtomicInteger}
 import scala.collection.concurrent.TrieMap
@@ -15,8 +15,7 @@ final private[automorph] case class ConnectionPool[Effect[_], Endpoint, Connecti
   maxPeerConnections: Option[Int],
   protocol: Protocol,
   effectSystem: EffectSystem[Effect],
-  logger: Logger,
-) {
+) extends Logging {
   private val pools = TrieMap[String, Pool[Effect, Connection]]().withDefaultValue(Pool())
   private val active = new AtomicBoolean(false)
   private val closedMessage = "Connection pool is closed"

@@ -25,7 +25,11 @@ final private[automorph] case class HttpRequestHandler[
   private val log = MessageLog(logger, protocol.name)
   private val statusOk = 200
   private val statusInternalServerError = 500
+  private val connectionPool =
+    ConnectionPool[Effect, String, Channel](None, _ => system.successful {}, None, protocol, effectSystem)
   implicit private val system: EffectSystem[Effect] = effectSystem
+  // FIXME - remove
+  Seq(connectionPool)
 
   def processRequest(request: Request, channel: Channel): Effect[Response] =
     // Receive the request

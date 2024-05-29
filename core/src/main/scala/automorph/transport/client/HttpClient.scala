@@ -66,7 +66,7 @@ final case class HttpClient[Effect[_]](
   private val httpClient = builder.build
   private val webSocketConnectionPool = {
     val maxPeerConnections = Option(System.getProperty("jdk.httpclient.connectionPoolSize")).flatMap(_.toIntOption)
-    ConnectionPool(Some(openWebSocket), closeWebSocket, maxPeerConnections, Protocol.WebSocket, effectSystem, logger)
+    ConnectionPool(Some(openWebSocket), closeWebSocket, maxPeerConnections, Protocol.WebSocket, effectSystem)
   }
   private val log = MessageLog(logger, Protocol.Http.name)
   implicit private val system: EffectSystem[Effect] = effectSystem

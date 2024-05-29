@@ -61,7 +61,7 @@ final case class JettyClient[Effect[_]](
   private val webSocketClient = new WebSocketClient(httpClient)
   private val webSocketConnectionPool = {
     val maxPeerConnections = Some(httpClient.getMaxConnectionsPerDestination)
-    ConnectionPool(Some(openWebSocket), closeWebSocket, maxPeerConnections, Protocol.WebSocket, effectSystem, logger)
+    ConnectionPool(Some(openWebSocket), closeWebSocket, maxPeerConnections, Protocol.WebSocket, effectSystem)
   }
   private val log = MessageLog(logger, Protocol.Http.name)
   implicit private val system: EffectSystem[Effect] = effectSystem
