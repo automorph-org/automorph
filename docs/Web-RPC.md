@@ -58,6 +58,18 @@ depending on the desired call semantics:
 
 ### URL format
 
+- URL path components following an API endpoint prefix must specify the invoked function
+- URL query parameters for cacheable requests may specify additional arguments for the invoked function
+
+Identically named invoked function arguments must not be supplied both in the request body and as URL query parameter.
+Such an ambiguous call must cause an error.
+
+```http
+http[s]:://host[:port]/API-ENDPOINT/FUNCTION[?PARAMETER1=VALUE1&PARAMETER2=VALUE2]
+```
+
+#### Example
+
 - Remote API endpoint: http://example.org/api
 - Remote API function: hello
 - Remote API function arguments:
@@ -68,12 +80,6 @@ depending on the desired call semantics:
 http://example.org/api/hello?some=world&n=1
 ```
 
-- URL path components following an API-dependent prefix must specify the invoked function
-- URL query parameters may specify additional arguments for the invoked function
-
-Identically named invoked function arguments must not be supplied both in the request body and as URL query parameter.
-Such an ambiguous call must cause an error.
-
 ### Standard request
 
 All invoked function arguments must be supplied in the request body consisting of a JSON object with its field names
@@ -83,6 +89,8 @@ arguments must not be specified as URL query parameters
 - Message format: JSON
 - Method: POST
 - Content-Type: application/json
+
+### Example
 
 **Remote call**
 
@@ -113,6 +121,8 @@ remote function parameter names and query parameter values their respective argu
 identically named query parameters must not be used. Request body must be empty.
 
 - Method: GET
+
+#### Example
 
 **Remote call**
 
