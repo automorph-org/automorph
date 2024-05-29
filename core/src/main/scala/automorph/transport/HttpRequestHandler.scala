@@ -100,6 +100,9 @@ final private[automorph] case class HttpRequestHandler[
 private[automorph] object HttpRequestHandler {
 
   val headerXForwardedFor = "X-Forwarded-For"
+  val headerPoll = "RPC-Long-Polling"
+  val headerNodeId = "RPC-Node-Id"
+  val headerCallId = "RPC-Call-Id"
   val contentTypeText = "text/plain"
 
   final case class RequestData[Context](
