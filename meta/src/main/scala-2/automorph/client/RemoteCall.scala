@@ -33,10 +33,10 @@ final case class RemoteCall[Value, Codec <: MessageCodec[Value], Effect[_], Cont
 
   override def invoke(
     arguments: Seq[(String, Any)],
-    argumentNodes: Seq[Value],
+    argumentValues: Seq[Value],
     requestContext: Context,
   ): Effect[Result] =
-    performCall(functionName, arguments.map(_._1).zip(argumentNodes), decodeResult, Some(requestContext))
+    performCall(functionName, arguments.map(_._1).zip(argumentValues), decodeResult, Some(requestContext))
 }
 
 object RemoteCall {

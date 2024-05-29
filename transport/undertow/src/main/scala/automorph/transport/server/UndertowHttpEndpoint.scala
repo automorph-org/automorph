@@ -1,12 +1,10 @@
 package automorph.transport.server
 
-import automorph.log.Logging
 import automorph.spi.{EffectSystem, RequestHandler, ServerTransport}
 import automorph.transport.HttpRequestHandler.{RequestData, ResponseData}
 import automorph.transport.server.UndertowHttpEndpoint.{Context, HttpRequest, RequestCallback, requestQuery}
 import automorph.transport.{HttpContext, HttpMethod, HttpRequestHandler, Protocol}
 import automorph.util.Extensions.{ByteArrayOps, EffectOps}
-import automorph.util.Network
 import io.undertow.io.Receiver
 import io.undertow.server.{HttpHandler, HttpServerExchange}
 import io.undertow.util.{Headers, HttpString}
@@ -41,14 +39,14 @@ final case class UndertowHttpEndpoint[Effect[_]](
   effectSystem: EffectSystem[Effect],
   mapException: Throwable => Int = HttpContext.toStatusCode,
   handler: RequestHandler[Effect, Context] = RequestHandler.dummy[Effect, Context],
-) extends ServerTransport[Effect, Context, HttpHandler] with Logging {
+) extends ServerTransport[Effect, Context, HttpHandler] {
   private lazy val httpHandler = new HttpHandler {
 
     override def handleRequest(exchange: HttpServerExchange): Unit =
       exchange.getRequestReceiver.receiveFullBytes(receiverCallback)
   }
   private val httpRequestHandler =
-    HttpRequestHandler(receiveRequest, sendResponse, Protocol.Http, effectSystem, mapException, handler, logger)
+    HttpRequestHandler(receiveRequest, sendResponse, Protocol.Http, effectSystem, mapException, handler)
   private val receiverCallback = new Receiver.FullBytesCallback {
 
     override def handle(exchange: HttpServerExchange, requestBody: Array[Byte]): Unit = {
@@ -79,7 +77,6 @@ final case class UndertowHttpEndpoint[Effect[_]](
       getRequestContext(exchange),
       httpRequestHandler.protocol,
       s"${exchange.getRequestURI}$query",
-      clientAddress(exchange),
       Some(exchange.getRequestMethod.toString),
     )
     val requestBody = effectSystem.successful(body)
@@ -104,6 +101,7 @@ final case class UndertowHttpEndpoint[Effect[_]](
       transportContext = Some(Left(exchange).withRight[WebSocketHttpExchange]),
       method = Some(HttpMethod.valueOf(exchange.getRequestMethod.toString)),
       headers = headers,
+      peerId = Some(clientId(exchange)),
     ).url(exchange.getRequestURI)
   }
 
@@ -114,10 +112,11 @@ final case class UndertowHttpEndpoint[Effect[_]](
     }
   }
 
-  private def clientAddress(exchange: HttpServerExchange): String = {
+  private def clientId(exchange: HttpServerExchange): String = {
     val forwardedFor = Option(exchange.getRequestHeaders.get(Headers.X_FORWARDED_FOR_STRING)).map(_.getFirst)
+    val nodeId = Option(exchange.getRequestHeaders.get(HttpRequestHandler.headerNodeId)).map(_.getFirst)
     val address = exchange.getSourceAddress.toString
-    Network.address(forwardedFor, address)
+    HttpRequestHandler.clientId(address, forwardedFor, nodeId)
   }
 }
 

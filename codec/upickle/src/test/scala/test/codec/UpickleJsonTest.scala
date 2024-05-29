@@ -14,7 +14,7 @@ final class UpickleJsonTest extends MessageCodecTest with JsonMessageCodecTest {
 
   override lazy val codec: ActualCodec = UPickleJsonCodec(UpickleJsonTest)
 
-  override lazy val arbitraryNode: Arbitrary[Value] = Arbitrary(Gen.recursive[Value] { recurse =>
+  override lazy val arbitraryValue: Arbitrary[Value] = Arbitrary(Gen.recursive[Value] { recurse =>
     Gen.oneOf(
       Gen.const(Null),
       Gen.resultOf[String, Value](Str.apply),

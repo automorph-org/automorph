@@ -13,7 +13,7 @@ final class Json4sNativeJsonTest extends JsonMessageCodecTest {
 
   override lazy val codec: ActualCodec = Json4sNativeJsonCodec(formats)
 
-  override lazy val arbitraryNode: Arbitrary[Value] = Arbitrary(Gen.recursive[Value] { recurse =>
+  override lazy val arbitraryValue: Arbitrary[Value] = Arbitrary(Gen.recursive[Value] { recurse =>
     Gen.oneOf(
       Gen.const(JNull),
       Gen.resultOf(JString.apply),

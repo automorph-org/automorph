@@ -39,7 +39,7 @@ private[automorph] trait RemoteInvoke[Value, Codec <: MessageCodec[Value], Effec
    * @return
    *   result value
    */
-  def invoke(arguments: Seq[(String, Any)], argumentNodes: Seq[Value], requestContext: Context): Effect[Result]
+  def invoke(arguments: Seq[(String, Any)], argumentValues: Seq[Value], requestContext: Context): Effect[Result]
 
   /**
    * Invokes the remote function using specified argument names and values.
@@ -276,7 +276,7 @@ private[automorph] object RemoteInvoke:
     val resultType = TypeRepr.of[R].dealias
     ApiReflection.contextualResult[Context, RpcResult](quotes)(resultType).map { contextualResultType =>
       contextualResultType.asType match
-        case '[resultValueType] => '{ (resultNode: Value, responseContext: Context) =>
+        case '[resultValueType] => '{ (resultValue: Value, responseContext: Context) =>
             RpcResult(
               ${
                 ApiReflection.call(
@@ -284,17 +284,17 @@ private[automorph] object RemoteInvoke:
                   codec.asTerm,
                   MessageCodec.decodeMethod,
                   List(contextualResultType),
-                  List(List('{ resultNode }.asTerm)),
+                  List(List('{ resultValue }.asTerm)),
                 ).asExprOf[resultValueType]
               },
               responseContext,
             )
           }.asInstanceOf[Expr[(Value, Context) => R]]
     }.getOrElse {
-      '{ (resultNode: Value, _: Context) =>
+      '{ (resultValue: Value, _: Context) =>
         ${
           ApiReflection
-            .call(quotes, codec.asTerm, MessageCodec.decodeMethod, List(resultType), List(List('{ resultNode }.asTerm)))
+            .call(quotes, codec.asTerm, MessageCodec.decodeMethod, List(resultType), List(List('{ resultValue }.asTerm)))
             .asExprOf[R]
         }
       }

@@ -1,12 +1,10 @@
 package automorph.transport.server
 
-import automorph.log.Logging
 import automorph.spi.{EffectSystem, RequestHandler, ServerTransport}
-import automorph.transport.HttpRequestHandler.{RequestData, ResponseData}
+import automorph.transport.HttpRequestHandler.{RequestData, ResponseData, headerNodeId}
 import automorph.transport.server.JettyHttpEndpoint.{Context, requestQuery}
 import automorph.transport.{HttpContext, HttpMethod, HttpRequestHandler, Protocol}
 import automorph.util.Extensions.{EffectOps, InputStreamOps}
-import automorph.util.Network
 import jakarta.servlet.AsyncContext
 import jakarta.servlet.http.{HttpServlet, HttpServletRequest, HttpServletResponse}
 import org.eclipse.jetty.http.HttpHeader
@@ -39,7 +37,7 @@ final case class JettyHttpEndpoint[Effect[_]](
   effectSystem: EffectSystem[Effect],
   mapException: Throwable => Int = HttpContext.toStatusCode,
   handler: RequestHandler[Effect, Context] = RequestHandler.dummy[Effect, Context],
-) extends ServerTransport[Effect, Context, HttpServlet] with Logging {
+) extends ServerTransport[Effect, Context, HttpServlet] {
   private lazy val httpServlet = new HttpServlet {
     implicit private val system: EffectSystem[Effect] = effectSystem
 
@@ -51,7 +49,7 @@ final case class JettyHttpEndpoint[Effect[_]](
     }
   }
   private val httpHandler =
-    HttpRequestHandler(receiveRequest, sendResponse, Protocol.Http, effectSystem, mapException, handler, logger)
+    HttpRequestHandler(receiveRequest, sendResponse, Protocol.Http, effectSystem, mapException, handler)
 
   override def adapter: HttpServlet =
     httpServlet
@@ -71,7 +69,6 @@ final case class JettyHttpEndpoint[Effect[_]](
       getRequestContext(request),
       httpHandler.protocol,
       s"${request.getRequestURI}$query",
-      clientAddress(request),
       Some(request.getMethod),
     )
     val requestBody = effectSystem.evaluate(request.getInputStream.toByteArray)
@@ -106,13 +103,15 @@ final case class JettyHttpEndpoint[Effect[_]](
       transportContext = Some(request),
       method = Some(HttpMethod.valueOf(request.getMethod)),
       headers = headers,
+      peerId = Some(clientId(request)),
     ).url(request.getRequestURI)
   }
 
-  private def clientAddress(request: HttpServletRequest): String = {
-    val forwardedFor = Option(request.getHeader(HttpHeader.X_FORWARDED_FOR.name))
+  private def clientId(request: HttpServletRequest): String = {
     val address = request.getRemoteAddr
-    Network.address(forwardedFor, address)
+    val forwardedFor = Option(request.getHeader(HttpHeader.X_FORWARDED_FOR.name))
+    val nodeId = Option(request.getHeader(headerNodeId))
+    HttpRequestHandler.clientId(address, forwardedFor, nodeId)
   }
 }
 

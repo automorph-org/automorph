@@ -87,7 +87,7 @@ object JsonRpcProtocol extends ErrorMapping {
         $mapOpenApi,
         $mapOpenRpc,
         message => $codec.encode[automorph.protocol.jsonrpc.Message[${weakTypeOf[Value]}]](message),
-        messageNode => $codec.decode[automorph.protocol.jsonrpc.Message[${weakTypeOf[Value]}]](messageNode),
+        messageValue => $codec.decode[automorph.protocol.jsonrpc.Message[${weakTypeOf[Value]}]](messageValue),
         openRpc => $codec.encode[automorph.schema.OpenRpc](openRpc),
         openApi => $codec.encode[automorph.schema.OpenApi](openApi),
         strings => $codec.encode[List[String]](strings)

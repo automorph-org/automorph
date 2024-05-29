@@ -105,7 +105,7 @@ object JsonRpcProtocol extends ErrorMapping:
     mapOpenRpc: OpenRpc => OpenRpc = identity,
   ): JsonRpcProtocol[Value, Codec, Context] =
     val encodeMessage = (message: Message[Value]) => messageCodec.encode[Message[Value]](message)
-    val decodeMessage = (messageNode: Value) => messageCodec.decode[Message[Value]](messageNode)
+    val decodeMessage = (messageValue: Value) => messageCodec.decode[Message[Value]](messageValue)
     val encodeOpenRpc = (openRpc: OpenRpc) => messageCodec.encode[OpenRpc](openRpc)
     val encodeOpenApi = (openApi: OpenApi) => messageCodec.encode[OpenApi](openApi)
     val encodeStrings = (strings: List[String]) => messageCodec.encode[List[String]](strings)

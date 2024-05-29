@@ -1,11 +1,9 @@
 package automorph.transport.server
 
-import automorph.log.Logging
 import automorph.spi.{EffectSystem, RequestHandler, ServerTransport}
-import automorph.transport.HttpRequestHandler.{RequestData, ResponseData, headerXForwardedFor}
+import automorph.transport.HttpRequestHandler.{RequestData, ResponseData, headerNodeId, headerXForwardedFor}
 import automorph.transport.server.ZioHttpEndpoint.Context
 import automorph.transport.{HttpContext, HttpMethod, HttpRequestHandler, Protocol}
-import automorph.util.Network
 import zio.http.{Body, Handler, Header, Headers, MediaType, Request, Response, Status}
 import zio.{Chunk, IO, http}
 import scala.annotation.unused
@@ -38,15 +36,14 @@ final case class ZioHttpEndpoint[Fault](
   mapException: Throwable => Int = HttpContext.toStatusCode,
   handler: RequestHandler[({ type Effect[A] = IO[Fault, A] })#Effect, Context] =
     RequestHandler.dummy[({ type Effect[A] = IO[Fault, A] })#Effect, Context],
-) extends ServerTransport[({ type Effect[A] = IO[Fault, A] })#Effect, Context, http.RequestHandler[Any, Response]]
-  with Logging {
+) extends ServerTransport[({ type Effect[A] = IO[Fault, A] })#Effect, Context, http.RequestHandler[Any, Response]] {
 
   private lazy val mediaType = MediaType.forContentType(handler.mediaType).getOrElse(
     throw new IllegalStateException(s"Invalid message content type: ${handler.mediaType}")
   )
   private lazy val requestHandler = Handler.fromFunctionZIO(handle)
   private val httpHandler =
-    HttpRequestHandler(receiveRequest, createResponse, Protocol.Http, effectSystem, mapException, handler, logger)
+    HttpRequestHandler(receiveRequest, createResponse, Protocol.Http, effectSystem, mapException, handler)
 
   override def adapter: http.RequestHandler[Any, Response] =
     requestHandler
@@ -70,7 +67,6 @@ final case class ZioHttpEndpoint[Fault](
       getRequestContext(request),
       httpHandler.protocol,
       request.url.toString,
-      clientAddress(request),
       Some(request.method.name),
     )
     val requestBody = request.body.asArray.foldZIO(
@@ -97,6 +93,7 @@ final case class ZioHttpEndpoint[Fault](
       transportContext = Some(request),
       method = Some(HttpMethod.valueOf(request.method.name)),
       headers = request.headers.map(header => header.headerName -> header.renderedValue).toSeq,
+      peerId = Some(clientId(request)),
     ).url(request.url.toString)
 
   private def setResponseContext(response: Response, responseContext: Option[Context]): Response =
@@ -106,10 +103,11 @@ final case class ZioHttpEndpoint[Fault](
       ).getOrElse(Headers.empty)
     )
 
-  private def clientAddress(request: Request): String = {
-    val forwardedFor = request.headers.find(_.headerName == headerXForwardedFor).map(_.renderedValue)
+  private def clientId(request: Request): String = {
     val address = request.remoteAddress.map(_.toString).getOrElse("")
-    Network.address(forwardedFor, address)
+    val forwardedFor = request.headers.find(_.headerName == headerXForwardedFor).map(_.renderedValue)
+    val nodeId = request.headers.find(_.headerName == headerNodeId).map(_.renderedValue)
+    HttpRequestHandler.clientId(address, forwardedFor, nodeId)
   }
 }
 

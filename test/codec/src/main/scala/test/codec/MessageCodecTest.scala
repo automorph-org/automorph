@@ -17,7 +17,7 @@ trait MessageCodecTest extends BaseTest {
 
   def codec: ActualCodec
 
-  implicit def arbitraryNode: Arbitrary[Value]
+  implicit def arbitraryValue: Arbitrary[Value]
 
   private val charset = StandardCharsets.UTF_8
 

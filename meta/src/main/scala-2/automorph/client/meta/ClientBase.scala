@@ -174,7 +174,7 @@ object ClientBase {
               }
 
             // Encode RPC function arguments
-            val argumentNodes = binding.function.parameters.zip(argumentValues).map { case (parameter, argument) =>
+            val encodedArgumentValues = binding.function.parameters.zip(argumentValues).map { case (parameter, argument) =>
               val encodeArgument = binding.argumentEncoders.getOrElse(
                 parameter.name,
                 throw new IllegalStateException("Missing method parameter encoder: " + parameter.name)
@@ -190,8 +190,8 @@ object ClientBase {
             // Perform the RPC call
             client.performCall(
               $mapName(method.getName),
-              argumentNodes,
-              (resultNode, responseContext) => binding.decodeResult(resultNode, responseContext),
+              encodedArgumentValues,
+              (resultValue, responseContext) => binding.decodeResult(resultValue, responseContext),
               requestContext)
           }.getOrElse(throw new UnsupportedOperationException("Invalid method: " + method.getName))
       ).asInstanceOf[$apiType]

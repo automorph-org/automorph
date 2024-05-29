@@ -106,9 +106,9 @@ final private[automorph] case class ServerRequestHandler[Value, Codec <: Message
     logger.debug(s"Processing ${rpcProtocol.name} request", requestProperties)
     bindings.get(rpcRequest.function).map { binding =>
       // Extract bound function argument nodes
-      extractArguments(rpcRequest, binding).map { argumentNodes =>
+      extractArguments(rpcRequest, binding).map { argumentValues =>
         // Decode bound function arguments
-        decodeArguments(argumentNodes, binding)
+        decodeArguments(argumentValues, binding)
       }.map { arguments =>
         // Call bound API method
         binding.call(arguments, context)
@@ -116,12 +116,12 @@ final private[automorph] case class ServerRequestHandler[Value, Codec <: Message
         error => errorResponse(error, rpcRequest.message, responseRequired, requestProperties),
         { result =>
           // Encode bound API method result
-          val contextualResultNode = result.asInstanceOf[Effect[Any]].map { resultValue =>
+          val contextualResultValue = result.asInstanceOf[Effect[Any]].map { resultValue =>
             encodeResult(resultValue, binding)
           }
 
           // Create RPC response
-          resultResponse(contextualResultNode, rpcRequest, requestProperties)
+          resultResponse(contextualResultValue, rpcRequest, requestProperties)
         },
       )
     }.getOrElse {
@@ -179,7 +179,7 @@ final private[automorph] case class ServerRequestHandler[Value, Codec <: Message
   /**
    * Decodes specified remote function argument nodes into values.
    *
-   * @param argumentNodes
+   * @param argumentValues
    *   remote function argument nodes
    * @param binding
    *   remote function binding
@@ -187,16 +187,16 @@ final private[automorph] case class ServerRequestHandler[Value, Codec <: Message
    *   remote function arguments
    */
   private def decodeArguments(
-    argumentNodes: Seq[Option[Value]],
+    argumentValues: Seq[Option[Value]],
     binding: ServerBinding[Value, Effect, Context],
   ): Seq[Any] =
-    binding.function.parameters.zip(argumentNodes).map { case (parameter, argumentNode) =>
+    binding.function.parameters.zip(argumentValues).map { case (parameter, argumentValue) =>
       val decodeArgument = binding.argumentDecoders.getOrElse(
         parameter.name,
         throw new IllegalStateException(s"Missing method parameter decoder: ${parameter.name}"),
       )
-      Try(Option(decodeArgument(argumentNode)).get).recoverWith { case error =>
-        val message = s"${argumentNode.fold("Missing")(_ => "Malformed")} argument: ${parameter.name}"
+      Try(Option(decodeArgument(argumentValue)).get).recoverWith { case error =>
+        val message = s"${argumentValue.fold("Missing")(_ => "Malformed")} argument: ${parameter.name}"
         Failure(InvalidArguments(message, error))
       }.get
     }

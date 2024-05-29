@@ -97,7 +97,7 @@ private[automorph] trait ClientBase[Value, Codec <: MessageCodec[Value], Effect[
             else callArguments.toSeq -> None
 
           // Encode RPC function arguments
-          val argumentNodes = binding.function.parameters.zip(argumentValues).map { (parameter, argument) =>
+          val encodedArgumentValues = binding.function.parameters.zip(argumentValues).map { (parameter, argument) =>
             val encodeArgument = binding.argumentEncoders.getOrElse(
               parameter.name,
               throw new IllegalStateException(s"Missing method parameter encoder: ${parameter.name}"),
@@ -110,8 +110,8 @@ private[automorph] trait ClientBase[Value, Codec <: MessageCodec[Value], Effect[
           // Perform the RPC call
           performCall(
             mapName(method.getName),
-            argumentNodes,
-            (resultNode, responseContext) => binding.decodeResult(resultNode, responseContext),
+            encodedArgumentValues,
+            (resultValue, responseContext) => binding.decodeResult(resultValue, responseContext),
             requestContext,
           )
         }.getOrElse(throw UnsupportedOperationException(s"Invalid method: ${method.getName}")),

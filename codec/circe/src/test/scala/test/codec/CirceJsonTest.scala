@@ -16,7 +16,7 @@ final class CirceJsonTest extends MessageCodecTest with JsonMessageCodecTest {
 
   override lazy val codec: ActualCodec = CirceJsonCodec()
 
-  override lazy val arbitraryNode: Arbitrary[Value] = Arbitrary(
+  override lazy val arbitraryValue: Arbitrary[Value] = Arbitrary(
     Gen.oneOf(
       Gen.const(Json.Null),
       Gen.recursive[Value] { recurse =>

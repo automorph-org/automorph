@@ -38,6 +38,8 @@ import scala.concurrent.duration.Duration
  *   automatically follow redirects if true
  * @param timeout
  *   response timeout
+ * @param peerId
+ *   peer identifier
  * @param transportContext
  *   message properties for specific transport plugin
  * @tparam TransportContext
@@ -56,6 +58,7 @@ final case class HttpContext[TransportContext](
   statusCode: Option[Int] = None,
   followRedirects: Option[Boolean] = None,
   timeout: Option[Duration] = None,
+  peerId: Option[String] = None,
   transportContext: Option[TransportContext] = None,
 ) {
 
@@ -417,6 +420,17 @@ final case class HttpContext[TransportContext](
    */
   def timeout(timeout: Duration): HttpContext[TransportContext] =
     copy(timeout = Some(timeout))
+
+  /**
+   * Set peer identifier property.
+   *
+   * @param peerId
+   *   peer identifier
+   * @return
+   *   HTTP message context
+   */
+  def peerId(peerId: String): HttpContext[TransportContext] =
+    copy(peerId = Some(peerId))
 
   /**
    * Set transport context property.

@@ -110,19 +110,19 @@ private[automorph] object ServerBindingGenerator:
 
     // Create a map of method parameter names to functions decoding method argument node into a value
     //   Map(
-    //     parameterNName -> ((argumentNode: Value) =>
-    //       codec.decode[ParameterNType](argumentNode.getOrElse(codec.encode(None)))
+    //     parameterNName -> ((argumentValue: Value) =>
+    //       codec.decode[ParameterNType](argumentValue.getOrElse(codec.encode(None)))
     //     ...
     //   ): Map[String, Value => Any]
     val argumentDecoders = method.parameters.toList.zip(parameterListOffsets).flatMap((parameters, offset) =>
       parameters.toList.zipWithIndex.flatMap { (parameter, index) =>
         Option.when(offset + index != lastArgumentIndex || !ApiReflection.acceptsContext[Context](ref)(method)) {
           '{
-            ${ Expr(parameter.name) } -> ((argumentNode: Option[Value]) =>
+            ${ Expr(parameter.name) } -> ((argumentValue: Option[Value]) =>
               ${
                 // Decode an argument node if present or empty node if missing into a value
                 val decodeArguments = List(List('{
-                  argumentNode.getOrElse(${ encodeNoneCall.asExprOf[Value] })
+                  argumentValue.getOrElse(${ encodeNoneCall.asExprOf[Value] })
                 }.asTerm))
                 ApiReflection.call(
                   ref.q,

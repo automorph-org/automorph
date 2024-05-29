@@ -15,7 +15,7 @@ final class UpickleMessagePackTest extends MessageCodecTest {
 
   override lazy val codec: ActualCodec = UPickleMessagePackCodec(UpickleMessagePackTest)
 
-  override lazy val arbitraryNode: Arbitrary[Value] = Arbitrary(Gen.recursive[Value] { recurse =>
+  override lazy val arbitraryValue: Arbitrary[Value] = Arbitrary(Gen.recursive[Value] { recurse =>
     Gen.oneOf(
       Gen.const(Null),
       Gen.resultOf[String, Value](Str.apply),

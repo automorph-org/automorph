@@ -19,7 +19,7 @@ trait JacksonTest extends MessageCodecTest {
 
   override lazy val codec: ActualCodec = JacksonCodec(objectMapper)
 
-  override lazy val arbitraryNode: Arbitrary[JsonNode] = {
+  override lazy val arbitraryValue: Arbitrary[JsonNode] = {
     val nodeFactory = JacksonCodec.jsonMapper.getNodeFactory
     Arbitrary(Gen.recursive[JsonNode] { recurse =>
       Gen.oneOf(

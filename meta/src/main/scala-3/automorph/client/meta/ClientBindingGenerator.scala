@@ -124,15 +124,15 @@ private[automorph] object ClientBindingGenerator:
       ref.q
 
     // Create a result decoding function
-    //   (resultNode: Value, responseContext: Context) => codec.decode[ResultType](resultNode)
+    //   (resultValue: Value, responseContext: Context) => codec.decode[ResultType](resultValue)
     //     OR
-    //   (resultNode: Value, responseContext: Context) => RpcResult(
-    //     codec.decode[RpcResultResultType](resultNode),
+    //   (resultValue: Value, responseContext: Context) => RpcResult(
+    //     codec.decode[RpcResultResultType](resultValue),
     //     responseContext
     //   )
     val resultType = ApiReflection.unwrapType[Effect](ref.q)(method.resultType).dealias
     ApiReflection.contextualResult[Context, RpcResult](ref.q)(resultType).map { contextualResultType =>
-      '{ (resultNode: Value, responseContext: Context) =>
+      '{ (resultValue: Value, responseContext: Context) =>
         RpcResult(
           ${
             ApiReflection.call(
@@ -140,17 +140,17 @@ private[automorph] object ClientBindingGenerator:
               codec.asTerm,
               MessageCodec.decodeMethod,
               List(contextualResultType),
-              List(List('{ resultNode }.asTerm)),
+              List(List('{ resultValue }.asTerm)),
             ).asExprOf[Any]
           },
           responseContext,
         )
       }
     }.getOrElse {
-      '{ (resultNode: Value, _: Context) =>
+      '{ (resultValue: Value, _: Context) =>
         ${
           ApiReflection
-            .call(ref.q, codec.asTerm, MessageCodec.decodeMethod, List(resultType), List(List('{ resultNode }.asTerm)))
+            .call(ref.q, codec.asTerm, MessageCodec.decodeMethod, List(resultType), List(List('{ resultValue }.asTerm)))
             .asExprOf[Any]
         }
       }

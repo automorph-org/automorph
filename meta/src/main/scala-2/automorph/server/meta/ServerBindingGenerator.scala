@@ -124,8 +124,8 @@ object ServerBindingGenerator {
 
     // Create a map of method parameter names to functions decoding method argument node into a value
     //   Map(
-    //     parameterNName -> ((argumentNode: Value) =>
-    //       codec.decode[ParameterNType](argumentNode.getOrElse(codec.encode(None)))
+    //     parameterNName -> ((argumentValue: Value) =>
+    //       codec.decode[ParameterNType](argumentValue.getOrElse(codec.encode(None)))
     //     ...
     //   ): Map[String, Value => Any]
     val nodeType = weakTypeOf[Value].dealias
@@ -134,9 +134,9 @@ object ServerBindingGenerator {
         Option.when(offset + index != lastArgumentIndex || !ApiReflection.acceptsContext[C, Context](ref)(method)) {
           q"""
             ${parameter.name} -> (
-              (argumentNode: Option[$nodeType]) =>
+              (argumentValue: Option[$nodeType]) =>
                 // Decode an argument node if present or empty node if missing into a value
-                $codec.decode[${parameter.dataType}](argumentNode.getOrElse($codec.encode(None)))
+                $codec.decode[${parameter.dataType}](argumentValue.getOrElse($codec.encode(None)))
             )
           """
         }

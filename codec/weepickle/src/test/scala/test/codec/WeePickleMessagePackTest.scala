@@ -15,7 +15,7 @@ trait WeePickleMessagePackTest extends MessageCodecTest {
 
   override lazy val codec: ActualCodec = WeePickleMessagePackCodec()
 
-  override lazy val arbitraryNode: Arbitrary[Msg] = Arbitrary(Gen.recursive[Msg] { recurse =>
+  override lazy val arbitraryValue: Arbitrary[Msg] = Arbitrary(Gen.recursive[Msg] { recurse =>
     Gen.oneOf(
       Gen.const(Null),
       Gen.resultOf[String, Value](Str.apply),

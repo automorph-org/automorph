@@ -1,12 +1,10 @@
 package automorph.transport.server
 
-import automorph.log.Logging
 import automorph.spi.{EffectSystem, RequestHandler, ServerTransport}
-import automorph.transport.HttpRequestHandler.{RequestData, ResponseData}
+import automorph.transport.HttpRequestHandler.{RequestData, ResponseData, headerNodeId, headerXForwardedFor}
 import automorph.transport.server.VertxHttpEndpoint.Context
 import automorph.transport.{HttpContext, HttpMethod, HttpRequestHandler, Protocol}
 import automorph.util.Extensions.EffectOps
-import automorph.util.Network
 import io.vertx.core.buffer.Buffer
 import io.vertx.core.http.{HttpHeaders, HttpServerRequest, HttpServerResponse, ServerWebSocket}
 import io.vertx.core.net.SocketAddress
@@ -40,7 +38,7 @@ final case class VertxHttpEndpoint[Effect[_]](
   effectSystem: EffectSystem[Effect],
   mapException: Throwable => Int = HttpContext.toStatusCode,
   handler: RequestHandler[Effect, Context] = RequestHandler.dummy[Effect, Context],
-) extends ServerTransport[Effect, Context, Handler[HttpServerRequest]] with Logging {
+) extends ServerTransport[Effect, Context, Handler[HttpServerRequest]] {
 
   private lazy val requestHandler = new Handler[HttpServerRequest] {
 
@@ -53,7 +51,7 @@ final case class VertxHttpEndpoint[Effect[_]](
   }
 
   private val httpHandler =
-    HttpRequestHandler(receiveRequest, sendResponse, Protocol.Http, effectSystem, mapException, handler, logger)
+    HttpRequestHandler(receiveRequest, sendResponse, Protocol.Http, effectSystem, mapException, handler)
   implicit private val system: EffectSystem[Effect] = effectSystem
 
   override def adapter: Handler[HttpServerRequest] =
@@ -76,7 +74,6 @@ final case class VertxHttpEndpoint[Effect[_]](
       getRequestContext(request),
       httpHandler.protocol,
       request.absoluteURI,
-      clientAddress(request),
       Some(request.method.name),
     )
     lazy val requestBody = effectSystem.evaluate(body.getBytes)
@@ -100,6 +97,7 @@ final case class VertxHttpEndpoint[Effect[_]](
       transportContext = Some(Left(request).withRight[ServerWebSocket]),
       method = Some(HttpMethod.valueOf(request.method.name)),
       headers = headers,
+      peerId = Some(clientId(request)),
     ).url(request.absoluteURI)
   }
 
@@ -108,8 +106,8 @@ final case class VertxHttpEndpoint[Effect[_]](
       current.putHeader(name, value)
     }
 
-  private def clientAddress(request: HttpServerRequest): String =
-    VertxHttpEndpoint.clientAddress(request.headers, request.remoteAddress)
+  private def clientId(request: HttpServerRequest): String =
+    VertxHttpEndpoint.clientId(request.headers, request.remoteAddress)
 }
 
 object VertxHttpEndpoint {
@@ -117,9 +115,10 @@ object VertxHttpEndpoint {
   /** Request context type. */
   type Context = HttpContext[Either[HttpServerRequest, ServerWebSocket]]
 
-  private[automorph] def clientAddress(headers: MultiMap, remoteAddress: SocketAddress): String = {
-    val forwardedFor = Option(headers.get(HttpRequestHandler.headerXForwardedFor))
+  private[automorph] def clientId(headers: MultiMap, remoteAddress: SocketAddress): String = {
     val address = Option(remoteAddress.hostName).orElse(Option(remoteAddress.hostAddress)).getOrElse("")
-    Network.address(forwardedFor, address)
+    val forwardedFor = Option(headers.get(headerXForwardedFor))
+    val nodeId = Option(headers.get(headerNodeId))
+    HttpRequestHandler.clientId(address, forwardedFor, nodeId)
   }
 }

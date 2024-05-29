@@ -1,19 +1,15 @@
 package automorph.transport.websocket.endpoint
 
-import automorph.log.Logging
 import automorph.spi.EffectSystem.Completable
 import automorph.spi.{EffectSystem, RequestHandler, ServerTransport}
-import automorph.transport.HttpRequestHandler.{RequestData, ResponseData}
+import automorph.transport.HttpRequestHandler.{RequestData, ResponseData, headerNodeId}
 import automorph.transport.server.UndertowHttpEndpoint.requestQuery
 import automorph.transport.websocket.endpoint.UndertowWebSocketEndpoint.{ConnectionListener, Context, ResponseCallback}
 import automorph.transport.{HttpContext, HttpMethod, HttpRequestHandler, Protocol}
 import automorph.util.Extensions.{ByteArrayOps, ByteBufferOps, EffectOps, StringOps}
-import automorph.util.Network
 import io.undertow.server.{HttpHandler, HttpServerExchange}
 import io.undertow.util.Headers
-import io.undertow.websockets.core.{
-  AbstractReceiveListener, BufferedBinaryMessage, BufferedTextMessage, WebSocketCallback, WebSocketChannel, WebSockets,
-}
+import io.undertow.websockets.core.{AbstractReceiveListener, BufferedBinaryMessage, BufferedTextMessage, WebSocketCallback, WebSocketChannel, WebSockets}
 import io.undertow.websockets.spi.WebSocketHttpExchange
 import io.undertow.websockets.{WebSocketConnectionCallback, WebSocketProtocolHandshakeHandler}
 import scala.jdk.CollectionConverters.{ListHasAsScala, MapHasAsScala}
@@ -42,7 +38,7 @@ import scala.jdk.CollectionConverters.{ListHasAsScala, MapHasAsScala}
 final case class UndertowWebSocketEndpoint[Effect[_]](
   effectSystem: EffectSystem[Effect],
   handler: RequestHandler[Effect, Context] = RequestHandler.dummy[Effect, Context],
-) extends ServerTransport[Effect, Context, WebSocketConnectionCallback] with Logging {
+) extends ServerTransport[Effect, Context, WebSocketConnectionCallback] {
 
   private lazy val webSocketConnectionCallback = new WebSocketConnectionCallback {
 
@@ -53,7 +49,7 @@ final case class UndertowWebSocketEndpoint[Effect[_]](
     }
   }
   private val webSocketHandler =
-    HttpRequestHandler(receiveRequest, sendResponse, Protocol.WebSocket, effectSystem, _ => 0, handler, logger)
+    HttpRequestHandler(receiveRequest, sendResponse, Protocol.WebSocket, effectSystem, _ => 0, handler)
   implicit private val system: EffectSystem[Effect] = effectSystem
 
   /**
@@ -86,7 +82,6 @@ final case class UndertowWebSocketEndpoint[Effect[_]](
       getRequestContext(exchange),
       webSocketHandler.protocol,
       s"${exchange.getRequestURI}$query",
-      clientAddress(exchange),
       Some(HttpMethod.Get.name),
     )
     val requestBody = effectSystem.successful(body)
@@ -104,14 +99,19 @@ final case class UndertowWebSocketEndpoint[Effect[_]](
     val headers = exchange.getRequestHeaders.asScala.view.mapValues(_.asScala).flatMap { case (name, values) =>
       values.map(value => name -> value)
     }.toSeq
-    HttpContext(transportContext = Some(Right(exchange).withLeft[HttpServerExchange]), headers = headers)
+    HttpContext(
+      transportContext = Some(Right(exchange).withLeft[HttpServerExchange]),
+      headers = headers,
+      peerId = Some(clientId(exchange)),
+    )
       .url(exchange.getRequestURI)
   }
 
-  private def clientAddress(exchange: WebSocketHttpExchange): String = {
-    val forwardedFor = Option(exchange.getRequestHeaders.get(Headers.X_FORWARDED_FOR_STRING)).map(_.get(0))
+  private def clientId(exchange: WebSocketHttpExchange): String = {
     val address = exchange.getPeerConnections.iterator().next().getSourceAddress.toString
-    Network.address(forwardedFor, address)
+    val forwardedFor = Option(exchange.getRequestHeaders.get(Headers.X_FORWARDED_FOR_STRING)).map(_.get(0))
+    val nodeId = Option(exchange.getRequestHeaders.get(headerNodeId)).map(_.get(0))
+    HttpRequestHandler.clientId(address, forwardedFor, nodeId)
   }
 }
 

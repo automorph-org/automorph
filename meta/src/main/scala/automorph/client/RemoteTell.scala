@@ -26,8 +26,8 @@ final private[automorph] case class RemoteTell[Value, Codec <: MessageCodec[Valu
   private val sendMessage: (String, Seq[(String, Value)], Option[Context]) => Effect[Unit],
 ) extends RemoteInvoke[Value, Codec, Effect, Context, Unit] {
 
-  override def invoke(arguments: Seq[(String, Any)], argumentNodes: Seq[Value], requestContext: Context): Effect[Unit] =
-    sendMessage(functionName, arguments.map(_._1).zip(argumentNodes), Some(requestContext))
+  override def invoke(arguments: Seq[(String, Any)], argumentValues: Seq[Value], requestContext: Context): Effect[Unit] =
+    sendMessage(functionName, arguments.map(_._1).zip(argumentValues), Some(requestContext))
 }
 
 private[automorph] object RemoteTell {

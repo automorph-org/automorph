@@ -1,6 +1,5 @@
 package automorph.transport.websocket.endpoint
 
-import automorph.log.Logging
 import automorph.spi.{EffectSystem, RequestHandler, ServerTransport}
 import automorph.transport.HttpRequestHandler.{RequestData, ResponseData}
 import automorph.transport.server.VertxHttpEndpoint
@@ -36,7 +35,7 @@ import scala.jdk.CollectionConverters.ListHasAsScala
 final case class VertxWebSocketEndpoint[Effect[_]](
   effectSystem: EffectSystem[Effect],
   handler: RequestHandler[Effect, Context] = RequestHandler.dummy[Effect, Context],
-) extends ServerTransport[Effect, Context, Handler[ServerWebSocket]] with Logging {
+) extends ServerTransport[Effect, Context, Handler[ServerWebSocket]] {
 
   private lazy val requestHandler = new Handler[ServerWebSocket] {
 
@@ -49,7 +48,7 @@ final case class VertxWebSocketEndpoint[Effect[_]](
   }
 
   private val webSocketHandler =
-    HttpRequestHandler(receiveRequest, sendResponse, Protocol.WebSocket, effectSystem, _ => 0, handler, logger)
+    HttpRequestHandler(receiveRequest, sendResponse, Protocol.WebSocket, effectSystem, _ => 0, handler)
   implicit private val system: EffectSystem[Effect] = effectSystem
 
   override def adapter: Handler[ServerWebSocket] =
@@ -72,7 +71,6 @@ final case class VertxWebSocketEndpoint[Effect[_]](
       getRequestContext(webSocket),
       webSocketHandler.protocol,
       webSocket.uri,
-      clientAddress(webSocket),
       Some(HttpMethod.Get.name),
     )
     lazy val requestBody = effectSystem.evaluate(body.getBytes)
@@ -89,13 +87,17 @@ final case class VertxWebSocketEndpoint[Effect[_]](
 
   private def getRequestContext(webSocket: ServerWebSocket): Context = {
     val headers = webSocket.headers.entries.asScala.map(entry => entry.getKey -> entry.getValue).toSeq
-    HttpContext(transportContext = Some(Right(webSocket).withLeft[HttpServerRequest]), headers = headers).url(
+    HttpContext(
+      transportContext = Some(Right(webSocket).withLeft[HttpServerRequest]),
+      headers = headers,
+      peerId = Some(clientId(webSocket)),
+    ).url(
       webSocket.uri
     )
   }
 
-  private def clientAddress(webSocket: ServerWebSocket): String =
-    VertxHttpEndpoint.clientAddress(webSocket.headers, webSocket.remoteAddress)
+  private def clientId(webSocket: ServerWebSocket): String =
+    VertxHttpEndpoint.clientId(webSocket.headers, webSocket.remoteAddress)
 }
 
 object VertxWebSocketEndpoint {

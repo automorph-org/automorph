@@ -1,6 +1,6 @@
 package automorph.transport
 
-import automorph.log.{LogProperties, Logger, MessageLog}
+import automorph.log.{LogProperties, Logging, MessageLog}
 import automorph.spi.{EffectSystem, RequestHandler}
 import automorph.transport.HttpRequestHandler.{RequestData, ResponseData, contentTypeText}
 import automorph.util.Extensions.{EffectOps, StringOps, ThrowableOps, TryOps}
@@ -14,15 +14,14 @@ final private[automorph] case class HttpRequestHandler[
   Request,
   Response,
   Channel,
-](
+] (
   receiveRequest: Request => (RequestData[Context], Effect[Array[Byte]]),
   sendResponse: (ResponseData[Context], Channel) => Effect[Response],
   protocol: Protocol,
   effectSystem: EffectSystem[Effect],
   mapException: Throwable => Int,
   requestHandler: RequestHandler[Effect, Context],
-  logger: Logger,
-) {
+) extends Logging {
   private val log = MessageLog(logger, protocol.name)
   private val statusOk = 200
   private val statusInternalServerError = 500
@@ -101,24 +100,25 @@ private[automorph] object HttpRequestHandler {
 
   val headerXForwardedFor = "X-Forwarded-For"
   val headerPoll = "RPC-Long-Polling"
-  val headerNodeId = "RPC-Value-Id"
+  val headerNodeId = "RPC-Node-Id"
   val headerCallId = "RPC-Call-Id"
   val contentTypeText = "text/plain"
 
-  final case class RequestData[Context](
+  final case class RequestData[Context <: HttpContext[?]](
     context: Context,
     protocol: Protocol,
     url: String,
-    client: String,
     method: Option[String] = None,
     id: String = Random.id,
   ) {
     lazy val properties: Map[String, String] = ListMap(
       LogProperties.requestId -> id,
-      LogProperties.client -> client,
       LogProperties.protocol -> protocol.toString,
       LogProperties.url -> url,
-    ) ++ method.map(LogProperties.method -> _)
+    ) ++ method.map(LogProperties.method -> _) ++ context.peerId.map(LogProperties.client -> _)
+
+    def client: String =
+      context.peerId.getOrElse("")
   }
 
   final case class ResponseData[Context](
@@ -129,4 +129,24 @@ private[automorph] object HttpRequestHandler {
     client: String,
     id: String,
   )
+
+  /**
+   * Extract client identifier from network address and HTTP headers.
+   *
+   * @param address
+   *   network address
+   * @param forwardedFor
+   *   X-Forwarded-For HTTP header
+   * @param nodeId
+   *   RPC-Node-Id-For HTTP header
+   * @return
+   *   client identifier
+   */
+  def clientId(address: String, forwardedFor: Option[String], nodeId: Option[String]): String = {
+    val finalAddress = forwardedFor.flatMap(_.split(",", 2).headOption).getOrElse {
+      val lastPart = address.split("/", 2).last.replaceAll("/", "")
+      lastPart.split(":").init.mkString(":")
+    }
+    nodeId.map(id => s"$finalAddress/$id").getOrElse(finalAddress)
+  }
 }

@@ -83,9 +83,9 @@ object WebRpcProtocol extends ErrorMapping {
         $mapException,
         $mapOpenApi,
         request => $codec.encode[automorph.protocol.webrpc.Message.Request[${weakTypeOf[Value]}]](request),
-        requestNode => $codec.decode[automorph.protocol.webrpc.Message.Request[${weakTypeOf[Value]}]](requestNode),
+        requestValue => $codec.decode[automorph.protocol.webrpc.Message.Request[${weakTypeOf[Value]}]](requestValue),
         response => $codec.encode[automorph.protocol.webrpc.Message[${weakTypeOf[Value]}]](response),
-        responseNode => $codec.decode[automorph.protocol.webrpc.Message[${weakTypeOf[Value]}]](responseNode),
+        responseValue => $codec.decode[automorph.protocol.webrpc.Message[${weakTypeOf[Value]}]](responseValue),
         openApi => $codec.encode[automorph.schema.OpenApi](openApi),
         string => $codec.encode[String](string)
       )

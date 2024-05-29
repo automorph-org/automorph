@@ -1,16 +1,14 @@
 package automorph.transport.server
 
-import automorph.log.Logging
 import automorph.spi.EffectSystem.Completable
 import automorph.spi.{EffectSystem, RequestHandler, ServerTransport}
-import automorph.transport.HttpRequestHandler.{RequestData, ResponseData}
+import automorph.transport.HttpRequestHandler.{RequestData, ResponseData, headerNodeId}
 import automorph.transport.server.JettyHttpEndpoint.{Context, requestQuery}
 import automorph.transport.server.JettyWebSocketEndpoint.ResponseCallback
 import automorph.transport.{HttpContext, HttpMethod, HttpRequestHandler, Protocol}
 import automorph.util.Extensions.{ByteArrayOps, EffectOps, StringOps}
-import automorph.util.Network
 import org.eclipse.jetty.http.HttpHeader
-import org.eclipse.jetty.websocket.api.{Session, UpgradeRequest, WebSocketAdapter, WriteCallback}
+import org.eclipse.jetty.websocket.api.{Session, WebSocketAdapter, WriteCallback}
 import org.eclipse.jetty.websocket.server.{JettyServerUpgradeRequest, JettyServerUpgradeResponse, JettyWebSocketCreator}
 import scala.jdk.CollectionConverters.{ListHasAsScala, MapHasAsScala}
 
@@ -41,7 +39,7 @@ final case class JettyWebSocketEndpoint[Effect[_]](
   effectSystem: EffectSystem[Effect],
   mapException: Throwable => Int = HttpContext.toStatusCode,
   handler: RequestHandler[Effect, Context] = RequestHandler.dummy[Effect, Context],
-) extends ServerTransport[Effect, Context, WebSocketAdapter] with Logging {
+) extends ServerTransport[Effect, Context, WebSocketAdapter] {
   private lazy val webSocketAdapter = new WebSocketAdapter {
     implicit private val system: EffectSystem[Effect] = effectSystem
 
@@ -61,7 +59,7 @@ final case class JettyWebSocketEndpoint[Effect[_]](
       adapter
   }
   private val webSocketHandler =
-    HttpRequestHandler(receiveRequest, sendResponse, Protocol.WebSocket, effectSystem, mapException, handler, logger)
+    HttpRequestHandler(receiveRequest, sendResponse, Protocol.WebSocket, effectSystem, mapException, handler)
   implicit private val system: EffectSystem[Effect] = effectSystem
 
   /** Jetty WebSocket creator. */
@@ -85,10 +83,9 @@ final case class JettyWebSocketEndpoint[Effect[_]](
     val request = session.getUpgradeRequest
     val query = requestQuery(request.getQueryString)
     val requestData = RequestData(
-      getRequestContext(request),
+      getRequestContext(session),
       webSocketHandler.protocol,
       s"${request.getRequestURI.toString}$query",
-      clientAddress(session),
       Some(request.getMethod),
     )
     val requestBody = effectSystem.successful(body)
@@ -102,18 +99,25 @@ final case class JettyWebSocketEndpoint[Effect[_]](
       completable.effect
     }
 
-  private def getRequestContext(request: UpgradeRequest): Context = {
+  private def getRequestContext(session: Session): Context = {
+    val request = session.getUpgradeRequest
     val headers = request.getHeaders.asScala.flatMap { case (name, values) =>
       values.asScala.map(name -> _)
     }.toSeq
-    HttpContext(transportContext = None, method = Some(HttpMethod.valueOf(request.getMethod)), headers = headers)
+    HttpContext(
+      transportContext = None,
+      method = Some(HttpMethod.valueOf(request.getMethod)),
+      headers = headers,
+      peerId = Some(clientId(session)),
+    )
       .url(request.getRequestURI)
   }
 
-  private def clientAddress(session: Session): String = {
-    val forwardedFor = Option(session.getUpgradeRequest.getHeader(HttpHeader.X_FORWARDED_FOR.name))
+  private def clientId(session: Session): String = {
     val address = session.getRemoteAddress.toString
-    Network.address(forwardedFor, address)
+    val forwardedFor = Option(session.getUpgradeRequest.getHeader(HttpHeader.X_FORWARDED_FOR.name))
+    val nodeId = Option(session.getUpgradeRequest.getHeader(headerNodeId))
+    HttpRequestHandler.clientId(address, forwardedFor, nodeId)
   }
 }
 

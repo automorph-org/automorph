@@ -1,6 +1,5 @@
 package automorph.transport.server
 
-import automorph.log.Logging
 import automorph.spi.{EffectSystem, RequestHandler, ServerTransport}
 import automorph.transport.HttpRequestHandler.{RequestData, ResponseData}
 import automorph.transport.server.TapirHttpEndpoint.{
@@ -53,7 +52,7 @@ final case class TapirHttpEndpoint[Effect[_]](
   baseUrl: String = "http://localhost",
   mapException: Throwable => Int = HttpContext.toStatusCode,
   handler: RequestHandler[Effect, Context] = RequestHandler.dummy[Effect, Context],
-) extends ServerTransport[Effect, Context, Adapter[Effect]] with Logging {
+) extends ServerTransport[Effect, Context, Adapter[Effect]] {
 
   private lazy val mediaType = MediaType.parse(handler.mediaType).fold(
     error =>
@@ -68,16 +67,14 @@ final case class TapirHttpEndpoint[Effect[_]](
   private val allowedMethod = method.map(httpMethod => Method(httpMethod.name))
   private val prefixPaths = pathComponents(pathPrefix)
   private val baseContext = HttpContext[Unit]().url(baseUrl)
-  private val httpHandler =
-    HttpRequestHandler(
-      receiveRequest(effectSystem),
-      createResponse(effectSystem),
-      Protocol.Http,
-      effectSystem,
-      mapException,
-      handler,
-      logger,
-    )
+  private val httpHandler = HttpRequestHandler(
+    receiveRequest(effectSystem),
+    createResponse(effectSystem),
+    Protocol.Http,
+    effectSystem,
+    mapException,
+    handler,
+  )
   implicit private val system: EffectSystem[Effect] = effectSystem
 
   override def adapter: Adapter[Effect] = {
@@ -129,7 +126,6 @@ object TapirHttpEndpoint {
       requestContext,
       Protocol.Http,
       requestContext.url.map(_.toString).getOrElse(""),
-      "",
       method.map(_.name),
     )
     val requestBody = effectSystem.successful(request._1)
@@ -154,6 +150,7 @@ object TapirHttpEndpoint {
       .path(urlPath(paths))
       .parameters(queryParams.toSeq*)
       .headers(headers.map(header => header.name -> header.value)*)
+      .peerId(clientId(request))
     method.map(requestContext.method(_)).getOrElse(requestContext)
   }
 
@@ -161,6 +158,13 @@ object TapirHttpEndpoint {
     response.context.toList.flatMap(_.headers).map { case (name, value) =>
       Header(name, value)
     }
+
+  private def clientId(request: Request): String = {
+    val (_, _, _, headers) = request
+    val forwardedFor = headers.find(_.name == HttpRequestHandler.headerXForwardedFor).map(_.value)
+    val nodeId = headers.find(_.name == HttpRequestHandler.headerNodeId).map(_.value)
+    HttpRequestHandler.clientId("", forwardedFor, nodeId)
+  }
 
   private def urlPath(paths: List[String]): String =
     s"/${paths.mkString("/")}"

@@ -141,23 +141,23 @@ object ClientBindingGenerator {
     import ref.c.universe.Quasiquote
 
     // Create a result decoding function
-    //   (resultNode: Value, responseContext: Context) => codec.decode[ResultType](resultNode)
+    //   (resultValue: Value, responseContext: Context) => codec.decode[ResultType](resultValue)
     //     OR
-    //   (resultNode: Value, responseContext: Context) => RpcResult(
-    //     codec.decode[RpcResultResultType](resultNode),
+    //   (resultValue: Value, responseContext: Context) => RpcResult(
+    //     codec.decode[RpcResultResultType](resultValue),
     //     responseContext
     //   )
     val resultType = ApiReflection.unwrapType[C, Effect[?]](ref.c)(method.resultType).dealias
     ApiReflection.contextualResult[C, Context, RpcResult[?, ?]](ref.c)(resultType).map { contextualResultType =>
       ref.c.Expr[(Value, Context) => Any](q"""
-        (resultNode: $nodeType, responseContext: $contextType) => automorph.RpcResult(
-          $codec.decode[$contextualResultType](resultNode),
+        (resultValue: $nodeType, responseContext: $contextType) => automorph.RpcResult(
+          $codec.decode[$contextualResultType](resultValue),
           responseContext
         )
       """)
     }.getOrElse {
       ref.c.Expr[(Value, Context) => Any](q"""
-        (resultNode: $nodeType, _: $contextType) => $codec.decode[$resultType](resultNode)
+        (resultValue: $nodeType, _: $contextType) => $codec.decode[$resultType](resultValue)
       """)
     }
   }

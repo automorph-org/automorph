@@ -98,9 +98,9 @@ object WebRpcProtocol extends ErrorMapping:
     mapOpenApi: OpenApi => OpenApi = identity,
   ): WebRpcProtocol[Value, Codec, Context] =
     val encodeRequest = (value: Message.Request[Value]) => messageCodec.encode[Message.Request[Value]](value)
-    val decodeRequest = (requestNode: Value) => messageCodec.decode[Message.Request[Value]](requestNode)
+    val decodeRequest = (requestValue: Value) => messageCodec.decode[Message.Request[Value]](requestValue)
     val encodeResponse = (value: Message[Value]) => messageCodec.encode[Message[Value]](value)
-    val decodeResponse = (responseNode: Value) => messageCodec.decode[Message[Value]](responseNode)
+    val decodeResponse = (responseValue: Value) => messageCodec.decode[Message[Value]](responseValue)
     val encodeOpenApi = (openApi: OpenApi) => messageCodec.encode[OpenApi](openApi)
     val encodeString = (string: String) => messageCodec.encode[String](string)
     WebRpcProtocol(

@@ -40,7 +40,7 @@ private[automorph] trait RemoteInvoke[Value, Codec <: MessageCodec[Value], Effec
    * @return
    *   result value
    */
-  def invoke(arguments: Seq[(String, Any)], argumentNodes: Seq[Value], requestContext: Context): Effect[Result]
+  def invoke(arguments: Seq[(String, Any)], argumentValues: Seq[Value], requestContext: Context): Effect[Result]
 
   /**
    * Invokes the remote function using specified argument names and values.
@@ -502,14 +502,14 @@ object RemoteInvoke {
     val contextType = weakTypeOf[Context]
     ApiReflection.contextualResult[c.type, Context, RpcResult[?, ?]](c)(resultType).map { contextualResultType =>
       c.Expr[(Value, Context) => Result](q"""
-          (resultNode: $nodeType, responseContext: $contextType) => RpcResult(
-            $codec.decode[$contextualResultType](resultNode),
+          (resultValue: $nodeType, responseContext: $contextType) => RpcResult(
+            $codec.decode[$contextualResultType](resultValue),
             responseContext
           )
         """)
     }.getOrElse {
       c.Expr[(Value, Context) => Result](q"""
-          (resultNode: $nodeType, _: $contextType) => $codec.decode[$resultType](resultNode)
+          (resultValue: $nodeType, _: $contextType) => $codec.decode[$resultType](resultValue)
         """)
     }
   }

@@ -3,21 +3,18 @@ package automorph.transport.server
 import akka.http.scaladsl.model.StatusCodes.InternalServerError
 import akka.http.scaladsl.model.headers.RawHeader
 import akka.http.scaladsl.model.{ContentType, HttpEntity, HttpRequest, HttpResponse, RemoteAddress, StatusCode}
-import akka.http.scaladsl.server.Directives.{
-  complete, extractClientIP, extractExecutionContext, extractMaterializer, extractRequest, onComplete,
-}
+import akka.http.scaladsl.server.Directives.{complete, extractClientIP, extractExecutionContext, extractMaterializer, extractRequest, onComplete}
 import akka.http.scaladsl.server.Route
 import akka.stream.Materializer
-import automorph.log.Logging
 import automorph.spi.{EffectSystem, RequestHandler, ServerTransport}
-import automorph.transport.HttpRequestHandler.{RequestData, ResponseData}
+import automorph.transport.HttpRequestHandler.{RequestData, ResponseData, headerNodeId}
 import automorph.transport.server.AkkaHttpEndpoint.Context
 import automorph.transport.{HttpContext, HttpMethod, HttpRequestHandler, Protocol}
 import automorph.util.Extensions.{EffectOps, ThrowableOps}
-import automorph.util.Network
 import scala.annotation.unused
 import scala.concurrent.duration.{DurationInt, FiniteDuration}
 import scala.concurrent.{ExecutionContext, Future, Promise}
+import scala.jdk.OptionConverters.RichOptional
 
 /**
  * Akka HTTP endpoint message transport plugin.
@@ -49,7 +46,7 @@ final case class AkkaHttpEndpoint[Effect[_]](
   mapException: Throwable => Int = HttpContext.toStatusCode,
   readTimeout: FiniteDuration = 30.seconds,
   handler: RequestHandler[Effect, Context] = RequestHandler.dummy[Effect, Context],
-) extends ServerTransport[Effect, Context, Route] with Logging {
+) extends ServerTransport[Effect, Context, Route] {
 
   private lazy val contentType = ContentType.parse(handler.mediaType).swap.map { errors =>
     new IllegalStateException(s"Invalid message content type: ${errors.mkString("\n")}")
@@ -68,7 +65,7 @@ final case class AkkaHttpEndpoint[Effect[_]](
       }
     }
   private val httpHandler =
-    HttpRequestHandler(receiveRequest, createResponse, Protocol.Http, effectSystem, mapException, handler, logger)
+    HttpRequestHandler(receiveRequest, createResponse, Protocol.Http, effectSystem, mapException, handler)
   implicit private val system: EffectSystem[Effect] = effectSystem
 
   def adapter: Route =
@@ -103,10 +100,9 @@ final case class AkkaHttpEndpoint[Effect[_]](
   ): (RequestData[Context], Effect[Array[Byte]]) = {
     val (request, requestEntity, remoteAddress) = incomingRequest
     val requestData = RequestData(
-      getRequestContext(request),
+      getRequestContext(request, remoteAddress),
       httpHandler.protocol,
       request.uri.toString,
-      clientAddress(remoteAddress),
       Some(request.method.value),
     )
     val requestBody = effectSystem.evaluate(requestEntity.data.toArray[Byte])
@@ -120,22 +116,25 @@ final case class AkkaHttpEndpoint[Effect[_]](
         .withEntity(contentType, responseData.body)
     )
 
-  private def getRequestContext(request: HttpRequest): Context =
+  private def getRequestContext(request: HttpRequest, remoteAddress: RemoteAddress): Context =
     HttpContext(
       transportContext = Some(request),
       method = Some(HttpMethod.valueOf(request.method.value)),
       headers = request.headers.map(header => header.name -> header.value),
+      peerId = Some(clientId(remoteAddress, request)),
     ).url(request.uri.toString)
 
   private def createResponseContext(response: HttpResponse, responseContext: Option[Context]): HttpResponse =
     response.withHeaders(responseContext.toSeq.flatMap(_.headers).map { case (name, value) => RawHeader(name, value) })
 
-  private def clientAddress(remoteAddress: RemoteAddress): String =
-    remoteAddress.toOption
-      .flatMap(address => Option(address.getHostAddress).map(Network.address(None, _))).getOrElse("")
+  private def clientId(remoteAddress: RemoteAddress, request: HttpRequest): String = {
+    val address = remoteAddress.toOption.flatMap(address => Option(address.getHostAddress)).getOrElse("")
+    val nodeId = request.getHeader(headerNodeId).toScala.map(_.value)
+    HttpRequestHandler.clientId(address, None, nodeId)
+  }
 }
 
-object AkkaHttpEndpoint extends Logging {
+object AkkaHttpEndpoint {
 
   /** Request context type. */
   type Context = HttpContext[HttpRequest]

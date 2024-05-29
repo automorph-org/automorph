@@ -13,7 +13,7 @@ final class PlayJsonTest extends JsonMessageCodecTest {
 
   override lazy val codec: ActualCodec = PlayJsonCodec()
 
-  override lazy val arbitraryNode: Arbitrary[JsValue] = Arbitrary(Gen.recursive[JsValue] { recurse =>
+  override lazy val arbitraryValue: Arbitrary[JsValue] = Arbitrary(Gen.recursive[JsValue] { recurse =>
     Gen.oneOf(
       Gen.const(JsNull),
       Gen.resultOf[String, JsValue](JsString.apply),
