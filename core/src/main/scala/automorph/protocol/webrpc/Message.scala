@@ -11,10 +11,10 @@ import scala.collection.immutable.ListMap
  *   succesful method call result value
  * @param error
  *   failed method call error details
- * @tparam Node
+ * @tparam Value
  *   message node type
  */
-final case class Message[Node](result: Option[Node], error: Option[MessageError]) {
+final case class Message[Value](result: Option[Value], error: Option[MessageError]) {
 
   /** Message type. */
   lazy val messageType: MessageType = error.map(_ => MessageType.Error)
@@ -29,7 +29,7 @@ final case class Message[Node](result: Option[Node], error: Option[MessageError]
 object Message {
 
   /** Request parameters type. */
-  type Request[Node] = Map[String, Node]
+  type Request[Value] = Map[String, Value]
 
   private[automorph] val result = "result"
   private[automorph] val error = "error"

@@ -8,7 +8,7 @@ import scala.reflect.macros.blackbox
 /**
  * Server API method bindings layer.
  *
- * @tparam Node
+ * @tparam Value
  *   message node type
  * @tparam Codec
  *   message codec plugin type
@@ -19,9 +19,9 @@ import scala.reflect.macros.blackbox
  * @tparam Endpoint
  *   transport layer transport type
  */
-private[automorph] trait ServerBase[Node, Codec <: MessageCodec[Node], Effect[_], Context, Endpoint] {
+private[automorph] trait ServerBase[Value, Codec <: MessageCodec[Value], Effect[_], Context, Endpoint] {
 
-  def rpcProtocol: RpcProtocol[Node, Codec, Context]
+  def rpcProtocol: RpcProtocol[Value, Codec, Context]
 
   def transport: ServerTransport[Effect, Context, Endpoint]
 
@@ -50,8 +50,8 @@ private[automorph] trait ServerBase[Node, Codec <: MessageCodec[Node], Effect[_]
    * @throws java.lang.IllegalArgumentException
    *   if invalid public methods are found in the API type
    */
-  def service[Api <: AnyRef](api: Api): RpcServer[Node, Codec, Effect, Context, Endpoint] =
-    macro ServerBase.serviceMacro[Node, Codec, Effect, Context, Endpoint, Api]
+  def service[Api <: AnyRef](api: Api): RpcServer[Value, Codec, Effect, Context, Endpoint] =
+    macro ServerBase.serviceMacro[Value, Codec, Effect, Context, Endpoint, Api]
 
   /**
    * Creates a copy of this server with RPC bindings for all public methods of the specified API instance.
@@ -84,48 +84,48 @@ private[automorph] trait ServerBase[Node, Codec <: MessageCodec[Node], Effect[_]
    */
   def service[Api <: AnyRef](
     api: Api, mapName: String => Iterable[String]
-  ): RpcServer[Node, Codec, Effect, Context, Endpoint] =
-    macro ServerBase.serviceMapNameMacro[Node, Codec, Effect, Context, Endpoint, Api]
+  ): RpcServer[Value, Codec, Effect, Context, Endpoint] =
+    macro ServerBase.serviceMapNameMacro[Value, Codec, Effect, Context, Endpoint, Api]
 }
 
 object ServerBase {
 
-  def serviceMacro[Node, Codec <: MessageCodec[Node], Effect[_], Context, Endpoint, Api <: AnyRef](c: blackbox.Context)(
+  def serviceMacro[Value, Codec <: MessageCodec[Value], Effect[_], Context, Endpoint, Api <: AnyRef](c: blackbox.Context)(
     api: c.Expr[Api]
   )(implicit
-    nodeType: c.WeakTypeTag[Node],
+    nodeType: c.WeakTypeTag[Value],
     codecType: c.WeakTypeTag[Codec],
     effectType: c.WeakTypeTag[Effect[?]],
     contextType: c.WeakTypeTag[Context],
     adapterType: c.WeakTypeTag[Endpoint],
     apiType: c.WeakTypeTag[Api],
-  ): c.Expr[RpcServer[Node, Codec, Effect, Context, Endpoint]] = {
+  ): c.Expr[RpcServer[Value, Codec, Effect, Context, Endpoint]] = {
     import c.universe.Quasiquote
     Seq(nodeType, codecType, effectType, contextType, adapterType, apiType)
 
     val mapName = c.Expr[String => Seq[String]](q"""
       (name: String) => Seq(name)
     """)
-    serviceMapNameMacro[Node, Codec, Effect, Context, Endpoint, Api](c)(api, mapName)
+    serviceMapNameMacro[Value, Codec, Effect, Context, Endpoint, Api](c)(api, mapName)
   }
 
-  def serviceMapNameMacro[Node, Codec <: MessageCodec[Node], Effect[_], Context, Endpoint, Api <: AnyRef](
+  def serviceMapNameMacro[Value, Codec <: MessageCodec[Value], Effect[_], Context, Endpoint, Api <: AnyRef](
     c: blackbox.Context
   )(
     api: c.Expr[Api], mapName: c.Expr[String => Iterable[String]]
   )(implicit
-    nodeType: c.WeakTypeTag[Node],
+    nodeType: c.WeakTypeTag[Value],
     codecType: c.WeakTypeTag[Codec],
     effectType: c.WeakTypeTag[Effect[?]],
     contextType: c.WeakTypeTag[Context],
     adapterType: c.WeakTypeTag[Endpoint],
     apiType: c.WeakTypeTag[Api],
-  ): c.Expr[RpcServer[Node, Codec, Effect, Context, Endpoint]] = {
+  ): c.Expr[RpcServer[Value, Codec, Effect, Context, Endpoint]] = {
     import c.universe.Quasiquote
     Seq(adapterType)
 
     // This server needs to be assigned to a stable identifier due to macro expansion limitations
-    c.Expr[RpcServer[Node, Codec, Effect, Context, Endpoint]](q"""
+    c.Expr[RpcServer[Value, Codec, Effect, Context, Endpoint]](q"""
       import automorph.server.ServerBinding
       import automorph.server.meta.ServerBindingGenerator
 

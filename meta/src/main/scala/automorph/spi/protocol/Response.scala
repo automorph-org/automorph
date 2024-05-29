@@ -13,13 +13,13 @@ import scala.util.Try
  *   RPC message
  * @param id
  *   request correlation identifier
- * @tparam Node
+ * @tparam Value
  *   message node type
  * @tparam Content
  *   protocol-specific message content type
  */
-final case class Response[Node, Content](
-  result: Try[Node],
+final case class Response[Value, Content](
+  result: Try[Value],
   message: Message[Content],
   id: String,
 )

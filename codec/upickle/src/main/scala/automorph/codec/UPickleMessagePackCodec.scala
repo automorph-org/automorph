@@ -14,7 +14,7 @@ import upack.Msg
  * @see
  *   [[https://github.com/com-lihaoyi/upickle Library documentation]]
  * @see
- *   [[https://com-lihaoyi.github.io/upickle/#uPack Node type]]
+ *   [[https://com-lihaoyi.github.io/upickle/#uPack Value type]]
  * @constructor
  *   Creates a uPickle codec plugin using MessagePack as message format.
  * @param config
@@ -44,7 +44,7 @@ final case class UPickleMessagePackCodec[Config <: MessagePackConfig](
 object UPickleMessagePackCodec {
 
   /** Message node type. */
-  type Node = Msg
+  type Value = Msg
 
   /** uPickle reader and writer instances providing basic null-safe data types support for MessagePack format. */
   trait MessagePackConfig extends UPickleNullSafeConfig {

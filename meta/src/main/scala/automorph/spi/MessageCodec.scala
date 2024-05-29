@@ -10,10 +10,10 @@ import automorph.spi.codec.MessageCodecMeta
  * The underlying data format must support arbitrarily nested structures of basic data types. Given library must provide
  * intermediate representation of structured data (i.e. document object model).
  *
- * @tparam Node
+ * @tparam Value
  *   message format node type
  */
-trait MessageCodec[Node] extends MessageCodecMeta[Node] {
+trait MessageCodec[Value] extends MessageCodecMeta[Value] {
 
   /** Message format media (MIME) type. */
   def mediaType: String
@@ -26,7 +26,7 @@ trait MessageCodec[Node] extends MessageCodecMeta[Node] {
    * @return
    *   binary data in the specific codec
    */
-  def serialize(node: Node): Array[Byte]
+  def serialize(node: Value): Array[Byte]
 
   /**
    * Deserializes a node from binary data.
@@ -36,7 +36,7 @@ trait MessageCodec[Node] extends MessageCodecMeta[Node] {
    * @return
    *   node
    */
-  def deserialize(data: Array[Byte]): Node
+  def deserialize(data: Array[Byte]): Value
 
   /**
    * Formats a node as human-readable text.
@@ -46,7 +46,7 @@ trait MessageCodec[Node] extends MessageCodecMeta[Node] {
    * @return
    *   node in human-readable textual form
    */
-  def text(node: Node): String
+  def text(node: Value): String
 }
 
 private[automorph] object MessageCodec {

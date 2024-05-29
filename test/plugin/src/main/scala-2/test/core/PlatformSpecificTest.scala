@@ -31,7 +31,7 @@ trait PlatformSpecificTest extends ProtocolCodecTest {
       Json.writes
     }
     val codec = PlayJsonCodec()
-    val protocol = JsonRpcProtocol[PlayJsonCodec.Node, codec.type, Context](codec)
+    val protocol = JsonRpcProtocol[PlayJsonCodec.Value, codec.type, Context](codec)
     val id = fixtureId(protocol)
     val server = RpcServer.transport(serverTransport(id)).rpcProtocol(protocol).discovery(true)
       .service(simpleApi, mapName).service(complexApi)
@@ -57,7 +57,7 @@ trait PlatformSpecificTest extends ProtocolCodecTest {
       )
     )
     val codec = Json4sNativeJsonCodec(formats)
-    val protocol = JsonRpcProtocol[Json4sNativeJsonCodec.Node, codec.type, Context](codec)
+    val protocol = JsonRpcProtocol[Json4sNativeJsonCodec.Value, codec.type, Context](codec)
     val id = fixtureId(protocol)
     val server = RpcServer.transport(serverTransport(id)).rpcProtocol(protocol).discovery(true)
       .service(simpleApi, mapName).service(complexApi)

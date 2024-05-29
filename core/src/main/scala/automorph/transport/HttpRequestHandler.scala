@@ -101,7 +101,7 @@ private[automorph] object HttpRequestHandler {
 
   val headerXForwardedFor = "X-Forwarded-For"
   val headerPoll = "RPC-Long-Polling"
-  val headerNodeId = "RPC-Node-Id"
+  val headerNodeId = "RPC-Value-Id"
   val headerCallId = "RPC-Call-Id"
   val contentTypeText = "text/plain"
 

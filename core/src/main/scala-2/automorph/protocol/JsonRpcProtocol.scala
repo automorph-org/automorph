@@ -39,26 +39,26 @@ import scala.reflect.macros.blackbox
  *   converts an OpenAPI schema to message format node
  * @param encodeStrings
  *   converts a list of strings to message format node
- * @tparam Node
+ * @tparam Value
  *   message node type
  * @tparam Codec
  *   message codec plugin type
  * @tparam Context
  *   RPC message context type
  */
-final case class JsonRpcProtocol[Node, Codec <: MessageCodec[Node], Context](
+final case class JsonRpcProtocol[Value, Codec <: MessageCodec[Value], Context](
   messageCodec: Codec,
   mapError: (String, Int) => Throwable = JsonRpcProtocol.mapError,
   mapException: Throwable => ErrorType = JsonRpcProtocol.mapException,
   namedArguments: Boolean = true,
   mapOpenApi: OpenApi => OpenApi = identity,
   mapOpenRpc: OpenRpc => OpenRpc = identity,
-  protected val encodeMessage: Message[Node] => Node,
-  protected val decodeMessage: Node => Message[Node],
-  protected val encodeOpenRpc: OpenRpc => Node,
-  protected val encodeOpenApi: OpenApi => Node,
-  protected val encodeStrings: List[String] => Node,
-) extends JsonRpcBase[Node, Codec, Context] with RpcProtocol[Node, Codec, Context]
+  protected val encodeMessage: Message[Value] => Value,
+  protected val decodeMessage: Value => Message[Value],
+  protected val encodeOpenRpc: OpenRpc => Value,
+  protected val encodeOpenApi: OpenApi => Value,
+  protected val encodeStrings: List[String] => Value,
+) extends JsonRpcBase[Value, Codec, Context] with RpcProtocol[Value, Codec, Context]
 
 object JsonRpcProtocol extends ErrorMapping {
 
@@ -68,17 +68,17 @@ object JsonRpcProtocol extends ErrorMapping {
   /** Service discovery method providing API schema in OpenAPI format. */
   val openApiFunction: String = "api.discover"
 
-  def applyMacro[Node: c.WeakTypeTag, Codec <: MessageCodec[Node], Context](c: blackbox.Context)(
+  def applyMacro[Value: c.WeakTypeTag, Codec <: MessageCodec[Value], Context](c: blackbox.Context)(
     codec: c.Expr[Codec],
     mapError: c.Expr[(String, Int) => Throwable],
     mapException: c.Expr[Throwable => ErrorType],
     namedArguments: c.Expr[Boolean],
     mapOpenApi: c.Expr[OpenApi => OpenApi],
     mapOpenRpc: c.Expr[OpenRpc => OpenRpc],
-  ): c.Expr[JsonRpcProtocol[Node, Codec, Context]] = {
+  ): c.Expr[JsonRpcProtocol[Value, Codec, Context]] = {
     import c.universe.{Quasiquote, weakTypeOf}
 
-    c.Expr[JsonRpcProtocol[Node, Codec, Context]](q"""
+    c.Expr[JsonRpcProtocol[Value, Codec, Context]](q"""
       new automorph.protocol.JsonRpcProtocol(
         $codec,
         $mapError,
@@ -86,8 +86,8 @@ object JsonRpcProtocol extends ErrorMapping {
         $namedArguments,
         $mapOpenApi,
         $mapOpenRpc,
-        message => $codec.encode[automorph.protocol.jsonrpc.Message[${weakTypeOf[Node]}]](message),
-        messageNode => $codec.decode[automorph.protocol.jsonrpc.Message[${weakTypeOf[Node]}]](messageNode),
+        message => $codec.encode[automorph.protocol.jsonrpc.Message[${weakTypeOf[Value]}]](message),
+        messageNode => $codec.decode[automorph.protocol.jsonrpc.Message[${weakTypeOf[Value]}]](messageNode),
         openRpc => $codec.encode[automorph.schema.OpenRpc](openRpc),
         openApi => $codec.encode[automorph.schema.OpenApi](openApi),
         strings => $codec.encode[List[String]](strings)
@@ -95,12 +95,12 @@ object JsonRpcProtocol extends ErrorMapping {
     """)
   }
 
-  def applyDefaultsMacro[Node, Codec <: MessageCodec[Node], Context](
+  def applyDefaultsMacro[Value, Codec <: MessageCodec[Value], Context](
     c: blackbox.Context
-  )(codec: c.Expr[Codec]): c.Expr[JsonRpcProtocol[Node, Codec, Context]] = {
+  )(codec: c.Expr[Codec]): c.Expr[JsonRpcProtocol[Value, Codec, Context]] = {
     import c.universe.Quasiquote
 
-    c.Expr[JsonRpcProtocol[Node, Codec, Context]](q"""
+    c.Expr[JsonRpcProtocol[Value, Codec, Context]](q"""
       automorph.protocol.JsonRpcProtocol(
         $codec,
         automorph.protocol.JsonRpcProtocol.mapError,
@@ -133,7 +133,7 @@ object JsonRpcProtocol extends ErrorMapping {
    *   transforms generated OpenRPC schema
    * @param mapOpenApi
    *   transforms generated OpenAPI schema
-   * @tparam Node
+   * @tparam Value
    *   message node type
    * @tparam Codec
    *   message codec plugin type
@@ -142,15 +142,15 @@ object JsonRpcProtocol extends ErrorMapping {
    * @return
    *   JSON-RPC protocol plugin
    */
-  def apply[Node, Codec <: MessageCodec[Node], Context](
+  def apply[Value, Codec <: MessageCodec[Value], Context](
     codec: Codec,
     mapError: (String, Int) => Throwable,
     mapException: Throwable => ErrorType,
     namedArguments: Boolean,
     mapOpenApi: OpenApi => OpenApi,
     mapOpenRpc: OpenRpc => OpenRpc,
-  ): JsonRpcProtocol[Node, Codec, Context] =
-    macro applyMacro[Node, Codec, Context]
+  ): JsonRpcProtocol[Value, Codec, Context] =
+    macro applyMacro[Value, Codec, Context]
 
   /**
    * Creates a JSON-RPC protocol plugin.
@@ -163,7 +163,7 @@ object JsonRpcProtocol extends ErrorMapping {
    *   [[https://www.jsonrpc.org/specification JSON-RPC protocol specification]]
    * @param codec
    *   message codec plugin
-   * @tparam Node
+   * @tparam Value
    *   message node type
    * @tparam Codec
    *   message codec plugin type
@@ -172,6 +172,6 @@ object JsonRpcProtocol extends ErrorMapping {
    * @return
    *   JSON-RPC protocol plugin
    */
-  def apply[Node, Codec <: MessageCodec[Node], Context](codec: Codec): JsonRpcProtocol[Node, Codec, Context] =
-    macro applyDefaultsMacro[Node, Codec, Context]
+  def apply[Value, Codec <: MessageCodec[Value], Context](codec: Codec): JsonRpcProtocol[Value, Codec, Context] =
+    macro applyDefaultsMacro[Value, Codec, Context]
 }

@@ -11,10 +11,10 @@ import automorph.RpcFunction
  *   RPC function description
  * @param describe
  *   creates API description for specified RPC functions and RPC request metadata
- * @tparam Node
+ * @tparam Value
  *   message node type
  */
-final case class ApiSchema[Node](
+final case class ApiSchema[Value](
   function: RpcFunction,
-  describe: Iterable[RpcFunction] => Node,
+  describe: Iterable[RpcFunction] => Value,
 )

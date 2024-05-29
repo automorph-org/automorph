@@ -8,7 +8,7 @@ import test.api.{Enum, Record, Structure}
 
 final class PlayJsonTest extends JsonMessageCodecTest {
 
-  type Node = JsValue
+  type Value = JsValue
   type ActualCodec = PlayJsonCodec
 
   override lazy val codec: ActualCodec = PlayJsonCodec()

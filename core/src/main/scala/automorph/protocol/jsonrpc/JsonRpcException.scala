@@ -17,12 +17,12 @@ package automorph.protocol.jsonrpc
  *   additional error information
  * @param cause
  *   exception cause
- * @tparam Node
+ * @tparam Value
  *   message codec node representation type
  */
-final case class JsonRpcException[Node](
+final case class JsonRpcException[Value](
   message: String,
   code: Int,
-  data: Option[Node] = None,
+  data: Option[Value] = None,
   cause: Throwable = None.orNull,
 ) extends RuntimeException(message, cause)

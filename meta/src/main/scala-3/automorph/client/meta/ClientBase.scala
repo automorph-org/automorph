@@ -12,7 +12,7 @@ import scala.util.{Failure, Try}
 /**
  * Client API method bindings layer.
  *
- * @tparam Node
+ * @tparam Value
  *   message node type
  * @tparam Codec
  *   message codec plugin type
@@ -21,9 +21,9 @@ import scala.util.{Failure, Try}
  * @tparam Context
  *   RPC message context type
  */
-private[automorph] trait ClientBase[Node, Codec <: MessageCodec[Node], Effect[_], Context]:
+private[automorph] trait ClientBase[Value, Codec <: MessageCodec[Value], Effect[_], Context]:
 
-  def rpcProtocol: RpcProtocol[Node, Codec, Context]
+  def rpcProtocol: RpcProtocol[Value, Codec, Context]
 
   /**
    * Creates a remote API proxy with RPC bindings for all public methods of the specified API type.
@@ -74,7 +74,7 @@ private[automorph] trait ClientBase[Node, Codec <: MessageCodec[Node], Effect[_]
    */
   inline def proxy[Api <: AnyRef](mapName: String => String): Api =
     // Generate API method bindings
-    val bindings = ClientBindingGenerator.generate[Node, Codec, Effect, Context, Api](
+    val bindings = ClientBindingGenerator.generate[Value, Codec, Effect, Context, Api](
       rpcProtocol.messageCodec
     ).map { binding =>
       binding.function.name -> binding
@@ -132,12 +132,12 @@ private[automorph] trait ClientBase[Node, Codec <: MessageCodec[Node], Effect[_]
    * @throws RpcException
    *   on RPC error
    */
-  inline def call[Result](function: String): RemoteCall[Node, Codec, Effect, Context, Result] =
+  inline def call[Result](function: String): RemoteCall[Value, Codec, Effect, Context, Result] =
     RemoteCall(function, rpcProtocol.messageCodec, performCall)
 
   def performCall[Result](
     function: String,
-    arguments: Seq[(String, Node)],
-    decodeResult: (Node, Context) => Result,
+    arguments: Seq[(String, Value)],
+    decodeResult: (Value, Context) => Result,
     requestContext: Option[Context],
   ): Effect[Result]

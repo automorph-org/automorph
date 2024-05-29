@@ -19,16 +19,16 @@ import scala.collection.immutable.ListMap
  *   succesful method call result value
  * @param error
  *   failed method call error details
- * @tparam Node
+ * @tparam Value
  *   message node type
  */
-final case class Message[Node](
+final case class Message[Value](
   jsonrpc: Option[String],
   id: Option[Either[BigDecimal, String]],
   method: Option[String],
-  params: Option[Message.Params[Node]],
-  result: Option[Node],
-  error: Option[MessageError[Node]],
+  params: Option[Message.Params[Value]],
+  result: Option[Value],
+  error: Option[MessageError[Value]],
 ) {
 
   /** Message type. */
@@ -50,7 +50,7 @@ object Message {
   type Id = Either[BigDecimal, String]
 
   /** Request parameters type. */
-  type Params[Node] = Either[List[Node], Map[String, Node]]
+  type Params[Value] = Either[List[Value], Map[String, Value]]
 
   /** Supported JSON-RPC protocol version. */
   val version = "2.0"
@@ -77,10 +77,10 @@ object Message {
  *   error code
  * @param data
  *   additional error information
- * @tparam Node
+ * @tparam Value
  *   message node type
  */
-final case class MessageError[Node](message: Option[String], code: Option[Int], data: Option[Node])
+final case class MessageError[Value](message: Option[String], code: Option[Int], data: Option[Value])
 
 /** JSON-RPC message type. */
 sealed trait MessageType {

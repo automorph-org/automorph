@@ -10,7 +10,7 @@ import scala.collection.mutable
 
 trait WeePickleMessagePackTest extends MessageCodecTest {
 
-  type Node = Msg
+  type Value = Msg
   type ActualCodec = WeePickleMessagePackCodec
 
   override lazy val codec: ActualCodec = WeePickleMessagePackCodec()
@@ -18,10 +18,10 @@ trait WeePickleMessagePackTest extends MessageCodecTest {
   override lazy val arbitraryNode: Arbitrary[Msg] = Arbitrary(Gen.recursive[Msg] { recurse =>
     Gen.oneOf(
       Gen.const(Null),
-      Gen.resultOf[String, Node](Str.apply),
-      Gen.resultOf[Double, Node](Float64.apply),
-      Gen.resultOf[Boolean, Node](Bool.apply),
-      Gen.listOfN[Node](2, recurse).map(Arr(_*)),
+      Gen.resultOf[String, Value](Str.apply),
+      Gen.resultOf[Double, Value](Float64.apply),
+      Gen.resultOf[Boolean, Value](Bool.apply),
+      Gen.listOfN[Value](2, recurse).map(Arr(_*)),
       Gen.mapOfN(2, Gen.zip(Gen.resultOf[String, Msg](Str.apply), recurse)).map { values =>
         Obj(mutable.LinkedHashMap.newBuilder.addAll(values).result())
       },

@@ -14,15 +14,15 @@ import scala.util.{Failure, Success, Try}
 /**
  * JSON-RPC protocol core logic.
  *
- * @tparam Node
+ * @tparam Value
  *   message node type
  * @tparam Codec
  *   message codec plugin type
  * @tparam Context
  *   RPC message context type
  */
-private[automorph] trait JsonRpcBase[Node, Codec <: MessageCodec[Node], Context] {
-  this: JsonRpcProtocol[Node, Codec, Context] =>
+private[automorph] trait JsonRpcBase[Value, Codec <: MessageCodec[Value], Context] {
+  this: JsonRpcProtocol[Value, Codec, Context] =>
 
   /** JSON-RPC message metadata. */
   type Metadata = Option[Message.Id]
@@ -51,11 +51,11 @@ private[automorph] trait JsonRpcBase[Node, Codec <: MessageCodec[Node], Context]
 
   override def createRequest(
     function: String,
-    arguments: Iterable[(String, Node)],
+    arguments: Iterable[(String, Value)],
     respond: Boolean,
     context: Context,
     id: String,
-  ): Try[protocol.Request[Node, Metadata, Context]] = {
+  ): Try[protocol.Request[Value, Metadata, Context]] = {
     // Create request
     require(id.nonEmpty, "Empty request identifier")
     val requestId = Option.when(respond)(Right(id).withLeft[BigDecimal])
@@ -67,7 +67,7 @@ private[automorph] trait JsonRpcBase[Node, Codec <: MessageCodec[Node], Context]
       Failure(JsonRpcException("Malformed request", ErrorType.ParseError.code, None, error))
     }.map { messageBody =>
       val message = protocol.Message(requestId, messageBody, requestMessage.properties, messageText)
-      val requestArguments = arguments.map(Right.apply[Node, (String, Node)]).toSeq
+      val requestArguments = arguments.map(Right.apply[Value, (String, Value)]).toSeq
       protocol.Request(function, requestArguments, respond, context, message, requestId.toString)
     }
   }
@@ -76,7 +76,7 @@ private[automorph] trait JsonRpcBase[Node, Codec <: MessageCodec[Node], Context]
     body: Array[Byte],
     context: Context,
     id: String,
-  ): Either[ParseError[Metadata], protocol.Request[Node, Metadata, Context]] =
+  ): Either[ParseError[Metadata], protocol.Request[Value, Metadata, Context]] =
     // Deserialize request
     Try(decodeMessage(messageCodec.deserialize(body))).fold(
       error =>
@@ -94,8 +94,8 @@ private[automorph] trait JsonRpcBase[Node, Codec <: MessageCodec[Node], Context]
             Right(protocol.Request(
               request.method,
               request.params.fold(
-                _.map(Left.apply[Node, (String, Node)]),
-                _.map(Right.apply[Node, (String, Node)]).toSeq,
+                _.map(Left.apply[Value, (String, Value)]),
+                _.map(Right.apply[Value, (String, Value)]).toSeq,
               ),
               request.id.isDefined,
               context,
@@ -106,13 +106,13 @@ private[automorph] trait JsonRpcBase[Node, Codec <: MessageCodec[Node], Context]
       },
     )
 
-  override def createResponse(result: Try[Node], requestMetadata: Metadata): Try[protocol.Response[Node, Metadata]] = {
+  override def createResponse(result: Try[Value], requestMetadata: Metadata): Try[protocol.Response[Value, Metadata]] = {
     // Create response
     val id = requestMetadata.getOrElse(unknownId)
     val responseMessage = result.fold(
       { error =>
         val responseError = error match {
-          case JsonRpcException(message, code, data, _) => ResponseError(message, code, data.asInstanceOf[Option[Node]])
+          case JsonRpcException(message, code, data, _) => ResponseError(message, code, data.asInstanceOf[Option[Value]])
           case _ =>
             // Assemble error details
             val trace = error.trace
@@ -121,7 +121,7 @@ private[automorph] trait JsonRpcBase[Node, Codec <: MessageCodec[Node], Context]
             val data = Some(encodeStrings(trace.drop(1).toList))
             ResponseError(message, code, data)
         }
-        Response[Node](id, None, Some(responseError)).message
+        Response[Value](id, None, Some(responseError)).message
       },
       resultValue => Response(id, Some(resultValue), None).message,
     )
@@ -140,7 +140,7 @@ private[automorph] trait JsonRpcBase[Node, Codec <: MessageCodec[Node], Context]
     body: Array[Byte],
     context: Context,
     id: String,
-  ): Either[ParseError[Metadata], protocol.Response[Node, Metadata]] =
+  ): Either[ParseError[Metadata], protocol.Response[Value, Metadata]] =
     // Deserialize response
     Try(decodeMessage(messageCodec.deserialize(body))).fold(
       error =>
@@ -168,7 +168,7 @@ private[automorph] trait JsonRpcBase[Node, Codec <: MessageCodec[Node], Context]
       },
     )
 
-  override def apiSchemas: Seq[ApiSchema[Node]] =
+  override def apiSchemas: Seq[ApiSchema[Value]] =
     Seq(
       ApiSchema(
         RpcFunction(JsonRpcProtocol.openApiFunction, Seq(), OpenApi.getClass.getSimpleName, None),
@@ -188,7 +188,7 @@ private[automorph] trait JsonRpcBase[Node, Codec <: MessageCodec[Node], Context]
    * @return
    *   JSON-RPC protocol
    */
-  def context[NewContext]: JsonRpcProtocol[Node, Codec, NewContext] =
+  def context[NewContext]: JsonRpcProtocol[Value, Codec, NewContext] =
     copy()
 
   /**
@@ -199,7 +199,7 @@ private[automorph] trait JsonRpcBase[Node, Codec <: MessageCodec[Node], Context]
    * @return
    *   JSON-RPC protocol
    */
-  def mapException(exceptionToError: Throwable => ErrorType): JsonRpcProtocol[Node, Codec, Context] =
+  def mapException(exceptionToError: Throwable => ErrorType): JsonRpcProtocol[Value, Codec, Context] =
     copy(mapException = exceptionToError)
 
   /**
@@ -210,7 +210,7 @@ private[automorph] trait JsonRpcBase[Node, Codec <: MessageCodec[Node], Context]
    * @return
    *   JSON-RPC protocol
    */
-  def mapError(errorToException: (String, Int) => Throwable): JsonRpcProtocol[Node, Codec, Context] =
+  def mapError(errorToException: (String, Int) => Throwable): JsonRpcProtocol[Value, Codec, Context] =
     copy(mapError = errorToException)
 
   /**
@@ -223,7 +223,7 @@ private[automorph] trait JsonRpcBase[Node, Codec <: MessageCodec[Node], Context]
    * @return
    *   JSON-RPC protocol
    */
-  def namedArguments(namedArguments: Boolean): JsonRpcProtocol[Node, Codec, Context] =
+  def namedArguments(namedArguments: Boolean): JsonRpcProtocol[Value, Codec, Context] =
     copy(namedArguments = namedArguments)
 
   /**
@@ -234,7 +234,7 @@ private[automorph] trait JsonRpcBase[Node, Codec <: MessageCodec[Node], Context]
    * @return
    *   JSON-RPC protocol
    */
-  def mapOpenRpc(mapOpenRpc: OpenRpc => OpenRpc): JsonRpcProtocol[Node, Codec, Context] =
+  def mapOpenRpc(mapOpenRpc: OpenRpc => OpenRpc): JsonRpcProtocol[Value, Codec, Context] =
     copy(mapOpenRpc = mapOpenRpc)
 
   /**
@@ -245,7 +245,7 @@ private[automorph] trait JsonRpcBase[Node, Codec <: MessageCodec[Node], Context]
    * @return
    *   JSON-RPC protocol
    */
-  def mapOpenApi(mapOpenApi: OpenApi => OpenApi): JsonRpcProtocol[Node, Codec, Context] =
+  def mapOpenApi(mapOpenApi: OpenApi => OpenApi): JsonRpcProtocol[Value, Codec, Context] =
     copy(mapOpenApi = mapOpenApi)
 
   private def openRpc(functions: Iterable[RpcFunction]): OpenRpc =

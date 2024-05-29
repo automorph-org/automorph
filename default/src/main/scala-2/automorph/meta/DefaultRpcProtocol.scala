@@ -9,7 +9,7 @@ import scala.reflect.macros.blackbox
 private[automorph] trait DefaultRpcProtocol {
 
   /** Default message node type. */
-  type Node = CirceJsonCodec.Node
+  type Value = CirceJsonCodec.Value
 
   /** Default message codec plugin type. */
   type Codec = CirceJsonCodec
@@ -22,7 +22,7 @@ private[automorph] trait DefaultRpcProtocol {
    * @see
    *   [[https://circe.github.io/circe Library documentation]]
    * @see
-   *   [[https://circe.github.io/circe/api/io/circe/Json.html Node type]]
+   *   [[https://circe.github.io/circe/api/io/circe/Json.html Value type]]
    * @return
    *   message codec plugin
    */
@@ -39,7 +39,7 @@ private[automorph] trait DefaultRpcProtocol {
    * @return
    *   RPC protocol plugin
    */
-  def rpcProtocol[Context]: JsonRpcProtocol[Node, Codec, Context] =
+  def rpcProtocol[Context]: JsonRpcProtocol[Value, Codec, Context] =
     JsonRpcProtocol(
       messageCodec,
       JsonRpcProtocol.mapError,
@@ -56,7 +56,7 @@ private[automorph] trait DefaultRpcProtocol {
    *   [[https://www.jsonrpc.org/specification Protocol specification]]
    * @param messageCodec
    *   message codec plugin
-   * @tparam NodeType
+   * @tparam ValueType
    *   message node type
    * @tparam CodecType
    *   message codec plugin type
@@ -65,20 +65,20 @@ private[automorph] trait DefaultRpcProtocol {
    * @return
    *   RPC protocol plugin
    */
-  def rpcProtocol[NodeType, CodecType <: MessageCodec[NodeType], Context](
+  def rpcProtocol[ValueType, CodecType <: MessageCodec[ValueType], Context](
     messageCodec: CodecType
-  ): JsonRpcProtocol[NodeType, CodecType, Context] =
-    macro DefaultRpcProtocol.rpcProtocolMacro[NodeType, CodecType, Context]
+  ): JsonRpcProtocol[ValueType, CodecType, Context] =
+    macro DefaultRpcProtocol.rpcProtocolMacro[ValueType, CodecType, Context]
 }
 
 object DefaultRpcProtocol {
 
-  def rpcProtocolMacro[NodeType, CodecType <: MessageCodec[NodeType], Context](
+  def rpcProtocolMacro[ValueType, CodecType <: MessageCodec[ValueType], Context](
     c: blackbox.Context
-  )(messageCodec: c.Expr[CodecType]): c.Expr[JsonRpcProtocol[NodeType, CodecType, Context]] = {
+  )(messageCodec: c.Expr[CodecType]): c.Expr[JsonRpcProtocol[ValueType, CodecType, Context]] = {
     import c.universe.Quasiquote
 
-    c.Expr[JsonRpcProtocol[NodeType, CodecType, Context]](q"""
+    c.Expr[JsonRpcProtocol[ValueType, CodecType, Context]](q"""
       automorph.protocol.JsonRpcProtocol($messageCodec)
     """)
   }

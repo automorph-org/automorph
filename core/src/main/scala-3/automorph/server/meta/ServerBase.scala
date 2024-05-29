@@ -8,7 +8,7 @@ import scala.collection.immutable.ListMap
 /**
  * Server API method bindings layer.
  *
- * @tparam Node
+ * @tparam Value
  *   message node type
  * @tparam Codec
  *   message codec plugin type
@@ -19,15 +19,15 @@ import scala.collection.immutable.ListMap
  * @tparam Endpoint
  *   transport layer transport type
  */
-private[automorph] trait ServerBase[Node, Codec <: MessageCodec[Node], Effect[_], Context, Endpoint]:
+private[automorph] trait ServerBase[Value, Codec <: MessageCodec[Value], Effect[_], Context, Endpoint]:
 
   def transport: ServerTransport[Effect, Context, Endpoint]
 
-  def rpcProtocol: RpcProtocol[Node, Codec, Context]
+  def rpcProtocol: RpcProtocol[Value, Codec, Context]
 
   def discovery: Boolean
 
-  def apiBindings: ListMap[String, ServerBinding[Node, Effect, Context]]
+  def apiBindings: ListMap[String, ServerBinding[Value, Effect, Context]]
 
   /**
    * Creates a copy of this server with RPC bindings for all public methods of the specified API instance.
@@ -54,7 +54,7 @@ private[automorph] trait ServerBase[Node, Codec <: MessageCodec[Node], Effect[_]
    * @throws IllegalArgumentException
    *   if invalid public methods are found in the API type
    */
-  inline def service[Api <: AnyRef](api: Api): RpcServer[Node, Codec, Effect, Context, Endpoint] =
+  inline def service[Api <: AnyRef](api: Api): RpcServer[Value, Codec, Effect, Context, Endpoint] =
     service(api, Seq(_))
 
   /**
@@ -89,8 +89,8 @@ private[automorph] trait ServerBase[Node, Codec <: MessageCodec[Node], Effect[_]
   inline def service[Api <: AnyRef](
     api: Api,
     mapName: String => Iterable[String],
-  ): RpcServer[Node, Codec, Effect, Context, Endpoint] =
-    val newApiBindings = ServerBindingGenerator.generate[Node, Codec, Effect, Context, Api](
+  ): RpcServer[Value, Codec, Effect, Context, Endpoint] =
+    val newApiBindings = ServerBindingGenerator.generate[Value, Codec, Effect, Context, Api](
       rpcProtocol.messageCodec,
       api,
     ).flatMap { binding =>

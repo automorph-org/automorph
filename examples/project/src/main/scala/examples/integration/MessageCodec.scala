@@ -41,7 +41,7 @@ private[examples] object MessageCodec {
 
     // Create a server RPC protocol plugin
     val serverRpcProtocol = Default.rpcProtocol[
-      UPickleMessagePackCodec.Node,
+      UPickleMessagePackCodec.Value,
       messageCodec.type,
       Default.ServerContext,
     ](messageCodec)
@@ -51,7 +51,7 @@ private[examples] object MessageCodec {
 
     // Create a client RPC protocol plugin
     val clientRpcProtocol = Default.rpcProtocol[
-      UPickleMessagePackCodec.Node,
+      UPickleMessagePackCodec.Value,
       messageCodec.type,
       Default.ClientContext,
     ](messageCodec)

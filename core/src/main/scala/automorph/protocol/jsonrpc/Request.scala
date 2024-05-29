@@ -14,13 +14,13 @@ import automorph.protocol.jsonrpc.Message.{version, Id, Params}
  *   invoked method name
  * @param params
  *   invoked method argument values by position or by name
- * @tparam Node
+ * @tparam Value
  *   message node type
  */
-final private[automorph] case class Request[Node](id: Option[Id], method: String, params: Params[Node]) {
+final private[automorph] case class Request[Value](id: Option[Id], method: String, params: Params[Value]) {
 
-  def message: Message[Node] =
-    Message[Node](
+  def message: Message[Value] =
+    Message[Value](
       jsonrpc = Some(version),
       id = id,
       method = Some(method),
@@ -32,14 +32,14 @@ final private[automorph] case class Request[Node](id: Option[Id], method: String
 
 private[automorph] object Request {
 
-  def apply[Node](message: Message[Node]): Request[Node] = {
+  def apply[Value](message: Message[Value]): Request[Value] = {
     val jsonrpc = mandatory(message.jsonrpc, Message.jsonrpc)
     if (jsonrpc != version) {
       throw InvalidRequest(s"Invalid JSON-RPC protocol version: $jsonrpc", None.orNull)
     }
     val id = message.id
     val method = mandatory(message.method, Message.method)
-    val params = message.params.getOrElse(Right(Map.empty[String, Node]))
+    val params = message.params.getOrElse(Right(Map.empty[String, Value]))
     Request(id, method, params)
   }
 

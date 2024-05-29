@@ -55,7 +55,7 @@ which provides a convenient way to create default plugin instances or combine de
 
 ## [Message codec](https://automorph.org/api/automorph/spi/MessageCodec.html)
 
-| Class | Artifact | Library | Node Type | Codec | Scala 2.13 | Scala 3 |
+| Class | Artifact | Library | Value Type | Codec | Scala 2.13 | Scala 3 |
 | --- | --- | --- | --- | --- | :---: | :---: |
 | [CirceJsonCodec](https://automorph.org/api/automorph/codec/json/CirceJsonCodec.html) (*Default*) | [automorph-circe](https://central.sonatype.com/artifact/org.automorph/automorph-circe_3) | [Circe](https://circe.github.io/circe) | [Json](https://circe.github.io/circe/api/io/circe/Json.html) | [JSON](https://www.json.org/) | :heavy_check_mark: | :heavy_check_mark: |
 | [JacksonJsonCodec](https://automorph.org/api/automorph/codec/JacksonJsonCodec.html) | [automorph-jackson](https://central.sonatype.com/artifact/org.automorph/automorph-jackson_3) | [Jackson](https://github.com/FasterXML/jackson-module-scala) | [JsonNode](https://fasterxml.github.io/jackson-databind/javadoc/2.14/index.html?com/fasterxml/jackson/databind/JsonNode.html) | [JSON](https://www.json.org), [Smile](https://github.com/FasterXML/smile-format-specification), [CBOR](https://cbor.io) | :heavy_check_mark: | :heavy_check_mark: |

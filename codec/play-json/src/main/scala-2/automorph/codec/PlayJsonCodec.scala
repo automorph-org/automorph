@@ -13,7 +13,7 @@ import play.api.libs.json.{JsError, JsNull, JsObject, JsSuccess, JsValue, Json, 
  * @see
  *   [[https://www.playframework.com/documentation/latest/ScalaJson Library documentation]]
  * @see
- *   [[https://www.playframework.com/documentation/latest/api/scala/play/api/libs/json/JsValue.html Node type]]
+ *   [[https://www.playframework.com/documentation/latest/api/scala/play/api/libs/json/JsValue.html Value type]]
  * @constructor
  *   Creates an Play JSON codec plugin.
  */
@@ -43,7 +43,7 @@ object PlayJsonCodec {
     (optionalValue: Option[T]) => optionalValue.map(value => implicitly[Writes[T]].writes(value)).getOrElse(JsNull)
 
   /** Message node type. */
-  type Node = JsValue
+  type Value = JsValue
   implicit lazy val unitReads: Reads[Unit] = {
     case value: JsObject if value.values.isEmpty => JsSuccess.apply(())
     case _ => JsError.apply("JSON object representing Unit type must be empty")

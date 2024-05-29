@@ -15,16 +15,16 @@ package automorph.spi.protocol
  *   RPC message
  * @param id
  *   request correlation identifier
- * @tparam Node
+ * @tparam Value
  *   message node type
  * @tparam Metadata
  *   protocol-specific message metadata type
  * @tparam Context
  *   message context type
  */
-final case class Request[Node, Metadata, Context](
+final case class Request[Value, Metadata, Context](
   function: String,
-  arguments: Seq[Either[Node, (String, Node)]],
+  arguments: Seq[Either[Value, (String, Value)]],
   respond: Boolean,
   context: Context,
   message: Message[Metadata],

@@ -23,7 +23,7 @@ object ServerBindingGenerator {
    *   message codec plugin
    * @param api
    *   API instance
-   * @tparam Node
+   * @tparam Value
    *   message node type
    * @tparam Codec
    *   message codec plugin type
@@ -36,21 +36,21 @@ object ServerBindingGenerator {
    * @return
    *   mapping of API method names to handler function bindings
    */
-  def generate[Node, Codec <: MessageCodec[Node], Effect[_], Context, Api <: AnyRef](
+  def generate[Value, Codec <: MessageCodec[Value], Effect[_], Context, Api <: AnyRef](
     codec: Codec,
     api: Api,
-  ): Seq[ServerBinding[Node, Effect, Context]] =
-    macro generateMacro[Node, Codec, Effect, Context, Api]
+  ): Seq[ServerBinding[Value, Effect, Context]] =
+    macro generateMacro[Value, Codec, Effect, Context, Api]
 
   def generateMacro[
-    Node: c.WeakTypeTag,
-    Codec <: MessageCodec[Node],
+    Value: c.WeakTypeTag,
+    Codec <: MessageCodec[Value],
     Effect[_],
     Context: c.WeakTypeTag,
     Api <: AnyRef: c.WeakTypeTag,
   ](c: blackbox.Context)(codec: c.Expr[Codec], api: c.Expr[Api])(implicit
     effectType: c.WeakTypeTag[Effect[?]]
-  ): c.Expr[Seq[ServerBinding[Node, Effect, Context]]] = {
+  ): c.Expr[Seq[ServerBinding[Value, Effect, Context]]] = {
     import c.universe.Quasiquote
     val ref = ClassReflection[c.type](c)
 
@@ -66,9 +66,9 @@ object ServerBindingGenerator {
 
     // Generate bound API method bindings
     val bindings = validMethods.map { method =>
-      generateBinding[c.type, Node, Codec, Effect, Context, Api](ref)(method, codec, api)
+      generateBinding[c.type, Value, Codec, Effect, Context, Api](ref)(method, codec, api)
     }
-    c.Expr[Seq[ServerBinding[Node, Effect, Context]]](q"""
+    c.Expr[Seq[ServerBinding[Value, Effect, Context]]](q"""
       Seq(..$bindings)
     """)
   }
@@ -76,25 +76,25 @@ object ServerBindingGenerator {
   @nowarn("msg=never used")
   private def generateBinding[
     C <: blackbox.Context,
-    Node: ref.c.WeakTypeTag,
-    Codec <: MessageCodec[Node],
+    Value: ref.c.WeakTypeTag,
+    Codec <: MessageCodec[Value],
     Effect[_],
     Context: ref.c.WeakTypeTag,
     Api,
   ](ref: ClassReflection[C])(method: ref.RefMethod, codec: ref.c.Expr[Codec], api: ref.c.Expr[Api])(implicit
     effectType: ref.c.WeakTypeTag[Effect[?]]
-  ): ref.c.Expr[ServerBinding[Node, Effect, Context]] = {
+  ): ref.c.Expr[ServerBinding[Value, Effect, Context]] = {
     import ref.c.universe.{Liftable, Quasiquote}
 
-    val argumentDecoders = generateArgumentDecoders[C, Node, Codec, Context](ref)(method, codec)
-    val encodeResult = generateEncodeResult[C, Node, Codec, Effect, Context](ref)(method, codec)
+    val argumentDecoders = generateArgumentDecoders[C, Value, Codec, Context](ref)(method, codec)
+    val encodeResult = generateEncodeResult[C, Value, Codec, Effect, Context](ref)(method, codec)
     val call = generateCall[C, Effect, Context, Api](ref)(method, api)
     logMethod[C, Api](ref)(method)
     logCode[C](ref)("Argument decoders", argumentDecoders)
     logCode[C](ref)("Encode result", encodeResult)
     logCode[C](ref)("Call", call)
     implicit val functionLiftable: Liftable[RpcFunction] = ApiReflection.functionLiftable(ref)
-    ref.c.Expr[ServerBinding[Node, Effect, Context]](q"""
+    ref.c.Expr[ServerBinding[Value, Effect, Context]](q"""
       automorph.server.ServerBinding(
         ${method.lift.rpcFunction},
         $argumentDecoders,
@@ -107,13 +107,13 @@ object ServerBindingGenerator {
 
   private def generateArgumentDecoders[
     C <: blackbox.Context,
-    Node: ref.c.WeakTypeTag,
-    Codec <: MessageCodec[Node],
+    Value: ref.c.WeakTypeTag,
+    Codec <: MessageCodec[Value],
     Context: ref.c.WeakTypeTag,
   ](ref: ClassReflection[C])(
     method: ref.RefMethod,
     codec: ref.c.Expr[Codec],
-  ): ref.c.Expr[Map[String, Option[Node] => Any]] = {
+  ): ref.c.Expr[Map[String, Option[Value] => Any]] = {
     import ref.c.universe.{Quasiquote, weakTypeOf}
 
     // Map multiple parameter lists to flat argument node list offsets
@@ -124,11 +124,11 @@ object ServerBindingGenerator {
 
     // Create a map of method parameter names to functions decoding method argument node into a value
     //   Map(
-    //     parameterNName -> ((argumentNode: Node) =>
+    //     parameterNName -> ((argumentNode: Value) =>
     //       codec.decode[ParameterNType](argumentNode.getOrElse(codec.encode(None)))
     //     ...
-    //   ): Map[String, Node => Any]
-    val nodeType = weakTypeOf[Node].dealias
+    //   ): Map[String, Value => Any]
+    val nodeType = weakTypeOf[Value].dealias
     val argumentDecoders = method.parameters.toList.zip(parameterListOffsets).flatMap { case (parameters, offset) =>
       parameters.toList.zipWithIndex.flatMap { case (parameter, index) =>
         Option.when(offset + index != lastArgumentIndex || !ApiReflection.acceptsContext[C, Context](ref)(method)) {
@@ -142,17 +142,17 @@ object ServerBindingGenerator {
         }
       }
     }
-    ref.c.Expr[Map[String, Option[Node] => Any]](q"Map(..$argumentDecoders)")
+    ref.c.Expr[Map[String, Option[Value] => Any]](q"Map(..$argumentDecoders)")
   }
 
   @nowarn("msg=never used")
-  private def generateEncodeResult[C <: blackbox.Context, Node, Codec <: MessageCodec[Node], Effect[_], Context](
+  private def generateEncodeResult[C <: blackbox.Context, Value, Codec <: MessageCodec[Value], Effect[_], Context](
     ref: ClassReflection[C]
   )(method: ref.RefMethod, codec: ref.c.Expr[Codec])(implicit
-    nodeType: ref.c.WeakTypeTag[Node],
+    nodeType: ref.c.WeakTypeTag[Value],
     effectType: ref.c.WeakTypeTag[Effect[?]],
     contextType: ref.c.WeakTypeTag[Context],
-  ): ref.c.Expr[Any => (Node, Option[Context])] = {
+  ): ref.c.Expr[Any => (Value, Option[Context])] = {
     import ref.c.universe.Quasiquote
 
     // Create a result encoding function
@@ -164,7 +164,7 @@ object ServerBindingGenerator {
     //       result.asInstanceOf[ResultType].context
     //     )
     val resultType = ApiReflection.unwrapType[C, Effect[?]](ref.c)(method.resultType).dealias
-    ref.c.Expr[Any => (Node, Option[Context])](
+    ref.c.Expr[Any => (Value, Option[Context])](
       ApiReflection.contextualResult[C, Context, RpcResult[?, ?]](ref.c)(resultType).map { contextualResultType =>
         q"""
           (result: Any) =>

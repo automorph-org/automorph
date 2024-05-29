@@ -19,7 +19,7 @@ import scala.reflect.ClassTag
  * @see
  *   [[https://github.com/rallyhealth/weePickle Library documentation]]
  * @see
- *   [[https://javadoc.io/doc/com.rallyhealth/weepack-v1_3/latest/com/rallyhealth/weepack/v1/Msg.html Node type]]
+ *   [[https://javadoc.io/doc/com.rallyhealth/weepack-v1_3/latest/com/rallyhealth/weepack/v1/Msg.html Value type]]
  * @constructor
  *   Creates a weePickle codec plugin using MessagePack as message format.
  */
@@ -56,7 +56,7 @@ object WeePickleMessagePackCodec {
     new NullSafeTo[collection.mutable.Map[K, V]](WeePickle.ToMutableMap, "map")
 
   /** Message node type. */
-  type Node = Msg
+  type Value = Msg
   implicit lazy val jsonRpcFromTo: FromTo[WeePickleJsonRpc.RpcMessage] = WeePickleJsonRpc.fromTo
   implicit lazy val webRpcFromTo: FromTo[WeePickleWebRpc.RpcMessage] = WeePickleWebRpc.fromTo
   implicit lazy val openRpcFromTo: FromTo[OpenRpc] = WeePickleOpenRpc.fromTo

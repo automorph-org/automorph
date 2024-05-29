@@ -27,7 +27,7 @@ private[examples] object RpcProtocol {
     }
 
     // Create a server Web-RPC protocol plugin with '/api' as URL path prefix
-    val serverRpcProtocol = WebRpcProtocol[Default.Node, Default.Codec, Default.ServerContext](
+    val serverRpcProtocol = WebRpcProtocol[Default.Value, Default.Codec, Default.ServerContext](
       Default.messageCodec,
       "/api",
     )
@@ -36,7 +36,7 @@ private[examples] object RpcProtocol {
     val serverTransport = Default.serverTransport(9000, "/api")
 
     // Create a client Web-RPC protocol plugin with '/api' path prefix
-    val clientRpcProtocol = WebRpcProtocol[Default.Node, Default.Codec, Default.ClientContext](
+    val clientRpcProtocol = WebRpcProtocol[Default.Value, Default.Codec, Default.ClientContext](
       Default.messageCodec,
       "/api",
     )

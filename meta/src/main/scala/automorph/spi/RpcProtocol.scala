@@ -10,14 +10,14 @@ import scala.util.Try
  *
  * The underlying RPC protocol must support remote function invocation.
  *
- * @tparam Node
+ * @tparam Value
  *   message node type
  * @tparam Codec
  *   message codec plugin type
  * @tparam Context
  *   RPC message context type
  */
-trait RpcProtocol[Node, Codec <: MessageCodec[Node], Context] {
+trait RpcProtocol[Value, Codec <: MessageCodec[Value], Context] {
 
   /** Protocol-specific RPC message metadata. */
   type Metadata
@@ -46,11 +46,11 @@ trait RpcProtocol[Node, Codec <: MessageCodec[Node], Context] {
    */
   def createRequest(
     function: String,
-    arguments: Iterable[(String, Node)],
+    arguments: Iterable[(String, Value)],
     respond: Boolean,
     context: Context,
     id: String,
-  ): Try[Request[Node, Metadata, Context]]
+  ): Try[Request[Value, Metadata, Context]]
 
   /**
    * Parses an RPC request.
@@ -68,7 +68,7 @@ trait RpcProtocol[Node, Codec <: MessageCodec[Node], Context] {
     body: Array[Byte],
     context: Context,
     id: String,
-  ): Either[ParseError[Metadata], Request[Node, Metadata, Context]]
+  ): Either[ParseError[Metadata], Request[Value, Metadata, Context]]
 
   /**
    * Creates an RPC response.
@@ -80,7 +80,7 @@ trait RpcProtocol[Node, Codec <: MessageCodec[Node], Context] {
    * @return
    *   RPC response
    */
-  def createResponse(result: Try[Node], requestMetadata: Metadata): Try[Response[Node, Metadata]]
+  def createResponse(result: Try[Value], requestMetadata: Metadata): Try[Response[Value, Metadata]]
 
   /**
    * Parses an RPC response.
@@ -98,8 +98,8 @@ trait RpcProtocol[Node, Codec <: MessageCodec[Node], Context] {
     body: Array[Byte],
     context: Context,
     id: String,
-  ): Either[ParseError[Metadata], Response[Node, Metadata]]
+  ): Either[ParseError[Metadata], Response[Value, Metadata]]
 
   /** RPC API schema operations. */
-  def apiSchemas: Seq[ApiSchema[Node]]
+  def apiSchemas: Seq[ApiSchema[Value]]
 }

@@ -2,7 +2,7 @@ package test.codec
 
 import automorph.codec.WeePickleCodec
 import com.fasterxml.jackson.core.JsonFactory
-import com.rallyhealth.weejson.v1.{Arr, Bool, Null, Num, Obj, Str, Value}
+import com.rallyhealth.weejson.v1.{Arr, Bool, Null, Num, Obj, Str, Value as WValue}
 import com.rallyhealth.weepickle.v1.WeePickle.{FromInt, FromTo, ToInt, macroFromTo}
 import org.scalacheck.{Arbitrary, Gen}
 import test.api.{Enum, Record, Structure}
@@ -10,7 +10,7 @@ import test.api.Generators.arbitraryRecord
 
 trait WeePickleTest extends MessageCodecTest {
 
-  type Node = Value
+  type Value = WValue
   type ActualCodec = WeePickleCodec
 
   override lazy val codec: ActualCodec = WeePickleCodec(jsonFactory)

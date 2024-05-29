@@ -1,6 +1,6 @@
 package automorph
 
-import automorph.Default.{Codec, Node, rpcProtocol}
+import automorph.Default.{Codec, Value, rpcProtocol}
 import automorph.spi.EffectSystem
 import automorph.transport.{HttpContext, HttpMethod}
 import automorph.transport.client.HttpClient
@@ -50,7 +50,7 @@ private[automorph] trait DefaultTransport {
     effectSystem: EffectSystem[EffectType],
     url: URI,
     method: HttpMethod = HttpMethod.Post,
-  ): RpcClient[Node, Codec, EffectType, ClientContext] =
+  ): RpcClient[Value, Codec, EffectType, ClientContext] =
     RpcClient(clientTransportCustom(effectSystem, url, method), rpcProtocol)
 
   /**
@@ -122,7 +122,7 @@ private[automorph] trait DefaultTransport {
     webSocket: Boolean = true,
     mapException: Throwable => Int = HttpContext.toStatusCode,
     builder: Undertow.Builder = builder,
-  ): RpcServer[Node, Codec, EffectType, ServerContext, Unit] =
+  ): RpcServer[Value, Codec, EffectType, ServerContext, Unit] =
     RpcServer(
       serverTransportCustom(effectSystem, port, path, methods, webSocket, mapException, builder),
       rpcProtocol,

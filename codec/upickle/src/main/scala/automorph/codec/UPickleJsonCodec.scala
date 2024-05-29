@@ -4,7 +4,7 @@ import automorph.codec.UPickleJsonCodec.JsonConfig
 import automorph.codec.json.{UPickleJsonRpc, UPickleOpenApi, UPickleOpenRpc, UPickleWebRpc}
 import automorph.codec.meta.UPickleJsonMeta
 import automorph.schema.{OpenApi, OpenRpc}
-import ujson.Value
+import ujson.Value as UValue
 
 /**
  * uPickle JSON message codec plugin.
@@ -14,7 +14,7 @@ import ujson.Value
  * @see
  *   [[https://github.com/com-lihaoyi/upickle Library documentation]]
  * @see
- *   [[https://com-lihaoyi.github.io/upickle/#uJson Node type]]
+ *   [[https://com-lihaoyi.github.io/upickle/#uJson Value type]]
  * @constructor
  *   Creates an uPickle codec plugin using JSON as message format.
  * @param config
@@ -30,20 +30,20 @@ final case class UPickleJsonCodec[Config <: JsonConfig](config: Config = new Jso
   override val mediaType: String = "application/json"
   private val indent = 2
 
-  override def serialize(node: Value): Array[Byte] =
+  override def serialize(node: UValue): Array[Byte] =
     config.writeToByteArray(node)
 
-  override def deserialize(data: Array[Byte]): Value =
-    config.read[Value](data)
+  override def deserialize(data: Array[Byte]): UValue =
+    config.read[UValue](data)
 
-  override def text(node: Value): String =
+  override def text(node: UValue): String =
     config.write(node, indent)
 }
 
 object UPickleJsonCodec {
 
   /** Message node type. */
-  type Node = Value
+  type Value = UValue
 
   /** uPickle reader and writer instances providing basic null-safe data types support for JSON format. */
   trait JsonConfig extends UPickleNullSafeConfig {

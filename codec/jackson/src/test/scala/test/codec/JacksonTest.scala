@@ -14,7 +14,7 @@ import scala.jdk.CollectionConverters.{MapHasAsJava, SeqHasAsJava}
 
 trait JacksonTest extends MessageCodecTest {
 
-  type Node = JsonNode
+  type Value = JsonNode
   type ActualCodec = JacksonCodec
 
   override lazy val codec: ActualCodec = JacksonCodec(objectMapper)

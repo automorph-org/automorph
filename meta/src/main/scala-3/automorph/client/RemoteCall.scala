@@ -11,7 +11,7 @@ import automorph.spi.MessageCodec
  *   remote function name
  * @param codec
  *   message codec plugin
- * @tparam Node
+ * @tparam Value
  *   message node type
  * @tparam Codec
  *   message codec plugin type
@@ -22,16 +22,16 @@ import automorph.spi.MessageCodec
  * @tparam Result
  *   result type
  */
-final case class RemoteCall[Node, Codec <: MessageCodec[Node], Effect[_], Context, Result](
+final case class RemoteCall[Value, Codec <: MessageCodec[Value], Effect[_], Context, Result](
   functionName: String,
   codec: Codec,
-  private val performCall: (String, Seq[(String, Node)], (Node, Context) => Result, Option[Context]) => Effect[Result],
-  private val decodeResult: (Node, Context) => Result,
-) extends RemoteInvoke[Node, Codec, Effect, Context, Result]:
+  private val performCall: (String, Seq[(String, Value)], (Value, Context) => Result, Option[Context]) => Effect[Result],
+  private val decodeResult: (Value, Context) => Result,
+) extends RemoteInvoke[Value, Codec, Effect, Context, Result]:
 
   override def invoke(
     arguments: Seq[(String, Any)],
-    argumentNodes: Seq[Node],
+    argumentNodes: Seq[Value],
     requestContext: Context,
   ): Effect[Result] =
     performCall(functionName, arguments.map(_._1).zip(argumentNodes), decodeResult, Some(requestContext))
@@ -47,7 +47,7 @@ object RemoteCall:
    *   message codec plugin
    * @param peformCall
    *   performs an RPC call using specified arguments
-   * @tparam Node
+   * @tparam Value
    *   message node type
    * @tparam Codec
    *   message codec plugin type
@@ -58,9 +58,9 @@ object RemoteCall:
    * @tparam Result
    *   result type
    */
-  inline def apply[Node, Codec <: MessageCodec[Node], Effect[_], Context, Result](
+  inline def apply[Value, Codec <: MessageCodec[Value], Effect[_], Context, Result](
     functionName: String,
     codec: Codec,
-    performCall: (String, Seq[(String, Node)], (Node, Context) => Result, Option[Context]) => Effect[Result],
-  ): RemoteCall[Node, Codec, Effect, Context, Result] =
-    new RemoteCall(functionName, codec, performCall, RemoteInvoke.decodeResult[Node, Codec, Context, Result](codec))
+    performCall: (String, Seq[(String, Value)], (Value, Context) => Result, Option[Context]) => Effect[Result],
+  ): RemoteCall[Value, Codec, Effect, Context, Result] =
+    new RemoteCall(functionName, codec, performCall, RemoteInvoke.decodeResult[Value, Codec, Context, Result](codec))

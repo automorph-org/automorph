@@ -11,21 +11,21 @@ import test.api.{Enum, Record, Structure}
 @scala.annotation.nowarn("msg=never used")
 final class CirceJsonTest extends MessageCodecTest with JsonMessageCodecTest {
 
-  type Node = Json
+  type Value = Json
   type ActualCodec = CirceJsonCodec
 
   override lazy val codec: ActualCodec = CirceJsonCodec()
 
-  override lazy val arbitraryNode: Arbitrary[Node] = Arbitrary(
+  override lazy val arbitraryNode: Arbitrary[Value] = Arbitrary(
     Gen.oneOf(
       Gen.const(Json.Null),
-      Gen.recursive[Node] { recurse =>
+      Gen.recursive[Value] { recurse =>
         Gen.oneOf(
           Gen.const(Json.Null),
           Gen.resultOf(Json.fromString _),
           Gen.resultOf(Json.fromDoubleOrString _),
           Gen.resultOf(Json.fromBoolean _),
-          Gen.listOfN[Node](2, Gen.oneOf(Gen.const(Json.Null), recurse)).map(Json.fromValues),
+          Gen.listOfN[Value](2, Gen.oneOf(Gen.const(Json.Null), recurse)).map(Json.fromValues),
           Gen.mapOfN(2, Gen.zip(Arbitrary.arbitrary[String], recurse)).map(Json.fromFields),
         )
       }

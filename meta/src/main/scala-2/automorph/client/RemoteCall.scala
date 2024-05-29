@@ -13,7 +13,7 @@ import scala.reflect.macros.blackbox
  *   remote function name
  * @param codec
  *   message codec plugin
- * @tparam Node
+ * @tparam Value
  *   message node type
  * @tparam Codec
  *   message codec plugin type
@@ -24,16 +24,16 @@ import scala.reflect.macros.blackbox
  * @tparam Result
  *   result type
  */
-final case class RemoteCall[Node, Codec <: MessageCodec[Node], Effect[_], Context, Result](
+final case class RemoteCall[Value, Codec <: MessageCodec[Value], Effect[_], Context, Result](
   functionName: String,
   codec: Codec,
-  private val performCall: (String, Seq[(String, Node)], (Node, Context) => Result, Option[Context]) => Effect[Result],
-  private val decodeResult: (Node, Context) => Result,
-) extends RemoteInvoke[Node, Codec, Effect, Context, Result] {
+  private val performCall: (String, Seq[(String, Value)], (Value, Context) => Result, Option[Context]) => Effect[Result],
+  private val decodeResult: (Value, Context) => Result,
+) extends RemoteInvoke[Value, Codec, Effect, Context, Result] {
 
   override def invoke(
     arguments: Seq[(String, Any)],
-    argumentNodes: Seq[Node],
+    argumentNodes: Seq[Value],
     requestContext: Context,
   ): Effect[Result] =
     performCall(functionName, arguments.map(_._1).zip(argumentNodes), decodeResult, Some(requestContext))
@@ -41,20 +41,20 @@ final case class RemoteCall[Node, Codec <: MessageCodec[Node], Effect[_], Contex
 
 object RemoteCall {
 
-  def applyMacro[Node: c.WeakTypeTag, Codec <: MessageCodec[Node]: c.WeakTypeTag, Effect[
+  def applyMacro[Value: c.WeakTypeTag, Codec <: MessageCodec[Value]: c.WeakTypeTag, Effect[
     _
   ], Context: c.WeakTypeTag, Result: c.WeakTypeTag](c: blackbox.Context)(
     functionName: c.Expr[String],
     codec: c.Expr[Codec],
-    performCall: c.Expr[(String, Seq[(String, Node)], (Node, Context) => Result, Option[Context]) => Effect[Result]],
-  ): c.Expr[RemoteCall[Node, Codec, Effect, Context, Result]] = {
+    performCall: c.Expr[(String, Seq[(String, Value)], (Value, Context) => Result, Option[Context]) => Effect[Result]],
+  ): c.Expr[RemoteCall[Value, Codec, Effect, Context, Result]] = {
     import c.universe.{Quasiquote, weakTypeOf}
 
-    val nodeType = weakTypeOf[Node]
+    val nodeType = weakTypeOf[Value]
     val codecType = weakTypeOf[Codec]
     val contextType = weakTypeOf[Context]
     val resultType = weakTypeOf[Result]
-    c.Expr[RemoteCall[Node, Codec, Effect, Context, Result]](q"""
+    c.Expr[RemoteCall[Value, Codec, Effect, Context, Result]](q"""
       new automorph.client.RemoteCall(
         $functionName,
         $codec,
@@ -73,7 +73,7 @@ object RemoteCall {
    *   message codec plugin
    * @param performCall
    *   performs an RPC call using specified arguments
-   * @tparam Node
+   * @tparam Value
    *   message node type
    * @tparam Codec
    *   message codec plugin type
@@ -84,10 +84,10 @@ object RemoteCall {
    * @tparam Result
    *   result type
    */
-  def apply[Node, Codec <: MessageCodec[Node], Effect[_], Context, Result](
+  def apply[Value, Codec <: MessageCodec[Value], Effect[_], Context, Result](
     functionName: String,
     codec: Codec,
-    performCall: (String, Seq[(String, Node)], (Node, Context) => Result, Option[Context]) => Effect[Result],
-  ): RemoteCall[Node, Codec, Effect, Context, Result] =
-    macro applyMacro[Node, Codec, Effect, Context, Result]
+    performCall: (String, Seq[(String, Value)], (Value, Context) => Result, Option[Context]) => Effect[Result],
+  ): RemoteCall[Value, Codec, Effect, Context, Result] =
+    macro applyMacro[Value, Codec, Effect, Context, Result]
 }

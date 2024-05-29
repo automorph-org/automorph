@@ -15,15 +15,15 @@ import scala.util.{Failure, Success, Try}
 /**
  * Web-RPC protocol core logic.
  *
- * @tparam Node
+ * @tparam Value
  *   message node type
  * @tparam Codec
  *   message codec plugin type
  * @tparam Context
  *   RPC message context type
  */
-private[automorph] trait WebRpcBase[Node, Codec <: MessageCodec[Node], Context <: HttpContext[?]] {
-  this: WebRpcProtocol[Node, Codec, Context] =>
+private[automorph] trait WebRpcBase[Value, Codec <: MessageCodec[Value], Context <: HttpContext[?]] {
+  this: WebRpcProtocol[Value, Codec, Context] =>
 
   /** Web-RPC message metadata. */
   type Metadata = String
@@ -50,11 +50,11 @@ private[automorph] trait WebRpcBase[Node, Codec <: MessageCodec[Node], Context <
 
   override def createRequest(
     function: String,
-    arguments: Iterable[(String, Node)],
+    arguments: Iterable[(String, Value)],
     respond: Boolean,
     context: Context,
     id: String,
-  ): Try[protocol.Request[Node, Metadata, Context]] = {
+  ): Try[protocol.Request[Value, Metadata, Context]] = {
     // Create request
     val request = arguments.toMap
     val requestProperties =
@@ -66,7 +66,7 @@ private[automorph] trait WebRpcBase[Node, Codec <: MessageCodec[Node], Context <
       Failure(InvalidRequest("Malformed request", error))
     }.map { messageBody =>
       val message = protocol.Message(id, messageBody, requestProperties, messageText)
-      val requestArguments = arguments.map(Right.apply[Node, (String, Node)]).toSeq
+      val requestArguments = arguments.map(Right.apply[Value, (String, Value)]).toSeq
       val pathContext = context.path(s"${context.path.getOrElse("")}/$function").asInstanceOf[Context]
       protocol.Request(function, requestArguments, respond, pathContext, message, id)
     }
@@ -76,7 +76,7 @@ private[automorph] trait WebRpcBase[Node, Codec <: MessageCodec[Node], Context <
     body: Array[Byte],
     context: Context,
     id: String,
-  ): Either[ParseError[Metadata], protocol.Request[Node, Metadata, Context]] =
+  ): Either[ParseError[Metadata], protocol.Request[Value, Metadata, Context]] =
     retrieveRequest(body, context, id).flatMap { request =>
       // Validate request
       val messageText = () => Some(messageCodec.text(encodeRequest(request)))
@@ -85,7 +85,7 @@ private[automorph] trait WebRpcBase[Node, Codec <: MessageCodec[Node], Context <
         if (path.startsWith(pathPrefix) && path.length > pathPrefix.length) {
           val function = functionSeparator.replaceFirstIn(path.substring(pathPrefix.length, path.length), "")
           val message = protocol.Message(id, body, requestProperties ++ Seq("Function" -> function), messageText)
-          val requestArguments = request.map(Right.apply[Node, (String, Node)]).toSeq
+          val requestArguments = request.map(Right.apply[Value, (String, Value)]).toSeq
           Right(protocol.Request(function, requestArguments, respond = true, context, message, id))
         } else {
           val message = protocol.Message(id, body, requestProperties, messageText)
@@ -97,7 +97,7 @@ private[automorph] trait WebRpcBase[Node, Codec <: MessageCodec[Node], Context <
       }
     }
 
-  override def createResponse(result: Try[Node], requestMetadata: Metadata): Try[protocol.Response[Node, Metadata]] = {
+  override def createResponse(result: Try[Value], requestMetadata: Metadata): Try[protocol.Response[Value, Metadata]] = {
     // Create response
     val responseMessage = result.fold(
       { error =>
@@ -110,7 +110,7 @@ private[automorph] trait WebRpcBase[Node, Codec <: MessageCodec[Node], Context <
             val errorType = mapException(error)
             ResponseError(message, Some(errorType.code))
         }
-        Response[Node](None, Some(responseError)).message
+        Response[Value](None, Some(responseError)).message
       },
       resultValue => Response(Some(resultValue), None).message,
     )
@@ -129,7 +129,7 @@ private[automorph] trait WebRpcBase[Node, Codec <: MessageCodec[Node], Context <
     body: Array[Byte],
     context: Context,
     id: String,
-  ): Either[ParseError[Metadata], protocol.Response[Node, Metadata]] =
+  ): Either[ParseError[Metadata], protocol.Response[Value, Metadata]] =
     // Deserialize response
     Try(decodeResponse(messageCodec.deserialize(body))).fold(
       error => Left(ParseError(InvalidResponse("Malformed response", error), protocol.Message(id, body))),
@@ -152,7 +152,7 @@ private[automorph] trait WebRpcBase[Node, Codec <: MessageCodec[Node], Context <
       },
     )
 
-  override def apiSchemas: Seq[ApiSchema[Node]] =
+  override def apiSchemas: Seq[ApiSchema[Value]] =
     Seq(
       ApiSchema(
         RpcFunction(WebRpcProtocol.openApiFunction, Seq(), OpenApi.getClass.getSimpleName, None),
@@ -168,7 +168,7 @@ private[automorph] trait WebRpcBase[Node, Codec <: MessageCodec[Node], Context <
    * @return
    *   JSON-RPC protocol
    */
-  def context[NewContext <: HttpContext[?]]: WebRpcProtocol[Node, Codec, NewContext] =
+  def context[NewContext <: HttpContext[?]]: WebRpcProtocol[Value, Codec, NewContext] =
     copy()
 
   /**
@@ -179,7 +179,7 @@ private[automorph] trait WebRpcBase[Node, Codec <: MessageCodec[Node], Context <
    * @return
    *   Web-RPC protocol
    */
-  def mapException(exceptionToError: Throwable => ErrorType): WebRpcProtocol[Node, Codec, Context] =
+  def mapException(exceptionToError: Throwable => ErrorType): WebRpcProtocol[Value, Codec, Context] =
     copy(mapException = exceptionToError)
 
   /**
@@ -190,7 +190,7 @@ private[automorph] trait WebRpcBase[Node, Codec <: MessageCodec[Node], Context <
    * @return
    *   Web-RPC protocol
    */
-  def mapError(errorToException: (String, Option[Int]) => Throwable): WebRpcProtocol[Node, Codec, Context] =
+  def mapError(errorToException: (String, Option[Int]) => Throwable): WebRpcProtocol[Value, Codec, Context] =
     copy(mapError = errorToException)
 
   /**
@@ -201,14 +201,14 @@ private[automorph] trait WebRpcBase[Node, Codec <: MessageCodec[Node], Context <
    * @return
    *   Web-RPC protocol
    */
-  def mapOpenApi(mapOpenApi: OpenApi => OpenApi): WebRpcProtocol[Node, Codec, Context] =
+  def mapOpenApi(mapOpenApi: OpenApi => OpenApi): WebRpcProtocol[Value, Codec, Context] =
     copy(mapOpenApi = mapOpenApi)
 
   private def retrieveRequest(
     body: Array[Byte],
     context: Context,
     id: String,
-  ): Either[ParseError[Metadata], Request[Node]] =
+  ): Either[ParseError[Metadata], Request[Value]] =
     context.method.filter(_ == HttpMethod.Get).map { _ =>
       // HTTP GET method - assemble request from URL query parameters
       val parameterNames = context.parameters.map(_._1)

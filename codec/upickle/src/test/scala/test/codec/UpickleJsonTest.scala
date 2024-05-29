@@ -5,22 +5,22 @@ import automorph.codec.UPickleJsonCodec.JsonConfig
 import org.scalacheck.{Arbitrary, Gen}
 import test.api.Generators.arbitraryRecord
 import test.api.{Enum, Record, Structure}
-import ujson.{Arr, Bool, Null, Num, Obj, Str, Value}
+import ujson.{Arr, Bool, Null, Num, Obj, Str, Value as UValue}
 
 final class UpickleJsonTest extends MessageCodecTest with JsonMessageCodecTest {
 
-  type Node = Value
+  type Value = UValue
   type ActualCodec = UPickleJsonCodec[UpickleJsonTest.type]
 
   override lazy val codec: ActualCodec = UPickleJsonCodec(UpickleJsonTest)
 
-  override lazy val arbitraryNode: Arbitrary[Node] = Arbitrary(Gen.recursive[Node] { recurse =>
+  override lazy val arbitraryNode: Arbitrary[Value] = Arbitrary(Gen.recursive[Value] { recurse =>
     Gen.oneOf(
       Gen.const(Null),
-      Gen.resultOf[String, Node](Str.apply),
-      Gen.resultOf[Double, Node](Num.apply),
-      Gen.resultOf[Boolean, Node](Bool.apply),
-      Gen.listOfN[Node](2, recurse).map(Arr(_*)),
+      Gen.resultOf[String, Value](Str.apply),
+      Gen.resultOf[Double, Value](Num.apply),
+      Gen.resultOf[Boolean, Value](Bool.apply),
+      Gen.listOfN[Value](2, recurse).map(Arr(_*)),
       Gen.mapOfN(2, Gen.zip(Arbitrary.arbitrary[String], recurse)).map(Obj.from),
     )
   })

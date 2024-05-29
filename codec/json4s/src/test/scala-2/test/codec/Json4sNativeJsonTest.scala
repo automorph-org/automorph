@@ -8,18 +8,18 @@ import test.api.{Enum, Record}
 
 final class Json4sNativeJsonTest extends JsonMessageCodecTest {
 
-  type Node = JValue
+  type Value = JValue
   type ActualCodec = Json4sNativeJsonCodec
 
   override lazy val codec: ActualCodec = Json4sNativeJsonCodec(formats)
 
-  override lazy val arbitraryNode: Arbitrary[Node] = Arbitrary(Gen.recursive[Node] { recurse =>
+  override lazy val arbitraryNode: Arbitrary[Value] = Arbitrary(Gen.recursive[Value] { recurse =>
     Gen.oneOf(
       Gen.const(JNull),
       Gen.resultOf(JString.apply),
       Gen.resultOf(JDouble.apply),
       Gen.resultOf(JBool.apply),
-      Gen.listOfN[Node](2, Gen.oneOf(Gen.const(JNull), recurse)).map(JArray.apply),
+      Gen.listOfN[Value](2, Gen.oneOf(Gen.const(JNull), recurse)).map(JArray.apply),
       Gen.mapOfN(2, Gen.zip(Arbitrary.arbitrary[String], recurse)).map(entries => JObject(entries.toSeq *)),
     )
   })

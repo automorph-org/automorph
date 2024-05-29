@@ -7,7 +7,7 @@ import automorph.spi.MessageCodec
 private[automorph] trait DefaultRpcProtocol:
 
   /** Default message node type. */
-  type Node = CirceJsonCodec.Node
+  type Value = CirceJsonCodec.Value
 
   /** Default message codec plugin type. */
   type Codec = CirceJsonCodec
@@ -20,7 +20,7 @@ private[automorph] trait DefaultRpcProtocol:
    * @see
    *   [[https://circe.github.io/circe Library documentation]]
    * @see
-   *   [[https://circe.github.io/circe/api/io/circe/Json.html Node type]]
+   *   [[https://circe.github.io/circe/api/io/circe/Json.html Value type]]
    * @return
    *   message codec plugin
    */
@@ -37,7 +37,7 @@ private[automorph] trait DefaultRpcProtocol:
    * @return
    *   RPC protocol plugin
    */
-  def rpcProtocol[Context]: JsonRpcProtocol[Node, Codec, Context] =
+  def rpcProtocol[Context]: JsonRpcProtocol[Value, Codec, Context] =
     JsonRpcProtocol(messageCodec)
 
   /**
@@ -49,14 +49,14 @@ private[automorph] trait DefaultRpcProtocol:
    *   message codec plugin
    * @return
    *   RPC protocol plugin
-   * @tparam NodeType
+   * @tparam ValueType
    *   message node type
    * @tparam CodecType
    *   message codec plugin type
    * @tparam Context
    *   RPC message context type
    */
-  inline def rpcProtocol[NodeType, CodecType <: MessageCodec[NodeType], Context](
+  inline def rpcProtocol[ValueType, CodecType <: MessageCodec[ValueType], Context](
     messageCodec: CodecType
-  ): JsonRpcProtocol[NodeType, CodecType, Context] =
+  ): JsonRpcProtocol[ValueType, CodecType, Context] =
     JsonRpcProtocol(messageCodec)

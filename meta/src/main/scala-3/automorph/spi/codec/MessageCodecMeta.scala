@@ -3,10 +3,10 @@ package automorph.spi.codec
 /**
  * Structured message format codec code generation.
  *
- * @tparam Node
+ * @tparam Value
  *   message codec node representation type
  */
-trait MessageCodecMeta[Node]:
+trait MessageCodecMeta[Value]:
 
   /**
    * Encodes a value as a message codec node.
@@ -18,7 +18,7 @@ trait MessageCodecMeta[Node]:
    * @return
    *   message codec node
    */
-  inline def encode[T](value: T): Node
+  inline def encode[T](value: T): Value
 
   /**
    * Decodes a value from a message codec node.
@@ -30,4 +30,4 @@ trait MessageCodecMeta[Node]:
    * @return
    *   value of the specified type
    */
-  inline def decode[T](node: Node): T
+  inline def decode[T](node: Value): T

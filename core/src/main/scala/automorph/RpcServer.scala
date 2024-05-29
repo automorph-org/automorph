@@ -24,7 +24,7 @@ import scala.util.Random
  *   enable automatic provision of service discovery via RPC functions returning bound API schema
  * @param apiBindings
  *   API method bindings
- * @tparam Node
+ * @tparam Value
  *   message node type
  * @tparam Codec
  *   message codec plugin type
@@ -35,13 +35,13 @@ import scala.util.Random
  * @tparam Adapter
  *   transport layer adapter type
  */
-final case class RpcServer[Node, Codec <: MessageCodec[Node], Effect[_], Context, Adapter](
+final case class RpcServer[Value, Codec <: MessageCodec[Value], Effect[_], Context, Adapter](
   transport: ServerTransport[Effect, Context, Adapter],
-  rpcProtocol: RpcProtocol[Node, Codec, Context],
+  rpcProtocol: RpcProtocol[Value, Codec, Context],
   discovery: Boolean = false,
-  apiBindings: ListMap[String, ServerBinding[Node, Effect, Context]] =
-  ListMap[String, ServerBinding[Node, Effect, Context]]()
-) extends ServerBase[Node, Codec, Effect, Context, Adapter] {
+  apiBindings: ListMap[String, ServerBinding[Value, Effect, Context]] =
+  ListMap[String, ServerBinding[Value, Effect, Context]]()
+) extends ServerBase[Value, Codec, Effect, Context, Adapter] {
 
   private val handler = ServerRequestHandler(transport.effectSystem, rpcProtocol, discovery, apiBindings)
   private lazy val configuredTransport = transport.requestHandler(handler)
@@ -57,7 +57,7 @@ final case class RpcServer[Node, Codec <: MessageCodec[Node], Effect[_], Context
    * @return
    *   active RPC server
    */
-  def init(): Effect[RpcServer[Node, Codec, Effect, Context, Adapter]] =
+  def init(): Effect[RpcServer[Value, Codec, Effect, Context, Adapter]] =
     configuredTransport.effectSystem.map(configuredTransport.init())(_ => this)
 
   /**
@@ -66,7 +66,7 @@ final case class RpcServer[Node, Codec <: MessageCodec[Node], Effect[_], Context
    * @return
    *   passive RPC server
    */
-  def close(): Effect[RpcServer[Node, Codec, Effect, Context, Adapter]] =
+  def close(): Effect[RpcServer[Value, Codec, Effect, Context, Adapter]] =
     configuredTransport.effectSystem.map(configuredTransport.close())(_ => this)
 
   /**
@@ -85,7 +85,7 @@ final case class RpcServer[Node, Codec <: MessageCodec[Node], Effect[_], Context
    * @return
    *   RPC server
    */
-  def discovery(discovery: Boolean): RpcServer[Node, Codec, Effect, Context, Adapter] =
+  def discovery(discovery: Boolean): RpcServer[Value, Codec, Effect, Context, Adapter] =
     copy(discovery = discovery)
 
   /**
@@ -163,16 +163,16 @@ object RpcServer {
      *
      * @param rpcProtocol
      *   RPC protocol plugin
-     * @tparam Node
+     * @tparam Value
      *   message node type
      * @tparam Codec
      *   message codec plugin type
      * @return
      *   RPC server builder
      */
-    def rpcProtocol[Node, Codec <: MessageCodec[Node]](
-      rpcProtocol: RpcProtocol[Node, Codec, Context]
-    ): RpcServer[Node, Codec, Effect, Context, Endpoint] =
+    def rpcProtocol[Value, Codec <: MessageCodec[Value]](
+      rpcProtocol: RpcProtocol[Value, Codec, Context]
+    ): RpcServer[Value, Codec, Effect, Context, Endpoint] =
       RpcServer(transport, rpcProtocol)
   }
 }

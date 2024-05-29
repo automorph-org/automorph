@@ -12,25 +12,25 @@ import test.base.BaseTest
  */
 trait JsonMessageCodecTest extends BaseTest {
 
-  type Node
-  type ActualCodec <: MessageCodec[Node]
+  type Value
+  type ActualCodec <: MessageCodec[Value]
 
   def codec: ActualCodec
 
-  implicit def arbitraryNode: Arbitrary[Node]
+  implicit def arbitraryNode: Arbitrary[Value]
 
   private val jsonObjectMapper = new ObjectMapper()
 
   "" - {
     "JSON" - {
       "Serialize" in {
-        forAll { (node: Node) =>
+        forAll { (node: Value) =>
           val serialized = codec.serialize(node)
           jsonObjectMapper.readTree(serialized)
         }
       }
       "Text" in {
-        forAll { (node: Node) =>
+        forAll { (node: Value) =>
           val text = codec.text(node)
           jsonObjectMapper.readTree(text)
         }

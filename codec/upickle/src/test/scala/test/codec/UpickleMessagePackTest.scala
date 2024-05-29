@@ -10,18 +10,18 @@ import upickle.core.LinkedHashMap
 
 final class UpickleMessagePackTest extends MessageCodecTest {
 
-  type Node = Msg
+  type Value = Msg
   type ActualCodec = UPickleMessagePackCodec[UpickleMessagePackTest.type]
 
   override lazy val codec: ActualCodec = UPickleMessagePackCodec(UpickleMessagePackTest)
 
-  override lazy val arbitraryNode: Arbitrary[Node] = Arbitrary(Gen.recursive[Node] { recurse =>
+  override lazy val arbitraryNode: Arbitrary[Value] = Arbitrary(Gen.recursive[Value] { recurse =>
     Gen.oneOf(
       Gen.const(Null),
-      Gen.resultOf[String, Node](Str.apply),
-      Gen.resultOf[Double, Node](Float64.apply),
-      Gen.resultOf[Boolean, Node](Bool.apply),
-      Gen.listOfN[Node](2, recurse).map(Arr(_*)),
+      Gen.resultOf[String, Value](Str.apply),
+      Gen.resultOf[Double, Value](Float64.apply),
+      Gen.resultOf[Boolean, Value](Bool.apply),
+      Gen.listOfN[Value](2, recurse).map(Arr(_*)),
       Gen.mapOfN(2, Gen.zip(Gen.resultOf[String, Msg](Str.apply), recurse)).map { values =>
         Obj(LinkedHashMap(values))
       },

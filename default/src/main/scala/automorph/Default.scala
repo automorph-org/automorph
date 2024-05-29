@@ -42,7 +42,7 @@ object Default extends DefaultRpcProtocol with DefaultTransport {
    */
   def rpcClient(url: URI, method: HttpMethod = HttpMethod.Post)(implicit
     executionContext: ExecutionContext
-  ): RpcClient[Node, Codec, Effect, ClientContext] =
+  ): RpcClient[Value, Codec, Effect, ClientContext] =
     rpcClientCustom(effectSystem, url, method)
 
   /**
@@ -106,7 +106,7 @@ object Default extends DefaultRpcProtocol with DefaultTransport {
     webSocket: Boolean = true,
     mapException: Throwable => Int = HttpContext.toStatusCode,
     builder: Undertow.Builder = builder,
-  )(implicit executionContext: ExecutionContext): RpcServer[Node, Codec, Effect, ServerContext, Unit] =
+  )(implicit executionContext: ExecutionContext): RpcServer[Value, Codec, Effect, ServerContext, Unit] =
     rpcServerCustom(effectSystem, port, path, methods, webSocket, mapException, builder)
 
   /**

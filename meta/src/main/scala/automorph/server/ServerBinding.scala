@@ -17,17 +17,17 @@ import automorph.RpcFunction
  *   calls bound function
  * @param acceptsContext
  *   true if the method accepts request context as its last parameter, false otherwise
- * @tparam Node
+ * @tparam Value
  *   message node type
  * @tparam Effect
  *   effect type
  * @tparam Context
  *   RPC message context type
  */
-final case class ServerBinding[Node, Effect[_], Context](
+final case class ServerBinding[Value, Effect[_], Context](
   function: RpcFunction,
-  argumentDecoders: Map[String, Option[Node] => Any],
-  encodeResult: Any => (Node, Option[Context]),
+  argumentDecoders: Map[String, Option[Value] => Any],
+  encodeResult: Any => (Value, Option[Context]),
   call: (Seq[Any], Context) => Any,
   acceptsContext: Boolean,
 )

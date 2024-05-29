@@ -32,7 +32,7 @@ import scala.util.{Failure, Try}
  * @see
  *   [[https://github.com/FasterXML/jackson-module-scala Library documentation]]
  * @see
- *   [[https://fasterxml.github.io/jackson-databind/javadoc/2.14/com/fasterxml/jackson/databind/JsonNode.html Node type]]
+ *   [[https://fasterxml.github.io/jackson-databind/javadoc/2.14/com/fasterxml/jackson/databind/JsonNode.html Value type]]
  * @constructor
  *   Creates a Jackson codec plugin using specific message format.
  * @param objectMapper
@@ -62,7 +62,7 @@ final case class JacksonCodec(objectMapper: ObjectMapper = new JsonMapper) exten
 object JacksonCodec {
 
   /** Message node type. */
-  type Node = JsonNode
+  type Value = JsonNode
 
   /** Serialize and deserialize Unit as empty object. */
   private lazy val unitModule: SimpleModule = new SimpleModule().addSerializer(

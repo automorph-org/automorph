@@ -15,14 +15,14 @@ import automorph.RpcFunction
  *   decodes bound function result
  * @param acceptsContext
  *   true if the last parameter of the bound function is contextual
- * @tparam Node
+ * @tparam Value
  *   message node type
  * @tparam Context
  *   RPC message context type
  */
-final case class ClientBinding[Node, Context](
+final case class ClientBinding[Value, Context](
   function: RpcFunction,
-  argumentEncoders: Map[String, Any => Node],
-  decodeResult: (Node, Context) => Any,
+  argumentEncoders: Map[String, Any => Value],
+  decodeResult: (Value, Context) => Any,
   acceptsContext: Boolean,
 )

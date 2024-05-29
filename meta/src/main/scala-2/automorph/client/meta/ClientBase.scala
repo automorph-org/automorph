@@ -8,7 +8,7 @@ import scala.reflect.macros.blackbox
 /**
  * Client API method bindings layer.
  *
- * @tparam Node
+ * @tparam Value
  *   message node type
  * @tparam Codec
  *   message codec plugin type
@@ -17,9 +17,9 @@ import scala.reflect.macros.blackbox
  * @tparam Context
  *   RPC message context type
  */
-private[automorph] trait ClientBase[Node, Codec <: MessageCodec[Node], Effect[_], Context] {
+private[automorph] trait ClientBase[Value, Codec <: MessageCodec[Value], Effect[_], Context] {
 
-  def rpcProtocol: RpcProtocol[Node, Codec, Context]
+  def rpcProtocol: RpcProtocol[Value, Codec, Context]
 
   /**
    * Creates a RPC API proxy with RPC bindings for all public methods of the specified API type.
@@ -41,7 +41,7 @@ private[automorph] trait ClientBase[Node, Codec <: MessageCodec[Node], Effect[_]
    *   if invalid public functions are found in the API type
    */
   def proxy[Api <: AnyRef]: Api =
-    macro ClientBase.proxyMacro[Node, Codec, Effect, Context, Api]
+    macro ClientBase.proxyMacro[Value, Codec, Effect, Context, Api]
 
   /**
    * Creates a remote API proxy with RPC bindings for all public methods of the specified API type.
@@ -67,7 +67,7 @@ private[automorph] trait ClientBase[Node, Codec <: MessageCodec[Node], Effect[_]
    *   if invalid public functions are found in the API type
    */
   def proxy[Api <: AnyRef](mapName: String => String): Api =
-    macro ClientBase.proxyMapNamesMacro[Node, Codec, Effect, Context, Api]
+    macro ClientBase.proxyMapNamesMacro[Value, Codec, Effect, Context, Api]
 
   /**
    * Creates a remote API function call proxy.
@@ -84,8 +84,8 @@ private[automorph] trait ClientBase[Node, Codec <: MessageCodec[Node], Effect[_]
    * @throws RpcException
    *   on RPC error
    */
-  def call[Result](function: String): RemoteCall[Node, Codec, Effect, Context, Result] =
-    macro ClientBase.callMacro[Node, Codec, Effect, Context, Result]
+  def call[Result](function: String): RemoteCall[Value, Codec, Effect, Context, Result] =
+    macro ClientBase.callMacro[Value, Codec, Effect, Context, Result]
 
   /**
    * This method must never be used and should be considered private.
@@ -109,16 +109,16 @@ private[automorph] trait ClientBase[Node, Codec <: MessageCodec[Node], Effect[_]
    */
   def performCall[Result](
      function: String,
-     arguments: Seq[(String, Node)],
-     decodeResult: (Node, Context) => Result,
+     arguments: Seq[(String, Value)],
+     decodeResult: (Value, Context) => Result,
      requestContext: Option[Context],
    ): Effect[Result]
 }
 
 object ClientBase {
 
-  def proxyMacro[Node, Codec <: MessageCodec[Node], Effect[_], Context, Api <: AnyRef](c: blackbox.Context)(implicit
-    nodeType: c.WeakTypeTag[Node],
+  def proxyMacro[Value, Codec <: MessageCodec[Value], Effect[_], Context, Api <: AnyRef](c: blackbox.Context)(implicit
+    nodeType: c.WeakTypeTag[Value],
     codecType: c.WeakTypeTag[Codec],
     effectType: c.WeakTypeTag[Effect[?]],
     contextType: c.WeakTypeTag[Context],
@@ -130,13 +130,13 @@ object ClientBase {
     val mapName = c.Expr[String => String](q"""
       identity
     """)
-    proxyMapNamesMacro[Node, Codec, Effect, Context, Api](c)(mapName)
+    proxyMapNamesMacro[Value, Codec, Effect, Context, Api](c)(mapName)
   }
 
-  def proxyMapNamesMacro[Node, Codec <: MessageCodec[Node], Effect[_], Context, Api <: AnyRef](c: blackbox.Context)(
+  def proxyMapNamesMacro[Value, Codec <: MessageCodec[Value], Effect[_], Context, Api <: AnyRef](c: blackbox.Context)(
     mapName: c.Expr[String => String]
   )(implicit
-    nodeType: c.WeakTypeTag[Node],
+    nodeType: c.WeakTypeTag[Value],
     codecType: c.WeakTypeTag[Codec],
     effectType: c.WeakTypeTag[Effect[?]],
     contextType: c.WeakTypeTag[Context],
@@ -199,16 +199,16 @@ object ClientBase {
   }
 
   def callMacro[
-    Node,
-    Codec <: MessageCodec[Node],
+    Value,
+    Codec <: MessageCodec[Value],
     Effect[_],
     Context,
     Result,
-  ](c: blackbox.Context)(function: c.Expr[String]): c.Expr[RemoteCall[Node, Codec, Effect, Context, Result]] = {
+  ](c: blackbox.Context)(function: c.Expr[String]): c.Expr[RemoteCall[Value, Codec, Effect, Context, Result]] = {
     import c.universe.Quasiquote
 
     // This client needs to be assigned to a stable identifier due to macro expansion limitations
-    c.Expr[RemoteCall[Node, Codec, Effect, Context, Result]](q"""
+    c.Expr[RemoteCall[Value, Codec, Effect, Context, Result]](q"""
       val client = ${c.prefix}
       automorph.client.RemoteCall($function, client.rpcProtocol.messageCodec, client.performCall)
     """)

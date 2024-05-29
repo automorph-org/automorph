@@ -6,7 +6,7 @@ import com.fasterxml.jackson.core.JsonFactory
 import com.fasterxml.jackson.dataformat.cbor.{CBORFactory, CBORFactoryBuilder}
 import com.fasterxml.jackson.dataformat.ion.{IonFactory, IonFactoryBuilder}
 import com.fasterxml.jackson.dataformat.smile.{SmileFactory, SmileFactoryBuilder}
-import com.rallyhealth.weejson.v1.Value
+import com.rallyhealth.weejson.v1.Value as WValue
 import com.rallyhealth.weejson.v1.jackson.{DefaultJsonFactory, FromJson, ToJson, ToPrettyJson}
 import com.rallyhealth.weepickle.v1.WeePickle
 import com.rallyhealth.weepickle.v1.WeePickle.{FromTo, SimpleTo, To}
@@ -34,7 +34,7 @@ import scala.reflect.ClassTag
  * @see
  *   [[https://github.com/rallyhealth/weePickle Library documentation]]
  * @see
- *   [[https://javadoc.io/doc/com.rallyhealth/weejson-v1_3/latest/com/rallyhealth/weejson/v1/Value.html Node type]]
+ *   [[https://javadoc.io/doc/com.rallyhealth/weejson-v1_3/latest/com/rallyhealth/weejson/v1/Value.html Value type]]
  * @constructor
  *   Creates an weePickle codec plugin using specific message format.
  * @param formatFactory
@@ -49,13 +49,13 @@ final case class WeePickleCodec(formatFactory: JsonFactory = WeePickleCodec.json
     case _ => "application/json"
   }
 
-  override def serialize(node: Value): Array[Byte] =
+  override def serialize(node: WValue): Array[Byte] =
     node.transform(ToJson.bytes)
 
-  override def deserialize(data: Array[Byte]): Value =
-    FromJson(data).transform(Value)
+  override def deserialize(data: Array[Byte]): WValue =
+    FromJson(data).transform(WValue)
 
-  override def text(node: Value): String =
+  override def text(node: WValue): String =
     node.transform(ToPrettyJson.string)
 }
 
@@ -79,7 +79,7 @@ object WeePickleCodec {
     new NullSafeTo[collection.mutable.Map[K, V]](WeePickle.ToMutableMap, "map")
 
   /** Message node type. */
-  type Node = Value
+  type Value = WValue
   implicit lazy val jsonRpcFromTo: FromTo[WeePickleJsonRpc.RpcMessage] = WeePickleJsonRpc.fromTo
   implicit lazy val webRpcFromTo: FromTo[WeePickleWebRpc.RpcMessage] = WeePickleWebRpc.fromTo
   implicit lazy val openRpcFromTo: FromTo[OpenRpc] = WeePickleOpenRpc.fromTo

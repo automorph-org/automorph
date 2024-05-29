@@ -14,7 +14,7 @@ import java.io.ByteArrayInputStream
  * @see
  *   [[https://json4s.org Library documentation]]
  * @see
- *   [[https://javadoc.io/doc/org.json4s/json4s-ast_2.13/latest/org/json4s/JValue.html Node type]]
+ *   [[https://javadoc.io/doc/org.json4s/json4s-ast_2.13/latest/org/json4s/JValue.html Value type]]
  * @constructor
  *   Creates a Json4s codec plugin using JSON as message format.
  * @param formats
@@ -37,7 +37,7 @@ final case class Json4sNativeJsonCodec(formats: Formats = Json4sNativeJsonCodec.
 object Json4sNativeJsonCodec {
 
   /** Message node type. */
-  type Node = JValue
+  type Value = JValue
 
   val formats: Formats = DefaultFormats.strict.withBigDecimal + new CustomSerializer[Unit](_ =>
     (

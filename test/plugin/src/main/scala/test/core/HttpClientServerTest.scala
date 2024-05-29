@@ -22,7 +22,7 @@ trait HttpClientServerTest extends ClientServerTest {
     implicit val enumEncoder: Encoder[Enum.Enum] = Encoder.encodeInt.contramap[Enum.Enum](Enum.toOrdinal)
     implicit val enumDecoder: Decoder[Enum.Enum] = Decoder.decodeInt.map(Enum.fromOrdinal)
     val codec = CirceJsonCodec()
-    val protocol = WebRpcProtocol[CirceJsonCodec.Node, codec.type, Context](codec, "/")
+    val protocol = WebRpcProtocol[CirceJsonCodec.Value, codec.type, Context](codec, "/")
     val id = fixtureId(protocol)
     val server = RpcServer.transport(serverTransport(id)).rpcProtocol(protocol).discovery(true)
       .service(simpleApi, mapName).service(complexApi)

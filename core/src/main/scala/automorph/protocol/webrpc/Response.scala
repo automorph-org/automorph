@@ -9,18 +9,18 @@ import automorph.RpcException.InvalidResponse
  *   call result
  * @param error
  *   call error
- * @tparam Node
+ * @tparam Value
  *   message node type
  */
-final private[automorph] case class Response[Node](result: Option[Node], error: Option[ResponseError]) {
+final private[automorph] case class Response[Value](result: Option[Value], error: Option[ResponseError]) {
 
-  def message: Message[Node] =
-    Message[Node](result = result, error = error.map(_.formed))
+  def message: Message[Value] =
+    Message[Value](result = result, error = error.map(_.formed))
 }
 
 private[automorph] object Response {
 
-  def apply[Node](message: Message[Node]): Response[Node] =
+  def apply[Value](message: Message[Value]): Response[Value] =
     message.result.map(result => Response(Some(result), None)).getOrElse {
       val error = mandatory(message.error, "error")
       Response(None, Some(ResponseError(error)))

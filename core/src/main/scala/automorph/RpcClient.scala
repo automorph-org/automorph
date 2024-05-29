@@ -25,7 +25,7 @@ import scala.util.Try
  *   client transport protocol plugin
  * @param rpcProtocol
  *   RPC protocol plugin
- * @tparam Node
+ * @tparam Value
  *   message node type
  * @tparam Codec
  *   message codec plugin type
@@ -34,10 +34,10 @@ import scala.util.Try
  * @tparam Context
  *   RPC message context type
  */
-final case class RpcClient[Node, Codec <: MessageCodec[Node], Effect[_], Context](
+final case class RpcClient[Value, Codec <: MessageCodec[Value], Effect[_], Context](
   transport: ClientTransport[Effect, Context],
-  rpcProtocol: RpcProtocol[Node, Codec, Context],
-) extends ClientBase[Node, Codec, Effect, Context] with Logging {
+  rpcProtocol: RpcProtocol[Value, Codec, Context],
+) extends ClientBase[Value, Codec, Effect, Context] with Logging {
 
   implicit private val system: EffectSystem[Effect] = transport.effectSystem
 
@@ -53,7 +53,7 @@ final case class RpcClient[Node, Codec <: MessageCodec[Node], Effect[_], Context
    * @throws RpcException
    *   on RPC error
    */
-  def tell(function: String): RemoteTell[Node, Codec, Effect, Context] =
+  def tell(function: String): RemoteTell[Value, Codec, Effect, Context] =
     RemoteTell(function, rpcProtocol.messageCodec, performTell)
 
   /**
@@ -71,7 +71,7 @@ final case class RpcClient[Node, Codec <: MessageCodec[Node], Effect[_], Context
    * @return
    *   active RPC client
    */
-  def init(): Effect[RpcClient[Node, Codec, Effect, Context]] =
+  def init(): Effect[RpcClient[Value, Codec, Effect, Context]] =
     system.map(transport.init())(_ => this)
 
   /**
@@ -80,7 +80,7 @@ final case class RpcClient[Node, Codec <: MessageCodec[Node], Effect[_], Context
    * @return
    *   nothing
    */
-  def close(): Effect[RpcClient[Node, Codec, Effect, Context]] =
+  def close(): Effect[RpcClient[Value, Codec, Effect, Context]] =
     system.map(transport.close())(_ => this)
 
   override def toString: String = {
@@ -96,8 +96,8 @@ final case class RpcClient[Node, Codec <: MessageCodec[Node], Effect[_], Context
   /** This method must never be used and should be considered private. */
   override def performCall[Result](
     function: String,
-    arguments: Seq[(String, Node)],
-    decodeResult: (Node, Context) => Result,
+    arguments: Seq[(String, Value)],
+    decodeResult: (Value, Context) => Result,
     requestContext: Option[Context],
   ): Effect[Result] = {
     // Create request
@@ -136,7 +136,7 @@ final case class RpcClient[Node, Codec <: MessageCodec[Node], Effect[_], Context
    */
   private def performTell(
     function: String,
-    arguments: Seq[(String, Node)],
+    arguments: Seq[(String, Value)],
     requestContext: Option[Context],
   ): Effect[Unit] = {
     // Create request
@@ -161,7 +161,7 @@ final case class RpcClient[Node, Codec <: MessageCodec[Node], Effect[_], Context
   }
 
   private def getRequestProperties(
-    rpcRequest: Request[Node, rpcProtocol.Metadata, Context],
+    rpcRequest: Request[Value, rpcProtocol.Metadata, Context],
     requestId: String,
   ): Map[String, String] =
     ListMap(LogProperties.requestId -> requestId) ++ rpcRequest.message.properties
@@ -190,7 +190,7 @@ final case class RpcClient[Node, Codec <: MessageCodec[Node], Effect[_], Context
     context: Context,
     requestId: String,
     requestProperties: => Map[String, String],
-    decodeResult: (Node, Context) => R,
+    decodeResult: (Value, Context) => R,
   ): Effect[R] =
     // Parse response
     rpcProtocol.parseResponse(body, context, requestId).fold(
@@ -269,16 +269,16 @@ object RpcClient {
      *
      * @param rpcProtocol
      *   RPC protocol plugin
-     * @tparam Node
+     * @tparam Value
      *   message node type
      * @tparam Codec
      *   message codec plugin type
      * @return
      *   RPC client builder
      */
-    def rpcProtocol[Node, Codec <: MessageCodec[Node]](
-      rpcProtocol: RpcProtocol[Node, Codec, Context]
-    ): RpcClient[Node, Codec, Effect, Context] =
+    def rpcProtocol[Value, Codec <: MessageCodec[Value]](
+      rpcProtocol: RpcProtocol[Value, Codec, Context]
+    ): RpcClient[Value, Codec, Effect, Context] =
       RpcClient(transport, rpcProtocol)
   }
 }

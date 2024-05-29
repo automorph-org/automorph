@@ -14,7 +14,7 @@ import io.circe.{Decoder, Encoder, Json, parser}
  * @see
  *   [[https://circe.github.io/circe Library documentation]]
  * @see
- *   [[https://circe.github.io/circe/api/io/circe/Json.html Node type]]
+ *   [[https://circe.github.io/circe/api/io/circe/Json.html Value type]]
  * @constructor
  *   Creates a Circe codec plugin using JSON as message format.
  */
@@ -35,7 +35,7 @@ final case class CirceJsonCodec() extends CirceJsonMeta {
 object CirceJsonCodec {
 
   /** Message node type. */
-  type Node = Json
+  type Value = Json
 
   implicit lazy val jsonRpcMessageEncoder: Encoder[CirceJsonRpc.RpcMessage] = CirceJsonRpc.encoder
   implicit lazy val jsonRpcMessageDecoder: Decoder[CirceJsonRpc.RpcMessage] = CirceJsonRpc.decoder

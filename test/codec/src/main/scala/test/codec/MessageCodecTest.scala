@@ -12,25 +12,25 @@ import test.base.BaseTest
  */
 trait MessageCodecTest extends BaseTest {
 
-  type Node
-  type ActualCodec <: MessageCodec[Node]
+  type Value
+  type ActualCodec <: MessageCodec[Value]
 
   def codec: ActualCodec
 
-  implicit def arbitraryNode: Arbitrary[Node]
+  implicit def arbitraryNode: Arbitrary[Value]
 
   private val charset = StandardCharsets.UTF_8
 
   "" - {
     "Serialize & Deserialize" in {
-      forAll { (node: Node) =>
+      forAll { (node: Value) =>
         val serialized = codec.serialize(node)
         val deserialized = codec.deserialize(serialized)
         deserialized.shouldEqual(node)
       }
     }
     "Text" in {
-      forAll { (node: Node) =>
+      forAll { (node: Value) =>
         val textLength = codec.text(node).getBytes(charset).length
         val serializedLength = codec.serialize(node).length
         textLength.shouldBe(>=(serializedLength - 1))

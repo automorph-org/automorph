@@ -11,7 +11,7 @@ import automorph.spi.MessageCodec
  *   remote function name.
  * @param codec
  *   message codec plugin
- * @tparam Node
+ * @tparam Value
  *   message node type
  * @tparam Codec
  *   message codec plugin type
@@ -20,13 +20,13 @@ import automorph.spi.MessageCodec
  * @tparam Context
  *   RPC message context type
  */
-final private[automorph] case class RemoteTell[Node, Codec <: MessageCodec[Node], Effect[_], Context] private (
+final private[automorph] case class RemoteTell[Value, Codec <: MessageCodec[Value], Effect[_], Context] private (
   functionName: String,
   codec: Codec,
-  private val sendMessage: (String, Seq[(String, Node)], Option[Context]) => Effect[Unit],
-) extends RemoteInvoke[Node, Codec, Effect, Context, Unit] {
+  private val sendMessage: (String, Seq[(String, Value)], Option[Context]) => Effect[Unit],
+) extends RemoteInvoke[Value, Codec, Effect, Context, Unit] {
 
-  override def invoke(arguments: Seq[(String, Any)], argumentNodes: Seq[Node], requestContext: Context): Effect[Unit] =
+  override def invoke(arguments: Seq[(String, Any)], argumentNodes: Seq[Value], requestContext: Context): Effect[Unit] =
     sendMessage(functionName, arguments.map(_._1).zip(argumentNodes), Some(requestContext))
 }
 
@@ -41,7 +41,7 @@ private[automorph] object RemoteTell {
    *   message codec plugin
    * @param sendMessage
    *   sends an RPC message with specified function name, arguments and request context
-   * @tparam Node
+   * @tparam Value
    *   message node type
    * @tparam Codec
    *   message codec plugin type
@@ -50,10 +50,10 @@ private[automorph] object RemoteTell {
    * @tparam Context
    *   RPC message context type
    */
-  def apply[Node, Codec <: MessageCodec[Node], Effect[_], Context](
+  def apply[Value, Codec <: MessageCodec[Value], Effect[_], Context](
     functionName: String,
     codec: Codec,
-    sendMessage: (String, Seq[(String, Node)], Option[Context]) => Effect[Unit],
-  ): RemoteTell[Node, Codec, Effect, Context] =
+    sendMessage: (String, Seq[(String, Value)], Option[Context]) => Effect[Unit],
+  ): RemoteTell[Value, Codec, Effect, Context] =
     new RemoteTell(functionName, codec, sendMessage)
 }

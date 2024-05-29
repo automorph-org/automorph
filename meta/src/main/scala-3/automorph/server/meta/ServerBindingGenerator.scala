@@ -18,7 +18,7 @@ private[automorph] object ServerBindingGenerator:
    *   message codec plugin
    * @param api
    *   API instance
-   * @tparam Node
+   * @tparam Value
    *   node type
    * @tparam Codec
    *   message codec plugin type
@@ -31,21 +31,21 @@ private[automorph] object ServerBindingGenerator:
    * @return
    *   mapping of API method names to handler function bindings
    */
-  inline def generate[Node, Codec <: MessageCodec[Node], Effect[_], Context, Api <: AnyRef](
+  inline def generate[Value, Codec <: MessageCodec[Value], Effect[_], Context, Api <: AnyRef](
     codec: Codec,
     api: Api,
-  ): Seq[ServerBinding[Node, Effect, Context]] =
-    ${ generateMacro[Node, Codec, Effect, Context, Api]('codec, 'api) }
+  ): Seq[ServerBinding[Value, Effect, Context]] =
+    ${ generateMacro[Value, Codec, Effect, Context, Api]('codec, 'api) }
 
   private def generateMacro[
-    Node: Type,
-    Codec <: MessageCodec[Node],
+    Value: Type,
+    Codec <: MessageCodec[Value],
     Effect[_]: Type,
     Context: Type,
     Api <: AnyRef: Type,
   ](codec: Expr[Codec], api: Expr[Api])(
     using quotes: Quotes
-  ): Expr[Seq[ServerBinding[Node, Effect, Context]]] =
+  ): Expr[Seq[ServerBinding[Value, Effect, Context]]] =
     val ref = ClassReflection(quotes)
 
     // Detect and validate public methods in the API type
@@ -58,18 +58,18 @@ private[automorph] object ServerBindingGenerator:
 
     // Generate bound API method bindings
     val bindings = validMethods.map { method =>
-      generateBinding[Node, Codec, Effect, Context, Api](ref)(method, codec, api)
+      generateBinding[Value, Codec, Effect, Context, Api](ref)(method, codec, api)
     }
     Expr.ofSeq(bindings)
 
-  private def generateBinding[Node: Type, Codec <: MessageCodec[Node], Effect[_]: Type, Context: Type, Api: Type](
+  private def generateBinding[Value: Type, Codec <: MessageCodec[Value], Effect[_]: Type, Context: Type, Api: Type](
     ref: ClassReflection
-  )(method: ref.RefMethod, codec: Expr[Codec], api: Expr[Api]): Expr[ServerBinding[Node, Effect, Context]] =
+  )(method: ref.RefMethod, codec: Expr[Codec], api: Expr[Api]): Expr[ServerBinding[Value, Effect, Context]] =
     given Quotes =
       ref.q
 
-    val argumentDecoders = generateArgumentDecoders[Node, Codec, Context](ref)(method, codec)
-    val encodeResult = generateEncodeResult[Node, Codec, Effect, Context](ref)(method, codec)
+    val argumentDecoders = generateArgumentDecoders[Value, Codec, Context](ref)(method, codec)
+    val encodeResult = generateEncodeResult[Value, Codec, Effect, Context](ref)(method, codec)
     val call = generateCall[Effect, Context, Api](ref)(method, api)
     logMethod[Api](ref)(method)
     logCode(ref)("Argument decoders", argumentDecoders)
@@ -85,9 +85,9 @@ private[automorph] object ServerBindingGenerator:
       )
     }
 
-  private def generateArgumentDecoders[Node: Type, Codec <: MessageCodec[Node], Context: Type](
+  private def generateArgumentDecoders[Value: Type, Codec <: MessageCodec[Value], Context: Type](
     ref: ClassReflection
-  )(method: ref.RefMethod, codec: Expr[Codec]): Expr[Map[String, Option[Node] => Any]] =
+  )(method: ref.RefMethod, codec: Expr[Codec]): Expr[Map[String, Option[Value] => Any]] =
     import ref.q.reflect.{Term, TypeRepr, asTerm}
     given Quotes =
       ref.q
@@ -110,19 +110,19 @@ private[automorph] object ServerBindingGenerator:
 
     // Create a map of method parameter names to functions decoding method argument node into a value
     //   Map(
-    //     parameterNName -> ((argumentNode: Node) =>
+    //     parameterNName -> ((argumentNode: Value) =>
     //       codec.decode[ParameterNType](argumentNode.getOrElse(codec.encode(None)))
     //     ...
-    //   ): Map[String, Node => Any]
+    //   ): Map[String, Value => Any]
     val argumentDecoders = method.parameters.toList.zip(parameterListOffsets).flatMap((parameters, offset) =>
       parameters.toList.zipWithIndex.flatMap { (parameter, index) =>
         Option.when(offset + index != lastArgumentIndex || !ApiReflection.acceptsContext[Context](ref)(method)) {
           '{
-            ${ Expr(parameter.name) } -> ((argumentNode: Option[Node]) =>
+            ${ Expr(parameter.name) } -> ((argumentNode: Option[Value]) =>
               ${
                 // Decode an argument node if present or empty node if missing into a value
                 val decodeArguments = List(List('{
-                  argumentNode.getOrElse(${ encodeNoneCall.asExprOf[Node] })
+                  argumentNode.getOrElse(${ encodeNoneCall.asExprOf[Value] })
                 }.asTerm))
                 ApiReflection.call(
                   ref.q,
@@ -139,9 +139,9 @@ private[automorph] object ServerBindingGenerator:
     )
     '{ Map(${ Expr.ofSeq(argumentDecoders) }*) }
 
-  private def generateEncodeResult[Node: Type, Codec <: MessageCodec[Node], Effect[_]: Type, Context: Type](
+  private def generateEncodeResult[Value: Type, Codec <: MessageCodec[Value], Effect[_]: Type, Context: Type](
     ref: ClassReflection
-  )(method: ref.RefMethod, codec: Expr[Codec]): Expr[Any => (Node, Option[Context])] =
+  )(method: ref.RefMethod, codec: Expr[Codec]): Expr[Any => (Value, Option[Context])] =
     import ref.q.reflect.asTerm
     given Quotes =
       ref.q
@@ -166,7 +166,7 @@ private[automorph] object ServerBindingGenerator:
                   MessageCodec.encodeMethod,
                   List(contextualResultType),
                   List(List('{ result.asInstanceOf[RpcResult[resultValueType, Context]].result }.asTerm)),
-                ).asExprOf[Node]
+                ).asExprOf[Value]
               } -> Some(result.asInstanceOf[RpcResult[resultValueType, Context]].context)
           }
     }.getOrElse {
@@ -180,7 +180,7 @@ private[automorph] object ServerBindingGenerator:
                   MessageCodec.encodeMethod,
                   List(resultType),
                   List(List('{ result.asInstanceOf[resultValueType] }.asTerm)),
-                ).asExprOf[Node]
+                ).asExprOf[Value]
               } -> Option.empty[Context]
           }
     }

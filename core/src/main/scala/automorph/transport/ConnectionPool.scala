@@ -95,13 +95,14 @@ final private[automorph] case class ConnectionPool[Effect[_], Endpoint, Connecti
         pool.synchronized {
           if (pool.removedIds.contains(connectionId)) {
             pool.removedIds -= connectionId
+            ()
           } else {
-            pool.pendingUses.removeHeadOption().getOrElse {
+            pool.pendingUses.removeHeadOption().map(_ => ()).getOrElse {
               pool.unusedConnections.addOne(connection -> connectionId)
+              ()
             }
           }
         }
-        ()
       }
     } else {
       closeConnection(connection)
@@ -134,7 +135,7 @@ final private[automorph] case class ConnectionPool[Effect[_], Endpoint, Connecti
           pool.pendingUses.addOne(use)
           use.effect
         }
-      case UseConnection(connection, connectionId) => system.successful(connection, connectionId)
+      case UseConnection(connection, connectionId) => system.successful(connection -> connectionId)
     }
 }
 

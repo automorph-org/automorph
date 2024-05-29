@@ -26,7 +26,7 @@ import scala.util.{Failure, Success, Try}
  *   enable automatic provision of service discovery via RPC functions returning bound API schema
  * @param apiBindings
  *   API method bindings
- * @tparam Node
+ * @tparam Value
  *   message node type
  * @tparam Codec
  *   message codec plugin type
@@ -35,12 +35,12 @@ import scala.util.{Failure, Success, Try}
  * @tparam Context
  *   RPC message context type
  */
-final private[automorph] case class ServerRequestHandler[Node, Codec <: MessageCodec[Node], Effect[_], Context](
+final private[automorph] case class ServerRequestHandler[Value, Codec <: MessageCodec[Value], Effect[_], Context](
   effectSystem: EffectSystem[Effect],
-  rpcProtocol: RpcProtocol[Node, Codec, Context],
+  rpcProtocol: RpcProtocol[Value, Codec, Context],
   discovery: Boolean = false,
-  apiBindings: ListMap[String, ServerBinding[Node, Effect, Context]] =
-    ListMap[String, ServerBinding[Node, Effect, Context]](),
+  apiBindings: ListMap[String, ServerBinding[Value, Effect, Context]] =
+    ListMap[String, ServerBinding[Value, Effect, Context]](),
 ) extends RequestHandler[Effect, Context] with Logging {
 
   /** Bound RPC functions. */
@@ -97,7 +97,7 @@ final private[automorph] case class ServerRequestHandler[Node, Codec <: MessageC
    *   bound RPC function call response
    */
   private def callFunction(
-    rpcRequest: Request[Node, rpcProtocol.Metadata, Context],
+    rpcRequest: Request[Value, rpcProtocol.Metadata, Context],
     context: Context,
     requestProperties: => Map[String, String],
   ): Effect[Option[Result[Context]]] = {
@@ -143,9 +143,9 @@ final private[automorph] case class ServerRequestHandler[Node, Codec <: MessageC
    *   bound function arguments
    */
   private def extractArguments(
-    rpcRequest: Request[Node, ?, Context],
-    binding: ServerBinding[Node, Effect, Context],
-  ): Try[Seq[Option[Node]]] = {
+    rpcRequest: Request[Value, ?, Context],
+    binding: ServerBinding[Value, Effect, Context],
+  ): Try[Seq[Option[Value]]] = {
     // Adjust expected function parameters if it uses context as its last parameter
     val parameters = binding.function.parameters
     val parameterNames = parameters.map(_.name).dropRight(if (binding.acceptsContext) 1 else 0)
@@ -164,7 +164,7 @@ final private[automorph] case class ServerRequestHandler[Node, Codec <: MessageC
       val redundantIdentifiers = redundantNames ++ redundantIndices.map(_.toString)
       Failure(new IllegalArgumentException(s"Redundant arguments: ${redundantIdentifiers.mkString(", ")}"))
     } else {
-      Success(parameterNames.foldLeft(Seq[Option[Node]]() -> 0) { case ((arguments, currentIndex), name) =>
+      Success(parameterNames.foldLeft(Seq[Option[Value]]() -> 0) { case ((arguments, currentIndex), name) =>
         val (argument, newIndex) = namedArguments.get(name) match {
           case Some(value) => Some(value) -> currentIndex
           case _ if currentIndex < positionalArguments.size =>
@@ -187,8 +187,8 @@ final private[automorph] case class ServerRequestHandler[Node, Codec <: MessageC
    *   remote function arguments
    */
   private def decodeArguments(
-    argumentNodes: Seq[Option[Node]],
-    binding: ServerBinding[Node, Effect, Context],
+    argumentNodes: Seq[Option[Value]],
+    binding: ServerBinding[Value, Effect, Context],
   ): Seq[Any] =
     binding.function.parameters.zip(argumentNodes).map { case (parameter, argumentNode) =>
       val decodeArgument = binding.argumentDecoders.getOrElse(
@@ -211,7 +211,7 @@ final private[automorph] case class ServerRequestHandler[Node, Codec <: MessageC
    * @return
    *   remote function result node
    */
-  private def encodeResult(result: Any, binding: ServerBinding[Node, Effect, Context]): (Node, Option[Context]) =
+  private def encodeResult(result: Any, binding: ServerBinding[Value, Effect, Context]): (Value, Option[Context]) =
     Try(binding.encodeResult(result)).recoverWith { case error =>
       Failure(new IllegalArgumentException("Malformed result", error))
     }.get
@@ -229,8 +229,8 @@ final private[automorph] case class ServerRequestHandler[Node, Codec <: MessageC
    *   bound function call RPC response
    */
   private def resultResponse(
-    callResult: Effect[(Node, Option[Context])],
-    rpcRequest: Request[Node, rpcProtocol.Metadata, Context],
+    callResult: Effect[(Value, Option[Context])],
+    rpcRequest: Request[Value, rpcProtocol.Metadata, Context],
     requestProperties: => Map[String, String],
   ): Effect[Option[Result[Context]]] =
     callResult.flatFold(
@@ -257,8 +257,8 @@ final private[automorph] case class ServerRequestHandler[Node, Codec <: MessageC
    *   handler result
    */
   private def createResponse(
-    result: Try[(Node, Option[Context])],
-    rpcRequest: Request[Node, rpcProtocol.Metadata, Context],
+    result: Try[(Value, Option[Context])],
+    rpcRequest: Request[Value, rpcProtocol.Metadata, Context],
     requestProperties: => Map[String, String],
   ): Effect[Option[Result[Context]]] =
     if (rpcRequest.respond) {
@@ -306,7 +306,7 @@ final private[automorph] case class ServerRequestHandler[Node, Codec <: MessageC
    *   handler result
    */
   private def response(
-    result: Try[(Node, Option[Context])],
+    result: Try[(Value, Option[Context])],
     message: Message[rpcProtocol.Metadata],
     requestProperties: => Map[String, String],
   ): Effect[Option[Result[Context]]] =
@@ -326,15 +326,15 @@ final private[automorph] case class ServerRequestHandler[Node, Codec <: MessageC
   private def getMessageBody(message: Message[?]): Option[(String, String)] =
     message.text.map(LogProperties.messageBody -> _)
 
-  private def apiSchemaBindings: ListMap[String, ServerBinding[Node, Effect, Context]] =
+  private def apiSchemaBindings: ListMap[String, ServerBinding[Value, Effect, Context]] =
     ListMap(rpcProtocol.apiSchemas.map { apiSchema =>
       val apiSchemaFunctions = rpcProtocol.apiSchemas.filter { apiSchema =>
         !apiBindings.contains(apiSchema.function.name)
       }.map(_.function) ++ apiBindings.values.map(_.function)
-      apiSchema.function.name -> ServerBinding[Node, Effect, Context](
+      apiSchema.function.name -> ServerBinding[Value, Effect, Context](
         apiSchema.function,
         Map.empty,
-        result => result.asInstanceOf[Node] -> None,
+        result => result.asInstanceOf[Value] -> None,
         (_, _) => effectSystem.successful(apiSchema.describe(apiSchemaFunctions)),
         acceptsContext = false,
       )

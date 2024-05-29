@@ -9,7 +9,7 @@ import scala.reflect.macros.blackbox
 /**
  * Remote function invocation proxy.
  *
- * @tparam Node
+ * @tparam Value
  *   message node type
  * @tparam Codec
  *   message codec plugin type
@@ -20,7 +20,7 @@ import scala.reflect.macros.blackbox
  * @tparam Result
  *   result type
  */
-private[automorph] trait RemoteInvoke[Node, Codec <: MessageCodec[Node], Effect[_], Context, Result] {
+private[automorph] trait RemoteInvoke[Value, Codec <: MessageCodec[Value], Effect[_], Context, Result] {
 
   /** Remote function name. */
   def functionName: String
@@ -40,7 +40,7 @@ private[automorph] trait RemoteInvoke[Node, Codec <: MessageCodec[Node], Effect[
    * @return
    *   result value
    */
-  def invoke(arguments: Seq[(String, Any)], argumentNodes: Seq[Node], requestContext: Context): Effect[Result]
+  def invoke(arguments: Seq[(String, Any)], argumentNodes: Seq[Value], requestContext: Context): Effect[Result]
 
   /**
    * Invokes the remote function using specified argument names and values.
@@ -492,31 +492,31 @@ object RemoteInvoke {
   }
 
   @scala.annotation.nowarn("msg=never used")
-  def decodeResultMacro[Node: c.WeakTypeTag, Codec, Context: c.WeakTypeTag, Result: c.WeakTypeTag](
+  def decodeResultMacro[Value: c.WeakTypeTag, Codec, Context: c.WeakTypeTag, Result: c.WeakTypeTag](
     c: blackbox.Context
-  )(codec: c.Expr[Codec])(codecBound: c.Expr[Codec <:< MessageCodec[Node]]): c.Expr[(Node, Context) => Result] = {
+  )(codec: c.Expr[Codec])(codecBound: c.Expr[Codec <:< MessageCodec[Value]]): c.Expr[(Value, Context) => Result] = {
     import c.universe.{Quasiquote, weakTypeOf}
 
     val resultType = weakTypeOf[Result]
-    val nodeType = weakTypeOf[Node]
+    val nodeType = weakTypeOf[Value]
     val contextType = weakTypeOf[Context]
     ApiReflection.contextualResult[c.type, Context, RpcResult[?, ?]](c)(resultType).map { contextualResultType =>
-      c.Expr[(Node, Context) => Result](q"""
+      c.Expr[(Value, Context) => Result](q"""
           (resultNode: $nodeType, responseContext: $contextType) => RpcResult(
             $codec.decode[$contextualResultType](resultNode),
             responseContext
           )
         """)
     }.getOrElse {
-      c.Expr[(Node, Context) => Result](q"""
+      c.Expr[(Value, Context) => Result](q"""
           (resultNode: $nodeType, _: $contextType) => $codec.decode[$resultType](resultNode)
         """)
     }
   }
 
-  def decodeResult[Node, Codec, Context, Result](codec: Codec)(implicit
-    codecBound: Codec <:< MessageCodec[Node]
-  ): (Node, Context) => Result =
-    macro decodeResultMacro[Node, Codec, Context, Result]
+  def decodeResult[Value, Codec, Context, Result](codec: Codec)(implicit
+    codecBound: Codec <:< MessageCodec[Value]
+  ): (Value, Context) => Result =
+    macro decodeResultMacro[Value, Codec, Context, Result]
 
 }

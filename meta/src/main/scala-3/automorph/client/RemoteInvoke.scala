@@ -8,7 +8,7 @@ import scala.quoted.{Expr, Quotes, Type}
 /**
  * RPC function invocation proxy.
  *
- * @tparam Node
+ * @tparam Value
  *   message node type
  * @tparam Codec
  *   message codec plugin type
@@ -19,7 +19,7 @@ import scala.quoted.{Expr, Quotes, Type}
  * @tparam Result
  *   result type
  */
-private[automorph] trait RemoteInvoke[Node, Codec <: MessageCodec[Node], Effect[_], Context, Result]:
+private[automorph] trait RemoteInvoke[Value, Codec <: MessageCodec[Value], Effect[_], Context, Result]:
 
   /** Remote function name. */
   def functionName: String
@@ -39,7 +39,7 @@ private[automorph] trait RemoteInvoke[Node, Codec <: MessageCodec[Node], Effect[
    * @return
    *   result value
    */
-  def invoke(arguments: Seq[(String, Any)], argumentNodes: Seq[Node], requestContext: Context): Effect[Result]
+  def invoke(arguments: Seq[(String, Any)], argumentNodes: Seq[Value], requestContext: Context): Effect[Result]
 
   /**
    * Invokes the remote function using specified argument names and values.
@@ -265,18 +265,18 @@ private[automorph] trait RemoteInvoke[Node, Codec <: MessageCodec[Node], Effect[
 
 private[automorph] object RemoteInvoke:
 
-  inline def decodeResult[Node, Codec <: MessageCodec[Node], Context, R](codec: Codec): (Node, Context) => R =
-    ${ decodeResultMacro[Node, Codec, Context, R]('codec) }
+  inline def decodeResult[Value, Codec <: MessageCodec[Value], Context, R](codec: Codec): (Value, Context) => R =
+    ${ decodeResultMacro[Value, Codec, Context, R]('codec) }
 
-  private def decodeResultMacro[Node: Type, Codec <: MessageCodec[Node]: Type, Context: Type, R: Type](using
+  private def decodeResultMacro[Value: Type, Codec <: MessageCodec[Value]: Type, Context: Type, R: Type](using
     quotes: Quotes
-  )(codec: Expr[Codec]): Expr[(Node, Context) => R] =
+  )(codec: Expr[Codec]): Expr[(Value, Context) => R] =
     import quotes.reflect.{TypeRepr, asTerm}
 
     val resultType = TypeRepr.of[R].dealias
     ApiReflection.contextualResult[Context, RpcResult](quotes)(resultType).map { contextualResultType =>
       contextualResultType.asType match
-        case '[resultValueType] => '{ (resultNode: Node, responseContext: Context) =>
+        case '[resultValueType] => '{ (resultNode: Value, responseContext: Context) =>
             RpcResult(
               ${
                 ApiReflection.call(
@@ -289,9 +289,9 @@ private[automorph] object RemoteInvoke:
               },
               responseContext,
             )
-          }.asInstanceOf[Expr[(Node, Context) => R]]
+          }.asInstanceOf[Expr[(Value, Context) => R]]
     }.getOrElse {
-      '{ (resultNode: Node, _: Context) =>
+      '{ (resultNode: Value, _: Context) =>
         ${
           ApiReflection
             .call(quotes, codec.asTerm, MessageCodec.decodeMethod, List(resultType), List(List('{ resultNode }.asTerm)))

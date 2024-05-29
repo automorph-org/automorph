@@ -37,26 +37,26 @@ import automorph.spi.{MessageCodec, RpcProtocol}
  *   converts an OpenAPI schema to message format node
  * @param encodeStrings
  *   converts a list of strings to message format node
- * @tparam Node
+ * @tparam Value
  *   message node type
  * @tparam Codec
  *   message codec plugin type
  * @tparam Context
  *   RPC message context type
  */
-final case class JsonRpcProtocol[Node, Codec <: MessageCodec[Node], Context](
+final case class JsonRpcProtocol[Value, Codec <: MessageCodec[Value], Context](
   messageCodec: Codec,
   mapError: (String, Int) => Throwable,
   mapException: Throwable => ErrorType,
   namedArguments: Boolean,
   mapOpenApi: OpenApi => OpenApi,
   mapOpenRpc: OpenRpc => OpenRpc,
-  protected val encodeMessage: Message[Node] => Node,
-  protected val decodeMessage: Node => Message[Node],
-  protected val encodeOpenRpc: OpenRpc => Node,
-  protected val encodeOpenApi: OpenApi => Node,
-  protected val encodeStrings: List[String] => Node,
-) extends JsonRpcBase[Node, Codec, Context] with RpcProtocol[Node, Codec, Context]
+  protected val encodeMessage: Message[Value] => Value,
+  protected val decodeMessage: Value => Message[Value],
+  protected val encodeOpenRpc: OpenRpc => Value,
+  protected val encodeOpenApi: OpenApi => Value,
+  protected val encodeStrings: List[String] => Value,
+) extends JsonRpcBase[Value, Codec, Context] with RpcProtocol[Value, Codec, Context]
 
 object JsonRpcProtocol extends ErrorMapping:
 
@@ -87,7 +87,7 @@ object JsonRpcProtocol extends ErrorMapping:
    *   transforms generated OpenRPC schema
    * @param mapOpenApi
    *   transforms generated OpenAPI schema
-   * @tparam Node
+   * @tparam Value
    *   message node type
    * @tparam Codec
    *   message codec plugin type
@@ -96,16 +96,16 @@ object JsonRpcProtocol extends ErrorMapping:
    * @return
    *   JSON-RPC protocol plugin
    */
-  inline def apply[Node, Codec <: MessageCodec[Node], Context](
+  inline def apply[Value, Codec <: MessageCodec[Value], Context](
     messageCodec: Codec,
     mapError: (String, Int) => Throwable = mapError,
     mapException: Throwable => ErrorType = mapException,
     namedArguments: Boolean = true,
     mapOpenApi: OpenApi => OpenApi = identity,
     mapOpenRpc: OpenRpc => OpenRpc = identity,
-  ): JsonRpcProtocol[Node, Codec, Context] =
-    val encodeMessage = (message: Message[Node]) => messageCodec.encode[Message[Node]](message)
-    val decodeMessage = (messageNode: Node) => messageCodec.decode[Message[Node]](messageNode)
+  ): JsonRpcProtocol[Value, Codec, Context] =
+    val encodeMessage = (message: Message[Value]) => messageCodec.encode[Message[Value]](message)
+    val decodeMessage = (messageNode: Value) => messageCodec.decode[Message[Value]](messageNode)
     val encodeOpenRpc = (openRpc: OpenRpc) => messageCodec.encode[OpenRpc](openRpc)
     val encodeOpenApi = (openApi: OpenApi) => messageCodec.encode[OpenApi](openApi)
     val encodeStrings = (strings: List[String]) => messageCodec.encode[List[String]](strings)
