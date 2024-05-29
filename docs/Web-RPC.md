@@ -144,13 +144,15 @@ GET http://example.org/api/hello?some=world&n=1
 
 ## Response
 
-### Structured response body
+### Successful response
 
 Response body is interpreted as a successful invocation result if it consists of a JSON object containing a `result`
 field. The `result` field value represents the return value of the invoked remote function.
 
 - Message format: JSON
 - Content-Type: application/json
+
+#### Example
 
 **Response headers**
 
@@ -166,7 +168,7 @@ Content-Type: application/json
 }
 ```
 
-### Error response body
+### Error response
 
 Response body is interpreted as a failed invocation result if it consists of a JSON object containing an `error` field.
 The `error` field value is a JSON object providing further information about the failure and consisting of the following
@@ -185,6 +187,8 @@ Error codes in inclusive range between -32768 and -32000 are reserved for protoc
 
 - Message format: JSON
 - Content-Type: application/json
+
+#### Example
 
 **Response headers**
 
