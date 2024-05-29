@@ -2,7 +2,7 @@ package automorph.transport.server
 
 import automorph.spi.EffectSystem.Completable
 import automorph.spi.{EffectSystem, RequestHandler, ServerTransport}
-import automorph.transport.HttpRequestHandler.{RequestData, ResponseData, headerNodeId}
+import automorph.transport.HttpRequestHandler.{RequestMetadata, ResponseData, headerNodeId}
 import automorph.transport.server.JettyHttpEndpoint.{Context, requestQuery}
 import automorph.transport.server.JettyWebSocketEndpoint.ResponseCallback
 import automorph.transport.{HttpContext, HttpMethod, HttpRequestHandler, Protocol}
@@ -78,18 +78,18 @@ final case class JettyWebSocketEndpoint[Effect[_]](
   override def requestHandler(handler: RequestHandler[Effect, Context]): JettyWebSocketEndpoint[Effect] =
     copy(handler = handler)
 
-  private def receiveRequest(incomingRequest: (Session, Array[Byte])): (RequestData[Context], Effect[Array[Byte]]) = {
+  private def receiveRequest(incomingRequest: (Session, Array[Byte])): (RequestMetadata[Context], Effect[Array[Byte]]) = {
     val (session, body) = incomingRequest
     val request = session.getUpgradeRequest
     val query = requestQuery(request.getQueryString)
-    val requestData = RequestData(
+    val requestMetadata = RequestMetadata(
       getRequestContext(session),
       webSocketHandler.protocol,
       s"${request.getRequestURI.toString}$query",
       Some(request.getMethod),
     )
     val requestBody = effectSystem.successful(body)
-    (requestData, requestBody)
+    (requestMetadata, requestBody)
   }
 
   private def sendResponse(responseData: ResponseData[Context], session: Session): Effect[Unit] =

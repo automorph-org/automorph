@@ -1,7 +1,7 @@
 package automorph.transport.server
 
 import automorph.spi.{EffectSystem, RequestHandler, ServerTransport}
-import automorph.transport.HttpRequestHandler.{RequestData, ResponseData, headerNodeId, headerXForwardedFor}
+import automorph.transport.HttpRequestHandler.{RequestMetadata, ResponseData, headerNodeId, headerXForwardedFor}
 import automorph.transport.server.ZioHttpEndpoint.Context
 import automorph.transport.{HttpContext, HttpMethod, HttpRequestHandler, Protocol}
 import zio.http.{Body, Handler, Header, Headers, MediaType, Request, Response, Status}
@@ -62,8 +62,8 @@ final case class ZioHttpEndpoint[Fault](
   private def handle(request: Request): IO[Response, Response] =
     httpHandler.processRequest(request, ()).mapError(_ => Response())
 
-  private def receiveRequest(request: Request): (RequestData[Context], IO[Fault, Array[Byte]]) = {
-    val requestData = RequestData(
+  private def receiveRequest(request: Request): (RequestMetadata[Context], IO[Fault, Array[Byte]]) = {
+    val requestMetadata = RequestMetadata(
       getRequestContext(request),
       httpHandler.protocol,
       request.url.toString,
@@ -73,7 +73,7 @@ final case class ZioHttpEndpoint[Fault](
       error => effectSystem.failed(error),
       body => effectSystem.successful(body),
     )
-    (requestData, requestBody)
+    (requestMetadata, requestBody)
   }
 
   private def createResponse(responseData: ResponseData[Context], @unused session: Unit): IO[Fault, Response] = {

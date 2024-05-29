@@ -2,7 +2,7 @@ package automorph.transport.server
 
 import automorph.log.Logging
 import automorph.spi.{EffectSystem, RequestHandler, ServerTransport}
-import automorph.transport.HttpRequestHandler.{RequestData, ResponseData}
+import automorph.transport.HttpRequestHandler.{RequestMetadata, ResponseData}
 import automorph.transport.server.ZioHttpWebSocketEndpoint.Context
 import automorph.transport.{HttpContext, HttpRequestHandler, Protocol}
 import zio.http.ChannelEvent.{ExceptionCaught, Read}
@@ -58,8 +58,8 @@ final case class ZioHttpWebSocketEndpoint[Fault](
       new RuntimeException(s"Error processing ${Protocol.WebSocket.name} request")
     }
 
-  private def receiveRequest(channel: WebSocketChannel): (RequestData[Context], IO[Fault, Array[Byte]]) = {
-    val requestData = RequestData(HttpContext[Unit](), webSocketHandler.protocol, "", None)
+  private def receiveRequest(channel: WebSocketChannel): (RequestMetadata[Context], IO[Fault, Array[Byte]]) = {
+    val requestData = RequestMetadata(HttpContext[Unit](), webSocketHandler.protocol, "", None)
     val requestBody = effectSystem.completable[Array[Byte]].flatMap { completable =>
       channel.receiveAll {
         case Read(WebSocketFrame.Binary(request)) => completable.succeed(request.toArray)

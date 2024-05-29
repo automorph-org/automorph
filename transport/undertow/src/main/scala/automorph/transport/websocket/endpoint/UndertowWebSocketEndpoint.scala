@@ -2,7 +2,7 @@ package automorph.transport.websocket.endpoint
 
 import automorph.spi.EffectSystem.Completable
 import automorph.spi.{EffectSystem, RequestHandler, ServerTransport}
-import automorph.transport.HttpRequestHandler.{RequestData, ResponseData, headerNodeId}
+import automorph.transport.HttpRequestHandler.{RequestMetadata, ResponseData, headerNodeId}
 import automorph.transport.server.UndertowHttpEndpoint.requestQuery
 import automorph.transport.websocket.endpoint.UndertowWebSocketEndpoint.{ConnectionListener, Context, ResponseCallback}
 import automorph.transport.{HttpContext, HttpMethod, HttpRequestHandler, Protocol}
@@ -75,17 +75,17 @@ final case class UndertowWebSocketEndpoint[Effect[_]](
 
   private def receiveRequest(
     request: (WebSocketHttpExchange, Array[Byte])
-  ): (RequestData[Context], Effect[Array[Byte]]) = {
+  ): (RequestMetadata[Context], Effect[Array[Byte]]) = {
     val (exchange, body) = request
     val query = requestQuery(exchange.getQueryString)
-    val requestData = RequestData(
+    val requestMetadata = RequestMetadata(
       getRequestContext(exchange),
       webSocketHandler.protocol,
       s"${exchange.getRequestURI}$query",
       Some(HttpMethod.Get.name),
     )
     val requestBody = effectSystem.successful(body)
-    (requestData, requestBody)
+    (requestMetadata, requestBody)
   }
 
   private def sendResponse(responseData: ResponseData[Context], channel: WebSocketChannel): Effect[Unit] =

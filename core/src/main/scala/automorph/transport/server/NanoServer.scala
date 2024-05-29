@@ -2,7 +2,7 @@ package automorph.transport.server
 
 import automorph.log.{Logger, Logging, MessageLog}
 import automorph.spi.{EffectSystem, RequestHandler, ServerTransport}
-import automorph.transport.HttpRequestHandler.{RequestData, ResponseData, headerNodeId, headerXForwardedFor}
+import automorph.transport.HttpRequestHandler.{RequestMetadata, ResponseData, headerNodeId, headerXForwardedFor}
 import automorph.transport.server.NanoHTTPD.Response.Status
 import automorph.transport.server.NanoHTTPD.{IHTTPSession, Response, newFixedLengthResponse}
 import automorph.transport.server.NanoServer.{Context, WebSocketListener, WebSocketRequest}
@@ -154,28 +154,28 @@ final case class NanoServer[Effect[_]](
   override protected def openWebSocket(session: IHTTPSession): WebSocket =
     WebSocketListener(session, webSocket, effectSystem, webSocketHandler, logger)
 
-  private def receiveHttpRequest(request: IHTTPSession): (RequestData[Context], Effect[Array[Byte]]) = {
+  private def receiveHttpRequest(request: IHTTPSession): (RequestMetadata[Context], Effect[Array[Byte]]) = {
     val query = Option(request.getQueryParameterString).filter(_.nonEmpty).map("?" + _).getOrElse("")
-    val requestData = RequestData(
+    val requestMetadata = RequestMetadata(
       getRequestContext(request, clientId(request)),
       httpHandler.protocol,
       s"${request.getUri}$query",
       Some(request.getMethod.toString),
     )
     val requestBody = effectSystem.evaluate(request.getInputStream.readNBytes(request.getBodySize.toInt))
-    (requestData, requestBody)
+    (requestMetadata, requestBody)
   }
 
-  private def receiveWebSocketRequest(request: WebSocketRequest): (RequestData[Context], Effect[Array[Byte]]) = {
+  private def receiveWebSocketRequest(request: WebSocketRequest): (RequestMetadata[Context], Effect[Array[Byte]]) = {
     val (session, frame) = request
     val query = Option(session.getQueryParameterString).filter(_.nonEmpty).map("?" + _).getOrElse("")
-    val requestData = RequestData(
+    val requestMetadata = RequestMetadata(
       getRequestContext(session, clientId(session)),
       Protocol.WebSocket,
       s"${session.getUri}$query",
     )
     val requestBody = effectSystem.successful(frame.getBinaryPayload)
-    (requestData, requestBody)
+    (requestMetadata, requestBody)
   }
 
   private def sendHttpResponse(responseData: ResponseData[Context], @unused channel: IHTTPSession): Effect[Response] = {

@@ -1,7 +1,7 @@
 package automorph.transport.server
 
 import automorph.spi.{EffectSystem, RequestHandler, ServerTransport}
-import automorph.transport.HttpRequestHandler.{RequestData, ResponseData, headerNodeId}
+import automorph.transport.HttpRequestHandler.{RequestMetadata, ResponseData, headerNodeId}
 import automorph.transport.server.PlayHttpEndpoint.{Context, headerXForwardedFor}
 import automorph.transport.{HttpContext, HttpMethod, HttpRequestHandler, Protocol}
 import automorph.util.Extensions.EffectOps
@@ -77,15 +77,15 @@ final case class PlayHttpEndpoint[Effect[_]](
   override def requestHandler(handler: RequestHandler[Effect, Context]): PlayHttpEndpoint[Effect] =
     copy(handler = handler)
 
-  private def receiveRequest(request: Request[ByteString]): (RequestData[Context], Effect[Array[Byte]]) = {
-    val requestData = RequestData(
+  private def receiveRequest(request: Request[ByteString]): (RequestMetadata[Context], Effect[Array[Byte]]) = {
+    val requestMetadata = RequestMetadata(
       getRequestContext(request),
       httpHandler.protocol,
       request.uri,
       Some(request.method),
     )
     val requestBody = effectSystem.evaluate(request.body.toArray)
-    (requestData, requestBody)
+    (requestMetadata, requestBody)
   }
 
   private def createResponse(responseData: ResponseData[Context], @unused session: Unit): Effect[Result] = {

@@ -1,7 +1,7 @@
 package automorph.transport.server
 
 import automorph.spi.{EffectSystem, RequestHandler, ServerTransport}
-import automorph.transport.HttpRequestHandler.{RequestData, ResponseData, headerNodeId, headerXForwardedFor}
+import automorph.transport.HttpRequestHandler.{RequestMetadata, ResponseData, headerNodeId, headerXForwardedFor}
 import automorph.transport.server.VertxHttpEndpoint.Context
 import automorph.transport.{HttpContext, HttpMethod, HttpRequestHandler, Protocol}
 import automorph.util.Extensions.EffectOps
@@ -68,16 +68,16 @@ final case class VertxHttpEndpoint[Effect[_]](
 
   private def receiveRequest(
     incomingRequest: (HttpServerRequest, Buffer)
-  ): (RequestData[Context], Effect[Array[Byte]]) = {
+  ): (RequestMetadata[Context], Effect[Array[Byte]]) = {
     val (request, body) = incomingRequest
-    val requestData = RequestData(
+    val requestMetadata = RequestMetadata(
       getRequestContext(request),
       httpHandler.protocol,
       request.absoluteURI,
       Some(request.method.name),
     )
     lazy val requestBody = effectSystem.evaluate(body.getBytes)
-    (requestData, requestBody)
+    (requestMetadata, requestBody)
   }
 
   private def sendResponse(responseData: ResponseData[Context], request: HttpServerRequest): Effect[Unit] =

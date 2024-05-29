@@ -1,7 +1,7 @@
 package automorph.transport.server
 
 import automorph.spi.{EffectSystem, RequestHandler, ServerTransport}
-import automorph.transport.HttpRequestHandler.{RequestData, ResponseData}
+import automorph.transport.HttpRequestHandler.{RequestMetadata, ResponseData}
 import automorph.transport.server.FinagleHttpEndpoint.Context
 import automorph.transport.{HttpContext, HttpMethod, HttpRequestHandler, Protocol}
 import automorph.util.Extensions.EffectOps
@@ -57,15 +57,15 @@ final case class FinagleHttpEndpoint[Effect[_]](
   override def requestHandler(handler: RequestHandler[Effect, Context]): FinagleHttpEndpoint[Effect] =
     copy(handler = handler)
 
-  private def receiveRequest(request: Request): (RequestData[Context], Effect[Array[Byte]]) = {
-    val requestData = RequestData(
+  private def receiveRequest(request: Request): (RequestMetadata[Context], Effect[Array[Byte]]) = {
+    val requestMetadata = RequestMetadata(
       getRequestContext(request),
       httpHandler.protocol,
       request.uri,
       Some(request.method.toString),
     )
     val requestBody = effectSystem.evaluate(Buf.ByteArray.Owned.extract(request.content))
-    (requestData, requestBody)
+    (requestMetadata, requestBody)
   }
 
   private def createResponse(responseData: ResponseData[Context], request: Request): Effect[Response] = {

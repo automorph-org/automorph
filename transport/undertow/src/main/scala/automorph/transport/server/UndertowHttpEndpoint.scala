@@ -1,7 +1,7 @@
 package automorph.transport.server
 
 import automorph.spi.{EffectSystem, RequestHandler, ServerTransport}
-import automorph.transport.HttpRequestHandler.{RequestData, ResponseData}
+import automorph.transport.HttpRequestHandler.{RequestMetadata, ResponseData}
 import automorph.transport.server.UndertowHttpEndpoint.{Context, HttpRequest, RequestCallback, requestQuery}
 import automorph.transport.{HttpContext, HttpMethod, HttpRequestHandler, Protocol}
 import automorph.util.Extensions.{ByteArrayOps, EffectOps}
@@ -70,17 +70,17 @@ final case class UndertowHttpEndpoint[Effect[_]](
   override def requestHandler(handler: RequestHandler[Effect, Context]): UndertowHttpEndpoint[Effect] =
     copy(handler = handler)
 
-  private def receiveRequest(request: HttpRequest): (RequestData[Context], Effect[Array[Byte]]) = {
+  private def receiveRequest(request: HttpRequest): (RequestMetadata[Context], Effect[Array[Byte]]) = {
     val (exchange, body) = request
     val query = requestQuery(exchange.getQueryString)
-    val requestData = RequestData(
+    val requestMetadata = RequestMetadata(
       getRequestContext(exchange),
       httpRequestHandler.protocol,
       s"${exchange.getRequestURI}$query",
       Some(exchange.getRequestMethod.toString),
     )
     val requestBody = effectSystem.successful(body)
-    (requestData, requestBody)
+    (requestMetadata, requestBody)
   }
 
   private def sendResponse(responseData: ResponseData[Context], exchange: HttpServerExchange): Effect[Unit] = {

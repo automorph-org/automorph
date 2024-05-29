@@ -2,7 +2,7 @@ package automorph.transport
 
 import automorph.log.{LogProperties, Logging, MessageLog}
 import automorph.spi.{EffectSystem, RequestHandler}
-import automorph.transport.HttpRequestHandler.{RequestData, ResponseData, contentTypeText}
+import automorph.transport.HttpRequestHandler.{RequestMetadata, ResponseData, contentTypeText}
 import automorph.util.Extensions.{EffectOps, StringOps, ThrowableOps, TryOps}
 import automorph.util.Random
 import scala.collection.immutable.ListMap
@@ -14,8 +14,8 @@ final private[automorph] case class HttpRequestHandler[
   Request,
   Response,
   Channel,
-] (
-  receiveRequest: Request => (RequestData[Context], Effect[Array[Byte]]),
+](
+  receiveRequest: Request => (RequestMetadata[Context], Effect[Array[Byte]]),
   sendResponse: (ResponseData[Context], Channel) => Effect[Response],
   protocol: Protocol,
   effectSystem: EffectSystem[Effect],
@@ -29,11 +29,11 @@ final private[automorph] case class HttpRequestHandler[
 
   def processRequest(request: Request, channel: Channel): Effect[Response] =
     // Receive the request
-    receiveRpcRequest(request).flatMap { case (requestData, requestBody) =>
+    receiveRpcRequest(request).flatMap { case (requestMetadata, requestBody) =>
       Try {
         // Process the request
-        requestHandler.processRequest(requestBody, requestData.context, requestData.id).flatFold(
-          error => sendErrorResponse(error, channel, requestData),
+        requestHandler.processRequest(requestBody, requestMetadata.context, requestMetadata.id).flatFold(
+          error => sendErrorResponse(error, channel, requestMetadata),
           { result =>
             // Send the response
             val responseBody = result.map(_.responseBody).getOrElse(Array.emptyByteArray)
@@ -41,18 +41,18 @@ final private[automorph] case class HttpRequestHandler[
             val statusCode = result.flatMap(_.exception).map(mapException).orElse(
               resultContext.flatMap(_.statusCode)
             ).getOrElse(statusOk)
-            sendRpcResponse(responseBody, requestHandler.mediaType, statusCode, resultContext, channel, requestData)
+            sendRpcResponse(responseBody, requestHandler.mediaType, statusCode, resultContext, channel, requestMetadata)
           },
         )
-      }.recover(sendErrorResponse(_, channel, requestData)).get
+      }.recover(sendErrorResponse(_, channel, requestMetadata)).get
     }
 
-  private def receiveRpcRequest(request: Request): Effect[(RequestData[Context], Array[Byte])] = {
+  private def receiveRpcRequest(request: Request): Effect[(RequestMetadata[Context], Array[Byte])] = {
     log.receivingRequest(Map.empty, protocol.name)
-    Try(receiveRequest(request)).map { case (requestData, retrieveBody) =>
+    Try(receiveRequest(request)).map { case (requestMetadata, retrieveBody) =>
       retrieveBody.map { requestBody =>
-        log.receivedRequest(requestData.properties, protocol.name)
-        (requestData, requestBody)
+        log.receivedRequest(requestMetadata.properties, protocol.name)
+        (requestMetadata, requestBody)
       }
     }.onError(log.failedReceiveRequest(_, Map.empty, protocol.name)).get
   }
@@ -63,20 +63,20 @@ final private[automorph] case class HttpRequestHandler[
     statusCode: Int,
     context: Option[Context],
     channel: Channel,
-    requestData: RequestData[Context],
+    requestMetadata: RequestMetadata[Context],
   ): Effect[Response] = {
-    lazy val responseProperties = requestData.properties ++ (requestData.protocol match {
+    lazy val responseProperties = requestMetadata.properties ++ (requestMetadata.protocol match {
       case Protocol.Http => Some(LogProperties.status -> statusCode.toString)
       case _ => None
     })
-    val protocol = requestData.protocol.name
-    val client = requestData.client
+    val protocol = requestMetadata.protocol.name
+    val client = requestMetadata.client
     log.sendingResponse(responseProperties, protocol)
-    val responseData = ResponseData(responseBody, context, statusCode, contentType, client, requestData.id)
+    val responseData = ResponseData(responseBody, context, statusCode, contentType, client, requestMetadata.id)
     sendResponse(responseData, channel).flatFold(
       { error =>
         log.failedSendResponse(error, responseProperties, protocol)
-        sendErrorResponse(error, channel, requestData)
+        sendErrorResponse(error, channel, requestMetadata)
       },
       { result =>
         log.sentResponse(responseProperties, protocol)
@@ -88,11 +88,11 @@ final private[automorph] case class HttpRequestHandler[
   private def sendErrorResponse(
     error: Throwable,
     channel: Channel,
-    requestData: RequestData[Context],
+    requestMetadata: RequestMetadata[Context],
   ): Effect[Response] = {
-    log.failedProcessRequest(error, requestData.properties, requestData.protocol.name)
+    log.failedProcessRequest(error, requestMetadata.properties, requestMetadata.protocol.name)
     val responseBody = error.description.toByteArray
-    sendRpcResponse(responseBody, contentTypeText, statusInternalServerError, None, channel, requestData)
+    sendRpcResponse(responseBody, contentTypeText, statusInternalServerError, None, channel, requestMetadata)
   }
 }
 
@@ -103,32 +103,6 @@ private[automorph] object HttpRequestHandler {
   val headerNodeId = "RPC-Node-Id"
   val headerCallId = "RPC-Call-Id"
   val contentTypeText = "text/plain"
-
-  final case class RequestData[Context <: HttpContext[?]](
-    context: Context,
-    protocol: Protocol,
-    url: String,
-    method: Option[String] = None,
-    id: String = Random.id,
-  ) {
-    lazy val properties: Map[String, String] = ListMap(
-      LogProperties.requestId -> id,
-      LogProperties.protocol -> protocol.toString,
-      LogProperties.url -> url,
-    ) ++ method.map(LogProperties.method -> _) ++ context.peerId.map(LogProperties.client -> _)
-
-    def client: String =
-      context.peerId.getOrElse("")
-  }
-
-  final case class ResponseData[Context](
-    body: Array[Byte],
-    context: Option[Context],
-    statusCode: Int,
-    contentType: String,
-    client: String,
-    id: String,
-  )
 
   /**
    * Extract client identifier from network address and HTTP headers.
@@ -149,4 +123,29 @@ private[automorph] object HttpRequestHandler {
     }
     nodeId.map(id => s"$finalAddress/$id").getOrElse(finalAddress)
   }
+
+  final case class RequestMetadata[Context <: HttpContext[?]](
+    context: Context,
+    protocol: Protocol,
+    url: String,
+    method: Option[String] = None,
+    id: String = Random.id,
+  ) {
+    lazy val properties: Map[String, String] = ListMap(
+      LogProperties.requestId -> id,
+      LogProperties.protocol -> protocol.toString,
+      LogProperties.url -> url,
+    ) ++ method.map(LogProperties.method -> _) ++ context.peerId.map(LogProperties.client -> _)
+    lazy val client: String =
+      context.peerId.getOrElse("")
+  }
+
+  final case class ResponseData[Context](
+    body: Array[Byte],
+    context: Option[Context],
+    statusCode: Int,
+    contentType: String,
+    client: String,
+    id: String,
+  )
 }

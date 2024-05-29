@@ -1,7 +1,7 @@
 package automorph.transport.websocket.endpoint
 
 import automorph.spi.{EffectSystem, RequestHandler, ServerTransport}
-import automorph.transport.HttpRequestHandler.{RequestData, ResponseData}
+import automorph.transport.HttpRequestHandler.{RequestMetadata, ResponseData}
 import automorph.transport.server.VertxHttpEndpoint
 import automorph.transport.websocket.endpoint.VertxWebSocketEndpoint.Context
 import automorph.transport.{HttpContext, HttpMethod, HttpRequestHandler, Protocol}
@@ -65,16 +65,16 @@ final case class VertxWebSocketEndpoint[Effect[_]](
 
   private def receiveRequest(
     incomingRequest: (Buffer, ServerWebSocket)
-  ): (RequestData[Context], Effect[Array[Byte]]) = {
+  ): (RequestMetadata[Context], Effect[Array[Byte]]) = {
     val (body, webSocket) = incomingRequest
-    val requestData = RequestData(
+    val requestMetadata = RequestMetadata(
       getRequestContext(webSocket),
       webSocketHandler.protocol,
       webSocket.uri,
       Some(HttpMethod.Get.name),
     )
     lazy val requestBody = effectSystem.evaluate(body.getBytes)
-    (requestData, requestBody)
+    (requestMetadata, requestBody)
   }
 
   private def sendResponse(responseData: ResponseData[Context], session: ServerWebSocket): Effect[Unit] =

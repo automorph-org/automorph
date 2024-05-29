@@ -1,7 +1,7 @@
 package automorph.transport.server
 
 import automorph.spi.{EffectSystem, RequestHandler, ServerTransport}
-import automorph.transport.HttpRequestHandler.{RequestData, ResponseData, headerNodeId}
+import automorph.transport.HttpRequestHandler.{RequestMetadata, ResponseData, headerNodeId}
 import automorph.transport.server.PekkoHttpEndpoint.Context
 import automorph.transport.{HttpContext, HttpMethod, HttpRequestHandler, Protocol}
 import automorph.util.Extensions.{EffectOps, ThrowableOps}
@@ -101,16 +101,16 @@ final case class PekkoHttpEndpoint[Effect[_]](
 
   private def receiveRequest(
     incomingRequest: (HttpRequest, HttpEntity.Strict, RemoteAddress)
-  ): (RequestData[Context], Effect[Array[Byte]]) = {
+  ): (RequestMetadata[Context], Effect[Array[Byte]]) = {
     val (request, requestEntity, remoteAddress) = incomingRequest
-    val requestData = RequestData(
+    val requestMetadata = RequestMetadata(
       getRequestContext(request, remoteAddress),
       httpHandler.protocol,
       request.uri.toString,
       Some(request.method.value),
     )
     val requestBody = effectSystem.evaluate(requestEntity.data.toArray[Byte])
-    (requestData, requestBody)
+    (requestMetadata, requestBody)
   }
 
   private def createResponse(responseData: ResponseData[Context], @unused channel: Unit): Effect[HttpResponse] =

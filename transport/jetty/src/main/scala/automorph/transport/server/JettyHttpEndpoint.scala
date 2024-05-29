@@ -1,7 +1,7 @@
 package automorph.transport.server
 
 import automorph.spi.{EffectSystem, RequestHandler, ServerTransport}
-import automorph.transport.HttpRequestHandler.{RequestData, ResponseData, headerNodeId}
+import automorph.transport.HttpRequestHandler.{RequestMetadata, ResponseData, headerNodeId}
 import automorph.transport.server.JettyHttpEndpoint.{Context, requestQuery}
 import automorph.transport.{HttpContext, HttpMethod, HttpRequestHandler, Protocol}
 import automorph.util.Extensions.{EffectOps, InputStreamOps}
@@ -63,16 +63,16 @@ final case class JettyHttpEndpoint[Effect[_]](
   override def requestHandler(handler: RequestHandler[Effect, Context]): JettyHttpEndpoint[Effect] =
     copy(handler = handler)
 
-  private def receiveRequest(request: HttpServletRequest): (RequestData[Context], Effect[Array[Byte]]) = {
+  private def receiveRequest(request: HttpServletRequest): (RequestMetadata[Context], Effect[Array[Byte]]) = {
     val query = requestQuery(request.getQueryString)
-    val requestData = RequestData(
+    val requestMetadata = RequestMetadata(
       getRequestContext(request),
       httpHandler.protocol,
       s"${request.getRequestURI}$query",
       Some(request.getMethod),
     )
     val requestBody = effectSystem.evaluate(request.getInputStream.toByteArray)
-    (requestData, requestBody)
+    (requestMetadata, requestBody)
   }
 
   private def sendResponse(

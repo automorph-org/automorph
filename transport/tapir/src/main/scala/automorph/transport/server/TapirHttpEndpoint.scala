@@ -1,7 +1,7 @@
 package automorph.transport.server
 
 import automorph.spi.{EffectSystem, RequestHandler, ServerTransport}
-import automorph.transport.HttpRequestHandler.{RequestData, ResponseData}
+import automorph.transport.HttpRequestHandler.{RequestMetadata, ResponseData}
 import automorph.transport.server.TapirHttpEndpoint.{
   Adapter, Context, MessageFormat, createResponse, pathComponents, pathEndpointInput, receiveRequest,
 }
@@ -119,17 +119,17 @@ object TapirHttpEndpoint {
 
   private def receiveRequest[Effect[_]](effectSystem: EffectSystem[Effect])(
     incomingRequest: (Request, Option[HttpMethod], HttpContext[Unit])
-  ): (RequestData[Context], Effect[Array[Byte]]) = {
+  ): (RequestMetadata[Context], Effect[Array[Byte]]) = {
     val (request, method, baseContext) = incomingRequest
     val requestContext = getRequestContext(request, method, baseContext)
-    val requestData = RequestData(
+    val requestMetadata = RequestMetadata(
       requestContext,
       Protocol.Http,
       requestContext.url.map(_.toString).getOrElse(""),
       method.map(_.name),
     )
     val requestBody = effectSystem.successful(request._1)
-    (requestData, requestBody)
+    (requestMetadata, requestBody)
   }
 
   private def createResponse[Effect[_]](effectSystem: EffectSystem[Effect])(
