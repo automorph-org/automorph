@@ -9,7 +9,7 @@ import scala.quoted.{Expr, Quotes, Type}
  * RPC function invocation proxy.
  *
  * @tparam Value
- *   message node type
+ *   message codec value representation type
  * @tparam Codec
  *   message codec plugin type
  * @tparam Effect

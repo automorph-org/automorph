@@ -78,7 +78,7 @@ object WeePickleCodec {
   implicit def ToMutableMap[K, V](implicit k: To[K], v: To[V]): To[collection.mutable.Map[K, V]] =
     new NullSafeTo[collection.mutable.Map[K, V]](WeePickle.ToMutableMap, "map")
 
-  /** Message node type. */
+  /** Message value representation type. */
   type Value = WValue
   implicit lazy val jsonRpcFromTo: FromTo[WeePickleJsonRpc.RpcMessage] = WeePickleJsonRpc.fromTo
   implicit lazy val webRpcFromTo: FromTo[WeePickleWebRpc.RpcMessage] = WeePickleWebRpc.fromTo

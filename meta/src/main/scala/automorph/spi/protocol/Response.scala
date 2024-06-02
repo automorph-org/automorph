@@ -14,7 +14,7 @@ import scala.util.Try
  * @param id
  *   request correlation identifier
  * @tparam Value
- *   message node type
+ *   message codec value representation type
  * @tparam Content
  *   protocol-specific message content type
  */

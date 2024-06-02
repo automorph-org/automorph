@@ -13,7 +13,7 @@ import scala.util.{Failure, Try}
  * Client API method bindings layer.
  *
  * @tparam Value
- *   message node type
+ *   message codec value representation type
  * @tparam Codec
  *   message codec plugin type
  * @tparam Effect

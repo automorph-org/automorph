@@ -65,7 +65,7 @@ trait ClientTransport[Effect[_], Context] {
    * Initializes this client to invoke remote APIs.
    *
    * @return
-   *   active client transport
+   *   nothing
    */
   def init(): Effect[Unit]
 

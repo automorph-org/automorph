@@ -15,7 +15,7 @@ import automorph.protocol.jsonrpc.Message.{Id, version}
  * @param error
  *   call error
  * @tparam Value
- *   message node type
+ *   message codec value representation type
  */
 final private[automorph] case class Response[Value](id: Id, result: Option[Value], error: Option[ResponseError[Value]]) {
 

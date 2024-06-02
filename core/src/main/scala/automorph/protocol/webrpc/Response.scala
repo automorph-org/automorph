@@ -10,7 +10,7 @@ import automorph.RpcException.InvalidResponse
  * @param error
  *   call error
  * @tparam Value
- *   message node type
+ *   message codec value representation type
  */
 final private[automorph] case class Response[Value](result: Option[Value], error: Option[ResponseError]) {
 

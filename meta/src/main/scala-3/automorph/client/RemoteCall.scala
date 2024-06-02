@@ -12,7 +12,7 @@ import automorph.spi.MessageCodec
  * @param codec
  *   message codec plugin
  * @tparam Value
- *   message node type
+ *   message codec value representation type
  * @tparam Codec
  *   message codec plugin type
  * @tparam Effect
@@ -48,7 +48,7 @@ object RemoteCall:
    * @param peformCall
    *   performs an RPC call using specified arguments
    * @tparam Value
-   *   message node type
+   *   message codec value representation type
    * @tparam Codec
    *   message codec plugin type
    * @tparam Effect

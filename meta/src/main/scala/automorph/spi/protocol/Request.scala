@@ -16,7 +16,7 @@ package automorph.spi.protocol
  * @param id
  *   request correlation identifier
  * @tparam Value
- *   message node type
+ *   message codec value representation type
  * @tparam Metadata
  *   protocol-specific message metadata type
  * @tparam Context

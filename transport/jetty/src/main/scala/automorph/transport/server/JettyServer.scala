@@ -15,7 +15,7 @@ import org.eclipse.jetty.websocket.server.JettyWebSocketServerContainer
 import org.eclipse.jetty.websocket.server.config.JettyWebSocketServletContainerInitializer
 import scala.collection.immutable.ListMap
 import scala.concurrent.duration.{DurationInt, FiniteDuration}
-import scala.jdk.CollectionConverters.ListHasAsScala
+import scala.jdk.CollectionConverters.{CollectionHasAsScala, ListHasAsScala}
 
 /**
  * Jetty HTTP & WebSocket server message transport plugin.
@@ -93,6 +93,7 @@ final case class JettyServer[Effect[_]](
       }
       server.start()
       server.getConnectors.foreach { connector =>
+        connector.getConnectedEndPoints.asScala.map(_.getLocalSocketAddress)
         connector.getProtocols.asScala.foreach { protocol =>
           logger.info("Listening for connections", ListMap("Protocol" -> protocol, "Port" -> port.toString))
         }

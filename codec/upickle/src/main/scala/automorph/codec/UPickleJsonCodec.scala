@@ -42,7 +42,7 @@ final case class UPickleJsonCodec[Config <: JsonConfig](config: Config = new Jso
 
 object UPickleJsonCodec {
 
-  /** Message node type. */
+  /** Message value representation type. */
   type Value = UValue
 
   /** uPickle reader and writer instances providing basic null-safe data types support for JSON format. */

@@ -19,7 +19,7 @@ private[automorph] object ServerBindingGenerator:
    * @param api
    *   API instance
    * @tparam Value
-   *   node type
+   *   message codec value representation type
    * @tparam Codec
    *   message codec plugin type
    * @tparam Effect

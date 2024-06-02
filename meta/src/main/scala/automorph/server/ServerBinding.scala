@@ -18,7 +18,7 @@ import automorph.RpcFunction
  * @param acceptsContext
  *   true if the method accepts request context as its last parameter, false otherwise
  * @tparam Value
- *   message node type
+ *   message codec value representation type
  * @tparam Effect
  *   effect type
  * @tparam Context

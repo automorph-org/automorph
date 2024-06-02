@@ -15,7 +15,7 @@ import automorph.protocol.jsonrpc.Message.{version, Id, Params}
  * @param params
  *   invoked method argument values by position or by name
  * @tparam Value
- *   message node type
+ *   message codec value representation type
  */
 final private[automorph] case class Request[Value](id: Option[Id], method: String, params: Params[Value]) {
 

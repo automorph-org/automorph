@@ -34,7 +34,7 @@ final case class CirceJsonCodec() extends CirceJsonMeta {
 
 object CirceJsonCodec {
 
-  /** Message node type. */
+  /** Message value representation type. */
   type Value = Json
 
   implicit lazy val jsonRpcMessageEncoder: Encoder[CirceJsonRpc.RpcMessage] = CirceJsonRpc.encoder

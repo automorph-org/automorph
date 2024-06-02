@@ -27,7 +27,7 @@ import scala.util.{Failure, Success, Try}
  * @param apiBindings
  *   API method bindings
  * @tparam Value
- *   message node type
+ *   message codec value representation type
  * @tparam Codec
  *   message codec plugin type
  * @tparam Effect
@@ -50,6 +50,18 @@ final private[automorph] case class ServerRequestHandler[Value, Codec <: Message
   private val bindings = Option.when(discovery)(apiSchemaBindings).getOrElse(ListMap.empty) ++ apiBindings
   implicit private val system: EffectSystem[Effect] = effectSystem
 
+  /**
+   * Process an RPC request.
+   *
+   * @param body
+   *   request message body
+   * @param context
+   *   request context
+   * @param id
+   *   request identifier
+   *  @return
+   *   request processing result
+   */
   override def processRequest(body: Array[Byte], context: Context, id: String): Effect[Option[Result[Context]]] =
     // Parse request
     rpcProtocol.parseRequest(body, context, id).fold(

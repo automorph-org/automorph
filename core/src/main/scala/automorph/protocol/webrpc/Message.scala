@@ -12,7 +12,7 @@ import scala.collection.immutable.ListMap
  * @param error
  *   failed method call error details
  * @tparam Value
- *   message node type
+ *   message codec value representation type
  */
 final case class Message[Value](result: Option[Value], error: Option[MessageError]) {
 

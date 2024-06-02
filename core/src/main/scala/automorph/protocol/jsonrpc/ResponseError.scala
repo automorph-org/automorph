@@ -14,7 +14,7 @@ import automorph.protocol.jsonrpc.Response.mandatory
  * @param data
  *   additional error information
  * @tparam Value
- *   message node type
+ *   message codec value representation type
  */
 final private[automorph] case class ResponseError[Value](message: String, code: Int, data: Option[Value]) {
 

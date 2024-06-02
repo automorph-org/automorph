@@ -11,7 +11,7 @@ import automorph.spi.codec.MessageCodecMeta
  * intermediate representation of structured data (i.e. document object model).
  *
  * @tparam Value
- *   message format node type
+ *   message format value type
  */
 trait MessageCodec[Value] extends MessageCodecMeta[Value] {
 

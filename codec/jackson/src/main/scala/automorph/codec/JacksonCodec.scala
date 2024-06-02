@@ -61,7 +61,7 @@ final case class JacksonCodec(objectMapper: ObjectMapper = new JsonMapper) exten
 
 object JacksonCodec {
 
-  /** Message node type. */
+  /** Message value representation type. */
   type Value = JsonNode
 
   /** Serialize and deserialize Unit as empty object. */

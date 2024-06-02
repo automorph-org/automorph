@@ -8,7 +8,7 @@ import scala.reflect.macros.blackbox
 
 private[automorph] trait DefaultRpcProtocol {
 
-  /** Default message node type. */
+  /** Default message codec value representation type. */
   type Value = CirceJsonCodec.Value
 
   /** Default message codec plugin type. */
@@ -57,7 +57,7 @@ private[automorph] trait DefaultRpcProtocol {
    * @param messageCodec
    *   message codec plugin
    * @tparam ValueType
-   *   message node type
+   *   message codec value representation type
    * @tparam CodecType
    *   message codec plugin type
    * @tparam Context

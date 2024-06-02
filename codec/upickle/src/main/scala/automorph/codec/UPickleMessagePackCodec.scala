@@ -43,7 +43,7 @@ final case class UPickleMessagePackCodec[Config <: MessagePackConfig](
 
 object UPickleMessagePackCodec {
 
-  /** Message node type. */
+  /** Message value representation type. */
   type Value = Msg
 
   /** uPickle reader and writer instances providing basic null-safe data types support for MessagePack format. */

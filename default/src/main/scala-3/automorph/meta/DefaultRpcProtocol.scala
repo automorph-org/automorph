@@ -6,7 +6,7 @@ import automorph.spi.MessageCodec
 
 private[automorph] trait DefaultRpcProtocol:
 
-  /** Default message node type. */
+  /** Default message codec value representation type. */
   type Value = CirceJsonCodec.Value
 
   /** Default message codec plugin type. */
@@ -50,7 +50,7 @@ private[automorph] trait DefaultRpcProtocol:
    * @return
    *   RPC protocol plugin
    * @tparam ValueType
-   *   message node type
+   *   message codec value representation type
    * @tparam CodecType
    *   message codec plugin type
    * @tparam Context

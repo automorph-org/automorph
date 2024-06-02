@@ -11,7 +11,7 @@ import scala.util.Try
  * The underlying RPC protocol must support remote function invocation.
  *
  * @tparam Value
- *   message node type
+ *   message codec value representation type
  * @tparam Codec
  *   message codec plugin type
  * @tparam Context

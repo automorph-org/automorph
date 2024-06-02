@@ -72,15 +72,13 @@ final case class UndertowServer[Effect[_]](
       server.start()
       active = true
       server.getListenerInfo.asScala.foreach { listener =>
-        logger.info(
-          "Listening for connections",
-          ListMap("Protocol" -> listener.getProtcol) ++
-            (listener.getAddress match {
-              case address: InetSocketAddress =>
-                ListMap("Host" -> address.getHostString, "Port" -> address.getPort.toString)
-              case _ => ListMap()
-            }),
-        )
+        lazy val serverProperties = ListMap("Protocol" -> listener.getProtcol) ++
+          (listener.getAddress match {
+            case address: InetSocketAddress =>
+              ListMap("Host" -> address.getHostString, "Port" -> address.getPort.toString)
+            case _ => ListMap()
+          })
+        logger.info("Listening for connections", serverProperties)
       }
     })
 

@@ -35,9 +35,11 @@ private[automorph] object HttpClientBase {
         error => completable.fail(error).runAsync,
         { value =>
           value.handle { case (result, error) =>
-            Option(result)
-              .map(value => completable.succeed(value).runAsync)
-              .getOrElse(completable.fail(Option(error).getOrElse(new IllegalStateException(missingResult))).runAsync)
+            Option(result).map { resultValue =>
+              completable.succeed(resultValue).runAsync
+            }.getOrElse {
+              completable.fail(Option(error).getOrElse(new IllegalStateException(missingResult))).runAsync
+            }
           }
           ()
         },

@@ -26,7 +26,7 @@ import scala.util.Try
  * @param rpcProtocol
  *   RPC protocol plugin
  * @tparam Value
- *   message node type
+ *   message codec value representation type
  * @tparam Codec
  *   message codec plugin type
  * @tparam Effect
@@ -270,7 +270,7 @@ object RpcClient {
      * @param rpcProtocol
      *   RPC protocol plugin
      * @tparam Value
-     *   message node type
+     *   message codec value representation type
      * @tparam Codec
      *   message codec plugin type
      * @return

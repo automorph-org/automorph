@@ -38,7 +38,7 @@ import automorph.spi.{MessageCodec, RpcProtocol}
  * @param encodeStrings
  *   converts a list of strings to message format node
  * @tparam Value
- *   message node type
+ *   message codec value representation type
  * @tparam Codec
  *   message codec plugin type
  * @tparam Context
@@ -88,7 +88,7 @@ object JsonRpcProtocol extends ErrorMapping:
    * @param mapOpenApi
    *   transforms generated OpenAPI schema
    * @tparam Value
-   *   message node type
+   *   message codec value representation type
    * @tparam Codec
    *   message codec plugin type
    * @tparam Context

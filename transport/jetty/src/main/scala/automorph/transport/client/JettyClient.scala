@@ -61,7 +61,7 @@ final case class JettyClient[Effect[_]](
   private val webSocketClient = new WebSocketClient(httpClient)
   private val webSocketConnectionPool = {
     val maxPeerConnections = Some(httpClient.getMaxConnectionsPerDestination)
-    ConnectionPool(Some(openWebSocket), closeWebSocket, maxPeerConnections, Protocol.WebSocket, effectSystem)
+    ConnectionPool(Some(openWebSocket), closeWebSocket, Protocol.WebSocket, effectSystem, maxPeerConnections)
   }
   private val log = MessageLog(logger, Protocol.Http.name)
   implicit private val system: EffectSystem[Effect] = effectSystem
@@ -301,12 +301,13 @@ object JettyClient {
     logger: Logger,
     var expectedResponse: Option[Completable[Effect, Response]] = None,
   ) extends WebSocketListener {
+    implicit val system: EffectSystem[Effect] = effectSystem
 
     override def onWebSocketBinary(payload: Array[Byte], offset: Int, length: Int): Unit = {
       val responseBody = util.Arrays.copyOfRange(payload, offset, offset + length)
       expectedResponse.map { response =>
         expectedResponse = None
-        effectSystem.runAsync(response.succeed((responseBody, None, Seq())))
+        response.succeed((responseBody, None, Seq())).runAsync
       }.getOrElse(logger.error(webSocketUnexpectedMessage, Map(LogProperties.url -> url)))
     }
 
@@ -314,7 +315,7 @@ object JettyClient {
       removeConnection()
       expectedResponse.map { response =>
         expectedResponse = None
-        effectSystem.runAsync(response.fail(error))
+        response.fail(error).runAsync
       }.getOrElse(logger.error(webSocketUnexpectedMessage, Map(LogProperties.url -> url)))
     }
 
@@ -322,7 +323,7 @@ object JettyClient {
       removeConnection()
       expectedResponse.foreach { response =>
         expectedResponse = None
-        effectSystem.runAsync(response.fail(new IllegalStateException(webSocketConnectionClosed)))
+        response.fail(new IllegalStateException(webSocketConnectionClosed)).runAsync
       }
     }
   }

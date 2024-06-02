@@ -12,7 +12,7 @@ import automorph.RpcFunction
  * @param describe
  *   creates API description for specified RPC functions and RPC request metadata
  * @tparam Value
- *   message node type
+ *   message codec value representation type
  */
 final case class ApiSchema[Value](
   function: RpcFunction,

@@ -9,7 +9,7 @@ import scala.util.{Failure, Success, Try}
 /** Extension methods for utility types. */
 private[automorph] object Extensions {
 
-  implicit final class ThrowableOps(private val throwable: Throwable) {
+  implicit final class ThrowableOps(throwable: Throwable) {
 
     /**
      * Assemble detailed description of an exception and its causes.
@@ -92,7 +92,7 @@ private[automorph] object Extensions {
       data.getBytes(charset)
   }
 
-  implicit final class TryOps[T](private val tryValue: Try[T]) {
+  implicit final class TryOps[T](tryValue: Try[T]) {
 
     /**
      * Invokes ''failure'' on `Failure` or returns this on `Success`.
@@ -137,7 +137,7 @@ private[automorph] object Extensions {
       }
   }
 
-  implicit final class EffectOps[Effect[_], T](private val effect: Effect[T]) {
+  implicit final class EffectOps[Effect[_], T](effect: => Effect[T]) {
 
     /**
      * Creates a new effect by lifting an effect's errors into a value.

@@ -38,7 +38,7 @@ import automorph.transport.HttpContext
  * @param encodeString
  *   converts a string to message format node
  * @tparam Value
- *   message node type
+ *   message codec value representation type
  * @tparam Codec
  *   message codec plugin type
  * @tparam Context
@@ -82,7 +82,7 @@ object WebRpcProtocol extends ErrorMapping:
    * @param mapOpenApi
    *   transforms generated OpenAPI schema
    * @tparam Value
-   *   message node type
+   *   message codec value representation type
    * @tparam Codec
    *   message codec plugin type
    * @tparam Context

@@ -42,7 +42,7 @@ object PlayJsonCodec {
   implicit def optionWrites[T: Writes]: Writes[Option[T]] =
     (optionalValue: Option[T]) => optionalValue.map(value => implicitly[Writes[T]].writes(value)).getOrElse(JsNull)
 
-  /** Message node type. */
+  /** Message value representation type. */
   type Value = JsValue
   implicit lazy val unitReads: Reads[Unit] = {
     case value: JsObject if value.values.isEmpty => JsSuccess.apply(())

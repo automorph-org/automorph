@@ -26,7 +26,7 @@ trait ServerTransport[Effect[_], Context, Adapter] {
    * Starts this server to process incoming requests.
    *
    * @return
-   *   active server transport
+   *   nothing
    */
   def init(): Effect[Unit]
 

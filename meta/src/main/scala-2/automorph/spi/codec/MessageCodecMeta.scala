@@ -4,7 +4,7 @@ package automorph.spi.codec
  * Structured message format codec code generation.
  *
  * @tparam Value
- *   message codec node representation type
+ *   message codec value representation type
  */
 trait MessageCodecMeta[Value] {
 

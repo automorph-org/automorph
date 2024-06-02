@@ -20,7 +20,7 @@ import scala.collection.immutable.ListMap
  * @param error
  *   failed method call error details
  * @tparam Value
- *   message node type
+ *   message codec value representation type
  */
 final case class Message[Value](
   jsonrpc: Option[String],
@@ -78,7 +78,7 @@ object Message {
  * @param data
  *   additional error information
  * @tparam Value
- *   message node type
+ *   message codec value representation type
  */
 final case class MessageError[Value](message: Option[String], code: Option[Int], data: Option[Value])
 

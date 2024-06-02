@@ -58,7 +58,7 @@ final case class ZioSystem[Fault](
   override def flatMap[T, R](effect: IO[Fault, T])(function: T => IO[Fault, R]): IO[Fault, R] =
     effect.flatMap(function)
 
-  override def runAsync[T](effect: IO[Fault, T]): Unit = {
+  override def runAsync[T](effect: => IO[Fault, T]): Unit = {
     implicit val trace: Trace = Trace.empty
     Unsafe.unsafe { implicit unsafe =>
       runtime.unsafe.fork(effect)

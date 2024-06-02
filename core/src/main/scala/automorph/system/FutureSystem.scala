@@ -49,8 +49,10 @@ final case class FutureSystem()(implicit val executionContext: ExecutionContext)
   override def flatMap[T, R](effect: Future[T])(function: T => Future[R]): Future[R] =
     effect.flatMap(function)
 
-  override def runAsync[T](effect: Future[T]): Unit =
+  override def runAsync[T](effect: => Future[T]): Unit = {
+    effect
     ()
+  }
 
   override def completable[T]: Future[Completable[Future, T]] =
     Future.successful(CompletableFuture())

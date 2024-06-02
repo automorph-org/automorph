@@ -66,7 +66,7 @@ final case class HttpClient[Effect[_]](
   private val httpClient = builder.build
   private val webSocketConnectionPool = {
     val maxPeerConnections = Option(System.getProperty("jdk.httpclient.connectionPoolSize")).flatMap(_.toIntOption)
-    ConnectionPool(Some(openWebSocket), closeWebSocket, maxPeerConnections, Protocol.WebSocket, effectSystem)
+    ConnectionPool(Some(openWebSocket), closeWebSocket, Protocol.WebSocket, effectSystem, maxPeerConnections)
   }
   private val log = MessageLog(logger, Protocol.Http.name)
   implicit private val system: EffectSystem[Effect] = effectSystem
@@ -272,6 +272,7 @@ object HttpClient {
     var expectedResponse: Option[Completable[Effect, Response]] = None,
   ) extends Listener {
 
+    implicit val system: EffectSystem[Effect] = effectSystem
     private val buffers = ArrayBuffer.empty[ByteBuffer]
 
     override def onBinary(webSocket: WebSocket, data: ByteBuffer, last: Boolean): CompletionStage[?] = {
@@ -287,7 +288,7 @@ object HttpClient {
         buffers.clear()
         expectedResponse.map { response =>
           expectedResponse = None
-          effectSystem.runAsync(response.succeed(Response(responseBody, None, Seq.empty)))
+          response.succeed(Response(responseBody, None, Seq.empty)).runAsync
         }.getOrElse(logger.error(webSocketUnexpectedMessage, Map(LogProperties.url -> url)))
       }
       super.onBinary(webSocket, data, last)
@@ -297,7 +298,7 @@ object HttpClient {
       removeConnection()
       expectedResponse.map { response =>
         expectedResponse = None
-        effectSystem.runAsync(response.fail(error))
+        response.fail(error).runAsync
       }.getOrElse(logger.error(webSocketUnexpectedMessage, Map(LogProperties.url -> url)))
       super.onError(webSocket, error)
     }
@@ -306,7 +307,7 @@ object HttpClient {
       removeConnection()
       expectedResponse.foreach { response =>
         expectedResponse = None
-        effectSystem.runAsync(response.fail(new IllegalStateException(webSocketConnectionClosed)))
+        response.fail(new IllegalStateException(webSocketConnectionClosed)).runAsync
       }
       super.onClose(webSocket, statusCode, reason)
     }

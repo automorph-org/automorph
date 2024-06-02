@@ -36,7 +36,7 @@ final case class Json4sNativeJsonCodec(formats: Formats = Json4sNativeJsonCodec.
 
 object Json4sNativeJsonCodec {
 
-  /** Message node type. */
+  /** Message value representation type. */
   type Value = JValue
 
   val formats: Formats = DefaultFormats.strict.withBigDecimal + new CustomSerializer[Unit](_ =>

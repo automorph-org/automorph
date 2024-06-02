@@ -144,7 +144,7 @@ trait EffectSystem[Effect[_]] {
    * @return
    *   nothing
    */
-  def runAsync[T](effect: Effect[T]): Unit
+  def runAsync[T](effect: => Effect[T]): Unit
 
   /**
    * Creates an externally completable effect.

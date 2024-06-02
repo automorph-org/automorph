@@ -12,7 +12,7 @@ import automorph.spi.MessageCodec
  * @param codec
  *   message codec plugin
  * @tparam Value
- *   message node type
+ *   message codec value representation type
  * @tparam Codec
  *   message codec plugin type
  * @tparam Effect
@@ -42,7 +42,7 @@ private[automorph] object RemoteTell {
    * @param sendMessage
    *   sends an RPC message with specified function name, arguments and request context
    * @tparam Value
-   *   message node type
+   *   message codec value representation type
    * @tparam Codec
    *   message codec plugin type
    * @tparam Effect

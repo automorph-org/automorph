@@ -16,7 +16,7 @@ import automorph.RpcFunction
  * @param acceptsContext
  *   true if the last parameter of the bound function is contextual
  * @tparam Value
- *   message node type
+ *   message codec value representation type
  * @tparam Context
  *   RPC message context type
  */
