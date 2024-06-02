@@ -43,6 +43,9 @@ trait CoreTest extends BaseTest {
 
   def fixtures: Seq[TestFixture]
 
+  def reverseInit: Boolean =
+    false
+
   def basic: Boolean =
     false
 
@@ -202,13 +205,35 @@ trait CoreTest extends BaseTest {
 
   override def beforeAll(): Unit = {
     super.beforeAll()
-    testFixtures.foreach(fixture => execute("Failed to initialize server", fixture.id, fixture.genericServer.init()))
-    testFixtures.foreach(fixture => execute("Failed to initialize client", fixture.id, fixture.genericClient.init()))
+    lazy val initServer: Unit = testFixtures.foreach { fixture =>
+      execute("Failed to initialize server", fixture.id, fixture.genericServer.init())
+    }
+    lazy val initClient: Unit = testFixtures.foreach { fixture =>
+      execute("Failed to initialize client", fixture.id, fixture.genericClient.init())
+    }
+    if (reverseInit) {
+      initClient
+      initServer
+    } else {
+      initServer
+      initClient
+    }
   }
 
   override def afterAll(): Unit = {
-    testFixtures.foreach(fixture => execute("Failed to close client", fixture.id, fixture.genericClient.close()))
-    testFixtures.foreach(fixture => execute("Failed to close server", fixture.id, fixture.genericServer.close()))
+    lazy val closeClient: Unit = testFixtures.foreach { fixture =>
+      execute("Failed to close client", fixture.id, fixture.genericClient.close())
+    }
+    lazy val closeServer: Unit = testFixtures.foreach { fixture =>
+      execute("Failed to close server", fixture.id, fixture.genericServer.close())
+    }
+    if (reverseInit) {
+      closeServer
+      closeClient
+    } else {
+      closeClient
+      closeServer
+    }
     super.afterAll()
   }
 
