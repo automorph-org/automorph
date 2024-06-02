@@ -84,14 +84,10 @@ final private[automorph] case class LowHttpRequestHandler[
    *   request message body
    * @param context
    *   request context
-   * @param id
-   *   request correlation identifier
-   * @param mediaType
-   *   message media (MIME) type.
    * @return
    *   response message and context
    */
-  def call(body: Array[Byte], context: Context, id: String, mediaType: String): Effect[(Array[Byte], Context)] =
+  def call(body: Array[Byte], context: Context): Effect[(Array[Byte], Context)] =
     ???
 
   /**
@@ -103,13 +99,11 @@ final private[automorph] case class LowHttpRequestHandler[
    *   request message body
    * @param context
    *   request context
-   * @param id
-   *   request correlation identifier
-   * @param mediaType
-   *   message media (MIME) type.
    * @return
    *   nothing
    */
-  def tell(body: Array[Byte], context: Context, id: String, mediaType: String): Effect[Unit] =
+  def tell(body: Array[Byte], context: Context): Effect[Unit] =
     ???
+
+  private def sendRpcRequest(body: Array[Byte], context: Context, id: String, mediaType: String)
 }

@@ -81,7 +81,7 @@ final private[automorph] case class HttpRequestHandler[
     }.onError(log.failedReceiveRequest(_, Map.empty, protocol.name)).get
   }
 
-  private def sendRpcResponse(
+  def sendRpcResponse(
     responseBody: Array[Byte],
     contentType: String,
     statusCode: Int,

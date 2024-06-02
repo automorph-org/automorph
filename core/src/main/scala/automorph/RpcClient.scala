@@ -98,11 +98,11 @@ final case class RpcClient[Value, Codec <: MessageCodec[Value], Effect[_], Conte
     function: String,
     arguments: Seq[(String, Value)],
     decodeResult: (Value, Context) => Result,
-    requestContext: Option[Context],
+    context: Option[Context],
   ): Effect[Result] = {
     // Create request
     val requestId = Random.id
-    rpcProtocol.createRequest(function, arguments, respond = true, requestContext.getOrElse(context), requestId).fold(
+    rpcProtocol.createRequest(function, arguments, respond = true, context.getOrElse(context), requestId).fold(
       error => system.failed(error),
       // Send request
       rpcRequest =>
@@ -129,7 +129,7 @@ final case class RpcClient[Value, Codec <: MessageCodec[Value], Effect[_], Conte
    *   remote function name
    * @param arguments
    *   named arguments
-   * @param requestContext
+   * @param context
    *   request context
    * @return
    *   nothing
@@ -137,7 +137,7 @@ final case class RpcClient[Value, Codec <: MessageCodec[Value], Effect[_], Conte
   private def performTell(
     function: String,
     arguments: Seq[(String, Value)],
-    requestContext: Option[Context],
+    context: Option[Context],
   ): Effect[Unit] = {
     // Create request
     val requestId = Random.id
@@ -145,7 +145,7 @@ final case class RpcClient[Value, Codec <: MessageCodec[Value], Effect[_], Conte
       function,
       arguments,
       respond = false,
-      requestContext.getOrElse(context),
+      context.getOrElse(context),
       requestId,
     ).fold(
       error => system.failed(error),

@@ -29,12 +29,8 @@ final case class RemoteCall[Value, Codec <: MessageCodec[Value], Effect[_], Cont
   private val decodeResult: (Value, Context) => Result,
 ) extends RemoteInvoke[Value, Codec, Effect, Context, Result]:
 
-  override def invoke(
-    arguments: Seq[(String, Any)],
-    argumentValues: Seq[Value],
-    requestContext: Context,
-  ): Effect[Result] =
-    performCall(functionName, arguments.map(_._1).zip(argumentValues), decodeResult, Some(requestContext))
+  override def invoke(arguments: Seq[(String, Any)], argumentValues: Seq[Value], context: Context): Effect[Result] =
+    performCall(functionName, arguments.map(_._1).zip(argumentValues), decodeResult, Some(context))
 
 object RemoteCall:
 

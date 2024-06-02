@@ -20,7 +20,7 @@ trait ClientTransport[Effect[_], Context] {
   /**
    * Sends a request to a remote endpoint and retrieves the response.
    *
-   * An optional request context is used to supply additional information needed to send the request.
+   * Request context is used to supply additional information needed to send the request.
    *
    * @param body
    *   request message body
