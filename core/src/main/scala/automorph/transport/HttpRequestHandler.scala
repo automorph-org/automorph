@@ -2,7 +2,7 @@ package automorph.transport
 
 import automorph.log.{LogProperties, Logging, MessageLog}
 import automorph.spi.{EffectSystem, RequestHandler}
-import automorph.transport.HttpRequestHandler.{RequestMetadata, ResponseData, contentTypeText, headerLongPolling, valueLongPolling}
+import automorph.transport.HttpRequestHandler.{RequestMetadata, ResponseData, contentTypeText, headerService, valueLongPolling}
 import automorph.util.Extensions.{EffectOps, StringOps, ThrowableOps, TryOps}
 import automorph.util.Random
 import java.net.{InetSocketAddress, SocketAddress}
@@ -74,7 +74,7 @@ final private[automorph] case class HttpRequestHandler[
     // Receive the request
     receiveRpcRequest(request).flatMap { case (requestMetadata, requestBody) =>
       Try {
-        if (requestMetadata.context.header(headerLongPolling).exists(_.toLowerCase == valueLongPolling)) {
+        if (requestMetadata.context.header(headerService).exists(_.toLowerCase == valueLongPolling)) {
           // Register long polling connection
           responsePool.add(requestMetadata.client, connection)
           ???
@@ -148,7 +148,7 @@ final private[automorph] case class HttpRequestHandler[
 private[automorph] object HttpRequestHandler {
 
   val headerXForwardedFor = "X-Forwarded-For"
-  val headerLongPolling = "RPC-Long-Polling"
+  val headerService = "RPC-Service"
   val headerNodeId = "RPC-Node-Id"
   val headerCallId = "RPC-Call-Id"
   val valueLongPolling = "true"
