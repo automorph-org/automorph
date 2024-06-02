@@ -1,9 +1,10 @@
 package automorph.transport.server
 
 import automorph.spi.{EffectSystem, RequestHandler, ServerTransport}
-import automorph.transport.HttpRequestHandler.{RequestMetadata, ResponseData, headerNodeId, headerXForwardedFor}
+import automorph.transport.HttpContext.headerRpcNodeId
+import automorph.transport.HttpRequestHandler.{RequestMetadata, ResponseData, headerXForwardedFor}
 import automorph.transport.server.VertxHttpEndpoint.Context
-import automorph.transport.{HttpContext, HttpMethod, HttpRequestHandler, Protocol}
+import automorph.transport.{HttpContext, HttpMethod, HttpRequestHandler, LowHttpRequestHandler, Protocol}
 import automorph.util.Extensions.EffectOps
 import io.vertx.core.buffer.Buffer
 import io.vertx.core.http.{HttpHeaders, HttpServerRequest, HttpServerResponse, ServerWebSocket}
@@ -51,7 +52,7 @@ final case class VertxHttpEndpoint[Effect[_]](
   }
 
   private val httpHandler =
-    HttpRequestHandler(receiveRequest, sendResponse, Protocol.Http, effectSystem, mapException, handler)
+    LowHttpRequestHandler(receiveRequest, sendResponse, Protocol.Http, effectSystem, mapException, handler)
   implicit private val system: EffectSystem[Effect] = effectSystem
 
   override def adapter: Handler[HttpServerRequest] =
@@ -118,7 +119,7 @@ object VertxHttpEndpoint {
   private[automorph] def clientId(headers: MultiMap, remoteAddress: SocketAddress): String = {
     val address = Option(remoteAddress.hostName).orElse(Option(remoteAddress.hostAddress)).getOrElse("")
     val forwardedFor = Option(headers.get(headerXForwardedFor))
-    val nodeId = Option(headers.get(headerNodeId))
+    val nodeId = Option(headers.get(headerRpcNodeId))
     HttpRequestHandler.clientId(address, forwardedFor, nodeId)
   }
 }

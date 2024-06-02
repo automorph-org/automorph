@@ -4,7 +4,7 @@ import automorph.spi.{EffectSystem, RequestHandler, ServerTransport}
 import automorph.transport.HttpRequestHandler.{RequestMetadata, ResponseData}
 import automorph.transport.server.VertxHttpEndpoint
 import automorph.transport.websocket.endpoint.VertxWebSocketEndpoint.Context
-import automorph.transport.{HttpContext, HttpMethod, HttpRequestHandler, Protocol}
+import automorph.transport.{HttpContext, HttpMethod, LowHttpRequestHandler, Protocol}
 import automorph.util.Extensions.EffectOps
 import io.vertx.core.Handler
 import io.vertx.core.buffer.Buffer
@@ -48,7 +48,7 @@ final case class VertxWebSocketEndpoint[Effect[_]](
   }
 
   private val webSocketHandler =
-    HttpRequestHandler(receiveRequest, sendResponse, Protocol.WebSocket, effectSystem, _ => 0, handler)
+    LowHttpRequestHandler(receiveRequest, sendResponse, Protocol.WebSocket, effectSystem, _ => 0, handler)
   implicit private val system: EffectSystem[Effect] = effectSystem
 
   override def adapter: Handler[ServerWebSocket] =

@@ -1,18 +1,15 @@
 package automorph.transport.server
 
 import automorph.spi.{EffectSystem, RequestHandler, ServerTransport}
-import automorph.transport.HttpRequestHandler.{RequestMetadata, ResponseData, headerNodeId}
+import automorph.transport.HttpContext.headerRpcNodeId
+import automorph.transport.HttpRequestHandler.{RequestMetadata, ResponseData}
 import automorph.transport.server.PekkoHttpEndpoint.Context
-import automorph.transport.{HttpContext, HttpMethod, HttpRequestHandler, Protocol}
+import automorph.transport.{HighHttpRequestHandler, HttpContext, HttpMethod, HttpRequestHandler, Protocol}
 import automorph.util.Extensions.{EffectOps, ThrowableOps}
 import org.apache.pekko.http.scaladsl.model.StatusCodes.InternalServerError
 import org.apache.pekko.http.scaladsl.model.headers.RawHeader
-import org.apache.pekko.http.scaladsl.model.{
-  ContentType, HttpEntity, HttpRequest, HttpResponse, RemoteAddress, StatusCode,
-}
-import org.apache.pekko.http.scaladsl.server.Directives.{
-  complete, extractClientIP, extractExecutionContext, extractMaterializer, extractRequest, onComplete,
-}
+import org.apache.pekko.http.scaladsl.model.{ContentType, HttpEntity, HttpRequest, HttpResponse, RemoteAddress, StatusCode}
+import org.apache.pekko.http.scaladsl.server.Directives.{complete, extractClientIP, extractExecutionContext, extractMaterializer, extractRequest, onComplete}
 import org.apache.pekko.http.scaladsl.server.Route
 import org.apache.pekko.stream.Materializer
 import scala.annotation.unused
@@ -69,7 +66,7 @@ final case class PekkoHttpEndpoint[Effect[_]](
       }
     }
   private val httpHandler =
-    HttpRequestHandler(receiveRequest, createResponse, Protocol.Http, effectSystem, mapException, handler)
+    HighHttpRequestHandler(receiveRequest, createResponse, Protocol.Http, effectSystem, mapException, handler)
   implicit private val system: EffectSystem[Effect] = effectSystem
 
   def adapter: Route =
@@ -133,7 +130,7 @@ final case class PekkoHttpEndpoint[Effect[_]](
 
   private def clientId(remoteAddress: RemoteAddress, request: HttpRequest): String = {
     val address = remoteAddress.toOption.flatMap(address => Option(address.getHostAddress)).getOrElse("")
-    val nodeId = request.getHeader(headerNodeId).toScala.map(_.value)
+    val nodeId = request.getHeader(headerRpcNodeId).toScala.map(_.value)
     HttpRequestHandler.clientId(address, None, nodeId)
   }
 }

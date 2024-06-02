@@ -1,9 +1,10 @@
 package automorph.transport.server
 
 import automorph.spi.{EffectSystem, RequestHandler, ServerTransport}
-import automorph.transport.HttpRequestHandler.{RequestMetadata, ResponseData, headerNodeId}
+import automorph.transport.HttpContext.headerRpcNodeId
+import automorph.transport.HttpRequestHandler.{RequestMetadata, ResponseData}
 import automorph.transport.server.JettyHttpEndpoint.{Context, requestQuery}
-import automorph.transport.{HttpContext, HttpMethod, HttpRequestHandler, Protocol}
+import automorph.transport.{HttpContext, HttpMethod, HttpRequestHandler, LowHttpRequestHandler, Protocol}
 import automorph.util.Extensions.{EffectOps, InputStreamOps}
 import jakarta.servlet.AsyncContext
 import jakarta.servlet.http.{HttpServlet, HttpServletRequest, HttpServletResponse}
@@ -49,7 +50,7 @@ final case class JettyHttpEndpoint[Effect[_]](
     }
   }
   private val httpHandler =
-    HttpRequestHandler(receiveRequest, sendResponse, Protocol.Http, effectSystem, mapException, handler)
+    LowHttpRequestHandler(receiveRequest, sendResponse, Protocol.Http, effectSystem, mapException, handler)
 
   override def adapter: HttpServlet =
     httpServlet
@@ -110,7 +111,7 @@ final case class JettyHttpEndpoint[Effect[_]](
   private def clientId(request: HttpServletRequest): String = {
     val address = request.getRemoteAddr
     val forwardedFor = Option(request.getHeader(HttpHeader.X_FORWARDED_FOR.name))
-    val nodeId = Option(request.getHeader(headerNodeId))
+    val nodeId = Option(request.getHeader(headerRpcNodeId))
     HttpRequestHandler.clientId(address, forwardedFor, nodeId)
   }
 }

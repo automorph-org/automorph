@@ -1,9 +1,10 @@
 package automorph.transport.server
 
 import automorph.spi.{EffectSystem, RequestHandler, ServerTransport}
+import automorph.transport.HttpContext.headerRpcNodeId
 import automorph.transport.HttpRequestHandler.{RequestMetadata, ResponseData}
 import automorph.transport.server.UndertowHttpEndpoint.{Context, HttpRequest, RequestCallback, requestQuery}
-import automorph.transport.{HttpContext, HttpMethod, HttpRequestHandler, Protocol}
+import automorph.transport.{HttpContext, HttpMethod, HttpRequestHandler, LowHttpRequestHandler, Protocol}
 import automorph.util.Extensions.{ByteArrayOps, EffectOps}
 import io.undertow.io.Receiver
 import io.undertow.server.{HttpHandler, HttpServerExchange}
@@ -46,7 +47,7 @@ final case class UndertowHttpEndpoint[Effect[_]](
       exchange.getRequestReceiver.receiveFullBytes(receiverCallback)
   }
   private val httpRequestHandler =
-    HttpRequestHandler(receiveRequest, sendResponse, Protocol.Http, effectSystem, mapException, handler)
+    LowHttpRequestHandler(receiveRequest, sendResponse, Protocol.Http, effectSystem, mapException, handler)
   private val receiverCallback = new Receiver.FullBytesCallback {
 
     override def handle(exchange: HttpServerExchange, requestBody: Array[Byte]): Unit = {
@@ -114,7 +115,7 @@ final case class UndertowHttpEndpoint[Effect[_]](
 
   private def clientId(exchange: HttpServerExchange): String = {
     val forwardedFor = Option(exchange.getRequestHeaders.get(Headers.X_FORWARDED_FOR_STRING)).map(_.getFirst)
-    val nodeId = Option(exchange.getRequestHeaders.get(HttpRequestHandler.headerNodeId)).map(_.getFirst)
+    val nodeId = Option(exchange.getRequestHeaders.get(headerRpcNodeId)).map(_.getFirst)
     val address = exchange.getSourceAddress.toString
     HttpRequestHandler.clientId(address, forwardedFor, nodeId)
   }
@@ -132,7 +133,7 @@ object UndertowHttpEndpoint {
 
   final private case class RequestCallback[Effect[_]](
     effectSystem: EffectSystem[Effect],
-    handler: HttpRequestHandler[Effect, Context, HttpRequest, Unit, HttpServerExchange],
+    handler: LowHttpRequestHandler[Effect, Context, HttpRequest, HttpServerExchange],
     exchange: HttpServerExchange,
     requestBody: Array[Byte],
   ) extends Runnable {

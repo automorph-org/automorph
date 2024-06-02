@@ -7,9 +7,10 @@ import akka.http.scaladsl.server.Directives.{complete, extractClientIP, extractE
 import akka.http.scaladsl.server.Route
 import akka.stream.Materializer
 import automorph.spi.{EffectSystem, RequestHandler, ServerTransport}
-import automorph.transport.HttpRequestHandler.{RequestMetadata, ResponseData, headerNodeId}
+import automorph.transport.HttpContext.headerRpcNodeId
+import automorph.transport.HttpRequestHandler.{RequestMetadata, ResponseData}
 import automorph.transport.server.AkkaHttpEndpoint.Context
-import automorph.transport.{HttpContext, HttpMethod, HttpRequestHandler, Protocol}
+import automorph.transport.{HighHttpRequestHandler, HttpContext, HttpMethod, HttpRequestHandler, Protocol}
 import automorph.util.Extensions.{EffectOps, ThrowableOps}
 import scala.annotation.unused
 import scala.concurrent.duration.{DurationInt, FiniteDuration}
@@ -65,7 +66,7 @@ final case class AkkaHttpEndpoint[Effect[_]](
       }
     }
   private val httpHandler =
-    HttpRequestHandler(receiveRequest, createResponse, Protocol.Http, effectSystem, mapException, handler)
+    HighHttpRequestHandler(receiveRequest, createResponse, Protocol.Http, effectSystem, mapException, handler)
   implicit private val system: EffectSystem[Effect] = effectSystem
 
   def adapter: Route =
@@ -129,7 +130,7 @@ final case class AkkaHttpEndpoint[Effect[_]](
 
   private def clientId(remoteAddress: RemoteAddress, request: HttpRequest): String = {
     val address = remoteAddress.toOption.flatMap(address => Option(address.getHostAddress)).getOrElse("")
-    val nodeId = request.getHeader(headerNodeId).toScala.map(_.value)
+    val nodeId = request.getHeader(headerRpcNodeId).toScala.map(_.value)
     HttpRequestHandler.clientId(address, None, nodeId)
   }
 }

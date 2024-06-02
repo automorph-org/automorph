@@ -1,19 +1,16 @@
 package automorph.transport.server
 
 import automorph.spi.{EffectSystem, RequestHandler, ServerTransport}
+import automorph.transport.HttpContext.headerRpcNodeId
 import automorph.transport.HttpRequestHandler.{RequestMetadata, ResponseData}
-import automorph.transport.server.TapirHttpEndpoint.{
-  Adapter, Context, MessageFormat, createResponse, pathComponents, pathEndpointInput, receiveRequest,
-}
-import automorph.transport.{HttpContext, HttpMethod, HttpRequestHandler, Protocol}
+import automorph.transport.server.TapirHttpEndpoint.{Adapter, Context, MessageFormat, createResponse, pathComponents, pathEndpointInput, receiveRequest}
+import automorph.transport.{HighHttpRequestHandler, HttpContext, HttpMethod, HttpRequestHandler, Protocol}
 import automorph.util.Extensions.EffectOps
 import sttp.model.{Header, MediaType, Method, QueryParams, StatusCode}
 import sttp.tapir
 import sttp.tapir.Codec.id
 import sttp.tapir.server.ServerEndpoint
-import sttp.tapir.{
-  CodecFormat, EndpointIO, EndpointInput, RawBodyType, Schema, headers, paths, queryParams, statusCode, stringToPath,
-}
+import sttp.tapir.{CodecFormat, EndpointIO, EndpointInput, RawBodyType, Schema, headers, paths, queryParams, statusCode, stringToPath}
 import scala.annotation.unused
 
 /**
@@ -67,7 +64,7 @@ final case class TapirHttpEndpoint[Effect[_]](
   private val allowedMethod = method.map(httpMethod => Method(httpMethod.name))
   private val prefixPaths = pathComponents(pathPrefix)
   private val baseContext = HttpContext[Unit]().url(baseUrl)
-  private val httpHandler = HttpRequestHandler(
+  private val httpHandler = HighHttpRequestHandler(
     receiveRequest(effectSystem),
     createResponse(effectSystem),
     Protocol.Http,
@@ -162,7 +159,7 @@ object TapirHttpEndpoint {
   private def clientId(request: Request): String = {
     val (_, _, _, headers) = request
     val forwardedFor = headers.find(_.name == HttpRequestHandler.headerXForwardedFor).map(_.value)
-    val nodeId = headers.find(_.name == HttpRequestHandler.headerNodeId).map(_.value)
+    val nodeId = headers.find(_.name == headerRpcNodeId).map(_.value)
     HttpRequestHandler.clientId("", forwardedFor, nodeId)
   }
 

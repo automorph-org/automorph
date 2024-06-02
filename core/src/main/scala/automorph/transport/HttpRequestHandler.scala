@@ -2,7 +2,7 @@ package automorph.transport
 
 import automorph.log.{LogProperties, Logging, MessageLog}
 import automorph.spi.{EffectSystem, RequestHandler}
-import automorph.transport.HttpRequestHandler.{RequestMetadata, ResponseData, contentTypeText, headerListen, valueLongPolling}
+import automorph.transport.HttpRequestHandler.{RequestMetadata, ResponseData, contentTypeText}
 import automorph.util.Extensions.{EffectOps, StringOps, ThrowableOps, TryOps}
 import automorph.util.Random
 import java.net.{InetSocketAddress, SocketAddress}
@@ -54,49 +54,24 @@ final private[automorph] case class HttpRequestHandler[
   private val log = MessageLog(logger, protocol.name)
   private val statusOk = 200
   private val statusInternalServerError = 500
-  private val responsePool =
-    ConnectionPool[Effect, String, Connection](None, _ => system.successful {}, protocol, effectSystem, None, retain = false)
   implicit private val system: EffectSystem[Effect] = effectSystem
-  // FIXME - remove
-  Seq(responsePool)
 
-  /**
-   * Process HTTP or WebSocket RPC request.
-   *
-   * @param request
-   *   HTTP or WebSocket RPC request
-   * @param connection
-   *   HTTP or WebSocket connection
-   * @return
-   *   HTTP or WebSocket response
-   */
-  def processRequest(request: Request, connection: Connection): Effect[Response] =
-    // Receive the request
-    receiveRpcRequest(request).flatMap { case (requestMetadata, requestBody) =>
-      Try {
-        if (requestMetadata.context.header(headerListen).exists(_.toLowerCase == valueLongPolling)) {
-          // Register long polling connection
-          responsePool.add(requestMetadata.client, connection)
-          ???
-        } else {
-          // Process the request
-          requestHandler.processRequest(requestBody, requestMetadata.context, requestMetadata.id).flatFold(
-            error => sendErrorResponse(error, connection, requestMetadata),
-            { result =>
-              // Send the response
-              val responseBody = result.map(_.responseBody).getOrElse(Array.emptyByteArray)
-              val resultContext = result.flatMap(_.context)
-              val statusCode = result.flatMap(_.exception).map(mapException).orElse(
-                resultContext.flatMap(_.statusCode)
-              ).getOrElse(statusOk)
-              sendRpcResponse(responseBody, requestHandler.mediaType, statusCode, resultContext, connection, requestMetadata)
-            },
-          )
-        }
-      }.recover(sendErrorResponse(_, connection, requestMetadata)).get
-    }
+  def processRequest(requestBody: Array[Byte], requestMetadata: RequestMetadata[Context], connection: Connection): Effect[Response] =
+    // Process the request
+    requestHandler.processRequest(requestBody, requestMetadata.context, requestMetadata.id).flatFold(
+      error => sendErrorResponse(error, connection, requestMetadata),
+      { result =>
+        // Send the response
+        val responseBody = result.map(_.responseBody).getOrElse(Array.emptyByteArray)
+        val resultContext = result.flatMap(_.context)
+        val statusCode = result.flatMap(_.exception).map(mapException).orElse(
+          resultContext.flatMap(_.statusCode)
+        ).getOrElse(statusOk)
+        sendRpcResponse(responseBody, requestHandler.mediaType, statusCode, resultContext, connection, requestMetadata)
+      },
+    )
 
-  private def receiveRpcRequest(request: Request): Effect[(RequestMetadata[Context], Array[Byte])] = {
+  def receiveRpcRequest(request: Request): Effect[(RequestMetadata[Context], Array[Byte])] = {
     log.receivingRequest(Map.empty, protocol.name)
     Try(receiveRequest(request)).map { case (requestMetadata, retrieveBody) =>
       retrieveBody.map { requestBody =>
@@ -148,10 +123,7 @@ final private[automorph] case class HttpRequestHandler[
 private[automorph] object HttpRequestHandler {
 
   val headerXForwardedFor = "X-Forwarded-For"
-  val headerListen = "RPC-Listen"
-  val headerNodeId = "RPC-Node-Id"
-  val headerCallId = "RPC-Call-Id"
-  val valueLongPolling = "true"
+  val valueRpcListen = "true"
   val contentTypeText = "text/plain"
 
   /**

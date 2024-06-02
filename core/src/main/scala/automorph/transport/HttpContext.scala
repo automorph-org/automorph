@@ -604,14 +604,16 @@ final case class HttpContext[TransportContext](
 object HttpContext {
 
   /**
-   * Set-Cookie value.
-   *
-   * @param value
-   *   cookie value
-   * @param attributes
-   *   cookie attributes
+   * Name of HTTP header which if set to 'true' indicates given connection is used exclusively to listen for incoming RPC
+   * requests.
    */
-  final case class SetCookie(value: String, attributes: Seq[String] = Seq.empty)
+  val headerRpcListen = "RPC-Listen"
+
+  /** Name of HTTP header containing unique identifier of a sender RPC node. */
+  val headerRpcNodeId = "RPC-Node-Id"
+
+  /** Name of HTTP header containing RPC call identifier for correlating requests with responses. */
+  val headerRpcCallId = "RPC-Call-Id"
 
   private val exceptionToStatusCode: Map[Class[?], Int] = Map[Class[?], Int](
     classOf[InvalidRequest] -> 400,
@@ -631,4 +633,14 @@ object HttpContext {
    */
   def toStatusCode(exception: Throwable): Int =
     exceptionToStatusCode(exception.getClass)
+
+  /**
+   * Set-Cookie value.
+   *
+   * @param value
+   *   cookie value
+   * @param attributes
+   *   cookie attributes
+   */
+  final case class SetCookie(value: String, attributes: Seq[String] = Seq.empty)
 }

@@ -1,9 +1,10 @@
 package automorph.transport.server
 
 import automorph.spi.{EffectSystem, RequestHandler, ServerTransport}
+import automorph.transport.HttpContext.headerRpcNodeId
 import automorph.transport.HttpRequestHandler.{RequestMetadata, ResponseData}
 import automorph.transport.server.FinagleHttpEndpoint.Context
-import automorph.transport.{HttpContext, HttpMethod, HttpRequestHandler, Protocol}
+import automorph.transport.{HighHttpRequestHandler, HttpContext, HttpMethod, HttpRequestHandler, Protocol}
 import automorph.util.Extensions.EffectOps
 import com.twitter.finagle.Service
 import com.twitter.finagle.http.{Request, Response, Status}
@@ -42,7 +43,7 @@ final case class FinagleHttpEndpoint[Effect[_]](
   private lazy val service: Service[Request, Response] = (request: Request) =>
     runAsFuture(httpHandler.processRequest(request, request))
   private val httpHandler =
-    HttpRequestHandler(receiveRequest, createResponse, Protocol.Http, effectSystem, mapException, handler)
+    HighHttpRequestHandler(receiveRequest, createResponse, Protocol.Http, effectSystem, mapException, handler)
   implicit private val system: EffectSystem[Effect] = effectSystem
 
   override def adapter: Service[Request, Response] =
@@ -92,7 +93,7 @@ final case class FinagleHttpEndpoint[Effect[_]](
 
   private def clientId(request: Request): String = {
     val forwardedFor = request.xForwardedFor
-    val nodeId = request.headerMap.get(HttpRequestHandler.headerNodeId)
+    val nodeId = request.headerMap.get(headerRpcNodeId)
     val address = request.remoteAddress.toString
     HttpRequestHandler.clientId(address, forwardedFor, nodeId)
   }
