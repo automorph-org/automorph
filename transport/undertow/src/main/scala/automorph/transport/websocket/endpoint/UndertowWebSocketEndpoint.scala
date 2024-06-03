@@ -3,7 +3,7 @@ package automorph.transport.websocket.endpoint
 import automorph.spi.EffectSystem.Completable
 import automorph.spi.{EffectSystem, RequestHandler, ServerTransport}
 import automorph.transport.HttpContext.headerRpcNodeId
-import automorph.transport.HttpRequestHandler.{RequestMetadata, ResponseData}
+import automorph.transport.HttpRequestHandler.{RequestMetadata, ResponseMetadata}
 import automorph.transport.server.UndertowHttpEndpoint.requestQuery
 import automorph.transport.websocket.endpoint.UndertowWebSocketEndpoint.{ConnectionListener, Context, ResponseCallback}
 import automorph.transport.{HttpContext, HttpMethod, HttpRequestHandler, LowHttpRequestHandler, Protocol}
@@ -91,7 +91,7 @@ final case class UndertowWebSocketEndpoint[Effect[_]](
     (requestMetadata, requestBody)
   }
 
-  private def sendResponse(responseData: ResponseData[Context], channel: WebSocketChannel): Effect[Unit] =
+  private def sendResponse(responseData: ResponseMetadata[Context], channel: WebSocketChannel): Effect[Unit] =
     effectSystem.completable[Unit].flatMap { completable =>
       val responseCallback = ResponseCallback(completable, effectSystem)
       WebSockets.sendBinary(responseData.body.toByteBuffer, channel, responseCallback, ())

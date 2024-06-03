@@ -49,10 +49,10 @@ trait PlatformSpecificTest extends ProtocolCodecTest {
     val formats = Json4sNativeJsonCodec.formats + new CustomSerializer[Enum.Enum](_ =>
       (
         {
-          case JInt(value) => Enum.fromOrdinal(value.toInt)
+          case JInt(enumValue) => Enum.fromOrdinal(enumValue.toInt)
         },
         {
-          case value: Enum.Enum => JInt(Enum.toOrdinal(value))
+          case enumValue: Enum.Enum => JInt(Enum.toOrdinal(enumValue))
         },
       )
     )

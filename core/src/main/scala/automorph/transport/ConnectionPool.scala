@@ -3,7 +3,7 @@ package automorph.transport
 import automorph.log.Logging
 import automorph.spi.EffectSystem
 import automorph.spi.EffectSystem.Completable
-import automorph.transport.ConnectionPool.{Action, EnqueueUse, OpenConnection, Pool, UseConnection}
+import automorph.transport.ConnectionPool.{Action, NoConnection, EnqueueUse, OpenConnection, Pool, UseConnection}
 import automorph.util.Extensions.EffectOps
 import java.util.concurrent.atomic.{AtomicBoolean, AtomicInteger}
 import scala.collection.concurrent.TrieMap
@@ -67,11 +67,13 @@ final private[automorph] case class ConnectionPool[Effect[_], Endpoint, Connecti
         pool.unusedConnections.removeHeadOption().map { case (connection, connectionId) =>
           UseConnection[Effect, Endpoint, Connection](connection, connectionId)
         }.getOrElse {
-          lazy val newConnectionAllowed = maxPeerConnections.forall(pool.managedConnections < _)
-          openConnection.filter(_ => newConnectionAllowed).map { open =>
-            pool.managedConnections += 1
-            OpenConnection(open)
-          }.getOrElse(EnqueueUse[Effect, Endpoint, Connection]())
+          openConnection match {
+            case Some(open) if maxPeerConnections.forall(pool.managedConnections < _) =>
+              pool.managedConnections += 1
+              OpenConnection(open)
+            case Some(_) => EnqueueUse[Effect, Endpoint, Connection]()
+            case _ => NoConnection[Effect, Endpoint, Connection](peerId)
+          }
         }
       }
       provideConnection(pool, endpoint, action).flatMap { case (connection, connectionId) =>
@@ -207,6 +209,7 @@ final private[automorph] case class ConnectionPool[Effect[_], Endpoint, Connecti
           pool.pendingUses.addOne(use)
           use.effect
         }
+      case NoConnection(peerId) => system.failed(new IllegalStateException(s"No connection for: ${peerId}"))
       case UseConnection(connection, connectionId) => system.successful(connection -> connectionId)
     }
 }
@@ -229,5 +232,9 @@ private[automorph] object ConnectionPool {
 
   final case class OpenConnection[Effect[_], Endpoint, Connection](open: (Endpoint, Int) => Effect[Connection])
     extends Action[Effect, Endpoint, Connection]
+
+  final case class NoConnection[Effect[_], Endpoint, Connection](peerId: String)
+    extends Action[Effect, Endpoint, Connection]
+
   final case class EnqueueUse[Effect[_], Endpoint, Connection]() extends Action[Effect, Endpoint, Connection]
 }

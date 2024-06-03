@@ -197,18 +197,18 @@ final case class JettyClient[Effect[_]](
   private def createRequest(
     requestBody: Array[Byte],
     mediaType: String,
-    requestContext: Context,
+    context: Context,
   ): (GenericRequest, URI, Protocol) = {
-    val baseUrl = requestContext.transportContext.map(_.request.getURI).getOrElse(url)
-    val requestUrl = overrideUrl(baseUrl, requestContext)
+    val baseUrl = context.transportContext.map(_.request.getURI).getOrElse(url)
+    val requestUrl = overrideUrl(baseUrl, context)
     requestUrl.getScheme.toLowerCase match {
       case scheme if scheme.startsWith(webSocketSchemePrefix) =>
         // Create WebSocket request
-        val upgradeRequest = createWebSocketRequest(requestContext, requestUrl)
+        val upgradeRequest = createWebSocketRequest(context, requestUrl)
         (Right((upgradeRequest, requestBody)), requestUrl, Protocol.WebSocket)
       case _ =>
         // Create HTTP request
-        val httpRequest = createHttpRequest(requestBody, requestUrl, mediaType, requestContext)
+        val httpRequest = createHttpRequest(requestBody, requestUrl, mediaType, context)
         (Left(httpRequest), httpRequest.getURI, Protocol.Http)
     }
   }

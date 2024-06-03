@@ -3,7 +3,7 @@ package automorph.transport.server
 import automorph.spi.EffectSystem.Completable
 import automorph.spi.{EffectSystem, RequestHandler, ServerTransport}
 import automorph.transport.HttpContext.headerRpcNodeId
-import automorph.transport.HttpRequestHandler.{RequestMetadata, ResponseData}
+import automorph.transport.HttpRequestHandler.{RequestMetadata, ResponseMetadata}
 import automorph.transport.server.JettyHttpEndpoint.{Context, requestQuery}
 import automorph.transport.server.JettyWebSocketEndpoint.ResponseCallback
 import automorph.transport.{HttpContext, HttpMethod, HttpRequestHandler, LowHttpRequestHandler, Protocol}
@@ -94,7 +94,7 @@ final case class JettyWebSocketEndpoint[Effect[_]](
     (requestMetadata, requestBody)
   }
 
-  private def sendResponse(responseData: ResponseData[Context], session: Session): Effect[Unit] =
+  private def sendResponse(responseData: ResponseMetadata[Context], session: Session): Effect[Unit] =
     effectSystem.completable[Unit].flatMap { completable =>
       val responseCallback = ResponseCallback(completable, effectSystem)
       session.getRemote.sendBytes(responseData.body.toByteBuffer, responseCallback)

@@ -34,12 +34,12 @@ private[automorph] trait RemoteInvoke[Value, Codec <: MessageCodec[Value], Effec
    *
    * @param arguments
    *   argument names and values
-   * @param requestContext
+   * @param context
    *   request context
    * @return
    *   result value
    */
-  def invoke(arguments: Seq[(String, Any)], argumentValues: Seq[Value], requestContext: Context): Effect[Result]
+  def invoke(arguments: Seq[(String, Any)], argumentValues: Seq[Value], context: Context): Effect[Result]
 
   /**
    * Invokes the remote function using specified argument names and values.
@@ -50,8 +50,8 @@ private[automorph] trait RemoteInvoke[Value, Codec <: MessageCodec[Value], Effec
    * @return
    *   remote function invocation result
    */
-  def apply()(using requestContext: Context): Effect[Result] =
-    invoke(Seq.empty, Seq.empty, requestContext)
+  def apply()(using context: Context): Effect[Result] =
+    invoke(Seq.empty, Seq.empty, context)
 
   /**
    * Invokes the remote function using specified argument names and values.
@@ -62,8 +62,8 @@ private[automorph] trait RemoteInvoke[Value, Codec <: MessageCodec[Value], Effec
    * @return
    *   remote function invocation result
    */
-  inline def apply[T1](p1: (String, T1))(using requestContext: Context): Effect[Result] =
-    invoke(Seq(p1), Seq(codec.encode(p1._2)), requestContext)
+  inline def apply[T1](p1: (String, T1))(using context: Context): Effect[Result] =
+    invoke(Seq(p1), Seq(codec.encode(p1._2)), context)
 
   /**
    * Invokes the remote function using specified argument names and values.
@@ -74,8 +74,8 @@ private[automorph] trait RemoteInvoke[Value, Codec <: MessageCodec[Value], Effec
    * @return
    *   remote function invocation result
    */
-  inline def apply[T1, T2](p1: (String, T1), p2: (String, T2))(using requestContext: Context): Effect[Result] =
-    invoke(Seq(p1, p2), Seq(codec.encode(p1._2), codec.encode(p2._2)), requestContext)
+  inline def apply[T1, T2](p1: (String, T1), p2: (String, T2))(using context: Context): Effect[Result] =
+    invoke(Seq(p1, p2), Seq(codec.encode(p1._2), codec.encode(p2._2)), context)
 
   /**
    * Invokes the remote function using specified argument names and values.
@@ -87,9 +87,9 @@ private[automorph] trait RemoteInvoke[Value, Codec <: MessageCodec[Value], Effec
    *   remote function invocation result
    */
   inline def apply[T1, T2, T3](p1: (String, T1), p2: (String, T2), p3: (String, T3))(using
-    requestContext: Context
+    context: Context
   ): Effect[Result] =
-    invoke(Seq(p1, p2, p3), Seq(codec.encode(p1._2), codec.encode(p2._2), codec.encode(p3._2)), requestContext)
+    invoke(Seq(p1, p2, p3), Seq(codec.encode(p1._2), codec.encode(p2._2), codec.encode(p3._2)), context)
 
   /**
    * Invokes the remote function using specified argument names and values.
@@ -101,12 +101,12 @@ private[automorph] trait RemoteInvoke[Value, Codec <: MessageCodec[Value], Effec
    *   remote function invocation result
    */
   inline def apply[T1, T2, T3, T4](p1: (String, T1), p2: (String, T2), p3: (String, T3), p4: (String, T4))(using
-    requestContext: Context
+    context: Context
   ): Effect[Result] =
     invoke(
       Seq(p1, p2, p3, p4),
       Seq(codec.encode(p1._2), codec.encode(p2._2), codec.encode(p3._2), codec.encode(p4._2)),
-      requestContext,
+      context,
     )
 
   /**
@@ -124,11 +124,11 @@ private[automorph] trait RemoteInvoke[Value, Codec <: MessageCodec[Value], Effec
     p3: (String, T3),
     p4: (String, T4),
     p5: (String, T5),
-  )(using requestContext: Context): Effect[Result] =
+  )(using context: Context): Effect[Result] =
     invoke(
       Seq(p1, p2, p3, p4, p5),
       Seq(codec.encode(p1._2), codec.encode(p2._2), codec.encode(p3._2), codec.encode(p4._2), codec.encode(p5._2)),
-      requestContext,
+      context,
     )
 
   /**
@@ -147,7 +147,7 @@ private[automorph] trait RemoteInvoke[Value, Codec <: MessageCodec[Value], Effec
     p4: (String, T4),
     p5: (String, T5),
     p6: (String, T6),
-  )(using requestContext: Context): Effect[Result] =
+  )(using context: Context): Effect[Result] =
     invoke(
       Seq(p1, p2, p3, p4, p5, p6),
       Seq(
@@ -158,7 +158,7 @@ private[automorph] trait RemoteInvoke[Value, Codec <: MessageCodec[Value], Effec
         codec.encode(p5._2),
         codec.encode(p6._2),
       ),
-      requestContext,
+      context,
     )
 
   /**
@@ -178,7 +178,7 @@ private[automorph] trait RemoteInvoke[Value, Codec <: MessageCodec[Value], Effec
     p5: (String, T5),
     p6: (String, T6),
     p7: (String, T7),
-  )(using requestContext: Context): Effect[Result] =
+  )(using context: Context): Effect[Result] =
     invoke(
       Seq(p1, p2, p3, p4, p5, p6, p7),
       Seq(
@@ -190,7 +190,7 @@ private[automorph] trait RemoteInvoke[Value, Codec <: MessageCodec[Value], Effec
         codec.encode(p6._2),
         codec.encode(p7._2),
       ),
-      requestContext,
+      context,
     )
 
   /**
@@ -211,7 +211,7 @@ private[automorph] trait RemoteInvoke[Value, Codec <: MessageCodec[Value], Effec
     p6: (String, T6),
     p7: (String, T7),
     p8: (String, T8),
-  )(using requestContext: Context): Effect[Result] =
+  )(using context: Context): Effect[Result] =
     invoke(
       Seq(p1, p2, p3, p4, p5, p6, p7, p8),
       Seq(
@@ -224,7 +224,7 @@ private[automorph] trait RemoteInvoke[Value, Codec <: MessageCodec[Value], Effec
         codec.encode(p7._2),
         codec.encode(p8._2),
       ),
-      requestContext,
+      context,
     )
 
   /**
@@ -246,7 +246,7 @@ private[automorph] trait RemoteInvoke[Value, Codec <: MessageCodec[Value], Effec
     p7: (String, T7),
     p8: (String, T8),
     p9: (String, T9),
-  )(using requestContext: Context): Effect[Result] =
+  )(using context: Context): Effect[Result] =
     invoke(
       Seq(p1, p2, p3, p4, p5, p6, p7, p8, p9),
       Seq(
@@ -260,7 +260,7 @@ private[automorph] trait RemoteInvoke[Value, Codec <: MessageCodec[Value], Effec
         codec.encode(p8._2),
         codec.encode(p9._2),
       ),
-      requestContext,
+      context,
     )
 
 private[automorph] object RemoteInvoke:

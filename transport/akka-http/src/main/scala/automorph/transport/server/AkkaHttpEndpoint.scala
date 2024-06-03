@@ -8,7 +8,7 @@ import akka.http.scaladsl.server.Route
 import akka.stream.Materializer
 import automorph.spi.{EffectSystem, RequestHandler, ServerTransport}
 import automorph.transport.HttpContext.headerRpcNodeId
-import automorph.transport.HttpRequestHandler.{RequestMetadata, ResponseData}
+import automorph.transport.HttpRequestHandler.{RequestMetadata, ResponseMetadata}
 import automorph.transport.server.AkkaHttpEndpoint.Context
 import automorph.transport.{HighHttpRequestHandler, HttpContext, HttpMethod, HttpRequestHandler, Protocol}
 import automorph.util.Extensions.{EffectOps, ThrowableOps}
@@ -110,7 +110,7 @@ final case class AkkaHttpEndpoint[Effect[_]](
     (requestMetadata, requestBody)
   }
 
-  private def createResponse(responseData: ResponseData[Context], @unused channel: Unit): Effect[HttpResponse] =
+  private def createResponse(responseData: ResponseMetadata[Context], @unused channel: Unit): Effect[HttpResponse] =
     effectSystem.successful(
       createResponseContext(HttpResponse(), responseData.context)
         .withStatus(StatusCode.int2StatusCode(responseData.statusCode))

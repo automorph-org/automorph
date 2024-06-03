@@ -2,7 +2,7 @@ package automorph.transport.server
 
 import automorph.spi.{EffectSystem, RequestHandler, ServerTransport}
 import automorph.transport.HttpContext.headerRpcNodeId
-import automorph.transport.HttpRequestHandler.{RequestMetadata, ResponseData, headerXForwardedFor}
+import automorph.transport.HttpRequestHandler.{RequestMetadata, ResponseMetadata, headerXForwardedFor}
 import automorph.transport.server.VertxHttpEndpoint.Context
 import automorph.transport.{HttpContext, HttpMethod, HttpRequestHandler, LowHttpRequestHandler, Protocol}
 import automorph.util.Extensions.EffectOps
@@ -81,7 +81,7 @@ final case class VertxHttpEndpoint[Effect[_]](
     (requestMetadata, requestBody)
   }
 
-  private def sendResponse(responseData: ResponseData[Context], request: HttpServerRequest): Effect[Unit] =
+  private def sendResponse(responseData: ResponseMetadata[Context], request: HttpServerRequest): Effect[Unit] =
     effectSystem.completable[Unit].flatMap { completable =>
       setResponseContext(request.response, responseData.context)
         .putHeader(HttpHeaders.CONTENT_TYPE, responseData.contentType)

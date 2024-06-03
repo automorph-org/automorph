@@ -2,7 +2,7 @@ package automorph.transport
 
 import automorph.log.Logging
 import automorph.spi.{EffectSystem, RequestHandler}
-import automorph.transport.HttpRequestHandler.{RequestMetadata, ResponseData}
+import automorph.transport.HttpRequestHandler.{RequestMetadata, ResponseMetadata}
 import automorph.util.Extensions.EffectOps
 
 /**
@@ -41,7 +41,7 @@ final private[automorph] case class HighHttpRequestHandler[
   Connection,
 ](
   receiveRequest: Request => (RequestMetadata[Context], Effect[Array[Byte]]),
-  createResponse: (ResponseData[Context], Connection) => Effect[Response],
+  createResponse: (ResponseMetadata[Context], Connection) => Effect[Response],
   protocol: Protocol,
   effectSystem: EffectSystem[Effect],
   mapException: Throwable => Int,

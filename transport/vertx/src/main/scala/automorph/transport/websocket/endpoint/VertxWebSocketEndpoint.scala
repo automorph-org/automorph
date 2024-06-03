@@ -1,7 +1,7 @@
 package automorph.transport.websocket.endpoint
 
 import automorph.spi.{EffectSystem, RequestHandler, ServerTransport}
-import automorph.transport.HttpRequestHandler.{RequestMetadata, ResponseData}
+import automorph.transport.HttpRequestHandler.{RequestMetadata, ResponseMetadata}
 import automorph.transport.server.VertxHttpEndpoint
 import automorph.transport.websocket.endpoint.VertxWebSocketEndpoint.Context
 import automorph.transport.{HttpContext, HttpMethod, LowHttpRequestHandler, Protocol}
@@ -77,7 +77,7 @@ final case class VertxWebSocketEndpoint[Effect[_]](
     (requestMetadata, requestBody)
   }
 
-  private def sendResponse(responseData: ResponseData[Context], session: ServerWebSocket): Effect[Unit] =
+  private def sendResponse(responseData: ResponseMetadata[Context], session: ServerWebSocket): Effect[Unit] =
     effectSystem.completable[Unit].flatMap { completable =>
       session.writeBinaryMessage(Buffer.buffer(responseData.body))
         .onSuccess(_ => completable.succeed(()).runAsync)

@@ -2,7 +2,7 @@ package automorph.transport.server
 
 import automorph.spi.{EffectSystem, RequestHandler, ServerTransport}
 import automorph.transport.HttpContext.headerRpcNodeId
-import automorph.transport.HttpRequestHandler.{RequestMetadata, ResponseData}
+import automorph.transport.HttpRequestHandler.{RequestMetadata, ResponseMetadata}
 import automorph.transport.server.UndertowHttpEndpoint.{Context, HttpRequest, RequestCallback, requestQuery}
 import automorph.transport.{HttpContext, HttpMethod, HttpRequestHandler, LowHttpRequestHandler, Protocol}
 import automorph.util.Extensions.{ByteArrayOps, EffectOps}
@@ -84,7 +84,7 @@ final case class UndertowHttpEndpoint[Effect[_]](
     (requestMetadata, requestBody)
   }
 
-  private def sendResponse(responseData: ResponseData[Context], exchange: HttpServerExchange): Effect[Unit] = {
+  private def sendResponse(responseData: ResponseMetadata[Context], exchange: HttpServerExchange): Effect[Unit] = {
     if (!exchange.isResponseChannelAvailable) {
       throw new IOException("Response channel not available")
     }

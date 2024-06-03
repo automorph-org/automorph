@@ -2,9 +2,9 @@ package automorph.transport.server
 
 import automorph.log.Logging
 import automorph.spi.{EffectSystem, RequestHandler, ServerTransport}
-import automorph.transport.HttpRequestHandler.{RequestMetadata, ResponseData}
+import automorph.transport.HttpRequestHandler.{RequestMetadata, ResponseMetadata}
 import automorph.transport.server.ZioHttpWebSocketEndpoint.Context
-import automorph.transport.{HttpContext, HttpRequestHandler, Protocol}
+import automorph.transport.{HighHttpRequestHandler, HttpContext, Protocol}
 import zio.http.ChannelEvent.{ExceptionCaught, Read}
 import zio.http.{WebSocketChannel, WebSocketFrame}
 import zio.{Chunk, IO}
@@ -37,7 +37,7 @@ final case class ZioHttpWebSocketEndpoint[Fault](
 ) extends ServerTransport[({ type Effect[A] = IO[Fault, A] })#Effect, Context, WebSocketChannel => IO[Throwable, Any]]
   with Logging {
   private val webSocketHandler =
-    HttpRequestHandler(receiveRequest, sendResponse, Protocol.WebSocket, effectSystem, _ => 0, handler)
+    HighHttpRequestHandler(receiveRequest, sendResponse, Protocol.WebSocket, effectSystem, _ => 0, handler)
 
   override def adapter: WebSocketChannel => IO[Throwable, Any] =
     channel => handle(channel)
@@ -73,7 +73,7 @@ final case class ZioHttpWebSocketEndpoint[Fault](
     (requestData, requestBody)
   }
 
-  private def sendResponse(responseData: ResponseData[Context], channel: WebSocketChannel): IO[Fault, Unit] =
+  private def sendResponse(responseData: ResponseMetadata[Context], channel: WebSocketChannel): IO[Fault, Unit] =
     channel.send(Read(WebSocketFrame.Binary(Chunk.fromArray(responseData.body)))).foldZIO(
       error => effectSystem.failed(error),
       _ => effectSystem.successful {},

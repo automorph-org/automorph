@@ -25,9 +25,9 @@ final class Json4sNativeJsonTest extends JsonMessageCodecTest {
   })
 
   private val enumSerializer = new CustomSerializer[Enum.Enum](_ => ({
-    case JInt(value) => Enum.fromOrdinal(value.toInt)
+    case JInt(enumValue) => Enum.fromOrdinal(enumValue.toInt)
   }, {
-     case value: Enum.Enum => JInt(Enum.toOrdinal(value))
+     case enumValue: Enum.Enum => JInt(Enum.toOrdinal(enumValue))
   }))
   private val formats: Formats = Json4sNativeJsonCodec.formats + enumSerializer
 

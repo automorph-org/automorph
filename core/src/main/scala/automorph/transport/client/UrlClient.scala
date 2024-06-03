@@ -90,12 +90,12 @@ final case class UrlClient[Effect[_]](
     request: Array[Byte],
     requestId: String,
     mediaType: String,
-    requestContext: Context,
+    context: Context,
   ): Effect[HttpURLConnection] =
     effectSystem.evaluate {
       // Create the request
-      val connection = openConnection(requestContext)
-      val httpMethod = setConnectionProperties(connection, request, mediaType, requestContext)
+      val connection = openConnection(context)
+      val httpMethod = setConnectionProperties(connection, request, mediaType, context)
 
       // Log the request
       lazy val requestProperties = ListMap(
@@ -117,9 +117,9 @@ final case class UrlClient[Effect[_]](
       connection
     }
 
-  private def openConnection(requestContext: Context): HttpURLConnection = {
-    val baseUrl = requestContext.transportContext.map(_.connection.getURL.toURI).getOrElse(url)
-    val requestUrl = overrideUrl(baseUrl, requestContext)
+  private def openConnection(context: Context): HttpURLConnection = {
+    val baseUrl = context.transportContext.map(_.connection.getURL.toURI).getOrElse(url)
+    val requestUrl = overrideUrl(baseUrl, context)
     requestUrl.toURL.openConnection().asInstanceOf[HttpURLConnection]
   }
 
@@ -127,13 +127,13 @@ final case class UrlClient[Effect[_]](
     connection: HttpURLConnection,
     requestBody: Array[Byte],
     mediaType: String,
-    requestContext: Context,
+    context: Context,
   ): String = {
     // Method
-    val transportConnection = requestContext.transportContext.map(_.connection).getOrElse(connection)
-    val contextMethod = requestContext.method.map(_.name)
+    val transportConnection = context.transportContext.map(_.connection).getOrElse(connection)
+    val contextMethod = context.method.map(_.name)
     val requestMethod = contextMethod
-      .orElse(requestContext.transportContext.map(_.connection.getRequestMethod))
+      .orElse(context.transportContext.map(_.connection.getRequestMethod))
       .getOrElse(method.name)
     require(httpMethods.contains(requestMethod), s"Invalid HTTP method: $requestMethod")
     connection.setRequestMethod(requestMethod)
@@ -144,7 +144,7 @@ final case class UrlClient[Effect[_]](
       .flatMap { case (name, values) =>
         values.asScala.map(name -> _)
       }
-    val headers = transportHeaders ++ requestContext.headers
+    val headers = transportHeaders ++ context.headers
     headers.foreach { case (name, value) => connection.setRequestProperty(name, value) }
     connection.setRequestProperty(contentLengthHeader, requestBody.length.toString)
     connection.setRequestProperty(contentTypeHeader, mediaType)
@@ -152,16 +152,16 @@ final case class UrlClient[Effect[_]](
 
     // Timeout & follow redirects
     connection.setConnectTimeout(
-      requestContext.timeout.map(_.toMillis.toInt).getOrElse(transportConnection.getConnectTimeout)
+      context.timeout.map(_.toMillis.toInt).getOrElse(transportConnection.getConnectTimeout)
     )
     connection.setReadTimeout(
-      requestContext.timeout.map {
+      context.timeout.map {
         case Duration.Inf => 0
         case duration => duration.toMillis.toInt
       }.getOrElse(transportConnection.getReadTimeout)
     )
     connection.setInstanceFollowRedirects(
-      requestContext.followRedirects.getOrElse(transportConnection.getInstanceFollowRedirects)
+      context.followRedirects.getOrElse(transportConnection.getInstanceFollowRedirects)
     )
     requestMethod
   }

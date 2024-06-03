@@ -125,27 +125,27 @@ lazy val core = source(project, "core", meta, testBase % Test)
 
 // Effect system
 lazy val zio = source(project, "system/zio", core, testPlugin % Test).settings(
-  libraryDependencies += "dev.zio" %% "zio" % "2.0.21"
+  libraryDependencies += "dev.zio" %% "zio" % "2.1.1"
 )
 lazy val monix = source(project, "system/monix", core, testPlugin % Test).settings(
   libraryDependencies += "io.monix" %% "monix-eval" % "3.4.1"
 )
 lazy val catsEffect = source(project, "system/cats-effect", core, testPlugin % Test).settings(
-  libraryDependencies += "org.typelevel" %% "cats-effect" % "3.5.3"
+  libraryDependencies += "org.typelevel" %% "cats-effect" % "3.5.4"
 )
 lazy val scalazEffect = source(project, "system/scalaz-effect", core, testPlugin % Test).settings(
   libraryDependencies += "org.scalaz" %% "scalaz-effect" % "7.4.0-M14"
 )
 
 // Message codec
-val circeVersion = "0.14.6"
+val circeVersion = "0.14.7"
 lazy val circe = source(project, s"codec/circe", core, testCodec % Test).settings(
   libraryDependencies ++= Seq(
     "io.circe" %% "circe-parser" % circeVersion,
     "io.circe" %% "circe-generic" % circeVersion,
   )
 )
-val jacksonVersion = "2.16.1"
+val jacksonVersion = "2.17.1"
 lazy val jackson = source(project, "codec/jackson", core, testCodec % Test).settings(
   libraryDependencies ++= Seq(
     "com.fasterxml.jackson.module" %% "jackson-module-scala" % jacksonVersion,
@@ -159,7 +159,7 @@ lazy val json4s = source(project, "codec/json4s", core, testCodec % Test).settin
 )
 lazy val playJson = source(project, "codec/play-json", core, testCodec % Test).settings(
   publish / skip := scala3.value,
-  libraryDependencies += "org.playframework" %% "play-json" % "3.0.2",
+  libraryDependencies += "org.playframework" %% "play-json" % "3.0.3",
 )
 lazy val weepickle = source(project, "codec/weepickle", core, testCodec % Test).settings(
   libraryDependencies ++= Seq(
@@ -170,11 +170,11 @@ lazy val weepickle = source(project, "codec/weepickle", core, testCodec % Test).
   )
 )
 lazy val upickle = source(project, "codec/upickle", core, testCodec % Test).settings(
-  libraryDependencies += "com.lihaoyi" %% "upickle" % "3.2.0"
+  libraryDependencies += "com.lihaoyi" %% "upickle" % "3.3.1"
 )
 
 // Client transport
-val sttpVersion = "3.9.3"
+val sttpVersion = "3.9.7"
 val sttpHttpClientVersion = "3.5.2"
 lazy val sttp =
   source(project, "transport/sttp", core, catsEffect % Test, zio % Test, testPlugin % Test).settings(
@@ -188,26 +188,26 @@ lazy val sttp =
     )
   )
 lazy val rabbitmq = source(project, "transport/rabbitmq", core, testPlugin % Test).settings(
-  libraryDependencies += "com.rabbitmq" % "amqp-client" % "5.20.0"
+  libraryDependencies += "com.rabbitmq" % "amqp-client" % "5.21.0"
 )
 
 // Server transport
-val tapirVersion = "1.9.9"
+val tapirVersion = "1.10.8"
 lazy val tapir = source(project, "transport/tapir", core, catsEffect % Test, testPlugin % Test).settings(
   libraryDependencies ++= Seq(
     "com.softwaremill.sttp.tapir" %% "tapir-server" % tapirVersion,
     "com.softwaremill.sttp.tapir" %% "tapir-armeria-server" % tapirVersion % Test,
     "com.softwaremill.sttp.tapir" %% "tapir-http4s-server" % tapirVersion % Test,
-    "org.http4s" %% "http4s-ember-server" % "0.23.25" % Test,
+    "org.http4s" %% "http4s-ember-server" % "0.23.27" % Test,
     "com.softwaremill.sttp.tapir" %% "tapir-netty-server" % tapirVersion % Test,
     "com.softwaremill.sttp.tapir" %% "tapir-vertx-server" % tapirVersion % Test,
   )
 )
 lazy val undertow = source(project, "transport/undertow", core, testPlugin % Test).settings(
-  libraryDependencies += "io.undertow" % "undertow-core" % "2.3.11.Final"
+  libraryDependencies += "io.undertow" % "undertow-core" % "2.3.13.Final"
 )
 lazy val vertx = source(project, "transport/vertx", core, testPlugin % Test).settings(
-  libraryDependencies += "io.vertx" % "vertx-core" % "4.5.3"
+  libraryDependencies += "io.vertx" % "vertx-core" % "4.5.8"
 )
 val jettyVersion = "11.0.18"
 lazy val jetty = source(project, "transport/jetty", core, testPlugin % Test).settings(
@@ -219,7 +219,7 @@ lazy val jetty = source(project, "transport/jetty", core, testPlugin % Test).set
 )
 lazy val zioHttp = source(project, "transport/zio-http", core, testPlugin % Test, zio % Test).settings(
   publish / skip := true,
-  libraryDependencies += "dev.zio" %% "zio-http" % "3.0.0-RC4"
+  libraryDependencies += "dev.zio" %% "zio-http" % "3.0.0-RC8"
 )
 val akkaVersion = "2.8.5"
 lazy val akkaHttp = source(project, "transport/akka-http", core, testPlugin % Test).settings(
@@ -239,13 +239,13 @@ lazy val pekkoHttp = source(project, "transport/pekko-http", core, testPlugin % 
   Test / testForkedParallel := true,
   Test / javaOptions ++= testJavaOptions,
   libraryDependencies ++= Seq(
-    "org.apache.pekko" %% "pekko-http" % "1.0.0",
+    "org.apache.pekko" %% "pekko-http" % "1.0.1",
     "org.apache.pekko" %% "pekko-actor-typed" % pekkoVersion,
     "org.apache.pekko" %% "pekko-stream" % pekkoVersion,
     "org.apache.pekko" %% "pekko-slf4j" % pekkoVersion % Test,
   ),
 )
-val playVersion = "3.0.1"
+val playVersion = "3.0.3"
 lazy val play = source(project, "transport/play", core, testPlugin % Test).settings(
   Test / fork := true,
   Test / testForkedParallel := true,
@@ -291,7 +291,7 @@ lazy val examples = source(
 )
 
 // Test
-val logbackVersion = "1.4.14"
+val logbackVersion = "1.5.6"
 ThisBuild / Test / testOptions += Tests.Argument("-f", (target.value / "test.results").getPath, "-oDS")
 lazy val testBase = source(project, "test/base").settings(
   libraryDependencies ++= Seq(
@@ -299,7 +299,7 @@ lazy val testBase = source(project, "test/base").settings(
     "org.scalatestplus" %% "scalacheck-1-17" % "3.2.18.0",
     "org.slf4j" % "jul-to-slf4j" % slf4jVersion,
     "ch.qos.logback" % "logback-classic" % logbackVersion,
-    "com.lihaoyi" %% "pprint" % "0.8.1",
+    "com.lihaoyi" %% "pprint" % "0.9.0",
   )
 )
 lazy val testCodec = source(project, "test/codec", testBase, meta).settings(
@@ -363,8 +363,9 @@ val docScalac2Options = compileScalac2Options ++ Seq(
   "-skip-packages",
   s"$projectName.client.meta:examples",
 )
+val exampleScalaVersion = "3.4.2"
 ThisBuild / scalaVersion := "3.3.0"
-ThisBuild / crossScalaVersions += "2.13.12"
+ThisBuild / crossScalaVersions += "2.13.14"
 ThisBuild / javacOptions ++= Seq("-source", "11", "-target", "11")
 ThisBuild / scalacOptions ++= (if (scala3.value) compileScalac3Options else compileScalac2Options)
 
@@ -393,8 +394,8 @@ lazy val docs = project.in(file("site")).settings(
   name := projectName,
   mdocVariables := Map(
     "AUTOMORPH_VERSION" -> releaseVersion.value,
+    "SCALA_VERSION" -> exampleScalaVersion,
     "LOGBACK_VERSION" -> logbackVersion,
-    "SCALADOC_VERSION" -> scalaVersion.value,
     "REPOSITORY_URL" -> repositoryUrl,
   ),
   mdocOut := baseDirectory.value / "docs",
@@ -441,7 +442,7 @@ site := {
   // Insert examples sources into the examples page
   val docsDirectory = (docs / baseDirectory).value
   val examplesDirectory = (examples / baseDirectory).value / "project"
-  insertDocumentationExampleSources(docsDirectory, examplesDirectory, releaseVersion.value, logbackVersion)
+  insertDocExampleSources(docsDirectory, examplesDirectory, releaseVersion.value, logbackVersion)
 
   // Generate website
   Process(Seq("yarn", "install"), docsDirectory).!
@@ -462,7 +463,7 @@ site := {
   IO.copyDirectory(examplesDirectory, docsDirectory / "build/examples", overwrite = true)
 }
 
-def insertDocumentationExampleSources(
+def insertDocExampleSources(
   docsDirectory: File,
   sourceDirectory: File,
   releaseVersion: String,
@@ -481,6 +482,7 @@ def insertDocumentationExampleSources(
             .replaceFirst("::", "\" %% \"")
             .replaceAll(":", "\" % \"")
             .replaceFirst("@AUTOMORPH_VERSION@", releaseVersion)
+            .replaceFirst("@SCALA_VERSION@", exampleScalaVersion)
             .replaceFirst("@LOGBACK_VERSION@", logbackVersion)
             .replaceFirst("@STTP_VERSION@", sttpVersion)
             .replaceFirst("$", "\","))

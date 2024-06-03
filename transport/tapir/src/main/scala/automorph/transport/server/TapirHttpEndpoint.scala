@@ -2,7 +2,7 @@ package automorph.transport.server
 
 import automorph.spi.{EffectSystem, RequestHandler, ServerTransport}
 import automorph.transport.HttpContext.headerRpcNodeId
-import automorph.transport.HttpRequestHandler.{RequestMetadata, ResponseData}
+import automorph.transport.HttpRequestHandler.{RequestMetadata, ResponseMetadata}
 import automorph.transport.server.TapirHttpEndpoint.{Adapter, Context, MessageFormat, createResponse, pathComponents, pathEndpointInput, receiveRequest}
 import automorph.transport.{HighHttpRequestHandler, HttpContext, HttpMethod, HttpRequestHandler, Protocol}
 import automorph.util.Extensions.EffectOps
@@ -118,19 +118,15 @@ object TapirHttpEndpoint {
     incomingRequest: (Request, Option[HttpMethod], HttpContext[Unit])
   ): (RequestMetadata[Context], Effect[Array[Byte]]) = {
     val (request, method, baseContext) = incomingRequest
-    val requestContext = getRequestContext(request, method, baseContext)
-    val requestMetadata = RequestMetadata(
-      requestContext,
-      Protocol.Http,
-      requestContext.url.map(_.toString).getOrElse(""),
-      method.map(_.name),
-    )
+    val context = getRequestContext(request, method, baseContext)
+    val url = context.url.map(_.toString).getOrElse("")
+    val requestMetadata = RequestMetadata(context, Protocol.Http, url, method.map(_.name))
     val requestBody = effectSystem.successful(request._1)
     (requestMetadata, requestBody)
   }
 
   private def createResponse[Effect[_]](effectSystem: EffectSystem[Effect])(
-    responseData: ResponseData[Context],
+    responseData: ResponseMetadata[Context],
     @unused channel: Unit,
   ): Effect[Response] =
     effectSystem.successful(
@@ -143,15 +139,15 @@ object TapirHttpEndpoint {
     baseContext: HttpContext[Unit],
   ): Context = {
     val (_, paths, queryParams, headers) = request
-    val requestContext = baseContext
+    val context = baseContext
       .path(urlPath(paths))
       .parameters(queryParams.toSeq*)
       .headers(headers.map(header => header.name -> header.value)*)
       .peerId(clientId(request))
-    method.map(requestContext.method(_)).getOrElse(requestContext)
+    method.map(context.method(_)).getOrElse(context)
   }
 
-  private def setResponseContext(response: ResponseData[Context]): List[Header] =
+  private def setResponseContext(response: ResponseMetadata[Context]): List[Header] =
     response.context.toList.flatMap(_.headers).map { case (name, value) =>
       Header(name, value)
     }

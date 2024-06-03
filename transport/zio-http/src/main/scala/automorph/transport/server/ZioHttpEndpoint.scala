@@ -1,9 +1,10 @@
 package automorph.transport.server
 
 import automorph.spi.{EffectSystem, RequestHandler, ServerTransport}
-import automorph.transport.HttpRequestHandler.{RequestMetadata, ResponseData, headerNodeId, headerXForwardedFor}
+import automorph.transport.HttpContext.headerRpcNodeId
+import automorph.transport.HttpRequestHandler.{RequestMetadata, ResponseMetadata, headerXForwardedFor}
 import automorph.transport.server.ZioHttpEndpoint.Context
-import automorph.transport.{HttpContext, HttpMethod, HttpRequestHandler, Protocol}
+import automorph.transport.{HighHttpRequestHandler, HttpContext, HttpMethod, HttpRequestHandler, Protocol}
 import zio.http.{Body, Handler, Header, Headers, MediaType, Request, Response, Status}
 import zio.{Chunk, IO, http}
 import scala.annotation.unused
@@ -43,7 +44,7 @@ final case class ZioHttpEndpoint[Fault](
   )
   private lazy val requestHandler = Handler.fromFunctionZIO(handle)
   private val httpHandler =
-    HttpRequestHandler(receiveRequest, createResponse, Protocol.Http, effectSystem, mapException, handler)
+    HighHttpRequestHandler(receiveRequest, createResponse, Protocol.Http, effectSystem, mapException, handler)
 
   override def adapter: http.RequestHandler[Any, Response] =
     requestHandler
@@ -76,10 +77,10 @@ final case class ZioHttpEndpoint[Fault](
     (requestMetadata, requestBody)
   }
 
-  private def createResponse(responseData: ResponseData[Context], @unused session: Unit): IO[Fault, Response] = {
+  private def createResponse(responseData: ResponseMetadata[Context], @unused session: Unit): IO[Fault, Response] = {
     val response = setResponseContext(
       Response(
-        Status.fromInt(responseData.statusCode).getOrElse(Status.Ok),
+        Status.fromInt(responseData.statusCode),
         Headers(Header.ContentType(mediaType)),
         Body.fromChunk(Chunk.fromArray(responseData.body)),
       ),
@@ -106,7 +107,7 @@ final case class ZioHttpEndpoint[Fault](
   private def clientId(request: Request): String = {
     val address = request.remoteAddress.map(_.toString).getOrElse("")
     val forwardedFor = request.headers.find(_.headerName == headerXForwardedFor).map(_.renderedValue)
-    val nodeId = request.headers.find(_.headerName == headerNodeId).map(_.renderedValue)
+    val nodeId = request.headers.find(_.headerName == headerRpcNodeId).map(_.renderedValue)
     HttpRequestHandler.clientId(address, forwardedFor, nodeId)
   }
 }

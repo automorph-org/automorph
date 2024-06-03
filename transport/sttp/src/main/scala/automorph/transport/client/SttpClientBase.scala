@@ -107,20 +107,20 @@ private[automorph] trait SttpClientBase[Effect[_]] extends ClientTransport[Effec
   private def createRequest(
     requestBody: Array[Byte],
     mediaType: String,
-    requestContext: Context,
+    context: Context,
   ): Request[Array[Byte], WebSocket] = {
     // URL & method
-    val transportRequest = requestContext.transportContext.map(_.request).getOrElse(basicRequest)
-    val requestUrl = Uri(overrideUrl(baseUrl, requestContext))
-    val requestMethod = Method.unsafeApply(requestContext.method.getOrElse(method).name)
+    val transportRequest = context.transportContext.map(_.request).getOrElse(basicRequest)
+    val requestUrl = Uri(overrideUrl(baseUrl, context))
+    val requestMethod = Method.unsafeApply(context.method.getOrElse(method).name)
 
     // Headers, timeout & follow redirects
     val contentType = MediaType.unsafeParse(mediaType)
-    val sttpRequest = transportRequest.method(requestMethod, requestUrl).headers(requestContext.headers.map {
+    val sttpRequest = transportRequest.method(requestMethod, requestUrl).headers(context.headers.map {
       case (name, value) => Header(name, value)
     }*).contentType(contentType).header(Header.accept(contentType))
-      .readTimeout(requestContext.timeout.getOrElse(transportRequest.options.readTimeout))
-      .followRedirects(requestContext.followRedirects.getOrElse(transportRequest.options.followRedirects))
+      .readTimeout(context.timeout.getOrElse(transportRequest.options.readTimeout))
+      .followRedirects(context.followRedirects.getOrElse(transportRequest.options.followRedirects))
       .maxRedirects(transportRequest.options.maxRedirects)
 
     // Body & response type

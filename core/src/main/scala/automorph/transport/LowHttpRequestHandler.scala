@@ -1,10 +1,13 @@
 package automorph.transport
 
 import automorph.log.Logging
+import automorph.spi.EffectSystem.Completable
 import automorph.spi.{EffectSystem, RequestHandler}
-import automorph.transport.HttpContext.headerRpcListen
-import automorph.transport.HttpRequestHandler.{RequestMetadata, ResponseData, valueRpcListen}
+import automorph.transport.HttpContext.{headerRpcCallId, headerRpcListen}
+import automorph.transport.HttpRequestHandler.{RequestMetadata, ResponseMetadata, valueRpcListen}
 import automorph.util.Extensions.EffectOps
+import automorph.util.Random
+import scala.collection.concurrent.TrieMap
 
 /**
  * Low-level HTTP or WebSocket RPC request handler.
@@ -39,19 +42,26 @@ final private[automorph] case class LowHttpRequestHandler[
   Connection,
 ](
   receiveRequest: Request => (RequestMetadata[Context], Effect[Array[Byte]]),
-  sendResponse: (ResponseData[Context], Connection) => Effect[Unit],
+  sendResponse: (ResponseMetadata[Context], Connection) => Effect[Unit],
   protocol: Protocol,
   effectSystem: EffectSystem[Effect],
   mapException: Throwable => Int,
   requestHandler: RequestHandler[Effect, Context],
+  retainConnections: Boolean = false,
   requestRetries: Int = 1,
 ) extends Logging {
   private val handler =
     HttpRequestHandler(receiveRequest, sendResponse, protocol, effectSystem, mapException, requestHandler)
-  private val responsePool = {
-    val closeConnection = (_: Connection) => system.successful {}
-    ConnectionPool[Effect, String, Connection](None, closeConnection, protocol, effectSystem, None, retain = false)
-  }
+  private val connectionPool =
+    ConnectionPool[Effect, Unit, Connection](
+      None,
+      _ => system.successful {},
+      protocol,
+      effectSystem,
+      None,
+      retain = retainConnections,
+    )
+  private val expectedResponses = TrieMap[String, Completable[Effect, (Array[Byte], Context)]]()
   implicit private val system: EffectSystem[Effect] = effectSystem
 
   /**
@@ -68,7 +78,7 @@ final private[automorph] case class LowHttpRequestHandler[
     handler.receiveRpcRequest(request).flatMap { case (requestMetadata, requestBody) =>
       if (requestMetadata.context.header(headerRpcListen).exists(_.toLowerCase == valueRpcListen)) {
         // Register long polling connection
-        responsePool.add(requestMetadata.client, connection)
+        connectionPool.add(requestMetadata.client, connection)
       } else {
         // Process the request
         handler.processRequest(requestBody, requestMetadata, connection)
@@ -88,7 +98,12 @@ final private[automorph] case class LowHttpRequestHandler[
    *   response message and context
    */
   def call(body: Array[Byte], context: Context): Effect[(Array[Byte], Context)] =
-    ???
+    effectSystem.completable[(Array[Byte], Context)].flatMap { expectedResponse =>
+      val callId = Random.id
+      val rpcCallContext = context.header(headerRpcCallId, callId).asInstanceOf[Context]
+      expectedResponses.put(callId, expectedResponse)
+      tell(body, rpcCallContext).flatMap(_ => expectedResponse.effect)
+    }
 
   /**
    * Sends a request to a remote endpoint without waiting for a response.
@@ -103,7 +118,34 @@ final private[automorph] case class LowHttpRequestHandler[
    *   nothing
    */
   def tell(body: Array[Byte], context: Context): Effect[Unit] =
-    ???
-
-  private def sendRpcRequest(body: Array[Byte], context: Context, id: String, mediaType: String)
+    context.peerId.map { peerId =>
+      // FIXME - implement retries
+      val statusCode = context.statusCode.getOrElse(handler.statusOk)
+      val contentType = handler.requestHandler.mediaType
+      val requestMetadata = RequestMetadata(context, protocol, "", None, peerId)
+      connectionPool.using(
+        peerId,
+        (),
+        connection =>
+          handler.sendRpcResponse(body, contentType, statusCode, Some(context), connection, requestMetadata),
+      )
+//      val sendResponseAttempts = LazyList.iterate(
+//        system.successful[Option[Throwable]](None) -> requestRetries
+//      ) { case (attempt, retries) =>
+//        attempt.flatMap(_ =>
+//          connectionPool.using(
+//            peerId,
+//            (),
+//            connection =>
+//              handler.sendRpcResponse(body, contentType, statusCode, Some(context), connection, requestMetadata).fold(
+//                error => Some(error),
+//                _ => None,
+//              ),
+//          )
+//        )
+//      }
+//      sendResponseAttempts.tail.dropWhile()
+    }.getOrElse {
+      system.failed(new IllegalArgumentException("Peer identifier not found in call context"))
+    }
 }

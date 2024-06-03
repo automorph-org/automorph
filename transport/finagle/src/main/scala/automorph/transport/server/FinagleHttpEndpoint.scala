@@ -2,7 +2,7 @@ package automorph.transport.server
 
 import automorph.spi.{EffectSystem, RequestHandler, ServerTransport}
 import automorph.transport.HttpContext.headerRpcNodeId
-import automorph.transport.HttpRequestHandler.{RequestMetadata, ResponseData}
+import automorph.transport.HttpRequestHandler.{RequestMetadata, ResponseMetadata}
 import automorph.transport.server.FinagleHttpEndpoint.Context
 import automorph.transport.{HighHttpRequestHandler, HttpContext, HttpMethod, HttpRequestHandler, Protocol}
 import automorph.util.Extensions.EffectOps
@@ -69,7 +69,7 @@ final case class FinagleHttpEndpoint[Effect[_]](
     (requestMetadata, requestBody)
   }
 
-  private def createResponse(responseData: ResponseData[Context], request: Request): Effect[Response] = {
+  private def createResponse(responseData: ResponseMetadata[Context], request: Request): Effect[Response] = {
     val response = Response(
       request.version,
       Status(responseData.statusCode),

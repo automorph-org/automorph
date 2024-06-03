@@ -2,7 +2,7 @@ package automorph.transport
 
 import automorph.log.{LogProperties, Logging, MessageLog}
 import automorph.spi.{EffectSystem, RequestHandler}
-import automorph.transport.HttpRequestHandler.{RequestMetadata, ResponseData, contentTypeText}
+import automorph.transport.HttpRequestHandler.{RequestMetadata, ResponseMetadata, contentTypeText}
 import automorph.util.Extensions.{EffectOps, StringOps, ThrowableOps, TryOps}
 import automorph.util.Random
 import java.net.{InetSocketAddress, SocketAddress}
@@ -45,18 +45,22 @@ final private[automorph] case class HttpRequestHandler[
   Connection,
 ](
   receiveRequest: Request => (RequestMetadata[Context], Effect[Array[Byte]]),
-  sendResponse: (ResponseData[Context], Connection) => Effect[Response],
+  sendResponse: (ResponseMetadata[Context], Connection) => Effect[Response],
   protocol: Protocol,
   effectSystem: EffectSystem[Effect],
   mapException: Throwable => Int,
   requestHandler: RequestHandler[Effect, Context],
 ) extends Logging {
+  val statusOk = 200
   private val log = MessageLog(logger, protocol.name)
-  private val statusOk = 200
   private val statusInternalServerError = 500
   implicit private val system: EffectSystem[Effect] = effectSystem
 
-  def processRequest(requestBody: Array[Byte], requestMetadata: RequestMetadata[Context], connection: Connection): Effect[Response] =
+  def processRequest(
+    requestBody: Array[Byte],
+    requestMetadata: RequestMetadata[Context],
+    connection: Connection,
+  ): Effect[Response] =
     // Process the request
     requestHandler.processRequest(requestBody, requestMetadata.context, requestMetadata.id).flatFold(
       error => sendErrorResponse(error, connection, requestMetadata),
@@ -96,11 +100,11 @@ final private[automorph] case class HttpRequestHandler[
     val protocol = requestMetadata.protocol.name
     val client = requestMetadata.client
     log.sendingResponse(responseProperties, protocol)
-    val responseData = ResponseData(responseBody, context, statusCode, contentType, client, requestMetadata.id)
+    val responseData = ResponseMetadata(responseBody, context, statusCode, contentType, client, requestMetadata.id)
     sendResponse(responseData, connection).flatFold(
       { error =>
         log.failedSendResponse(error, responseProperties, protocol)
-        sendErrorResponse(error, connection, requestMetadata)
+        system.failed(error)
       },
       { result =>
         log.sentResponse(responseProperties, protocol)
@@ -154,13 +158,12 @@ private[automorph] object HttpRequestHandler {
    * @return
    *   server properties
    */
-  def serverProperties(address: SocketAddress): ListMap[String, String] = {
+  def serverProperties(address: SocketAddress): ListMap[String, String] =
     address match {
       case address: InetSocketAddress =>
         ListMap("Host" -> address.getHostString, "Port" -> address.getPort.toString)
       case _ => ListMap()
     }
-  }
 
   final case class RequestMetadata[Context <: HttpContext[?]](
     context: Context,
@@ -178,7 +181,7 @@ private[automorph] object HttpRequestHandler {
       context.peerId.getOrElse("")
   }
 
-  final case class ResponseData[Context](
+  final case class ResponseMetadata[Context](
     body: Array[Byte],
     context: Option[Context],
     statusCode: Int,

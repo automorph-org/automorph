@@ -200,10 +200,10 @@ private[automorph] object ServerBindingGenerator:
     val lastArgumentIndex = method.parameters.map(_.size).sum - 1
 
     // Create API method call function
-    //   (arguments: Seq[Any], requestContext: Context) => Any
+    //   (arguments: Seq[Any], context: Context) => Any
     ApiReflection.unwrapType[Effect](ref.q)(method.resultType).dealias.asType match
       case '[resultType] =>
-        '{ (arguments, requestContext) =>
+        '{ (arguments, context) =>
           ${
             // Create the method argument lists by type coercing supplied arguments
             //   List(List(
@@ -214,7 +214,7 @@ private[automorph] object ServerBindingGenerator:
                 val argumentIndex = offset + index
                 if argumentIndex == lastArgumentIndex && ApiReflection.acceptsContext[Context](ref)(method) then
                   // Use supplied request context as a last argument if the method accepts context as its last parameter
-                  'requestContext.asTerm
+                  'context.asTerm
                 else
                   // Coerce the argument type
                   parameter.dataType.asType match

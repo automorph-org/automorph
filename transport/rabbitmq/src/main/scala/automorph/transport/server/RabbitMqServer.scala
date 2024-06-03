@@ -102,8 +102,8 @@ final case class RabbitMqServer[Effect[_]](
           requestId.map { actualRequestId =>
             // Process the request
             Try {
-              val requestContext = RabbitMq.messageContext(amqpProperties)
-              val handlerResult = handler.processRequest(requestBody, requestContext, actualRequestId)
+              val context = RabbitMq.messageContext(amqpProperties)
+              val handlerResult = handler.processRequest(requestBody, context, actualRequestId)
               handlerResult.fold(
                 error => sendErrorResponse(error, replyTo, requestProperties, actualRequestId),
                 { result =>

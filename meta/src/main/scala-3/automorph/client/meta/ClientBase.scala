@@ -91,7 +91,7 @@ private[automorph] trait ClientBase[Value, Codec <: MessageCodec[Value], Effect[
 
           // Adjust RPC function arguments if it accepts request context as its last parameter
           val callArguments = Option(arguments).getOrElse(Array.empty[AnyRef])
-          val (argumentValues, requestContext) =
+          val (argumentValues, context) =
             if binding.acceptsContext && callArguments.nonEmpty then
               callArguments.dropRight(1).toSeq -> Some(callArguments.last.asInstanceOf[Context])
             else callArguments.toSeq -> None
@@ -112,7 +112,7 @@ private[automorph] trait ClientBase[Value, Codec <: MessageCodec[Value], Effect[
             mapName(method.getName),
             encodedArgumentValues,
             (resultValue, responseContext) => binding.decodeResult(resultValue, responseContext),
-            requestContext,
+            context,
           )
         }.getOrElse(throw UnsupportedOperationException(s"Invalid method: ${method.getName}")),
     ).asInstanceOf[Api]
@@ -139,5 +139,5 @@ private[automorph] trait ClientBase[Value, Codec <: MessageCodec[Value], Effect[
     function: String,
     arguments: Seq[(String, Value)],
     decodeResult: (Value, Context) => Result,
-    requestContext: Option[Context],
+    context: Option[Context],
   ): Effect[Result]

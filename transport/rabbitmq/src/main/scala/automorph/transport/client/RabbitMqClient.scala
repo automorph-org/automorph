@@ -97,12 +97,12 @@ final case class RabbitMqClient[Effect[_]](
     requestBody: Array[Byte],
     defaultRequestId: String,
     mediaType: String,
-    requestContext: Context,
+    context: Context,
     response: Option[Completable[Effect, Response]],
   ): Effect[Unit] = {
     // Log the request
     val amqpProperties = RabbitMq.amqpProperties(
-      Some(requestContext),
+      Some(context),
       mediaType,
       directReplyToQueue,
       defaultRequestId,

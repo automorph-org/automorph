@@ -161,23 +161,19 @@ final case class HttpClient[Effect[_]](
     }
   }
 
-  private def createRequest(
-    requestBody: Array[Byte],
-    mediaType: String,
-    requestContext: Context,
-  ): (Request, URI, Protocol) = {
-    val baseUrl = requestContext.transportContext
+  private def createRequest(requestBody: Array[Byte], mediaType: String, context: Context): (Request, URI, Protocol) = {
+    val baseUrl = context.transportContext
       .flatMap(transport => Try(transport.request.build).toOption)
       .map(_.uri).getOrElse(url)
-    val requestUrl = overrideUrl(baseUrl, requestContext)
+    val requestUrl = overrideUrl(baseUrl, context)
     requestUrl.getScheme.toLowerCase match {
       case scheme if scheme.startsWith(webSocketSchemePrefix) =>
         // Create WebSocket request
-        val webSocketBuilder = createWebSocketBuilder(requestContext)
+        val webSocketBuilder = createWebSocketBuilder(context)
         (Right((webSocketBuilder, requestBody)), requestUrl, Protocol.WebSocket)
       case _ =>
         // Create HTTP request
-        val httpRequest = createHttpRequest(requestBody, requestUrl, mediaType, requestContext)
+        val httpRequest = createHttpRequest(requestBody, requestUrl, mediaType, context)
         (Left(httpRequest), httpRequest.uri, Protocol.WebSocket)
     }
   }

@@ -5,6 +5,7 @@ import automorph.transport.{HttpContext, HttpMethod}
 import sttp.capabilities.WebSockets
 import sttp.client3.{PartialRequest, SttpBackend}
 import java.net.URI
+import scala.annotation.nowarn
 import scala.language.experimental.macros
 import scala.reflect.macros.blackbox
 
@@ -34,6 +35,7 @@ import scala.reflect.macros.blackbox
  * @tparam Effect
  *   effect type
  */
+@nowarn("msg=copied from the case class constructor")
 final case class SttpClient[Effect[_]] private (
   effectSystem: EffectSystem[Effect],
   backend: SttpBackend[Effect, ?],

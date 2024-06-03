@@ -102,7 +102,7 @@ final case class RpcClient[Value, Codec <: MessageCodec[Value], Effect[_], Conte
   ): Effect[Result] = {
     // Create request
     val requestId = Random.id
-    rpcProtocol.createRequest(function, arguments, respond = true, context.getOrElse(context), requestId).fold(
+    rpcProtocol.createRequest(function, arguments, respond = true, context.getOrElse(this.context), requestId).fold(
       error => system.failed(error),
       // Send request
       rpcRequest =>
@@ -141,13 +141,7 @@ final case class RpcClient[Value, Codec <: MessageCodec[Value], Effect[_], Conte
   ): Effect[Unit] = {
     // Create request
     val requestId = Random.id
-    rpcProtocol.createRequest(
-      function,
-      arguments,
-      respond = false,
-      context.getOrElse(context),
-      requestId,
-    ).fold(
+    rpcProtocol.createRequest(function, arguments, respond = false, context.getOrElse(this.context), requestId).fold(
       error => system.failed(error),
       // Send request
       rpcRequest =>

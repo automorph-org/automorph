@@ -55,7 +55,8 @@ private[examples] object AmqpTransport {
       } yield ()
       Await.result(run, Duration.Inf)
     }.getOrElse {
-      println("Enable AMQP example by setting AMQP_BROKER_URL environment variable to 'amqp://{host}:{port}'.")
+      val name = getClass.getSimpleName
+      println(s"Enable $name example by setting AMQP_BROKER_URL environment variable to 'amqp://{host}:{port}'.")
     }
   }
 }

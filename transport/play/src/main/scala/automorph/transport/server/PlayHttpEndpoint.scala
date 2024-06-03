@@ -1,9 +1,10 @@
 package automorph.transport.server
 
 import automorph.spi.{EffectSystem, RequestHandler, ServerTransport}
-import automorph.transport.HttpRequestHandler.{RequestMetadata, ResponseData, headerNodeId}
+import automorph.transport.HttpContext.headerRpcNodeId
+import automorph.transport.HttpRequestHandler.{RequestMetadata, ResponseMetadata}
 import automorph.transport.server.PlayHttpEndpoint.{Context, headerXForwardedFor}
-import automorph.transport.{HttpContext, HttpMethod, HttpRequestHandler, Protocol}
+import automorph.transport.{HighHttpRequestHandler, HttpContext, HttpMethod, HttpRequestHandler, Protocol}
 import automorph.util.Extensions.EffectOps
 import org.apache.pekko.stream.Materializer
 import org.apache.pekko.util.ByteString
@@ -62,7 +63,7 @@ final case class PlayHttpEndpoint[Effect[_]](
   }
   private val suppliedExecutionContext = executionContext
   private val httpHandler =
-    HttpRequestHandler(receiveRequest, createResponse, Protocol.Http, effectSystem, mapException, handler)
+    HighHttpRequestHandler(receiveRequest, createResponse, Protocol.Http, effectSystem, mapException, handler)
   implicit private val system: EffectSystem[Effect] = effectSystem
 
   override def adapter: Action[ByteString] =
@@ -88,7 +89,7 @@ final case class PlayHttpEndpoint[Effect[_]](
     (requestMetadata, requestBody)
   }
 
-  private def createResponse(responseData: ResponseData[Context], @unused session: Unit): Effect[Result] = {
+  private def createResponse(responseData: ResponseMetadata[Context], @unused session: Unit): Effect[Result] = {
     val httpEntity = HttpEntity.Strict.apply(ByteString(responseData.body), Some(handler.mediaType))
     val result = setResponseContext(Status(responseData.statusCode).sendEntity(httpEntity), responseData.context)
     effectSystem.successful(result)
@@ -108,7 +109,7 @@ final case class PlayHttpEndpoint[Effect[_]](
   private def clientId(request: Request[ByteString]): String = {
     val address = request.remoteAddress
     val forwardedFor = request.headers.headers.find(_._1 == headerXForwardedFor).map(_._2)
-    val nodeId = request.headers.headers.find(_._1 == headerNodeId).map(_._2)
+    val nodeId = request.headers.headers.find(_._1 == headerRpcNodeId).map(_._2)
     HttpRequestHandler.clientId(address, forwardedFor, nodeId)
   }
 

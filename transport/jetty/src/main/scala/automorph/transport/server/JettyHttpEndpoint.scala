@@ -2,7 +2,7 @@ package automorph.transport.server
 
 import automorph.spi.{EffectSystem, RequestHandler, ServerTransport}
 import automorph.transport.HttpContext.headerRpcNodeId
-import automorph.transport.HttpRequestHandler.{RequestMetadata, ResponseData}
+import automorph.transport.HttpRequestHandler.{RequestMetadata, ResponseMetadata}
 import automorph.transport.server.JettyHttpEndpoint.{Context, requestQuery}
 import automorph.transport.{HttpContext, HttpMethod, HttpRequestHandler, LowHttpRequestHandler, Protocol}
 import automorph.util.Extensions.{EffectOps, InputStreamOps}
@@ -77,7 +77,7 @@ final case class JettyHttpEndpoint[Effect[_]](
   }
 
   private def sendResponse(
-    responseData: ResponseData[Context],
+    responseData: ResponseMetadata[Context],
     channel: (HttpServletResponse, AsyncContext),
   ): Effect[Unit] = {
     val (response, asyncContext) = channel

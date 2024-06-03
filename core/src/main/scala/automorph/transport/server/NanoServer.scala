@@ -3,7 +3,7 @@ package automorph.transport.server
 import automorph.log.{Logger, Logging, MessageLog}
 import automorph.spi.{EffectSystem, RequestHandler, ServerTransport}
 import automorph.transport.HttpContext.headerRpcNodeId
-import automorph.transport.HttpRequestHandler.{RequestMetadata, ResponseData, headerXForwardedFor}
+import automorph.transport.HttpRequestHandler.{RequestMetadata, ResponseMetadata, headerXForwardedFor}
 import automorph.transport.server.NanoHTTPD.Response.Status
 import automorph.transport.server.NanoHTTPD.{IHTTPSession, Response, newFixedLengthResponse}
 import automorph.transport.server.NanoServer.{Context, WebSocketListener, WebSocketRequest}
@@ -179,7 +179,7 @@ final case class NanoServer[Effect[_]](
   }
 
   private def sendHttpResponse(
-    responseData: ResponseData[Context],
+    responseData: ResponseMetadata[Context],
     channel: (IHTTPSession, BlockingQueue[Response]),
   ): Effect[Unit] =
     system.evaluate {
@@ -195,7 +195,7 @@ final case class NanoServer[Effect[_]](
       ()
     }
 
-  private def sendWebSocketResponse(responseData: ResponseData[Context], channel: WebSocket): Effect[Unit] =
+  private def sendWebSocketResponse(responseData: ResponseMetadata[Context], channel: WebSocket): Effect[Unit] =
     system.evaluate(channel.send(responseData.body))
 
   private def getRequestContext(session: IHTTPSession, peerId: String): Context = {

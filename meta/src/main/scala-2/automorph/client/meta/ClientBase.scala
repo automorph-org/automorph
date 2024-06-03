@@ -100,7 +100,7 @@ private[automorph] trait ClientBase[Value, Codec <: MessageCodec[Value], Effect[
    *   named arguments
    * @param decodeResult
    *   decodes remote function result
-   * @param requestContext
+   * @param context
    *   request context
    * @tparam Result
    *   result type
@@ -111,7 +111,7 @@ private[automorph] trait ClientBase[Value, Codec <: MessageCodec[Value], Effect[
      function: String,
      arguments: Seq[(String, Value)],
      decodeResult: (Value, Context) => Result,
-     requestContext: Option[Context],
+     context: Option[Context],
    ): Effect[Result]
 }
 
@@ -166,7 +166,7 @@ object ClientBase {
 
             // Adjust RPC function arguments if it accepts request context as its last parameter
             val callArguments = Option(arguments).getOrElse(Array.empty[AnyRef])
-            val (argumentValues, requestContext) =
+            val (argumentValues, context) =
               if (binding.acceptsContext && callArguments.nonEmpty) {
                 callArguments.dropRight(1).toSeq -> Some(callArguments.last.asInstanceOf[$contextType])
               } else {
@@ -192,7 +192,8 @@ object ClientBase {
               $mapName(method.getName),
               encodedArgumentValues,
               (resultValue, responseContext) => binding.decodeResult(resultValue, responseContext),
-              requestContext)
+              context
+            )
           }.getOrElse(throw new UnsupportedOperationException("Invalid method: " + method.getName))
       ).asInstanceOf[$apiType]
     """)
