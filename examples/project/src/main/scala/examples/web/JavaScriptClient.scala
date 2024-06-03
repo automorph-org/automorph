@@ -51,8 +51,8 @@ private[examples] object JavaScriptClient {
         _ = println(result)
 
         // Call the remote API function dynamically using a JavaScript client
-        result <- Future(Process("node examples/project/src/main/resources/examples/JavaScriptClient.js").!!)
-        _ = println(result)
+//        result <- Future(Process("node examples/project/src/main/resources/examples/JavaScriptClient.js").!!)
+//        _ = println(result)
 
         // Stop the JSON-RPC server
         _ <- server.close()
