@@ -8,7 +8,6 @@ import org.scalacheck.{Arbitrary, Gen}
 import test.api.Generators.arbitraryRecord
 import test.api.{Enum, Record, Structure}
 
-@scala.annotation.nowarn("msg=never used")
 final class CirceJsonTest extends MessageCodecTest with JsonMessageCodecTest {
 
   type Value = Json

@@ -13,7 +13,6 @@ import zio.{Console, Runtime, Task, Unsafe, ZIO}
 
 private[examples] object EffectSystem {
 
-  @scala.annotation.nowarn
   def main(arguments: Array[String]): Unit = {
 
     // Define a remote API
@@ -50,5 +49,6 @@ private[examples] object EffectSystem {
     Unsafe.unsafe { implicit unsafe =>
       effectSystem.runtime.unsafe.run(run)
     }
+    ()
   }
 }

@@ -11,7 +11,6 @@ import scala.util.Try
 
 private[examples] object ServerFunctionNames {
 
-  @scala.annotation.nowarn
   def main(arguments: Array[String]): Unit = {
 
     // Define client view of a remote API
@@ -76,5 +75,6 @@ private[examples] object ServerFunctionNames {
     // Close the RPC client and server
     client.close()
     server.close()
+    ()
   }
 }

@@ -9,7 +9,6 @@ private[automorph] object UPickleWebRpc {
 
   type RpcMessage = Message[Msg]
 
-  @scala.annotation.nowarn("msg=never used")
   def readWriter[Config <: MessagePackConfig](config: Config): config.ReadWriter[Message[Msg]] = {
     import config.*
 

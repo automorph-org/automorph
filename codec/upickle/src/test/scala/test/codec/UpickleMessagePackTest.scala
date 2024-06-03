@@ -41,7 +41,6 @@ final class UpickleMessagePackTest extends MessageCodecTest {
 
 object UpickleMessagePackTest extends MessagePackConfig {
 
-  @scala.annotation.nowarn("msg=never used")
   implicit lazy val recordRw: ReadWriter[Record] = {
     implicit val enumRw: ReadWriter[Enum.Enum] = readwriter[Int].bimap[Enum.Enum](
       value => Enum.toOrdinal(value),

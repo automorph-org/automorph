@@ -10,7 +10,6 @@ private[automorph] object WeePickleJsonRpc {
 
   type RpcMessage = Message[Value]
 
-  @scala.annotation.nowarn("msg=never used")
   def fromTo: FromTo[Message[Value]] = {
     implicit val idFrom: From[Option[Message.Id]] = FromValue.comap {
       case Some(Right(id)) => Str(id)

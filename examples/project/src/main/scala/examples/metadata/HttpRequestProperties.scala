@@ -11,7 +11,6 @@ import java.net.URI
 
 private[examples] object HttpRequestProperties {
 
-  @scala.annotation.nowarn
   def main(arguments: Array[String]): Unit = {
 
     // Define client view of a remote API
@@ -59,5 +58,6 @@ private[examples] object HttpRequestProperties {
     // Close the RPC client and server
     client.close()
     server.close()
+    ()
   }
 }

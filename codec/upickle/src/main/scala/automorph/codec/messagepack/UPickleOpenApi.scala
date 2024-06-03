@@ -9,7 +9,6 @@ import upack.Msg
 /** JSON-RPC protocol support for Circe message codec plugin using JSON format. */
 private[automorph] object UPickleOpenApi {
 
-  @scala.annotation.nowarn("msg=never used")
   def readWriter[Config <: MessagePackConfig](config: Config): config.ReadWriter[OpenApi] = {
     import config.*
 

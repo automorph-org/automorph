@@ -9,7 +9,6 @@ import com.rallyhealth.weepickle.v1.WeePickle.{From, FromTo, To, macroFromTo}
 /** OpenAPI schema support for weePickle message codec plugin. */
 private[automorph] object WeePickleOpenApi {
 
-  @scala.annotation.nowarn("msg=never used")
   def fromTo: FromTo[OpenApi] = {
     implicit val schemaFrom: From[Schema] = FromMsgValue.comap(fromSchema)
     implicit val schemaTo: To[Schema] = ToMsgValue.map(toSchema)

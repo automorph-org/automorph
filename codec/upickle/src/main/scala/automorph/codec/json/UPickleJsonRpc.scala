@@ -10,7 +10,6 @@ private[automorph] object UPickleJsonRpc {
 
   type RpcMessage = Message[Value]
 
-  @scala.annotation.nowarn("msg=never used")
   def readWriter[Config <: JsonConfig](config: Config): config.ReadWriter[Message[Value]] = {
     import config.*
 

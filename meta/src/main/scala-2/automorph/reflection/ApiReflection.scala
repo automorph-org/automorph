@@ -21,7 +21,6 @@ private[automorph] object ApiReflection {
 
       import ref.c.universe.{Liftable, Quasiquote, Tree}
 
-      @scala.annotation.nowarn("msg=never used")
       implicit val parameterLiftable: Liftable[RpcFunction.Parameter] = (v: RpcFunction.Parameter) => q"""
         automorph.RpcFunction.Parameter(
           ${v.name},

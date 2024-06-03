@@ -18,7 +18,6 @@ trait PlatformSpecificTest extends ProtocolCodecTest {
     )).getOrElse(Seq())
   }
 
-  @scala.annotation.nowarn("msg=never used")
   private def playJsonJsonRpcFixture(implicit context: Context): TestFixture = {
     implicit val recordReads: Reads[Record] = {
       implicit val enumReads: Reads[Enum.Enum] = (json: JsValue) => json.validate[Int].map(Enum.fromOrdinal)

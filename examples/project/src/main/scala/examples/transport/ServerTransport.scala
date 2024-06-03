@@ -14,7 +14,6 @@ import scala.concurrent.{Await, Future}
 
 private[examples] object ServerTransport {
 
-  @scala.annotation.nowarn
   def main(arguments: Array[String]): Unit = {
 
     // Define a remote API

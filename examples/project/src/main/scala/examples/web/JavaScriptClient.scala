@@ -14,7 +14,6 @@ import scala.util.Try
 
 private[examples] object JavaScriptClient {
 
-  @scala.annotation.nowarn
   def main(arguments: Array[String]): Unit = {
 
     // Define a remote API

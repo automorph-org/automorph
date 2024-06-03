@@ -12,7 +12,6 @@ import scala.util.Try
 
 private[examples] object HttpAuthentication {
 
-  @scala.annotation.nowarn
   def main(arguments: Array[String]): Unit = {
 
     // Define client view of a remote API
@@ -74,5 +73,6 @@ private[examples] object HttpAuthentication {
     // Close the RPC client and server
     client.close()
     server.close()
+    ()
   }
 }

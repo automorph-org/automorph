@@ -24,7 +24,6 @@ trait ProtocolCodecTest extends CoreTest {
 
   type OptionalServer = Option[RpcServer[?, ?, Effect, Context, ?]]
 
-  @scala.annotation.nowarn("msg=never used")
   implicit private lazy val recordFromTo: FromTo[Record] = {
     implicit val enumFromTo: FromTo[Enum.Enum] = FromTo.join(ToInt, FromInt).bimap(Enum.toOrdinal, Enum.fromOrdinal)
     implicit val structureFromTo: FromTo[Structure] = macroFromTo
@@ -66,7 +65,6 @@ trait ProtocolCodecTest extends CoreTest {
     s"${rpcProtocol.name} / $codecName$suffix"
   }
 
-  @scala.annotation.nowarn("msg=never used")
   private def circeJsonRpcFixture(implicit context: Context): TestFixture = {
     implicit val enumEncoder: Encoder[Enum.Enum] = Encoder.encodeInt.contramap[Enum.Enum](Enum.toOrdinal)
     implicit val enumDecoder: Decoder[Enum.Enum] = Decoder.decodeInt.map(Enum.fromOrdinal)

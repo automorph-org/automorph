@@ -24,13 +24,11 @@ final class PlayJsonTest extends JsonMessageCodecTest {
     )
   })
 
-  @scala.annotation.nowarn("msg=never used")
   implicit private val recordReads: Reads[Record] = {
     implicit val enumReads: Reads[Enum.Enum] = (json: JsValue) => json.validate[Int].map(Enum.fromOrdinal)
     implicit val structureReads: Reads[Structure] = Json.reads
     Json.reads
   }
-  @scala.annotation.nowarn("msg=never used")
   implicit private val recordWrites: Writes[Record] = {
     implicit val enumWrites: Writes[Enum.Enum] = (o: Enum.Enum) => JsNumber(BigDecimal(Enum.toOrdinal(o)))
     implicit val structureWrites: Writes[Structure] = Json.writes

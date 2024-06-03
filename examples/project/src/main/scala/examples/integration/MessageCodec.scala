@@ -18,7 +18,6 @@ final private[examples] case class Record(values: List[String])
 
 private[examples] object MessageCodec {
 
-  @scala.annotation.nowarn
   def main(arguments: Array[String]): Unit = {
 
     // Create uPickle message codec for JSON format

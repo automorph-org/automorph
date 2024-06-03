@@ -73,7 +73,6 @@ object ServerBindingGenerator {
     """)
   }
 
-  @nowarn("msg=never used")
   private def generateBinding[
     C <: blackbox.Context,
     Value: ref.c.WeakTypeTag,
@@ -145,7 +144,6 @@ object ServerBindingGenerator {
     ref.c.Expr[Map[String, Option[Value] => Any]](q"Map(..$argumentDecoders)")
   }
 
-  @nowarn("msg=never used")
   private def generateEncodeResult[C <: blackbox.Context, Value, Codec <: MessageCodec[Value], Effect[_], Context](
     ref: ClassReflection[C]
   )(method: ref.RefMethod, codec: ref.c.Expr[Codec])(implicit

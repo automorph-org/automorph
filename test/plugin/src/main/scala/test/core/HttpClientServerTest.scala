@@ -17,7 +17,6 @@ trait HttpClientServerTest extends ClientServerTest {
     Seq(circeWebRpcJsonFixture()) ++ super.fixtures
   }
 
-  @scala.annotation.nowarn("msg=never used")
   private def circeWebRpcJsonFixture()(implicit context: Context): TestFixture = {
     implicit val enumEncoder: Encoder[Enum.Enum] = Encoder.encodeInt.contramap[Enum.Enum](Enum.toOrdinal)
     implicit val enumDecoder: Decoder[Enum.Enum] = Decoder.decodeInt.map(Enum.fromOrdinal)

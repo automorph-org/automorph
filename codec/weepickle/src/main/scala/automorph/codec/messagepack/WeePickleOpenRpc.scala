@@ -11,7 +11,6 @@ import scala.collection.mutable
 /** OpenRPC schema support for weePickle message codec plugin. */
 private[automorph] object WeePickleOpenRpc {
 
-  @scala.annotation.nowarn("msg=never used")
   def fromTo: FromTo[OpenRpc] = {
     implicit val schemaFrom: From[Schema] = FromMsgValue.comap(fromSchema)
     implicit val schemaTo: To[Schema] = ToMsgValue.map(toSchema)

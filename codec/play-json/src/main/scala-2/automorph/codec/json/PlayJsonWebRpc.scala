@@ -8,12 +8,10 @@ private[automorph] object PlayJsonWebRpc {
 
   type RpcMessage = Message[JsValue]
 
-  @scala.annotation.nowarn("msg=never used")
   val reads: Reads[RpcMessage] = {
     implicit val messageErrorReads: Reads[MessageError] = Json.reads
     Json.reads
   }
-  @scala.annotation.nowarn("msg=never used")
   val writes: Writes[RpcMessage] = {
     implicit val messageErrorWrites: Writes[MessageError] = Json.writes
     Json.writes

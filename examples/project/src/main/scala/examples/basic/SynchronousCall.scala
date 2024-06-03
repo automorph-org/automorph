@@ -10,7 +10,6 @@ import java.net.URI
 
 private[examples] object SynchronousCall {
 
-  @scala.annotation.nowarn
   def main(arguments: Array[String]): Unit = {
 
     // Define a remote API
@@ -44,5 +43,6 @@ private[examples] object SynchronousCall {
     // Close the RPC client and server
     client.close()
     server.close()
+    ()
   }
 }

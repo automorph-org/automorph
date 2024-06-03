@@ -9,7 +9,6 @@ import ujson.Value
 /** OpenAPI schema support for uPickle message codec plugin using JSON format. */
 private[automorph] object UPickleOpenApi {
 
-  @scala.annotation.nowarn("msg=never used")
   def readWriter[Config <:JsonConfig](config: Config): config.ReadWriter[OpenApi] = {
     import config.*
 

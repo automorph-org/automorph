@@ -10,7 +10,6 @@ import scala.util.{Failure, Success, Try}
  * @tparam Effect
  *   effect type
  */
-@scala.annotation.nowarn("msg=dead code")
 trait EffectSystemTest[Effect[_]] extends BaseTest {
 
   private val text = "test"

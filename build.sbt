@@ -332,12 +332,20 @@ val commonScalac3Options = commonScalacOptions ++ Seq(
   "-pagewidth",
   "120",
 )
+val silencedScala2Warnings = Seq(
+  "cat=other-non-cooperative-equals",
+  "msg=modifiers are assumed",
+  "msg=copied from the case class constructor",
+  "msg=parameter arguments in method main is never used",
+  "msg=Unused import",
+  "msg=does not suppress any",
+).map(_ + ":silent").mkString(",")
 val compileScalac2Options = commonScalacOptions ++ Seq(
-  //  "-explaintypes",
   "-language:existentials",
   "-Xsource:3",
+//  "-Xsource:3-cross",
   "-Xlint:_,-byname-implicit",
-  "-Wconf:cat=other-non-cooperative-equals:silent,msg=modifiers are assumed:silent,msg=not suppress any:silent",
+  s"-Wconf:$silencedScala2Warnings",
   "-Wdead-code",
   "-Wextra-implicit",
   "-Wnumeric-widen",
@@ -349,11 +357,9 @@ val compileScalac2Options = commonScalacOptions ++ Seq(
 )
 val compileScalac3Options = commonScalac3Options ++ Seq(
   "-indent",
-  "-Wconf:msg=not suppress any:silent",
   "-Wunused:all",
   "-Wvalue-discard",
   "-Xcheck-macros",
-  "-Xmigration"
 )
 val docScalac3Options = commonScalac3Options ++ Seq(
   s"-source-links:src=github://$repositoryPath/master",
@@ -364,7 +370,7 @@ val docScalac2Options = compileScalac2Options ++ Seq(
   s"$projectName.client.meta:examples",
 )
 val exampleScalaVersion = "3.4.2"
-ThisBuild / scalaVersion := "3.3.0"
+ThisBuild / scalaVersion := "3.3.3"
 ThisBuild / crossScalaVersions += "2.13.14"
 ThisBuild / javacOptions ++= Seq("-source", "11", "-target", "11")
 ThisBuild / scalacOptions ++= (if (scala3.value) compileScalac3Options else compileScalac2Options)

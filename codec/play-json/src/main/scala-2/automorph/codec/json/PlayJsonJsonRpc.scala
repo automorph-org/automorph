@@ -8,7 +8,6 @@ private[automorph] object PlayJsonJsonRpc {
 
   type RpcMessage = Message[JsValue]
 
-  @scala.annotation.nowarn("msg=never used")
   val reads: Reads[Message[JsValue]] = {
     implicit val idReads: Reads[Either[BigDecimal, String]] =
       (json: JsValue) => json.validate[BigDecimal].map(Left.apply).orElse(json.validate[String].map(Right.apply))
@@ -18,7 +17,6 @@ private[automorph] object PlayJsonJsonRpc {
     implicit val messageErrorReads: Reads[MessageError[JsValue]] = Json.reads
     Json.reads
   }
-  @scala.annotation.nowarn("msg=never used")
   val writes: Writes[Message[JsValue]] = {
     implicit val idWrites: Writes[Either[BigDecimal, String]] = {
       case Left(value) => JsNumber(value)

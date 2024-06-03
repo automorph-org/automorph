@@ -5,7 +5,6 @@ import automorph.client.ClientBinding
 import automorph.log.MacroLogger
 import automorph.reflection.{ApiReflection, ClassReflection}
 import automorph.spi.MessageCodec
-import scala.annotation.nowarn
 import scala.language.experimental.macros
 import scala.reflect.macros.blackbox
 
@@ -70,7 +69,6 @@ object ClientBindingGenerator {
     """)
   }
 
-  @nowarn("msg=never used")
   private def generateBinding[C <: blackbox.Context, Value, Codec <: MessageCodec[Value], Effect[_], Context, Api](
     ref: ClassReflection[C]
   )(method: ref.RefMethod, codec: ref.c.Expr[Codec])(implicit

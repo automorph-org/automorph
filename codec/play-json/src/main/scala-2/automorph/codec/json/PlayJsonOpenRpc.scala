@@ -7,7 +7,6 @@ import play.api.libs.json.{Json, Reads, Writes}
 /** OpenRPC schema support for Play JSON message codec plugin. */
 private[automorph] object PlayJsonOpenRpc {
 
-  @scala.annotation.nowarn("msg=never used")
   val reads: Reads[OpenRpc] = {
     implicit val schemaFrom: Reads[Schema] = Json.reads
     implicit val contactReads: Reads[Contact] = Json.reads
@@ -27,7 +26,6 @@ private[automorph] object PlayJsonOpenRpc {
     Json.reads[OpenRpc]
   }
 
-  @scala.annotation.nowarn("msg=never used")
   val writes: Writes[OpenRpc] = {
     implicit val schemaFrom: Writes[Schema] = Json.writes
     implicit val contactWrites: Writes[Contact] = Json.writes

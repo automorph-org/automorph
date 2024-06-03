@@ -12,7 +12,6 @@ import scala.concurrent.{Await, Future}
 
 private[examples] object OptionalParameters {
 
-  @scala.annotation.nowarn
   def main(arguments: Array[String]): Unit = {
 
     // Define client view of a remote API

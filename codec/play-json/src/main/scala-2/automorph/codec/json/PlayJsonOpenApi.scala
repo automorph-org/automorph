@@ -7,7 +7,6 @@ import play.api.libs.json.{Json, Reads, Writes}
 /** OpenAPI schema support for Play JSON message codec plugin. */
 private[automorph] object PlayJsonOpenApi {
 
-  @scala.annotation.nowarn("msg=never used")
   val reads: Reads[OpenApi] = {
     implicit val schemaFrom: Reads[Schema] = Json.reads
     implicit val authFlowReads: Reads[OAuthFlow] = Json.reads
@@ -36,7 +35,6 @@ private[automorph] object PlayJsonOpenApi {
     Json.reads[OpenApi]
   }
 
-  @scala.annotation.nowarn("msg=never used")
   val writes: Writes[OpenApi] = {
     implicit val schemaFrom: Writes[Schema] = Json.writes
     implicit val authFlowWrites: Writes[OAuthFlow] = Json.writes

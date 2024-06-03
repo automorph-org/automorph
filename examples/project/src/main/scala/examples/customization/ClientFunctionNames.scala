@@ -10,7 +10,6 @@ import java.net.URI
 
 private[examples] object ClientFunctionNames {
 
-  @scala.annotation.nowarn
   def main(arguments: Array[String]): Unit = {
 
     // Define client view of a remote API
@@ -56,5 +55,6 @@ private[examples] object ClientFunctionNames {
     // Close the RPC client and server
     client.close()
     server.close()
+    ()
   }
 }

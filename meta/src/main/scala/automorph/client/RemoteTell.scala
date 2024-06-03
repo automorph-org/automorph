@@ -1,7 +1,6 @@
 package automorph.client
 
 import automorph.spi.MessageCodec
-import scala.annotation.nowarn
 
 /**
  * Remote function one-way message proxy.
@@ -21,7 +20,6 @@ import scala.annotation.nowarn
  * @tparam Context
  *   RPC message context type
  */
-@nowarn("msg=copied from the case class constructor")
 final private[automorph] case class RemoteTell[Value, Codec <: MessageCodec[Value], Effect[_], Context] private (
   functionName: String,
   codec: Codec,
