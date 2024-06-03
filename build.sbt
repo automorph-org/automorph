@@ -341,9 +341,7 @@ val silencedScala2Warnings = Seq(
   "msg=does not suppress any",
 ).map(_ + ":silent").mkString(",")
 val compileScalac2Options = commonScalacOptions ++ Seq(
-  "-language:existentials",
-  "-Xsource:3",
-//  "-Xsource:3-cross",
+  "-Xsource:3-cross",
   "-Xlint:_,-byname-implicit",
   s"-Wconf:$silencedScala2Warnings",
   "-Wdead-code",
