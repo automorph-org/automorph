@@ -4,7 +4,7 @@ import automorph.spi.{EffectSystem, RequestHandler, ServerTransport}
 import automorph.transport.HttpContext.headerRpcNodeId
 import automorph.transport.HttpRequestHandler.{RequestMetadata, ResponseMetadata}
 import automorph.transport.server.FinagleHttpEndpoint.Context
-import automorph.transport.{HighHttpRequestHandler, HttpContext, HttpMethod, HttpRequestHandler, Protocol}
+import automorph.transport.{SimpleHttpRequestHandler, HttpContext, HttpMethod, HttpRequestHandler, Protocol}
 import automorph.util.Extensions.EffectOps
 import com.twitter.finagle.Service
 import com.twitter.finagle.http.{Request, Response, Status}
@@ -43,7 +43,7 @@ final case class FinagleHttpEndpoint[Effect[_]](
   private lazy val service: Service[Request, Response] = (request: Request) =>
     runAsFuture(httpHandler.processRequest(request, request))
   private val httpHandler =
-    HighHttpRequestHandler(receiveRequest, createResponse, Protocol.Http, effectSystem, mapException, handler)
+    SimpleHttpRequestHandler(receiveRequest, createResponse, Protocol.Http, effectSystem, mapException, handler)
   implicit private val system: EffectSystem[Effect] = effectSystem
 
   override def adapter: Service[Request, Response] =

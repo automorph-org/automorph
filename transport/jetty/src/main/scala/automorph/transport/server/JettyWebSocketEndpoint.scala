@@ -6,7 +6,7 @@ import automorph.transport.HttpContext.headerRpcNodeId
 import automorph.transport.HttpRequestHandler.{RequestMetadata, ResponseMetadata}
 import automorph.transport.server.JettyHttpEndpoint.{Context, requestQuery}
 import automorph.transport.server.JettyWebSocketEndpoint.ResponseCallback
-import automorph.transport.{HttpContext, HttpMethod, HttpRequestHandler, LowHttpRequestHandler, Protocol}
+import automorph.transport.{HttpContext, HttpMethod, HttpRequestHandler, CallbackHttpRequestHandler, Protocol}
 import automorph.util.Extensions.{ByteArrayOps, EffectOps, StringOps}
 import org.eclipse.jetty.http.HttpHeader
 import org.eclipse.jetty.websocket.api.{Session, WebSocketAdapter, WriteCallback}
@@ -60,7 +60,7 @@ final case class JettyWebSocketEndpoint[Effect[_]](
       adapter
   }
   private val webSocketHandler =
-    LowHttpRequestHandler(receiveRequest, sendResponse, Protocol.WebSocket, effectSystem, mapException, handler)
+    CallbackHttpRequestHandler(receiveRequest, sendResponse, Protocol.WebSocket, effectSystem, mapException, handler)
   implicit private val system: EffectSystem[Effect] = effectSystem
 
   /** Jetty WebSocket creator. */

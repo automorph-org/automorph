@@ -6,7 +6,7 @@ import automorph.transport.HttpContext.headerRpcNodeId
 import automorph.transport.HttpRequestHandler.{RequestMetadata, ResponseMetadata}
 import automorph.transport.server.UndertowHttpEndpoint.requestQuery
 import automorph.transport.websocket.endpoint.UndertowWebSocketEndpoint.{ConnectionListener, Context, ResponseCallback}
-import automorph.transport.{HttpContext, HttpMethod, HttpRequestHandler, LowHttpRequestHandler, Protocol}
+import automorph.transport.{HttpContext, HttpMethod, HttpRequestHandler, CallbackHttpRequestHandler, Protocol}
 import automorph.util.Extensions.{ByteArrayOps, ByteBufferOps, EffectOps, StringOps}
 import io.undertow.server.{HttpHandler, HttpServerExchange}
 import io.undertow.util.Headers
@@ -52,7 +52,7 @@ final case class UndertowWebSocketEndpoint[Effect[_]](
     }
   }
   private val webSocketHandler =
-    LowHttpRequestHandler(receiveRequest, sendResponse, Protocol.WebSocket, effectSystem, _ => 0, handler)
+    CallbackHttpRequestHandler(receiveRequest, sendResponse, Protocol.WebSocket, effectSystem, _ => 0, handler)
   implicit private val system: EffectSystem[Effect] = effectSystem
 
   /**
@@ -125,7 +125,7 @@ object UndertowWebSocketEndpoint {
 
   final private case class ConnectionListener[Effect[_]](
     effectSystem: EffectSystem[Effect],
-    handler: LowHttpRequestHandler[Effect, Context, (WebSocketHttpExchange, Array[Byte]), WebSocketChannel],
+    handler: CallbackHttpRequestHandler[Effect, Context, (WebSocketHttpExchange, Array[Byte]), WebSocketChannel],
     exchange: WebSocketHttpExchange,
   ) extends AbstractReceiveListener {
     implicit private val system: EffectSystem[Effect] = effectSystem

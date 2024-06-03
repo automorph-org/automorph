@@ -4,7 +4,7 @@ import automorph.spi.{EffectSystem, RequestHandler, ServerTransport}
 import automorph.transport.HttpContext.headerRpcNodeId
 import automorph.transport.HttpRequestHandler.{RequestMetadata, ResponseMetadata}
 import automorph.transport.server.PlayHttpEndpoint.{Context, headerXForwardedFor}
-import automorph.transport.{HighHttpRequestHandler, HttpContext, HttpMethod, HttpRequestHandler, Protocol}
+import automorph.transport.{SimpleHttpRequestHandler, HttpContext, HttpMethod, HttpRequestHandler, Protocol}
 import automorph.util.Extensions.EffectOps
 import org.apache.pekko.stream.Materializer
 import org.apache.pekko.util.ByteString
@@ -63,7 +63,7 @@ final case class PlayHttpEndpoint[Effect[_]](
   }
   private val suppliedExecutionContext = executionContext
   private val httpHandler =
-    HighHttpRequestHandler(receiveRequest, createResponse, Protocol.Http, effectSystem, mapException, handler)
+    SimpleHttpRequestHandler(receiveRequest, createResponse, Protocol.Http, effectSystem, mapException, handler)
   implicit private val system: EffectSystem[Effect] = effectSystem
 
   override def adapter: Action[ByteString] =

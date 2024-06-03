@@ -4,7 +4,7 @@ import automorph.spi.{EffectSystem, RequestHandler, ServerTransport}
 import automorph.transport.HttpContext.headerRpcNodeId
 import automorph.transport.HttpRequestHandler.{RequestMetadata, ResponseMetadata, headerXForwardedFor}
 import automorph.transport.server.VertxHttpEndpoint.Context
-import automorph.transport.{HttpContext, HttpMethod, HttpRequestHandler, LowHttpRequestHandler, Protocol}
+import automorph.transport.{HttpContext, HttpMethod, HttpRequestHandler, CallbackHttpRequestHandler, Protocol}
 import automorph.util.Extensions.EffectOps
 import io.vertx.core.buffer.Buffer
 import io.vertx.core.http.{HttpHeaders, HttpServerRequest, HttpServerResponse, ServerWebSocket}
@@ -52,7 +52,7 @@ final case class VertxHttpEndpoint[Effect[_]](
   }
 
   private val httpHandler =
-    LowHttpRequestHandler(receiveRequest, sendResponse, Protocol.Http, effectSystem, mapException, handler)
+    CallbackHttpRequestHandler(receiveRequest, sendResponse, Protocol.Http, effectSystem, mapException, handler)
   implicit private val system: EffectSystem[Effect] = effectSystem
 
   override def adapter: Handler[HttpServerRequest] =

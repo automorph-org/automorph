@@ -6,7 +6,7 @@ import automorph.transport.HttpRequestHandler.{RequestMetadata, ResponseMetadata
 import automorph.util.Extensions.EffectOps
 
 /**
- * High-level HTTP or WebSocket RPC request handler.
+ * Simple HTTP or WebSocket RPC request handler.
  *
  * @constructor
  *   Creates a HTTP or WebSocket RPC request handler.
@@ -33,7 +33,7 @@ import automorph.util.Extensions.EffectOps
  * @tparam Connection
  *   HTTP/WebSocket connection type
  */
-final private[automorph] case class HighHttpRequestHandler[
+final private[automorph] case class SimpleHttpRequestHandler[
   Effect[_],
   Context <: HttpContext[?],
   Request,

@@ -4,7 +4,7 @@ import automorph.spi.{EffectSystem, RequestHandler, ServerTransport}
 import automorph.transport.HttpContext.headerRpcNodeId
 import automorph.transport.HttpRequestHandler.{RequestMetadata, ResponseMetadata}
 import automorph.transport.server.PekkoHttpEndpoint.Context
-import automorph.transport.{HighHttpRequestHandler, HttpContext, HttpMethod, HttpRequestHandler, Protocol}
+import automorph.transport.{SimpleHttpRequestHandler, HttpContext, HttpMethod, HttpRequestHandler, Protocol}
 import automorph.util.Extensions.{EffectOps, ThrowableOps}
 import org.apache.pekko.http.scaladsl.model.StatusCodes.InternalServerError
 import org.apache.pekko.http.scaladsl.model.headers.RawHeader
@@ -66,7 +66,7 @@ final case class PekkoHttpEndpoint[Effect[_]](
       }
     }
   private val httpHandler =
-    HighHttpRequestHandler(receiveRequest, createResponse, Protocol.Http, effectSystem, mapException, handler)
+    SimpleHttpRequestHandler(receiveRequest, createResponse, Protocol.Http, effectSystem, mapException, handler)
   implicit private val system: EffectSystem[Effect] = effectSystem
 
   def adapter: Route =

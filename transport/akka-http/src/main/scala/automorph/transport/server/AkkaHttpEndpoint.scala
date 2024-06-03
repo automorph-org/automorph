@@ -10,7 +10,7 @@ import automorph.spi.{EffectSystem, RequestHandler, ServerTransport}
 import automorph.transport.HttpContext.headerRpcNodeId
 import automorph.transport.HttpRequestHandler.{RequestMetadata, ResponseMetadata}
 import automorph.transport.server.AkkaHttpEndpoint.Context
-import automorph.transport.{HighHttpRequestHandler, HttpContext, HttpMethod, HttpRequestHandler, Protocol}
+import automorph.transport.{SimpleHttpRequestHandler, HttpContext, HttpMethod, HttpRequestHandler, Protocol}
 import automorph.util.Extensions.{EffectOps, ThrowableOps}
 import scala.annotation.unused
 import scala.concurrent.duration.{DurationInt, FiniteDuration}
@@ -66,7 +66,7 @@ final case class AkkaHttpEndpoint[Effect[_]](
       }
     }
   private val httpHandler =
-    HighHttpRequestHandler(receiveRequest, createResponse, Protocol.Http, effectSystem, mapException, handler)
+    SimpleHttpRequestHandler(receiveRequest, createResponse, Protocol.Http, effectSystem, mapException, handler)
   implicit private val system: EffectSystem[Effect] = effectSystem
 
   def adapter: Route =

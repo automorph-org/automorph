@@ -4,7 +4,7 @@ import automorph.spi.{EffectSystem, RequestHandler, ServerTransport}
 import automorph.transport.HttpContext.headerRpcNodeId
 import automorph.transport.HttpRequestHandler.{RequestMetadata, ResponseMetadata}
 import automorph.transport.server.JettyHttpEndpoint.{Context, requestQuery}
-import automorph.transport.{HttpContext, HttpMethod, HttpRequestHandler, LowHttpRequestHandler, Protocol}
+import automorph.transport.{HttpContext, HttpMethod, HttpRequestHandler, CallbackHttpRequestHandler, Protocol}
 import automorph.util.Extensions.{EffectOps, InputStreamOps}
 import jakarta.servlet.AsyncContext
 import jakarta.servlet.http.{HttpServlet, HttpServletRequest, HttpServletResponse}
@@ -50,7 +50,7 @@ final case class JettyHttpEndpoint[Effect[_]](
     }
   }
   private val httpHandler =
-    LowHttpRequestHandler(receiveRequest, sendResponse, Protocol.Http, effectSystem, mapException, handler)
+    CallbackHttpRequestHandler(receiveRequest, sendResponse, Protocol.Http, effectSystem, mapException, handler)
 
   override def adapter: HttpServlet =
     httpServlet

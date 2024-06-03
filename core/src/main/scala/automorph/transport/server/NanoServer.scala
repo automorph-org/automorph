@@ -9,7 +9,7 @@ import automorph.transport.server.NanoHTTPD.{IHTTPSession, Response, newFixedLen
 import automorph.transport.server.NanoServer.{Context, WebSocketListener, WebSocketRequest}
 import automorph.transport.server.NanoWSD.WebSocketFrame.CloseCode
 import automorph.transport.server.NanoWSD.{WebSocket, WebSocketFrame}
-import automorph.transport.{HttpContext, HttpMethod, HttpRequestHandler, LowHttpRequestHandler, Protocol}
+import automorph.transport.{HttpContext, HttpMethod, HttpRequestHandler, CallbackHttpRequestHandler, Protocol}
 import automorph.util.Extensions.{ByteArrayOps, EffectOps}
 import java.io.IOException
 import java.net.URI
@@ -67,9 +67,9 @@ final case class NanoServer[Effect[_]](
   private var handler: RequestHandler[Effect, Context] = RequestHandler.dummy
 
   private var httpHandler =
-    LowHttpRequestHandler(receiveHttpRequest, sendHttpResponse, Protocol.Http, effectSystem, mapException, handler)
+    CallbackHttpRequestHandler(receiveHttpRequest, sendHttpResponse, Protocol.Http, effectSystem, mapException, handler)
 
-  private var webSocketHandler = LowHttpRequestHandler(
+  private var webSocketHandler = CallbackHttpRequestHandler(
     receiveWebSocketRequest,
     sendWebSocketResponse,
     Protocol.WebSocket,
@@ -81,8 +81,8 @@ final case class NanoServer[Effect[_]](
   override def requestHandler(handler: RequestHandler[Effect, Context]): NanoServer[Effect] = {
     this.handler = handler
     httpHandler =
-      LowHttpRequestHandler(receiveHttpRequest, sendHttpResponse, Protocol.Http, effectSystem, mapException, handler)
-    webSocketHandler = LowHttpRequestHandler(
+      CallbackHttpRequestHandler(receiveHttpRequest, sendHttpResponse, Protocol.Http, effectSystem, mapException, handler)
+    webSocketHandler = CallbackHttpRequestHandler(
       receiveWebSocketRequest,
       sendWebSocketResponse,
       Protocol.WebSocket,
@@ -230,7 +230,7 @@ object NanoServer {
     session: IHTTPSession,
     webSocket: Boolean,
     effectSystem: EffectSystem[Effect],
-    handler: LowHttpRequestHandler[Effect, Context, WebSocketRequest, WebSocket],
+    handler: CallbackHttpRequestHandler[Effect, Context, WebSocketRequest, WebSocket],
     logger: Logger,
   ) extends WebSocket(session) {
     private val log = MessageLog(logger, Protocol.WebSocket.name)

@@ -155,6 +155,36 @@ trait EffectSystem[Effect[_]] {
    *   completable effect
    */
   def completable[T]: Effect[Completable[Effect, T]]
+
+  /**
+   * Retries an effect specific number of times if it failed.
+   *
+   * If the effect failed after all the retries the resulting effect also fails.
+   *
+   * @param effect
+   *   effectful value
+   * @param retries
+   *   maximum number of retries
+   * @tparam T
+   *   effectful value type
+   * @return
+   *   retried effect
+   */
+  def retry[T](effect: => Effect[T], retries: Int): Effect[T] = {
+    require(retries >= 0, s"Invalid number of retries: $retries")
+    attempt(effect, retries)
+  }
+
+  private def attempt[T](effect: => Effect[T], remaining: Int): Effect[T] = {
+    flatFold(effect)(
+      error => if (remaining <= 0) {
+        failed(error)
+      } else {
+        attempt(effect, remaining - 1)
+      },
+      successful,
+    )
+  }
 }
 
 object EffectSystem {

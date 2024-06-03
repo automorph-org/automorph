@@ -4,7 +4,7 @@ import automorph.spi.{EffectSystem, RequestHandler, ServerTransport}
 import automorph.transport.HttpContext.headerRpcNodeId
 import automorph.transport.HttpRequestHandler.{RequestMetadata, ResponseMetadata}
 import automorph.transport.server.TapirHttpEndpoint.{Adapter, Context, MessageFormat, createResponse, pathComponents, pathEndpointInput, receiveRequest}
-import automorph.transport.{HighHttpRequestHandler, HttpContext, HttpMethod, HttpRequestHandler, Protocol}
+import automorph.transport.{SimpleHttpRequestHandler, HttpContext, HttpMethod, HttpRequestHandler, Protocol}
 import automorph.util.Extensions.EffectOps
 import sttp.model.{Header, MediaType, Method, QueryParams, StatusCode}
 import sttp.tapir
@@ -64,7 +64,7 @@ final case class TapirHttpEndpoint[Effect[_]](
   private val allowedMethod = method.map(httpMethod => Method(httpMethod.name))
   private val prefixPaths = pathComponents(pathPrefix)
   private val baseContext = HttpContext[Unit]().url(baseUrl)
-  private val httpHandler = HighHttpRequestHandler(
+  private val httpHandler = SimpleHttpRequestHandler(
     receiveRequest(effectSystem),
     createResponse(effectSystem),
     Protocol.Http,

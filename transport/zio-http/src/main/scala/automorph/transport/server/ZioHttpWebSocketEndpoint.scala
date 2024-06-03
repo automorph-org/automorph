@@ -4,7 +4,7 @@ import automorph.log.Logging
 import automorph.spi.{EffectSystem, RequestHandler, ServerTransport}
 import automorph.transport.HttpRequestHandler.{RequestMetadata, ResponseMetadata}
 import automorph.transport.server.ZioHttpWebSocketEndpoint.Context
-import automorph.transport.{HighHttpRequestHandler, HttpContext, Protocol}
+import automorph.transport.{SimpleHttpRequestHandler, HttpContext, Protocol}
 import zio.http.ChannelEvent.{ExceptionCaught, Read}
 import zio.http.{WebSocketChannel, WebSocketFrame}
 import zio.{Chunk, IO}
@@ -37,7 +37,7 @@ final case class ZioHttpWebSocketEndpoint[Fault](
 ) extends ServerTransport[({ type Effect[A] = IO[Fault, A] })#Effect, Context, WebSocketChannel => IO[Throwable, Any]]
   with Logging {
   private val webSocketHandler =
-    HighHttpRequestHandler(receiveRequest, sendResponse, Protocol.WebSocket, effectSystem, _ => 0, handler)
+    SimpleHttpRequestHandler(receiveRequest, sendResponse, Protocol.WebSocket, effectSystem, _ => 0, handler)
 
   override def adapter: WebSocketChannel => IO[Throwable, Any] =
     channel => handle(channel)

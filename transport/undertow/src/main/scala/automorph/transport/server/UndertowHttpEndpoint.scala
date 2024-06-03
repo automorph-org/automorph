@@ -4,7 +4,7 @@ import automorph.spi.{EffectSystem, RequestHandler, ServerTransport}
 import automorph.transport.HttpContext.headerRpcNodeId
 import automorph.transport.HttpRequestHandler.{RequestMetadata, ResponseMetadata}
 import automorph.transport.server.UndertowHttpEndpoint.{Context, HttpRequest, RequestCallback, requestQuery}
-import automorph.transport.{HttpContext, HttpMethod, HttpRequestHandler, LowHttpRequestHandler, Protocol}
+import automorph.transport.{HttpContext, HttpMethod, HttpRequestHandler, CallbackHttpRequestHandler, Protocol}
 import automorph.util.Extensions.{ByteArrayOps, EffectOps}
 import io.undertow.io.Receiver
 import io.undertow.server.{HttpHandler, HttpServerExchange}
@@ -47,7 +47,7 @@ final case class UndertowHttpEndpoint[Effect[_]](
       exchange.getRequestReceiver.receiveFullBytes(receiverCallback)
   }
   private val httpRequestHandler =
-    LowHttpRequestHandler(receiveRequest, sendResponse, Protocol.Http, effectSystem, mapException, handler)
+    CallbackHttpRequestHandler(receiveRequest, sendResponse, Protocol.Http, effectSystem, mapException, handler)
   private val receiverCallback = new Receiver.FullBytesCallback {
 
     override def handle(exchange: HttpServerExchange, requestBody: Array[Byte]): Unit = {
@@ -133,7 +133,7 @@ object UndertowHttpEndpoint {
 
   final private case class RequestCallback[Effect[_]](
     effectSystem: EffectSystem[Effect],
-    handler: LowHttpRequestHandler[Effect, Context, HttpRequest, HttpServerExchange],
+    handler: CallbackHttpRequestHandler[Effect, Context, HttpRequest, HttpServerExchange],
     exchange: HttpServerExchange,
     requestBody: Array[Byte],
   ) extends Runnable {

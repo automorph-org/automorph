@@ -4,7 +4,7 @@ import automorph.spi.{EffectSystem, RequestHandler, ServerTransport}
 import automorph.transport.HttpContext.headerRpcNodeId
 import automorph.transport.HttpRequestHandler.{RequestMetadata, ResponseMetadata, headerXForwardedFor}
 import automorph.transport.server.ZioHttpEndpoint.Context
-import automorph.transport.{HighHttpRequestHandler, HttpContext, HttpMethod, HttpRequestHandler, Protocol}
+import automorph.transport.{SimpleHttpRequestHandler, HttpContext, HttpMethod, HttpRequestHandler, Protocol}
 import zio.http.{Body, Handler, Header, Headers, MediaType, Request, Response, Status}
 import zio.{Chunk, IO, http}
 import scala.annotation.unused
@@ -44,7 +44,7 @@ final case class ZioHttpEndpoint[Fault](
   )
   private lazy val requestHandler = Handler.fromFunctionZIO(handle)
   private val httpHandler =
-    HighHttpRequestHandler(receiveRequest, createResponse, Protocol.Http, effectSystem, mapException, handler)
+    SimpleHttpRequestHandler(receiveRequest, createResponse, Protocol.Http, effectSystem, mapException, handler)
 
   override def adapter: http.RequestHandler[Any, Response] =
     requestHandler

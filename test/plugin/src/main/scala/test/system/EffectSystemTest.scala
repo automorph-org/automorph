@@ -124,5 +124,22 @@ trait EffectSystemTest[Effect[_]] extends BaseTest {
         run(effect).shouldEqual(Left(error))
       }
     }
+    "Retry" - {
+      "Success" in {
+        var retries = 3
+        val effect = system.retry(
+          {
+            retries -= 1
+            if (retries < 0) system.successful(text) else system.failed(error)
+          },
+          retries,
+        )
+        run(effect).shouldEqual(Right(text))
+      }
+      "Failure" in {
+        val effect = system.retry(system.failed(error), 3)
+        run(effect).shouldEqual(Left(error))
+      }
+    }
   }
 }

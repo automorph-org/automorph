@@ -10,7 +10,7 @@ import automorph.util.Random
 import scala.collection.concurrent.TrieMap
 
 /**
- * Low-level HTTP or WebSocket RPC request handler.
+ * Callback-based HTTP or WebSocket RPC request handler.
  *
  * @constructor
  *   Creates a HTTP or WebSocket RPC request handler.
@@ -35,7 +35,7 @@ import scala.collection.concurrent.TrieMap
  * @tparam Connection
  *   HTTP/WebSocket connection type
  */
-final private[automorph] case class LowHttpRequestHandler[
+final private[automorph] case class CallbackHttpRequestHandler[
   Effect[_],
   Context <: HttpContext[?],
   Request,
@@ -119,32 +119,18 @@ final private[automorph] case class LowHttpRequestHandler[
    */
   def tell(body: Array[Byte], context: Context): Effect[Unit] =
     context.peerId.map { peerId =>
-      // FIXME - implement retries
       val statusCode = context.statusCode.getOrElse(handler.statusOk)
       val contentType = handler.requestHandler.mediaType
       val requestMetadata = RequestMetadata(context, protocol, "", None, peerId)
-      connectionPool.using(
-        peerId,
-        (),
-        connection =>
-          handler.sendRpcResponse(body, contentType, statusCode, Some(context), connection, requestMetadata),
+      system.retry(
+        connectionPool.using(
+          peerId,
+          (),
+          connection =>
+            handler.sendRpcResponse(body, contentType, statusCode, Some(context), connection, requestMetadata),
+        ),
+        requestRetries,
       )
-//      val sendResponseAttempts = LazyList.iterate(
-//        system.successful[Option[Throwable]](None) -> requestRetries
-//      ) { case (attempt, retries) =>
-//        attempt.flatMap(_ =>
-//          connectionPool.using(
-//            peerId,
-//            (),
-//            connection =>
-//              handler.sendRpcResponse(body, contentType, statusCode, Some(context), connection, requestMetadata).fold(
-//                error => Some(error),
-//                _ => None,
-//              ),
-//          )
-//        )
-//      }
-//      sendResponseAttempts.tail.dropWhile()
     }.getOrElse {
       system.failed(new IllegalArgumentException("Peer identifier not found in call context"))
     }
