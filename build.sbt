@@ -333,8 +333,7 @@ val commonScalac3Options = commonScalacOptions ++ Seq(
   "120",
 )
 val silencedScala2Warnings = Seq(
-  "cat=other-non-cooperative-equals",
-  "msg=modifiers are assumed",
+//  "cat=other-non-cooperative-equals",
   "msg=copied from the case class constructor",
   "msg=parameter arguments in method main is never used",
   "msg=Unused import",
