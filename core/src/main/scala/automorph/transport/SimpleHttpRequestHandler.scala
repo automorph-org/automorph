@@ -63,7 +63,7 @@ final private[automorph] case class SimpleHttpRequestHandler[
    */
   def processRequest(request: Request, connection: Connection): Effect[Response] =
     // Receive the request
-    handler.receiveRpcRequest(request).flatMap { case (requestMetadata, requestBody) =>
+    handler.receiveRpcRequest(request).flatMap { case (requestBody, requestMetadata) =>
       // Process the request
       handler.processRequest(requestBody, requestMetadata, connection)
     }

@@ -75,12 +75,12 @@ final private[automorph] case class HttpRequestHandler[
       },
     )
 
-  def receiveRpcRequest(request: Request): Effect[(RequestMetadata[Context], Array[Byte])] = {
+  def receiveRpcRequest(request: Request): Effect[(Array[Byte], RequestMetadata[Context])] = {
     log.receivingRequest(Map.empty, protocol.name)
     Try(receiveRequest(request)).map { case (requestMetadata, retrieveBody) =>
       retrieveBody.map { requestBody =>
         log.receivedRequest(requestMetadata.properties, protocol.name)
-        (requestMetadata, requestBody)
+        requestBody -> requestMetadata
       }
     }.onError(log.failedReceiveRequest(_, Map.empty, protocol.name)).get
   }
@@ -113,7 +113,7 @@ final private[automorph] case class HttpRequestHandler[
     )
   }
 
-  private def sendErrorResponse(
+  def sendErrorResponse(
     error: Throwable,
     connection: Connection,
     requestMetadata: RequestMetadata[Context],

@@ -29,6 +29,9 @@ final private[automorph] case class MessageLog(logger: Logger, defaultProtocol: 
   def receivedRequest(requestProperties: => Map[String, String], protocol: String = defaultProtocol): Unit =
     logger.debug(s"Received $protocol request", requestProperties)
 
+  def receivedConnection(requestProperties: => Map[String, String], protocol: String = defaultProtocol): Unit =
+    logger.debug(s"Received $protocol connection", requestProperties)
+
   def failedReceiveRequest(
     error: Throwable,
     requestProperties: => Map[String, String],

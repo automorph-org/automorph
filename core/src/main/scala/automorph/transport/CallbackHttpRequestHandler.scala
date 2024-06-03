@@ -1,6 +1,6 @@
 package automorph.transport
 
-import automorph.log.Logging
+import automorph.log.{Logging, MessageLog}
 import automorph.spi.EffectSystem.Completable
 import automorph.spi.{EffectSystem, RequestHandler}
 import automorph.transport.HttpContext.{headerRpcCallId, headerRpcListen}
@@ -47,9 +47,10 @@ final private[automorph] case class CallbackHttpRequestHandler[
   effectSystem: EffectSystem[Effect],
   mapException: Throwable => Int,
   requestHandler: RequestHandler[Effect, Context],
-  retainConnections: Boolean = false,
+  retainFaultyConnections: Boolean = false,
   requestRetries: Int = 1,
 ) extends Logging {
+  private val log = MessageLog(logger, protocol.name)
   private val handler =
     HttpRequestHandler(receiveRequest, sendResponse, protocol, effectSystem, mapException, requestHandler)
   private val connectionPool =
@@ -59,7 +60,7 @@ final private[automorph] case class CallbackHttpRequestHandler[
       protocol,
       effectSystem,
       None,
-      retain = retainConnections,
+      retain = retainFaultyConnections,
     )
   private val expectedResponses = TrieMap[String, Completable[Effect, (Array[Byte], Context)]]()
   implicit private val system: EffectSystem[Effect] = effectSystem
@@ -75,13 +76,19 @@ final private[automorph] case class CallbackHttpRequestHandler[
    *   HTTP or WebSocket response
    */
   def processRequest(request: Request, connection: Connection): Effect[Unit] =
-    handler.receiveRpcRequest(request).flatMap { case (requestMetadata, requestBody) =>
+    handler.receiveRpcRequest(request).flatMap { case (requestBody, requestMetadata) =>
       if (requestMetadata.context.header(headerRpcListen).exists(_.toLowerCase == valueRpcListen)) {
-        // Register long polling connection
+        // Register client connection
+        log.receivedConnection(requestMetadata.properties, requestMetadata.protocol.name)
         connectionPool.add(requestMetadata.client, connection)
       } else {
-        // Process the request
-        handler.processRequest(requestBody, requestMetadata, connection)
+        requestMetadata.context.header(headerRpcCallId).map { callId =>
+          // Return the received response
+          processResponse(callId, requestBody, requestMetadata, connection)
+        }.getOrElse {
+          // Process the request
+          handler.processRequest(requestBody, requestMetadata, connection)
+        }
       }
     }
 
@@ -134,4 +141,29 @@ final private[automorph] case class CallbackHttpRequestHandler[
     }.getOrElse {
       system.failed(new IllegalArgumentException("Peer identifier not found in call context"))
     }
+
+  private def processResponse(
+    callId: String,
+    requestBody: Array[Byte],
+    requestMetadata: RequestMetadata[Context],
+    connection: Connection,
+  ): Effect[Unit] = {
+    log.receivedResponse(requestMetadata.properties, requestMetadata.protocol.name)
+    expectedResponses.get(callId).map { expectedResponse =>
+      expectedResponses.remove(callId)
+      expectedResponse.succeed(requestBody -> requestMetadata.context)
+      val contentType = handler.requestHandler.mediaType
+      handler.sendRpcResponse(Array.empty, contentType, handler.statusOk, None, connection, requestMetadata).flatFold(
+        { error =>
+          // FIXME - implement faulty connection removal
+//          if (!retainConnections) connectionPool.remove(null, null)
+          system.failed[Unit](error)
+        },
+        system.successful,
+      )
+    }.getOrElse {
+      val error = new IllegalStateException(s"Invalid call identifier: $callId")
+      handler.sendErrorResponse(error, connection, requestMetadata)
+    }
+  }
 }
