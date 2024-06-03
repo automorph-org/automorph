@@ -478,7 +478,7 @@ def insertDocExampleSources(
       val source = caption.map(_ => lines.tail).getOrElse(lines).flatMap {
         case line if line.startsWith("//> ") =>
           Seq(line
-            .replaceFirst("//> using dep ", "  \"")
+            .replaceFirst("//> using ", "  \"")
             .replaceFirst("::", "\" %% \"")
             .replaceAll(":", "\" % \"")
             .replaceFirst("@AUTOMORPH_VERSION@", releaseVersion)
