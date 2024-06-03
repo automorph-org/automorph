@@ -321,13 +321,12 @@ val commonScalacOptions = Seq(
   "11",
   "-encoding",
   "utf8",
+  "-Wvalue-discard",
   "-Werror",
 )
 val commonScalac3Options = commonScalacOptions ++ Seq(
-  //  "-explain",
   "-source",
   "3.3",
-  "-language:adhocExtensions",
   "-pagewidth",
   "120",
 )
@@ -344,7 +343,6 @@ val compileScalac2Options = commonScalacOptions ++ Seq(
   "-Wdead-code",
   "-Wextra-implicit",
   "-Wnumeric-widen",
-  "-Wunused:imports,patvars,privates,locals,params",
   "-Vfree-terms",
   "-Vimplicits",
   "-Ybackend-parallelism",
@@ -352,8 +350,6 @@ val compileScalac2Options = commonScalacOptions ++ Seq(
 )
 val compileScalac3Options = commonScalac3Options ++ Seq(
   "-indent",
-  "-Wunused:all",
-  "-Wvalue-discard",
   "-Xcheck-macros",
 )
 val docScalac3Options = commonScalac3Options ++ Seq(
