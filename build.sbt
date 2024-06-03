@@ -314,7 +314,6 @@ def testJavaOptions: Seq[String] =
 
 // Compile
 val commonScalacOptions = Seq(
-  "-language:higherKinds",
   "-feature",
   "-deprecation",
   "-unchecked",
