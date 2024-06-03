@@ -1,4 +1,5 @@
 // Call a remote API while supplying invoked method arguments by position instead of by name.
+//> using scala @SCALA_VERSION@
 //> using dep org.automorph::automorph-default:@AUTOMORPH_VERSION@
 //> using dep ch.qos.logback:logback-classic:@LOGBACK_VERSION@
 package examples.special

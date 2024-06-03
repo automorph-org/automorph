@@ -1,4 +1,5 @@
 // Implement, serve and call a remote API using a selected effect system.
+//> using scala @SCALA_VERSION@
 //> using dep org.automorph::automorph-default:@AUTOMORPH_VERSION@
 //> using dep org.automorph::automorph-zio:@AUTOMORPH_VERSION@
 //> using dep com.softwaremill.sttp.client3::async-http-client-backend-zio:3.3.9

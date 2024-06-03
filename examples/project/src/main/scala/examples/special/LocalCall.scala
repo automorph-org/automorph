@@ -30,10 +30,10 @@ private[examples] object LocalCall {
     val server = Default.rpcServer(9000, "/api").service(service)
 
     // Create context with default request metadata of the type defined by the RPC server
-    val requestContext: Default.ServerContext = HttpContext()
+    val context: Default.ServerContext = HttpContext()
 
     // Create local client transport which passes requests directly to RPC server request handler
-    val clientTransport = LocalClient(Default.effectSystem, requestContext, server)
+    val clientTransport = LocalClient(Default.effectSystem, context, server)
 
     Await.result(
       for {

@@ -1,4 +1,5 @@
 // Process incoming RPC requests into remote API calls from any custom server.
+//> using scala @SCALA_VERSION@
 //> using dep org.automorph::automorph-default:@AUTOMORPH_VERSION@
 //> using dep ch.qos.logback:logback-classic:@LOGBACK_VERSION@
 package examples.integration

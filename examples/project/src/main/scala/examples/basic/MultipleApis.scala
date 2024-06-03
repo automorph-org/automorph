@@ -1,4 +1,5 @@
 // Serve multiple API implementations and call them remotely using JSON-RPC over HTTP(S).
+//> using scala @SCALA_VERSION@
 //> using dep org.automorph::automorph-default:@AUTOMORPH_VERSION@
 //> using dep ch.qos.logback:logback-classic:@LOGBACK_VERSION@
 package examples.basic

@@ -1,29 +1,20 @@
 // Serve an API implementation and call it remotely using JSON-RPC over HTTP(S).
-//> using scala 3.3.1
-//> using dep org.automorph::automorph-default:0.2.5
-//> using dep ch.qos.logback:logback-classic:1.4.14
-package examples
+//> using scala @SCALA_VERSION@
+//> using dep org.automorph::automorph-default:@AUTOMORPH_VERSION@
+//> using dep ch.qos.logback:logback-classic:@LOGBACK_VERSION@
+package examples.web
 
-//import automorph.Default
-//import java.net.URI
+import automorph.Default
+import java.net.URI
+import scala.concurrent.ExecutionContext.Implicits.global
+import scala.concurrent.duration.Duration
+import scala.concurrent.{Await, Future}
+import scala.sys.process.Process
 
-//import scala.concurrent.ExecutionContext.Implicits.global
-//import scala.concurrent.duration.Duration
-//import scala.concurrent.{Await, Future}
-
-private[examples] object BrowserClient {
+private[examples] object JavaScriptClient {
 
   @scala.annotation.nowarn
   def main(arguments: Array[String]): Unit = {
-
-    import scala.sys.process.*
-
-    val contents = Process("node examples/project/src/main/resources/examples/browser_client.js").! // Run ls and capture output
-    println(contents)
-
-
-    // Exit the Rhino context
-/*
 
     // Define a remote API
     trait Api {
@@ -53,24 +44,17 @@ private[examples] object BrowserClient {
       // Start the JSON-RPC server
       server <- apiServer.init()
 
-      // Initialize the JSON-RPC client
-      client <- inactiveClient.init()
-
       // Call the remote API function via the local proxy
       result <- remoteApi.hello(1)
       _ = println(result)
 
-      // Call the remote API function dynamically not using the API trait
-      result <- client.call[String]("hello")("n" -> 1)
+      // Call the remote API function dynamically using a JavaScript client
+      result <- Future(Process("node examples/project/src/main/resources/examples/JavaScriptClient.js").!!)
       _ = println(result)
-
-      // Close the JSON-RPC client
-      _ <- client.close()
 
       // Stop the JSON-RPC server
       _ <- server.close()
     } yield ()
     Await.result(run, Duration.Inf)
-*/
   }
 }

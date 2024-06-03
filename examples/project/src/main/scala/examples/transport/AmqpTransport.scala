@@ -1,4 +1,5 @@
 // Serve a and call a remote API using JSON-RPC over AMQP.
+//> using scala @SCALA_VERSION@
 //> using dep org.automorph::automorph-default:@AUTOMORPH_VERSION@
 //> using dep org.automorph::automorph-rabbitmq:@AUTOMORPH_VERSION@
 //> using dep ch.qos.logback:logback-classic:@LOGBACK_VERSION@

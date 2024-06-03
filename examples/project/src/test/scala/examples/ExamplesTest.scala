@@ -7,6 +7,7 @@ import examples.customization.{ClientFunctionNames, DataTypeSerialization, Serve
 import examples.errorhandling.{ClientErrorMapping, HttpStatusCode, ServerErrorMapping}
 import examples.integration.{CustomServer, EffectSystem, MessageCodec, RpcProtocol}
 import examples.transport.{AmqpTransport, ClientTransport, EndpointTransport, ServerTransport, WebSocketTransport}
+import examples.web.JavaScriptClient
 import test.api.TestLevel
 import test.base.{BaseTest, Mutex}
 
@@ -101,6 +102,15 @@ class ExamplesTest extends BaseTest with Mutex {
           LocalCall,
           OneWayMessage,
           PositionalArguments,
+        ).foreach { instance =>
+          testName(instance) in {
+            runTest(instance)
+          }
+        }
+      }
+      "Web" - {
+        Seq[Any](
+          JavaScriptClient,
         ).foreach { instance =>
           testName(instance) in {
             runTest(instance)

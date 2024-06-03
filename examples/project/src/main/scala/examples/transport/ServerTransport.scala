@@ -1,4 +1,5 @@
 // Serve a remote API over JSON-RPC from a selected standalone server transport layer.
+//> using scala @SCALA_VERSION@
 //> using dep org.automorph::automorph-default:@AUTOMORPH_VERSION@
 //> using dep org.automorph::automorph-vertx:@AUTOMORPH_VERSION@
 //> using dep ch.qos.logback:logback-classic:@LOGBACK_VERSION@

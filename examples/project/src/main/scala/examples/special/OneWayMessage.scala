@@ -1,4 +1,5 @@
 // Serve a remote API and send a one-way message to it without expecting a response.
+//> using scala @SCALA_VERSION@
 //> using dep org.automorph::automorph-default:@AUTOMORPH_VERSION@
 //> using dep ch.qos.logback:logback-classic:@LOGBACK_VERSION@
 package examples.special

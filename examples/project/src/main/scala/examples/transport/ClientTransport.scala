@@ -1,4 +1,5 @@
 // Call a remote API using JSON-RPC over a selected client transport layer.
+//> using scala @SCALA_VERSION@
 //> using dep org.automorph::automorph-default:@AUTOMORPH_VERSION@
 //> using dep org.automorph::automorph-sttp:@AUTOMORPH_VERSION@
 //> using dep com.softwaremill.sttp.client3::async-http-client-backend-future:@STTP_VERSION@
