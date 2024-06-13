@@ -935,7 +935,7 @@ public abstract class NanoHTTPD {
 
                 this.cookies = new CookieHandler(this.headers);
 
-                String connection = this.headers.get("connection");
+                String connection = this.headers.get("Connection");
                 boolean keepAlive = "HTTP/1.1".equals(protocolVersion) && (connection == null || !connection.matches("(?i).*close.*"));
 
                 // Ok, now do the serve()
@@ -1553,9 +1553,9 @@ public abstract class NanoHTTPD {
          */
         public void closeConnection(boolean close) {
             if (close)
-                this.header.put("connection", "close");
+                this.header.put("Connection", "close");
             else
-                this.header.remove("connection");
+                this.header.remove("Connection");
         }
 
         /**
@@ -1563,7 +1563,7 @@ public abstract class NanoHTTPD {
          *         Response has been sent.
          */
         public boolean isCloseConnection() {
-            return "close".equals(getHeader("connection"));
+            return "close".equals(getHeader("Connection"));
         }
 
         public InputStream getData() {
@@ -1616,10 +1616,10 @@ public abstract class NanoHTTPD {
                 for (Entry<String, String> entry : this.header.entrySet()) {
                     printHeader(pw, entry.getKey(), entry.getValue());
                 }
-                if (getHeader("connection") == null) {
+                if (getHeader("Connection") == null) {
                     printHeader(pw, "Connection", (this.keepAlive ? "keep-alive" : "close"));
                 }
-                if (getHeader("content-length") != null) {
+                if (getHeader("Content-Length") != null) {
                     encodeAsGzip = false;
                 }
                 if (encodeAsGzip) {
