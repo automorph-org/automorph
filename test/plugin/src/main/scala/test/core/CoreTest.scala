@@ -75,7 +75,7 @@ trait CoreTest extends BaseTest {
         }
 
         // Complex tests
-        if (basic || TestLevel.complex) {
+        if ((basic && !TestLevel.simple) || TestLevel.complex) {
           "Static" - {
             "Simple API" - {
               val apis = (fixture.apis.simpleApi, simpleApi)
