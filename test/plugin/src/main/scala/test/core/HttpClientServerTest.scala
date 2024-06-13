@@ -6,7 +6,7 @@ import automorph.protocol.WebRpcProtocol
 import automorph.transport.HttpContext
 import io.circe.generic.auto.*
 import io.circe.{Decoder, Encoder}
-import test.api.Enum
+import test.api.{Enum, TestLevel}
 import test.core.Fixtures.{Apis, Fixture, Functions}
 
 trait HttpClientServerTest extends ClientServerTest {
@@ -14,7 +14,7 @@ trait HttpClientServerTest extends ClientServerTest {
 
   override def fixtures: Seq[TestFixture] = {
     implicit val context: Context = arbitraryContext.arbitrary.sample.get
-    Seq(circeWebRpcJsonFixture()) ++ super.fixtures
+    Option.when(!TestLevel.simple)(circeWebRpcJsonFixture()).toSeq ++ super.fixtures
   }
 
   private def circeWebRpcJsonFixture()(implicit context: Context): TestFixture = {
