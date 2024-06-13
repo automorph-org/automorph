@@ -161,7 +161,11 @@ final case class HttpClient[Effect[_]](
     }
   }
 
-  private def createRequest(requestBody: Array[Byte], mediaType: String, context: Context): (Request, URI, Protocol) = {
+  private def createRequest(
+    requestBody: Array[Byte],
+    contentType: String,
+    context: Context,
+  ): (Request, URI, Protocol) = {
     val baseUrl = context.transportContext
       .flatMap(transport => Try(transport.request.build).toOption)
       .map(_.uri).getOrElse(url)
@@ -169,11 +173,11 @@ final case class HttpClient[Effect[_]](
     requestUrl.getScheme.toLowerCase match {
       case scheme if scheme.startsWith(webSocketSchemePrefix) =>
         // Create WebSocket request
-        val webSocketBuilder = createWebSocketBuilder(context)
+        val webSocketBuilder = createWebSocketBuilder(context, contentType)
         (Right((webSocketBuilder, requestBody)), requestUrl, Protocol.WebSocket)
       case _ =>
         // Create HTTP request
-        val httpRequest = createHttpRequest(requestBody, requestUrl, mediaType, context)
+        val httpRequest = createHttpRequest(requestBody, requestUrl, contentType, context)
         (Left(httpRequest), httpRequest.uri, Protocol.Http)
     }
   }
@@ -208,14 +212,14 @@ final case class HttpClient[Effect[_]](
       .getOrElse(headersBuilder).build
   }
 
-  private def createWebSocketBuilder(httpContext: Context): WebSocket.Builder = {
+  private def createWebSocketBuilder(httpContext: Context, contentType: String): WebSocket.Builder = {
     // Headers
     val transportBuilder = httpContext.transportContext.map(_.request).getOrElse(HttpRequest.newBuilder)
     val headers = transportBuilder
       .uri(httpEmptyUrl).build.headers.map.asScala.toSeq
       .flatMap { case (name, values) =>
         values.asScala.map(name -> _)
-      } ++ httpContext.headers
+      } ++ httpContext.headers ++ Seq(contentTypeHeader -> contentType, acceptHeader -> contentType)
     val headersBuilder = LazyList.iterate(httpClient.newWebSocketBuilder -> headers) { case (builder, headers) =>
       headers
         .headOption.map { case (name, value) => builder.header(name, value) -> headers.tail }

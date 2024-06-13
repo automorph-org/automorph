@@ -89,13 +89,13 @@ final case class UrlClient[Effect[_]](
   private def send(
     request: Array[Byte],
     requestId: String,
-    mediaType: String,
+    contentType: String,
     context: Context,
   ): Effect[HttpURLConnection] =
     effectSystem.evaluate {
       // Create the request
       val connection = openConnection(context)
-      val httpMethod = setConnectionProperties(connection, request, mediaType, context)
+      val httpMethod = setConnectionProperties(connection, request, contentType, context)
 
       // Log the request
       lazy val requestProperties = ListMap(
@@ -126,7 +126,7 @@ final case class UrlClient[Effect[_]](
   private def setConnectionProperties(
     connection: HttpURLConnection,
     requestBody: Array[Byte],
-    mediaType: String,
+    contentType: String,
     context: Context,
   ): String = {
     // Method
@@ -147,8 +147,8 @@ final case class UrlClient[Effect[_]](
     val headers = transportHeaders ++ context.headers
     headers.foreach { case (name, value) => connection.setRequestProperty(name, value) }
     connection.setRequestProperty(contentLengthHeader, requestBody.length.toString)
-    connection.setRequestProperty(contentTypeHeader, mediaType)
-    connection.setRequestProperty(acceptHeader, mediaType)
+    connection.setRequestProperty(contentTypeHeader, contentType)
+    connection.setRequestProperty(acceptHeader, contentType)
 
     // Timeout & follow redirects
     connection.setConnectTimeout(

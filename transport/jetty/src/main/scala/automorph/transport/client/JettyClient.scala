@@ -196,7 +196,7 @@ final case class JettyClient[Effect[_]](
 
   private def createRequest(
     requestBody: Array[Byte],
-    mediaType: String,
+    contentType: String,
     context: Context,
   ): (GenericRequest, URI, Protocol) = {
     val baseUrl = context.transportContext.map(_.request.getURI).getOrElse(url)
@@ -208,7 +208,7 @@ final case class JettyClient[Effect[_]](
         (Right((upgradeRequest, requestBody)), requestUrl, Protocol.WebSocket)
       case _ =>
         // Create HTTP request
-        val httpRequest = createHttpRequest(requestBody, requestUrl, mediaType, context)
+        val httpRequest = createHttpRequest(requestBody, requestUrl, contentType, context)
         (Left(httpRequest), httpRequest.getURI, Protocol.Http)
     }
   }
@@ -216,7 +216,7 @@ final case class JettyClient[Effect[_]](
   private def createHttpRequest(
     requestBody: Array[Byte],
     requestUrl: URI,
-    mediaType: String,
+    contentType: String,
     httpContext: Context,
   ): Request = {
     // URL, method & body
@@ -231,8 +231,8 @@ final case class JettyClient[Effect[_]](
     // Headers
     val headersRequest = bodyRequest.headers { httpFields =>
       httpContext.headers.foreach { case (name, value) => httpFields.add(name, value) }
-      httpFields.put(HttpHeader.CONTENT_TYPE, mediaType)
-      httpFields.put(HttpHeader.ACCEPT, mediaType)
+      httpFields.put(HttpHeader.CONTENT_TYPE, contentType)
+      httpFields.put(HttpHeader.ACCEPT, contentType)
       ()
     }
 
@@ -245,13 +245,18 @@ final case class JettyClient[Effect[_]](
       .getOrElse(timeoutRequest)
   }
 
-  private def createWebSocketRequest(httpContext: Context, requestUrl: URI): ClientUpgradeRequest = {
+  private def createWebSocketRequest(
+    httpContext: Context,
+    requestUrl: URI,
+    contentType: String,
+  ): ClientUpgradeRequest = {
     // Headers
     val transportRequest = httpContext
       .transportContext.map(_.request)
       .getOrElse(httpClient.newRequest(requestUrl))
     val transportHeaders = transportRequest.getHeaders.asScala.map(field => field.getName -> field.getValue)
     val headers = transportHeaders ++ httpContext.headers
+      ++ Seq(HttpHeader.CONTENT_TYPE -> contentType, HttpHeader.CONTENT_TYPE -> contentType)
     val request = new ClientUpgradeRequest
     headers.toSeq.groupBy(_._1).view.mapValues(_.map(_._2)).toSeq.foreach { case (name, values) =>
       request.setHeader(name, values.asJava)
