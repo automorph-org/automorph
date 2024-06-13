@@ -141,6 +141,7 @@ final private[automorph] case class ClientServerHttpHandler[
       system.failed(InvalidArguments("Peer identifier not found in the call context"))
     }
 
+  import scala.annotation.nowarn
   private def processRpcResponse(
     callId: String,
     body: Array[Byte],
