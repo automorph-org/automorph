@@ -174,7 +174,7 @@ final case class HttpClient[Effect[_]](
       case _ =>
         // Create HTTP request
         val httpRequest = createHttpRequest(requestBody, requestUrl, mediaType, context)
-        (Left(httpRequest), httpRequest.uri, Protocol.WebSocket)
+        (Left(httpRequest), httpRequest.uri, Protocol.Http)
     }
   }
 
