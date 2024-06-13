@@ -77,22 +77,23 @@ final private[automorph] case class ClientServerHttpHandler[
    */
   def processRequest(request: Request, connection: Connection): Effect[Unit] = {
     handler.retrieveRequest(request).flatMap { case (requestBody, requestMetadata) =>
-      val context = requestMetadata.context
-      context.header(headerRpcListen).filter(_.toLowerCase == valueRpcListen).flatMap(_ => context.peer).map { peer =>
-        // Register client connection
+      handler.handleRequest(requestBody, requestMetadata, connection)
+//      val context = requestMetadata.context
+//      context.header(headerRpcListen).filter(_.toLowerCase == valueRpcListen).flatMap(_ => context.peer).map { peer =>
+//        // Register client connection
 //        log.receivedConnection(requestMetadata.properties, requestMetadata.protocol.name)
 //        connectionPool.add(peer, connection)
-        handler.handleRequest(requestBody, requestMetadata, connection)
-      }.getOrElse {
-        context.header(headerRpcCallId).map { callId =>
-          // Return the received response
-          handler.handleRequest(requestBody, requestMetadata, connection)
+//        handler.handleRequest(requestBody, requestMetadata, connection)
+//      }.getOrElse {
+//        context.header(headerRpcCallId).map { callId =>
+//          // Return the received response
+//          handler.handleRequest(requestBody, requestMetadata, connection)
 //          processRpcResponse(callId, requestBody, requestMetadata, connection)
-        }.getOrElse {
-          // Process the request
-          handler.handleRequest(requestBody, requestMetadata, connection)
-        }
-      }
+//        }.getOrElse {
+//          // Process the request
+//          handler.handleRequest(requestBody, requestMetadata, connection)
+//        }
+//      }
     }
   }
 
