@@ -212,7 +212,6 @@ final case class NanoServer[Effect[_]](
     system.evaluate(channel.send(body))
 
   private def getRequestContext(session: IHTTPSession, peerId: String): Context = {
-    println(s"HEADERS: ${session.getHeaders.asScala.toSeq}")
     val http = HttpContext(
       transportContext = Some(session),
       method = Some(HttpMethod.valueOf(session.getMethod.name)),
