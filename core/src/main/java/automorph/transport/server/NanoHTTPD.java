@@ -701,7 +701,7 @@ public abstract class NanoHTTPD {
                 while (line != null && !line.trim().isEmpty()) {
                     int p = line.indexOf(':');
                     if (p >= 0) {
-                        headers.put(line.substring(0, p).trim().toLowerCase(Locale.US), line.substring(p + 1).trim());
+                        headers.put(line.substring(0, p).trim(), line.substring(p + 1).trim());
                     }
                     line = in.readLine();
                 }
@@ -922,8 +922,8 @@ public abstract class NanoHTTPD {
                 decodeHeader(hin, pre, this.parms, this.headers);
 
                 if (null != this.remoteIp) {
-                    this.headers.put("remote-addr", this.remoteIp);
-                    this.headers.put("http-client-ip", this.remoteIp);
+                    this.headers.put("Remote-Addr", this.remoteIp);
+                    this.headers.put("HTTP-Client-IP", this.remoteIp);
                 }
 
                 this.method = Method.lookup(pre.get("method"));
