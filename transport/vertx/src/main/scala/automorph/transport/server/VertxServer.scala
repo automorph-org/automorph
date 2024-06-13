@@ -1,7 +1,7 @@
 package automorph.transport.server
 
 import automorph.log.Logging
-import automorph.spi.{EffectSystem, RequestHandler, ServerTransport}
+import automorph.spi.{EffectSystem, RpcHandler, ServerTransport}
 import automorph.transport.server.VertxServer.Context
 import automorph.transport.{HttpContext, HttpMethod, Protocol}
 import automorph.transport.websocket.endpoint.VertxWebSocketEndpoint
@@ -56,7 +56,7 @@ final case class VertxServer[Effect[_]](
   mapException: Throwable => Int = HttpContext.toStatusCode,
   vertxOptions: VertxOptions = VertxServer.vertxOptions,
   httpServerOptions: HttpServerOptions = new HttpServerOptions,
-  handler: RequestHandler[Effect, Context] = RequestHandler.dummy[Effect, Context],
+  handler: RpcHandler[Effect, Context] = RpcHandler.dummy[Effect, Context],
 ) extends ServerTransport[Effect, Context, Unit] with Logging {
 
   private lazy val httpServer = createServer()
@@ -90,7 +90,7 @@ final case class VertxServer[Effect[_]](
       ()
     })
 
-  override def requestHandler(handler: RequestHandler[Effect, Context]): VertxServer[Effect] =
+  override def requestHandler(handler: RpcHandler[Effect, Context]): VertxServer[Effect] =
     copy(handler = handler)
 
   private def createServer(): HttpServer = {

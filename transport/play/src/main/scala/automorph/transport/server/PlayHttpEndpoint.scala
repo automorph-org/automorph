@@ -1,10 +1,10 @@
 package automorph.transport.server
 
-import automorph.spi.{EffectSystem, RequestHandler, ServerTransport}
+import automorph.spi.{EffectSystem, RpcHandler, ServerTransport}
 import automorph.transport.HttpContext.headerRpcNodeId
-import automorph.transport.HttpRequestHandler.{RequestMetadata, ResponseMetadata}
+import automorph.transport.ServerHttpHandler.HttpMetadata
 import automorph.transport.server.PlayHttpEndpoint.{Context, headerXForwardedFor}
-import automorph.transport.{SimpleHttpRequestHandler, HttpContext, HttpMethod, HttpRequestHandler, Protocol}
+import automorph.transport.{HttpContext, HttpMethod, ServerHttpHandler, Protocol}
 import automorph.util.Extensions.EffectOps
 import org.apache.pekko.stream.Materializer
 import org.apache.pekko.util.ByteString
@@ -44,7 +44,7 @@ import scala.concurrent.{ExecutionContext, Future, Promise}
 final case class PlayHttpEndpoint[Effect[_]](
   effectSystem: EffectSystem[Effect],
   mapException: Throwable => Int = HttpContext.toStatusCode,
-  handler: RequestHandler[Effect, Context] = RequestHandler.dummy[Effect, Context],
+  handler: RpcHandler[Effect, Context] = RpcHandler.dummy[Effect, Context],
 )(implicit val executionContext: ExecutionContext, val materializer: Materializer)
   extends ServerTransport[Effect, Context, Action[ByteString]] {
 
@@ -63,7 +63,7 @@ final case class PlayHttpEndpoint[Effect[_]](
   }
   private val suppliedExecutionContext = executionContext
   private val httpHandler =
-    SimpleHttpRequestHandler(receiveRequest, createResponse, Protocol.Http, effectSystem, mapException, handler)
+    ServerHttpHandler(receiveRequest, createResponse, Protocol.Http, effectSystem, mapException, handler)
   implicit private val system: EffectSystem[Effect] = effectSystem
 
   override def adapter: Action[ByteString] =
@@ -75,23 +75,26 @@ final case class PlayHttpEndpoint[Effect[_]](
   override def close(): Effect[Unit] =
     effectSystem.successful {}
 
-  override def requestHandler(handler: RequestHandler[Effect, Context]): PlayHttpEndpoint[Effect] =
+  override def requestHandler(handler: RpcHandler[Effect, Context]): PlayHttpEndpoint[Effect] =
     copy(handler = handler)
 
-  private def receiveRequest(request: Request[ByteString]): (RequestMetadata[Context], Effect[Array[Byte]]) = {
-    val requestMetadata = RequestMetadata(
+  private def receiveRequest(request: Request[ByteString]): (Effect[Array[Byte]], HttpMetadata[Context]) = {
+    val requestMetadata = HttpMetadata(
       getRequestContext(request),
       httpHandler.protocol,
       request.uri,
       Some(request.method),
     )
-    val requestBody = effectSystem.evaluate(request.body.toArray)
-    (requestMetadata, requestBody)
+    effectSystem.evaluate(request.body.toArray) -> requestMetadata
   }
 
-  private def createResponse(responseData: ResponseMetadata[Context], @unused session: Unit): Effect[Result] = {
-    val httpEntity = HttpEntity.Strict.apply(ByteString(responseData.body), Some(handler.mediaType))
-    val result = setResponseContext(Status(responseData.statusCode).sendEntity(httpEntity), responseData.context)
+  private def createResponse(
+    body: Array[Byte],
+    metadata: HttpMetadata[Context],
+    @unused session: Unit,
+  ): Effect[Result] = {
+    val httpEntity = HttpEntity.Strict.apply(ByteString(body), Some(handler.mediaType))
+    val result = setResponseContext(Status(metadata.statusCodeOrOk).sendEntity(httpEntity), metadata.context)
     effectSystem.successful(result)
   }
 
@@ -100,17 +103,17 @@ final case class PlayHttpEndpoint[Effect[_]](
       transportContext = Some(request),
       method = Some(HttpMethod.valueOf(request.method)),
       headers = request.headers.headers,
-      peerId = Some(clientId(request)),
+      peer = Some(client(request)),
     ).url(request.uri)
 
-  private def setResponseContext(response: Result, responseContext: Option[Context]): Result =
-    response.withHeaders(responseContext.toSeq.flatMap(_.headers)*)
+  private def setResponseContext(response: Result, context: Context): Result =
+    response.withHeaders(context.headers*)
 
-  private def clientId(request: Request[ByteString]): String = {
+  private def client(request: Request[ByteString]): String = {
     val address = request.remoteAddress
     val forwardedFor = request.headers.headers.find(_._1 == headerXForwardedFor).map(_._2)
     val nodeId = request.headers.headers.find(_._1 == headerRpcNodeId).map(_._2)
-    HttpRequestHandler.clientId(address, forwardedFor, nodeId)
+    ServerHttpHandler.client(address, forwardedFor, nodeId)
   }
 
   private def runAsFuture[T](value: => Effect[T]): Future[T] = {

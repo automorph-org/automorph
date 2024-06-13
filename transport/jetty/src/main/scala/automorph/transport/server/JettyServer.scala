@@ -1,7 +1,7 @@
 package automorph.transport.server
 
 import automorph.log.Logging
-import automorph.spi.{EffectSystem, RequestHandler, ServerTransport}
+import automorph.spi.{EffectSystem, RpcHandler, ServerTransport}
 import automorph.transport.server.JettyServer.Context
 import automorph.transport.{HttpContext, HttpMethod}
 import jakarta.servlet.http.{HttpServletRequest, HttpServletResponse}
@@ -68,7 +68,7 @@ final case class JettyServer[Effect[_]](
   idleTimeout: FiniteDuration = 30.seconds,
   maxFrameSize: Long = 65536,
   attributes: Map[String, String] = Map.empty,
-  handler: RequestHandler[Effect, Context] = RequestHandler.dummy[Effect, Context],
+  handler: RpcHandler[Effect, Context] = RpcHandler.dummy[Effect, Context],
 ) extends ServerTransport[Effect, Context, Unit] with Logging {
 
   private lazy val server = createServer()
@@ -108,7 +108,7 @@ final case class JettyServer[Effect[_]](
       server.stop()
     })
 
-  override def requestHandler(handler: RequestHandler[Effect, Context]): JettyServer[Effect] =
+  override def requestHandler(handler: RpcHandler[Effect, Context]): JettyServer[Effect] =
     copy(handler = handler)
 
   private def createServer(): Server = {

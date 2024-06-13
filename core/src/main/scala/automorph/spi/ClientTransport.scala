@@ -20,10 +20,10 @@ trait ClientTransport[Effect[_], Context] {
   /**
    * Sends a request to a remote endpoint and retrieves the response.
    *
-   * Request context is used to supply additional information needed to send the request.
+   * Request context is used to supply additional information needed to send the desired request.
    *
    * @param body
-   *   request message body
+   *   request body
    * @param context
    *   request context
    * @param id
@@ -31,17 +31,17 @@ trait ClientTransport[Effect[_], Context] {
    * @param mediaType
    *   message media (MIME) type.
    * @return
-   *   response message and context
+   *   response body and context
    */
   def call(body: Array[Byte], context: Context, id: String, mediaType: String): Effect[(Array[Byte], Context)]
 
   /**
    * Sends a request to a remote endpoint without waiting for a response.
    *
-   * An optional request context is used to supply additional information needed to send the request.
+   * Request context is used to supply additional information needed to send the desired request.
    *
    * @param body
-   *   request message body
+   *   request body
    * @param context
    *   request context
    * @param id

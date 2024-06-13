@@ -47,9 +47,9 @@ final private[automorph] case class ConnectionPool[Effect[_], Endpoint, Connecti
   implicit private val system: EffectSystem[Effect] = effectSystem
 
   /**
-   * Perform an operation using a connection from this connection pool when it becomes available.
+   * Performs an operation using a connection from this connection pool when it becomes available.
    *
-   * @param peerId
+   * @param peer
    *   connected peer identifier
    * @param endpoint
    *   connected endpoint
@@ -60,9 +60,9 @@ final private[automorph] case class ConnectionPool[Effect[_], Endpoint, Connecti
    * @return
    *   connection use result
    */
-  def using[T](peerId: String, endpoint: Endpoint, use: Connection => Effect[T]): Effect[T] =
+  def using[T](peer: String, endpoint: Endpoint, use: Connection => Effect[T]): Effect[T] =
     if (active.get) {
-      val pool = pools(peerId)
+      val pool = pools(peer)
       val action = pool.synchronized {
         pool.unusedConnections.removeHeadOption().map { case (connection, connectionId) =>
           UseConnection[Effect, Endpoint, Connection](connection, connectionId)
@@ -72,7 +72,7 @@ final private[automorph] case class ConnectionPool[Effect[_], Endpoint, Connecti
               pool.managedConnections += 1
               OpenConnection(open)
             case Some(_) => EnqueueUse[Effect, Endpoint, Connection]()
-            case _ => NoConnection[Effect, Endpoint, Connection](peerId)
+            case _ => NoConnection[Effect, Endpoint, Connection](peer)
           }
         }
       }
@@ -91,36 +91,36 @@ final private[automorph] case class ConnectionPool[Effect[_], Endpoint, Connecti
     }
 
   /**
-   * Add a connection to this connection pool.
+   * Adds a connection to this connection pool.
    *
-   * @param peerId
+   * @param peer
    *   connected peer identifier
    * @param connection
    *   connection
    * @return
    *   nothing
    */
-  def add(peerId: String, connection: Connection): Effect[Unit] =
+  def add(peer: String, connection: Connection): Effect[Unit] =
     if (active.get) {
-      val pool = pools(peerId)
+      val pool = pools(peer)
       addConnection(pool, connection, pool.nextId.getAndAdd(1))
     } else {
       system.failed(new IllegalStateException(closedMessage))
     }
 
   /**
-   * Remove a connection from the connection pool.
+   * Removes a connection from the connection pool.
    *
-   * @param peerId
+   * @param peer
    *   connected peer identifier
    * @param connectionId
    *   connection identifier
    */
-  def remove(peerId: String, connectionId: Int): Unit = {
+  def remove(peer: String, connectionId: Int): Unit = {
     if (!active.get) {
       throw new IllegalStateException(closedMessage)
     }
-    val pool = pools(peerId)
+    val pool = pools(peer)
     pool.synchronized {
       pool.unusedConnections.removeFirst(_._2 == connectionId).map(_ => ()).getOrElse {
         pool.removedIds += connectionId
@@ -209,7 +209,7 @@ final private[automorph] case class ConnectionPool[Effect[_], Endpoint, Connecti
           pool.pendingUses.addOne(use)
           use.effect
         }
-      case NoConnection(peerId) => system.failed(new IllegalStateException(s"No connection for: ${peerId}"))
+      case NoConnection(peer) => system.failed(new IllegalStateException(s"No connection for: ${peer}"))
       case UseConnection(connection, connectionId) => system.successful(connection -> connectionId)
     }
 }
@@ -233,7 +233,7 @@ private[automorph] object ConnectionPool {
   final case class OpenConnection[Effect[_], Endpoint, Connection](open: (Endpoint, Int) => Effect[Connection])
     extends Action[Effect, Endpoint, Connection]
 
-  final case class NoConnection[Effect[_], Endpoint, Connection](peerId: String)
+  final case class NoConnection[Effect[_], Endpoint, Connection](peer: String)
     extends Action[Effect, Endpoint, Connection]
 
   final case class EnqueueUse[Effect[_], Endpoint, Connection]() extends Action[Effect, Endpoint, Connection]

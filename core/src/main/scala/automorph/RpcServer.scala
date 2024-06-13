@@ -1,8 +1,8 @@
 package automorph
 
-import automorph.server.{ServerRequestHandler, ServerBinding}
+import automorph.server.{ServerRpcHandler, ServerBinding}
 import automorph.server.meta.ServerBase
-import automorph.spi.RequestHandler.Result
+import automorph.spi.RpcHandler.Result
 import automorph.spi.{MessageCodec, RpcProtocol, ServerTransport}
 import scala.collection.immutable.ListMap
 import scala.util.Random
@@ -43,7 +43,7 @@ final case class RpcServer[Value, Codec <: MessageCodec[Value], Effect[_], Conte
   ListMap[String, ServerBinding[Value, Effect, Context]]()
 ) extends ServerBase[Value, Codec, Effect, Context, Adapter] {
 
-  private val handler = ServerRequestHandler(transport.effectSystem, rpcProtocol, discovery, apiBindings)
+  private val handler = ServerRpcHandler(transport.effectSystem, rpcProtocol, discovery, apiBindings)
   private lazy val configuredTransport = transport.requestHandler(handler)
   private lazy val rpcFunctions = handler.functions
 

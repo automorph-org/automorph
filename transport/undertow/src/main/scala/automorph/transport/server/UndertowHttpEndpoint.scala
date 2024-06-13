@@ -1,10 +1,10 @@
 package automorph.transport.server
 
-import automorph.spi.{EffectSystem, RequestHandler, ServerTransport}
+import automorph.spi.{EffectSystem, RpcHandler, ServerTransport}
 import automorph.transport.HttpContext.headerRpcNodeId
-import automorph.transport.HttpRequestHandler.{RequestMetadata, ResponseMetadata}
+import automorph.transport.ServerHttpHandler.HttpMetadata
 import automorph.transport.server.UndertowHttpEndpoint.{Context, HttpRequest, RequestCallback, requestQuery}
-import automorph.transport.{HttpContext, HttpMethod, HttpRequestHandler, CallbackHttpRequestHandler, Protocol}
+import automorph.transport.{ClientServerHttpHandler, HttpContext, HttpMethod, ServerHttpHandler, Protocol}
 import automorph.util.Extensions.{ByteArrayOps, EffectOps}
 import io.undertow.io.Receiver
 import io.undertow.server.{HttpHandler, HttpServerExchange}
@@ -39,7 +39,7 @@ import scala.jdk.CollectionConverters.{IterableHasAsScala, IteratorHasAsScala}
 final case class UndertowHttpEndpoint[Effect[_]](
   effectSystem: EffectSystem[Effect],
   mapException: Throwable => Int = HttpContext.toStatusCode,
-  handler: RequestHandler[Effect, Context] = RequestHandler.dummy[Effect, Context],
+  handler: RpcHandler[Effect, Context] = RpcHandler.dummy[Effect, Context],
 ) extends ServerTransport[Effect, Context, HttpHandler] {
   private lazy val httpHandler = new HttpHandler {
 
@@ -47,7 +47,7 @@ final case class UndertowHttpEndpoint[Effect[_]](
       exchange.getRequestReceiver.receiveFullBytes(receiverCallback)
   }
   private val httpRequestHandler =
-    CallbackHttpRequestHandler(receiveRequest, sendResponse, Protocol.Http, effectSystem, mapException, handler)
+    ClientServerHttpHandler(receiveRequest, sendResponse, Protocol.Http, effectSystem, mapException, handler)
   private val receiverCallback = new Receiver.FullBytesCallback {
 
     override def handle(exchange: HttpServerExchange, requestBody: Array[Byte]): Unit = {
@@ -68,30 +68,33 @@ final case class UndertowHttpEndpoint[Effect[_]](
   override def close(): Effect[Unit] =
     effectSystem.successful {}
 
-  override def requestHandler(handler: RequestHandler[Effect, Context]): UndertowHttpEndpoint[Effect] =
+  override def requestHandler(handler: RpcHandler[Effect, Context]): UndertowHttpEndpoint[Effect] =
     copy(handler = handler)
 
-  private def receiveRequest(request: HttpRequest): (RequestMetadata[Context], Effect[Array[Byte]]) = {
+  private def receiveRequest(request: HttpRequest): (Effect[Array[Byte]], HttpMetadata[Context]) = {
     val (exchange, body) = request
     val query = requestQuery(exchange.getQueryString)
-    val requestMetadata = RequestMetadata(
+    val requestMetadata = HttpMetadata(
       getRequestContext(exchange),
       httpRequestHandler.protocol,
       s"${exchange.getRequestURI}$query",
       Some(exchange.getRequestMethod.toString),
     )
-    val requestBody = effectSystem.successful(body)
-    (requestMetadata, requestBody)
+    effectSystem.successful(body) -> requestMetadata
   }
 
-  private def sendResponse(responseData: ResponseMetadata[Context], exchange: HttpServerExchange): Effect[Unit] = {
+  private def sendResponse(
+    body: Array[Byte],
+    metadata: HttpMetadata[Context],
+    exchange: HttpServerExchange,
+  ): Effect[Unit] = {
     if (!exchange.isResponseChannelAvailable) {
       throw new IOException("Response channel not available")
     }
-    setResponseContext(exchange, responseData.context)
-    exchange.getResponseHeaders.put(Headers.CONTENT_TYPE, responseData.contentType)
-    exchange.setStatusCode(responseData.statusCode)
-    effectSystem.evaluate(exchange.getResponseSender.send(responseData.body.toByteBuffer))
+    setResponseContext(exchange, metadata.context)
+    exchange.getResponseHeaders.put(Headers.CONTENT_TYPE, metadata.contentType)
+    exchange.setStatusCode(metadata.statusCodeOrOk)
+    effectSystem.evaluate(exchange.getResponseSender.send(body.toByteBuffer))
   }
 
   private def getRequestContext(exchange: HttpServerExchange): Context = {
@@ -102,22 +105,22 @@ final case class UndertowHttpEndpoint[Effect[_]](
       transportContext = Some(Left(exchange).withRight[WebSocketHttpExchange]),
       method = Some(HttpMethod.valueOf(exchange.getRequestMethod.toString)),
       headers = headers,
-      peerId = Some(clientId(exchange)),
+      peer = Some(client(exchange)),
     ).url(exchange.getRequestURI)
   }
 
-  private def setResponseContext(exchange: HttpServerExchange, context: Option[Context]): Unit = {
+  private def setResponseContext(exchange: HttpServerExchange, context: Context): Unit = {
     val responseHeaders = exchange.getResponseHeaders
-    context.toSeq.flatMap(_.headers).foreach { case (name, value) =>
+    context.headers.foreach { case (name, value) =>
       responseHeaders.add(new HttpString(name), value)
     }
   }
 
-  private def clientId(exchange: HttpServerExchange): String = {
+  private def client(exchange: HttpServerExchange): String = {
     val forwardedFor = Option(exchange.getRequestHeaders.get(Headers.X_FORWARDED_FOR_STRING)).map(_.getFirst)
     val nodeId = Option(exchange.getRequestHeaders.get(headerRpcNodeId)).map(_.getFirst)
     val address = exchange.getSourceAddress.toString
-    HttpRequestHandler.clientId(address, forwardedFor, nodeId)
+    ServerHttpHandler.client(address, forwardedFor, nodeId)
   }
 }
 
@@ -133,7 +136,7 @@ object UndertowHttpEndpoint {
 
   final private case class RequestCallback[Effect[_]](
     effectSystem: EffectSystem[Effect],
-    handler: CallbackHttpRequestHandler[Effect, Context, HttpRequest, HttpServerExchange],
+    handler: ClientServerHttpHandler[Effect, Context, HttpRequest, HttpServerExchange],
     exchange: HttpServerExchange,
     requestBody: Array[Byte],
   ) extends Runnable {

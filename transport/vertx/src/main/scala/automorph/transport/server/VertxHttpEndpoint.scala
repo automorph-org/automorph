@@ -1,10 +1,10 @@
 package automorph.transport.server
 
-import automorph.spi.{EffectSystem, RequestHandler, ServerTransport}
+import automorph.spi.{EffectSystem, RpcHandler, ServerTransport}
 import automorph.transport.HttpContext.headerRpcNodeId
-import automorph.transport.HttpRequestHandler.{RequestMetadata, ResponseMetadata, headerXForwardedFor}
+import automorph.transport.ServerHttpHandler.{HttpMetadata, headerXForwardedFor}
 import automorph.transport.server.VertxHttpEndpoint.Context
-import automorph.transport.{HttpContext, HttpMethod, HttpRequestHandler, CallbackHttpRequestHandler, Protocol}
+import automorph.transport.{ClientServerHttpHandler, HttpContext, HttpMethod, ServerHttpHandler, Protocol}
 import automorph.util.Extensions.EffectOps
 import io.vertx.core.buffer.Buffer
 import io.vertx.core.http.{HttpHeaders, HttpServerRequest, HttpServerResponse, ServerWebSocket}
@@ -38,7 +38,7 @@ import scala.jdk.CollectionConverters.ListHasAsScala
 final case class VertxHttpEndpoint[Effect[_]](
   effectSystem: EffectSystem[Effect],
   mapException: Throwable => Int = HttpContext.toStatusCode,
-  handler: RequestHandler[Effect, Context] = RequestHandler.dummy[Effect, Context],
+  handler: RpcHandler[Effect, Context] = RpcHandler.dummy[Effect, Context],
 ) extends ServerTransport[Effect, Context, Handler[HttpServerRequest]] {
 
   private lazy val requestHandler = new Handler[HttpServerRequest] {
@@ -52,7 +52,7 @@ final case class VertxHttpEndpoint[Effect[_]](
   }
 
   private val httpHandler =
-    CallbackHttpRequestHandler(receiveRequest, sendResponse, Protocol.Http, effectSystem, mapException, handler)
+    ClientServerHttpHandler(receiveRequest, sendResponse, Protocol.Http, effectSystem, mapException, handler)
   implicit private val system: EffectSystem[Effect] = effectSystem
 
   override def adapter: Handler[HttpServerRequest] =
@@ -64,29 +64,32 @@ final case class VertxHttpEndpoint[Effect[_]](
   override def close(): Effect[Unit] =
     effectSystem.successful {}
 
-  override def requestHandler(handler: RequestHandler[Effect, Context]): VertxHttpEndpoint[Effect] =
+  override def requestHandler(handler: RpcHandler[Effect, Context]): VertxHttpEndpoint[Effect] =
     copy(handler = handler)
 
   private def receiveRequest(
     incomingRequest: (HttpServerRequest, Buffer)
-  ): (RequestMetadata[Context], Effect[Array[Byte]]) = {
+  ): (Effect[Array[Byte]], HttpMetadata[Context]) = {
     val (request, body) = incomingRequest
-    val requestMetadata = RequestMetadata(
+    val requestMetadata = HttpMetadata(
       getRequestContext(request),
       httpHandler.protocol,
       request.absoluteURI,
       Some(request.method.name),
     )
-    lazy val requestBody = effectSystem.evaluate(body.getBytes)
-    (requestMetadata, requestBody)
+    effectSystem.evaluate(body.getBytes) -> requestMetadata
   }
 
-  private def sendResponse(responseData: ResponseMetadata[Context], request: HttpServerRequest): Effect[Unit] =
+  private def sendResponse(
+    body: Array[Byte],
+    metadata: HttpMetadata[Context],
+    request: HttpServerRequest,
+  ): Effect[Unit] =
     effectSystem.completable[Unit].flatMap { completable =>
-      setResponseContext(request.response, responseData.context)
-        .putHeader(HttpHeaders.CONTENT_TYPE, responseData.contentType)
-        .setStatusCode(responseData.statusCode)
-        .end(Buffer.buffer(responseData.body))
+      setResponseContext(request.response, metadata.context)
+        .putHeader(HttpHeaders.CONTENT_TYPE, metadata.contentType)
+        .setStatusCode(metadata.statusCodeOrOk)
+        .end(Buffer.buffer(body))
         .onSuccess(_ => completable.succeed(()).runAsync)
         .onFailure(error => completable.fail(error).runAsync)
       completable.effect
@@ -98,16 +101,16 @@ final case class VertxHttpEndpoint[Effect[_]](
       transportContext = Some(Left(request).withRight[ServerWebSocket]),
       method = Some(HttpMethod.valueOf(request.method.name)),
       headers = headers,
-      peerId = Some(clientId(request)),
+      peer = Some(client(request)),
     ).url(request.absoluteURI)
   }
 
-  private def setResponseContext(response: HttpServerResponse, responseContext: Option[Context]): HttpServerResponse =
-    responseContext.toSeq.flatMap(_.headers).foldLeft(response) { case (current, (name, value)) =>
+  private def setResponseContext(response: HttpServerResponse, context: Context): HttpServerResponse =
+    context.headers.foldLeft(response) { case (current, (name, value)) =>
       current.putHeader(name, value)
     }
 
-  private def clientId(request: HttpServerRequest): String =
+  private def client(request: HttpServerRequest): String =
     VertxHttpEndpoint.clientId(request.headers, request.remoteAddress)
 }
 
@@ -120,6 +123,6 @@ object VertxHttpEndpoint {
     val address = Option(remoteAddress.hostName).orElse(Option(remoteAddress.hostAddress)).getOrElse("")
     val forwardedFor = Option(headers.get(headerXForwardedFor))
     val nodeId = Option(headers.get(headerRpcNodeId))
-    HttpRequestHandler.clientId(address, forwardedFor, nodeId)
+    ServerHttpHandler.client(address, forwardedFor, nodeId)
   }
 }

@@ -1,6 +1,6 @@
 package automorph.transport.server
 
-import automorph.spi.{EffectSystem, RequestHandler, ServerTransport}
+import automorph.spi.{EffectSystem, RpcHandler, ServerTransport}
 
 /**
  * Generic endpoint transport plugin.
@@ -20,7 +20,7 @@ import automorph.spi.{EffectSystem, RequestHandler, ServerTransport}
  */
 final case class GenericEndpoint[Effect[_], Context](
   effectSystem: EffectSystem[Effect],
-  handler: RequestHandler[Effect, Context] = RequestHandler.dummy[Effect, Context],
+  handler: RpcHandler[Effect, Context] = RpcHandler.dummy[Effect, Context],
 ) extends ServerTransport[Effect, Context, Unit] {
 
   override def adapter: Unit =
@@ -32,7 +32,7 @@ final case class GenericEndpoint[Effect[_], Context](
   override def close(): Effect[Unit] =
     effectSystem.successful {}
 
-  override def requestHandler(handler: RequestHandler[Effect, Context]): GenericEndpoint[Effect, Context] =
+  override def requestHandler(handler: RpcHandler[Effect, Context]): GenericEndpoint[Effect, Context] =
     copy(handler = handler)
 }
 

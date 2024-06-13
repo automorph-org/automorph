@@ -1,10 +1,10 @@
 package automorph.transport.server
 
-import automorph.spi.{EffectSystem, RequestHandler, ServerTransport}
+import automorph.spi.{EffectSystem, RpcHandler, ServerTransport}
 import automorph.transport.HttpContext.headerRpcNodeId
-import automorph.transport.HttpRequestHandler.{RequestMetadata, ResponseMetadata}
+import automorph.transport.ServerHttpHandler.HttpMetadata
 import automorph.transport.server.PekkoHttpEndpoint.Context
-import automorph.transport.{SimpleHttpRequestHandler, HttpContext, HttpMethod, HttpRequestHandler, Protocol}
+import automorph.transport.{HttpContext, HttpMethod, ServerHttpHandler, Protocol}
 import automorph.util.Extensions.{EffectOps, ThrowableOps}
 import org.apache.pekko.http.scaladsl.model.StatusCodes.InternalServerError
 import org.apache.pekko.http.scaladsl.model.headers.RawHeader
@@ -46,7 +46,7 @@ final case class PekkoHttpEndpoint[Effect[_]](
   effectSystem: EffectSystem[Effect],
   mapException: Throwable => Int = HttpContext.toStatusCode,
   readTimeout: FiniteDuration = 30.seconds,
-  handler: RequestHandler[Effect, Context] = RequestHandler.dummy[Effect, Context],
+  handler: RpcHandler[Effect, Context] = RpcHandler.dummy[Effect, Context],
 ) extends ServerTransport[Effect, Context, Route] {
 
   private lazy val contentType = ContentType.parse(handler.mediaType).swap.map { errors =>
@@ -66,7 +66,7 @@ final case class PekkoHttpEndpoint[Effect[_]](
       }
     }
   private val httpHandler =
-    SimpleHttpRequestHandler(receiveRequest, createResponse, Protocol.Http, effectSystem, mapException, handler)
+    ServerHttpHandler(receiveRequest, createResponse, Protocol.Http, effectSystem, mapException, handler)
   implicit private val system: EffectSystem[Effect] = effectSystem
 
   def adapter: Route =
@@ -78,7 +78,7 @@ final case class PekkoHttpEndpoint[Effect[_]](
   override def close(): Effect[Unit] =
     effectSystem.successful {}
 
-  override def requestHandler(handler: RequestHandler[Effect, Context]): PekkoHttpEndpoint[Effect] =
+  override def requestHandler(handler: RpcHandler[Effect, Context]): PekkoHttpEndpoint[Effect] =
     copy(handler = handler)
 
   private def handleRequest(request: HttpRequest, remoteAddress: RemoteAddress)(
@@ -98,23 +98,26 @@ final case class PekkoHttpEndpoint[Effect[_]](
 
   private def receiveRequest(
     incomingRequest: (HttpRequest, HttpEntity.Strict, RemoteAddress)
-  ): (RequestMetadata[Context], Effect[Array[Byte]]) = {
+  ): (Effect[Array[Byte]], HttpMetadata[Context]) = {
     val (request, requestEntity, remoteAddress) = incomingRequest
-    val requestMetadata = RequestMetadata(
+    val requestMetadata = HttpMetadata(
       getRequestContext(request, remoteAddress),
       httpHandler.protocol,
       request.uri.toString,
       Some(request.method.value),
     )
-    val requestBody = effectSystem.evaluate(requestEntity.data.toArray[Byte])
-    (requestMetadata, requestBody)
+    effectSystem.evaluate(requestEntity.data.toArray[Byte]) -> requestMetadata
   }
 
-  private def createResponse(responseData: ResponseMetadata[Context], @unused channel: Unit): Effect[HttpResponse] =
+  private def createResponse(
+    body: Array[Byte],
+    metadata: HttpMetadata[Context],
+    @unused channel: Unit,
+  ): Effect[HttpResponse] =
     effectSystem.successful(
-      createResponseContext(HttpResponse(), responseData.context)
-        .withStatus(StatusCode.int2StatusCode(responseData.statusCode))
-        .withEntity(contentType, responseData.body)
+      createResponseContext(HttpResponse(), metadata.context)
+        .withStatus(StatusCode.int2StatusCode(metadata.statusCodeOrOk))
+        .withEntity(contentType, body)
     )
 
   private def getRequestContext(request: HttpRequest, remoteAddress: RemoteAddress): Context =
@@ -122,16 +125,16 @@ final case class PekkoHttpEndpoint[Effect[_]](
       transportContext = Some(request),
       method = Some(HttpMethod.valueOf(request.method.value)),
       headers = request.headers.map(header => header.name -> header.value),
-      peerId = Some(clientId(remoteAddress, request)),
+      peer = Some(client(remoteAddress, request)),
     ).url(request.uri.toString)
 
-  private def createResponseContext(response: HttpResponse, responseContext: Option[Context]): HttpResponse =
-    response.withHeaders(responseContext.toSeq.flatMap(_.headers).map { case (name, value) => RawHeader(name, value) })
+  private def createResponseContext(response: HttpResponse, context: Context): HttpResponse =
+    response.withHeaders(context.headers.map { case (name, value) => RawHeader(name, value) })
 
-  private def clientId(remoteAddress: RemoteAddress, request: HttpRequest): String = {
+  private def client(remoteAddress: RemoteAddress, request: HttpRequest): String = {
     val address = remoteAddress.toOption.flatMap(address => Option(address.getHostAddress)).getOrElse("")
     val nodeId = request.getHeader(headerRpcNodeId).toScala.map(_.value)
-    HttpRequestHandler.clientId(address, None, nodeId)
+    ServerHttpHandler.client(address, None, nodeId)
   }
 }
 

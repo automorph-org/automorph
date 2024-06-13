@@ -1,10 +1,10 @@
 package automorph.transport.server
 
-import automorph.spi.{EffectSystem, RequestHandler, ServerTransport}
+import automorph.spi.{EffectSystem, RpcHandler, ServerTransport}
 import automorph.transport.HttpContext.headerRpcNodeId
-import automorph.transport.HttpRequestHandler.{RequestMetadata, ResponseMetadata, headerXForwardedFor}
+import automorph.transport.ServerHttpHandler.{HttpMetadata, headerXForwardedFor}
 import automorph.transport.server.ZioHttpEndpoint.Context
-import automorph.transport.{SimpleHttpRequestHandler, HttpContext, HttpMethod, HttpRequestHandler, Protocol}
+import automorph.transport.{HttpContext, HttpMethod, ServerHttpHandler, Protocol}
 import zio.http.{Body, Handler, Header, Headers, MediaType, Request, Response, Status}
 import zio.{Chunk, IO, http}
 import scala.annotation.unused
@@ -35,8 +35,8 @@ import scala.annotation.unused
 final case class ZioHttpEndpoint[Fault](
   effectSystem: EffectSystem[({ type Effect[A] = IO[Fault, A] })#Effect],
   mapException: Throwable => Int = HttpContext.toStatusCode,
-  handler: RequestHandler[({ type Effect[A] = IO[Fault, A] })#Effect, Context] =
-    RequestHandler.dummy[({ type Effect[A] = IO[Fault, A] })#Effect, Context],
+  handler: RpcHandler[({ type Effect[A] = IO[Fault, A] })#Effect, Context] =
+    RpcHandler.dummy[({ type Effect[A] = IO[Fault, A] })#Effect, Context],
 ) extends ServerTransport[({ type Effect[A] = IO[Fault, A] })#Effect, Context, http.RequestHandler[Any, Response]] {
 
   private lazy val mediaType = MediaType.forContentType(handler.mediaType).getOrElse(
@@ -44,7 +44,7 @@ final case class ZioHttpEndpoint[Fault](
   )
   private lazy val requestHandler = Handler.fromFunctionZIO(handle)
   private val httpHandler =
-    SimpleHttpRequestHandler(receiveRequest, createResponse, Protocol.Http, effectSystem, mapException, handler)
+    ServerHttpHandler(receiveRequest, createResponse, Protocol.Http, effectSystem, mapException, handler)
 
   override def adapter: http.RequestHandler[Any, Response] =
     requestHandler
@@ -56,15 +56,15 @@ final case class ZioHttpEndpoint[Fault](
     effectSystem.successful {}
 
   override def requestHandler(
-    handler: RequestHandler[({ type Effect[A] = IO[Fault, A] })#Effect, Context]
+    handler: RpcHandler[({ type Effect[A] = IO[Fault, A] })#Effect, Context]
   ): ZioHttpEndpoint[Fault] =
     copy(handler = handler)
 
   private def handle(request: Request): IO[Response, Response] =
     httpHandler.processRequest(request, ()).mapError(_ => Response())
 
-  private def receiveRequest(request: Request): (RequestMetadata[Context], IO[Fault, Array[Byte]]) = {
-    val requestMetadata = RequestMetadata(
+  private def receiveRequest(request: Request): (IO[Fault, Array[Byte]], HttpMetadata[Context]) = {
+    val requestMetadata = HttpMetadata(
       getRequestContext(request),
       httpHandler.protocol,
       request.url.toString,
@@ -74,17 +74,21 @@ final case class ZioHttpEndpoint[Fault](
       error => effectSystem.failed(error),
       body => effectSystem.successful(body),
     )
-    (requestMetadata, requestBody)
+    requestBody -> requestMetadata
   }
 
-  private def createResponse(responseData: ResponseMetadata[Context], @unused session: Unit): IO[Fault, Response] = {
+  private def createResponse(
+    body: Array[Byte],
+    metadata: HttpMetadata[Context],
+    @unused session: Unit,
+  ): IO[Fault, Response] = {
     val response = setResponseContext(
       Response(
-        Status.fromInt(responseData.statusCode),
+        Status.fromInt(metadata.statusCodeOrOk),
         Headers(Header.ContentType(mediaType)),
-        Body.fromChunk(Chunk.fromArray(responseData.body)),
+        Body.fromChunk(Chunk.fromArray(body)),
       ),
-      responseData.context,
+      metadata.context,
     )
     effectSystem.successful(response)
   }
@@ -94,21 +98,19 @@ final case class ZioHttpEndpoint[Fault](
       transportContext = Some(request),
       method = Some(HttpMethod.valueOf(request.method.name)),
       headers = request.headers.map(header => header.headerName -> header.renderedValue).toSeq,
-      peerId = Some(clientId(request)),
+      peer = Some(client(request)),
     ).url(request.url.toString)
 
-  private def setResponseContext(response: Response, responseContext: Option[Context]): Response =
+  private def setResponseContext(response: Response, context: Context): Response =
     response.updateHeaders(headers =>
-      responseContext.map(
-        _.headers.foldLeft(headers) { case (result, header) => result.combine(Headers(header)) }
-      ).getOrElse(Headers.empty)
+      context.headers.foldLeft(headers) { case (result, header) => result.combine(Headers(header)) }
     )
 
-  private def clientId(request: Request): String = {
+  private def client(request: Request): String = {
     val address = request.remoteAddress.map(_.toString).getOrElse("")
     val forwardedFor = request.headers.find(_.headerName == headerXForwardedFor).map(_.renderedValue)
     val nodeId = request.headers.find(_.headerName == headerRpcNodeId).map(_.renderedValue)
-    HttpRequestHandler.clientId(address, forwardedFor, nodeId)
+    ServerHttpHandler.client(address, forwardedFor, nodeId)
   }
 }
 

@@ -1,14 +1,15 @@
 package automorph.transport.websocket.endpoint
 
-import automorph.spi.{EffectSystem, RequestHandler, ServerTransport}
-import automorph.transport.HttpRequestHandler.{RequestMetadata, ResponseMetadata}
+import automorph.spi.{EffectSystem, RpcHandler, ServerTransport}
+import automorph.transport.ServerHttpHandler.HttpMetadata
 import automorph.transport.server.VertxHttpEndpoint
 import automorph.transport.websocket.endpoint.VertxWebSocketEndpoint.Context
-import automorph.transport.{HttpContext, HttpMethod, CallbackHttpRequestHandler, Protocol}
+import automorph.transport.{ClientServerHttpHandler, HttpContext, HttpMethod, Protocol}
 import automorph.util.Extensions.EffectOps
 import io.vertx.core.Handler
 import io.vertx.core.buffer.Buffer
 import io.vertx.core.http.{HttpServerRequest, ServerWebSocket}
+import scala.annotation.unused
 import scala.jdk.CollectionConverters.ListHasAsScala
 
 /**
@@ -34,7 +35,7 @@ import scala.jdk.CollectionConverters.ListHasAsScala
  */
 final case class VertxWebSocketEndpoint[Effect[_]](
   effectSystem: EffectSystem[Effect],
-  handler: RequestHandler[Effect, Context] = RequestHandler.dummy[Effect, Context],
+  handler: RpcHandler[Effect, Context] = RpcHandler.dummy[Effect, Context],
 ) extends ServerTransport[Effect, Context, Handler[ServerWebSocket]] {
 
   private lazy val requestHandler = new Handler[ServerWebSocket] {
@@ -48,7 +49,7 @@ final case class VertxWebSocketEndpoint[Effect[_]](
   }
 
   private val webSocketHandler =
-    CallbackHttpRequestHandler(receiveRequest, sendResponse, Protocol.WebSocket, effectSystem, _ => 0, handler)
+    ClientServerHttpHandler(receiveRequest, sendResponse, Protocol.WebSocket, effectSystem, _ => 0, handler)
   implicit private val system: EffectSystem[Effect] = effectSystem
 
   override def adapter: Handler[ServerWebSocket] =
@@ -60,26 +61,29 @@ final case class VertxWebSocketEndpoint[Effect[_]](
   override def close(): Effect[Unit] =
     effectSystem.successful {}
 
-  override def requestHandler(handler: RequestHandler[Effect, Context]): VertxWebSocketEndpoint[Effect] =
+  override def requestHandler(handler: RpcHandler[Effect, Context]): VertxWebSocketEndpoint[Effect] =
     copy(handler = handler)
 
   private def receiveRequest(
     incomingRequest: (Buffer, ServerWebSocket)
-  ): (RequestMetadata[Context], Effect[Array[Byte]]) = {
+  ): (Effect[Array[Byte]], HttpMetadata[Context]) = {
     val (body, webSocket) = incomingRequest
-    val requestMetadata = RequestMetadata(
+    val requestMetadata = HttpMetadata(
       getRequestContext(webSocket),
       webSocketHandler.protocol,
       webSocket.uri,
-      Some(HttpMethod.Get.name),
+      None,
     )
-    lazy val requestBody = effectSystem.evaluate(body.getBytes)
-    (requestMetadata, requestBody)
+    effectSystem.evaluate(body.getBytes) -> requestMetadata
   }
 
-  private def sendResponse(responseData: ResponseMetadata[Context], session: ServerWebSocket): Effect[Unit] =
+  private def sendResponse(
+    body: Array[Byte],
+    @unused metadata: HttpMetadata[Context],
+    session: ServerWebSocket,
+  ): Effect[Unit] =
     effectSystem.completable[Unit].flatMap { completable =>
-      session.writeBinaryMessage(Buffer.buffer(responseData.body))
+      session.writeBinaryMessage(Buffer.buffer(body))
         .onSuccess(_ => completable.succeed(()).runAsync)
         .onFailure(error => completable.fail(error).runAsync)
       completable.effect
@@ -90,13 +94,13 @@ final case class VertxWebSocketEndpoint[Effect[_]](
     HttpContext(
       transportContext = Some(Right(webSocket).withLeft[HttpServerRequest]),
       headers = headers,
-      peerId = Some(clientId(webSocket)),
+      peer = Some(client(webSocket)),
     ).url(
       webSocket.uri
     )
   }
 
-  private def clientId(webSocket: ServerWebSocket): String =
+  private def client(webSocket: ServerWebSocket): String =
     VertxHttpEndpoint.clientId(webSocket.headers, webSocket.remoteAddress)
 }
 

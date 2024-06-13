@@ -1,7 +1,7 @@
 package automorph.transport.server
 
 import automorph.log.{Logging, MessageLog}
-import automorph.spi.{EffectSystem, RequestHandler, ServerTransport}
+import automorph.spi.{EffectSystem, RpcHandler, ServerTransport}
 import automorph.transport.server.RabbitMqServer.Context
 import automorph.transport.{AmqpContext, RabbitMq}
 import automorph.util.Extensions.{EffectOps, StringOps, ThrowableOps, TryOps}
@@ -46,7 +46,7 @@ final case class RabbitMqServer[Effect[_]](
   queues: Seq[String],
   addresses: Seq[Address] = Seq.empty,
   connectionFactory: ConnectionFactory = new ConnectionFactory,
-  handler: RequestHandler[Effect, Context] = RequestHandler.dummy[Effect, Context],
+  handler: RpcHandler[Effect, Context] = RpcHandler.dummy[Effect, Context],
 ) extends ServerTransport[Effect, Context, Unit] with Logging {
 
   private val exchange = RabbitMq.directExchange
@@ -81,7 +81,7 @@ final case class RabbitMqServer[Effect[_]](
       session = None
     })
 
-  override def requestHandler(handler: RequestHandler[Effect, Context]): RabbitMqServer[Effect] =
+  override def requestHandler(handler: RpcHandler[Effect, Context]): RabbitMqServer[Effect] =
     copy(handler = handler)
 
   private def createConsumer(channel: Channel): DefaultConsumer = {

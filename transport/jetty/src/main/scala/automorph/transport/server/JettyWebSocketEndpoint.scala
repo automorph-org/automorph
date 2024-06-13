@@ -1,16 +1,17 @@
 package automorph.transport.server
 
 import automorph.spi.EffectSystem.Completable
-import automorph.spi.{EffectSystem, RequestHandler, ServerTransport}
+import automorph.spi.{EffectSystem, RpcHandler, ServerTransport}
 import automorph.transport.HttpContext.headerRpcNodeId
-import automorph.transport.HttpRequestHandler.{RequestMetadata, ResponseMetadata}
+import automorph.transport.ServerHttpHandler.HttpMetadata
 import automorph.transport.server.JettyHttpEndpoint.{Context, requestQuery}
 import automorph.transport.server.JettyWebSocketEndpoint.ResponseCallback
-import automorph.transport.{HttpContext, HttpMethod, HttpRequestHandler, CallbackHttpRequestHandler, Protocol}
+import automorph.transport.{ClientServerHttpHandler, HttpContext, HttpMethod, ServerHttpHandler, Protocol}
 import automorph.util.Extensions.{ByteArrayOps, EffectOps, StringOps}
 import org.eclipse.jetty.http.HttpHeader
 import org.eclipse.jetty.websocket.api.{Session, WebSocketAdapter, WriteCallback}
 import org.eclipse.jetty.websocket.server.{JettyServerUpgradeRequest, JettyServerUpgradeResponse, JettyWebSocketCreator}
+import scala.annotation.unused
 import scala.jdk.CollectionConverters.{ListHasAsScala, MapHasAsScala}
 
 /**
@@ -39,7 +40,7 @@ import scala.jdk.CollectionConverters.{ListHasAsScala, MapHasAsScala}
 final case class JettyWebSocketEndpoint[Effect[_]](
   effectSystem: EffectSystem[Effect],
   mapException: Throwable => Int = HttpContext.toStatusCode,
-  handler: RequestHandler[Effect, Context] = RequestHandler.dummy[Effect, Context],
+  handler: RpcHandler[Effect, Context] = RpcHandler.dummy[Effect, Context],
 ) extends ServerTransport[Effect, Context, WebSocketAdapter] {
   private lazy val webSocketAdapter = new WebSocketAdapter {
     implicit private val system: EffectSystem[Effect] = effectSystem
@@ -60,7 +61,7 @@ final case class JettyWebSocketEndpoint[Effect[_]](
       adapter
   }
   private val webSocketHandler =
-    CallbackHttpRequestHandler(receiveRequest, sendResponse, Protocol.WebSocket, effectSystem, mapException, handler)
+    ClientServerHttpHandler(receiveRequest, sendResponse, Protocol.WebSocket, effectSystem, mapException, handler)
   implicit private val system: EffectSystem[Effect] = effectSystem
 
   /** Jetty WebSocket creator. */
@@ -76,28 +77,26 @@ final case class JettyWebSocketEndpoint[Effect[_]](
   override def close(): Effect[Unit] =
     effectSystem.successful {}
 
-  override def requestHandler(handler: RequestHandler[Effect, Context]): JettyWebSocketEndpoint[Effect] =
+  override def requestHandler(handler: RpcHandler[Effect, Context]): JettyWebSocketEndpoint[Effect] =
     copy(handler = handler)
 
-  private def receiveRequest(incomingRequest: (Session, Array[Byte]))
-    : (RequestMetadata[Context], Effect[Array[Byte]]) = {
+  private def receiveRequest(incomingRequest: (Session, Array[Byte])): (Effect[Array[Byte]], HttpMetadata[Context]) = {
     val (session, body) = incomingRequest
     val request = session.getUpgradeRequest
     val query = requestQuery(request.getQueryString)
-    val requestMetadata = RequestMetadata(
+    val requestMetadata = HttpMetadata(
       getRequestContext(session),
       webSocketHandler.protocol,
       s"${request.getRequestURI.toString}$query",
-      Some(request.getMethod),
+      None,
     )
-    val requestBody = effectSystem.successful(body)
-    (requestMetadata, requestBody)
+    effectSystem.successful(body) -> requestMetadata
   }
 
-  private def sendResponse(responseData: ResponseMetadata[Context], session: Session): Effect[Unit] =
+  private def sendResponse(body: Array[Byte], @unused metadata: HttpMetadata[Context], session: Session): Effect[Unit] =
     effectSystem.completable[Unit].flatMap { completable =>
       val responseCallback = ResponseCallback(completable, effectSystem)
-      session.getRemote.sendBytes(responseData.body.toByteBuffer, responseCallback)
+      session.getRemote.sendBytes(body.toByteBuffer, responseCallback)
       completable.effect
     }
 
@@ -110,16 +109,16 @@ final case class JettyWebSocketEndpoint[Effect[_]](
       transportContext = None,
       method = Some(HttpMethod.valueOf(request.getMethod)),
       headers = headers,
-      peerId = Some(clientId(session)),
+      peer = Some(client(session)),
     )
       .url(request.getRequestURI)
   }
 
-  private def clientId(session: Session): String = {
+  private def client(session: Session): String = {
     val address = session.getRemoteAddress.toString
     val forwardedFor = Option(session.getUpgradeRequest.getHeader(HttpHeader.X_FORWARDED_FOR.name))
     val nodeId = Option(session.getUpgradeRequest.getHeader(headerRpcNodeId))
-    HttpRequestHandler.clientId(address, forwardedFor, nodeId)
+    ServerHttpHandler.client(address, forwardedFor, nodeId)
   }
 }
 

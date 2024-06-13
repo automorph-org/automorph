@@ -3,9 +3,9 @@ package automorph.server
 import automorph.RpcFunction
 import automorph.RpcException.{FunctionNotFound, InvalidArguments}
 import automorph.log.{LogProperties, Logging}
-import automorph.spi.RequestHandler.Result
+import automorph.spi.RpcHandler.Result
 import automorph.spi.protocol.{Message, Request}
-import automorph.spi.{EffectSystem, MessageCodec, RequestHandler, RpcProtocol}
+import automorph.spi.{EffectSystem, MessageCodec, RpcHandler, RpcProtocol}
 import automorph.util.Extensions.EffectOps
 import scala.collection.immutable.ListMap
 import scala.util.{Failure, Success, Try}
@@ -35,13 +35,13 @@ import scala.util.{Failure, Success, Try}
  * @tparam Context
  *   RPC message context type
  */
-final private[automorph] case class ServerRequestHandler[Value, Codec <: MessageCodec[Value], Effect[_], Context](
+final private[automorph] case class ServerRpcHandler[Value, Codec <: MessageCodec[Value], Effect[_], Context](
   effectSystem: EffectSystem[Effect],
   rpcProtocol: RpcProtocol[Value, Codec, Context],
   discovery: Boolean = false,
   apiBindings: ListMap[String, ServerBinding[Value, Effect, Context]] =
     ListMap[String, ServerBinding[Value, Effect, Context]](),
-) extends RequestHandler[Effect, Context] with Logging {
+) extends RpcHandler[Effect, Context] with Logging {
 
   /** Bound RPC functions. */
   lazy val functions: Seq[RpcFunction] = bindings.map { case (name, binding) =>
@@ -81,7 +81,7 @@ final private[automorph] case class ServerRequestHandler[Value, Codec <: Message
       },
     )
 
-  override def discovery(discovery: Boolean): RequestHandler[Effect, Context] =
+  override def discovery(discovery: Boolean): RpcHandler[Effect, Context] =
     copy(discovery = discovery)
 
   override def mediaType: String =
@@ -174,7 +174,7 @@ final private[automorph] case class ServerRequestHandler[Value, Codec <: Message
     // Assemble required arguments
     if (redundantNames.size + redundantIndices.size > 0) {
       val redundantIdentifiers = redundantNames ++ redundantIndices.map(_.toString)
-      Failure(new IllegalArgumentException(s"Redundant arguments: ${redundantIdentifiers.mkString(", ")}"))
+      Failure(InvalidArguments(s"Redundant arguments: ${redundantIdentifiers.mkString(", ")}"))
     } else {
       Success(parameterNames.foldLeft(Seq[Option[Value]]() -> 0) { case ((arguments, currentIndex), name) =>
         val (argument, newIndex) = namedArguments.get(name) match {
@@ -214,7 +214,7 @@ final private[automorph] case class ServerRequestHandler[Value, Codec <: Message
     }
 
   /**
-   * Decodes specified remote function argument nodes into values.
+   * Encodes specified remote function result values nodes into node.
    *
    * @param result
    *   remote function result
@@ -225,7 +225,7 @@ final private[automorph] case class ServerRequestHandler[Value, Codec <: Message
    */
   private def encodeResult(result: Any, binding: ServerBinding[Value, Effect, Context]): (Value, Option[Context]) =
     Try(binding.encodeResult(result)).recoverWith { case error =>
-      Failure(new IllegalArgumentException("Malformed result", error))
+      Failure(new IllegalStateException("Malformed result", error))
     }.get
 
   /**

@@ -1,10 +1,10 @@
 package automorph.transport.server
 
-import automorph.spi.{EffectSystem, RequestHandler, ServerTransport}
+import automorph.spi.{EffectSystem, RpcHandler, ServerTransport}
 import automorph.transport.HttpContext.headerRpcNodeId
-import automorph.transport.HttpRequestHandler.{RequestMetadata, ResponseMetadata}
+import automorph.transport.ServerHttpHandler.HttpMetadata
 import automorph.transport.server.FinagleHttpEndpoint.Context
-import automorph.transport.{SimpleHttpRequestHandler, HttpContext, HttpMethod, HttpRequestHandler, Protocol}
+import automorph.transport.{HttpContext, HttpMethod, ServerHttpHandler, Protocol}
 import automorph.util.Extensions.EffectOps
 import com.twitter.finagle.Service
 import com.twitter.finagle.http.{Request, Response, Status}
@@ -37,13 +37,13 @@ import com.twitter.util.{Future, Promise}
 final case class FinagleHttpEndpoint[Effect[_]](
   effectSystem: EffectSystem[Effect],
   mapException: Throwable => Int = HttpContext.toStatusCode,
-  handler: RequestHandler[Effect, Context] = RequestHandler.dummy[Effect, Context],
+  handler: RpcHandler[Effect, Context] = RpcHandler.dummy[Effect, Context],
 ) extends ServerTransport[Effect, Context, Service[Request, Response]] {
 
   private lazy val service: Service[Request, Response] = (request: Request) =>
     runAsFuture(httpHandler.processRequest(request, request))
   private val httpHandler =
-    SimpleHttpRequestHandler(receiveRequest, createResponse, Protocol.Http, effectSystem, mapException, handler)
+    ServerHttpHandler(receiveRequest, createResponse, Protocol.Http, effectSystem, mapException, handler)
   implicit private val system: EffectSystem[Effect] = effectSystem
 
   override def adapter: Service[Request, Response] =
@@ -55,28 +55,27 @@ final case class FinagleHttpEndpoint[Effect[_]](
   override def close(): Effect[Unit] =
     effectSystem.successful {}
 
-  override def requestHandler(handler: RequestHandler[Effect, Context]): FinagleHttpEndpoint[Effect] =
+  override def requestHandler(handler: RpcHandler[Effect, Context]): FinagleHttpEndpoint[Effect] =
     copy(handler = handler)
 
-  private def receiveRequest(request: Request): (RequestMetadata[Context], Effect[Array[Byte]]) = {
-    val requestMetadata = RequestMetadata(
+  private def receiveRequest(request: Request): (Effect[Array[Byte]], HttpMetadata[Context]) = {
+    val requestMetadata = HttpMetadata(
       getRequestContext(request),
       httpHandler.protocol,
       request.uri,
       Some(request.method.toString),
     )
-    val requestBody = effectSystem.evaluate(Buf.ByteArray.Owned.extract(request.content))
-    (requestMetadata, requestBody)
+    effectSystem.evaluate(Buf.ByteArray.Owned.extract(request.content)) -> requestMetadata
   }
 
-  private def createResponse(responseData: ResponseMetadata[Context], request: Request): Effect[Response] = {
+  private def createResponse(body: Array[Byte], metadata: HttpMetadata[Context], request: Request): Effect[Response] = {
     val response = Response(
       request.version,
-      Status(responseData.statusCode),
-      Reader.fromBuf(Buf.ByteArray.Owned(responseData.body)),
+      Status(metadata.statusCodeOrOk),
+      Reader.fromBuf(Buf.ByteArray.Owned(body)),
     )
-    response.contentType = responseData.contentType
-    setResponseContext(response, responseData.context)
+    response.contentType = metadata.contentType
+    setResponseContext(response, metadata.context)
     effectSystem.successful(response)
   }
 
@@ -85,17 +84,17 @@ final case class FinagleHttpEndpoint[Effect[_]](
       transportContext = Some(request),
       method = Some(HttpMethod.valueOf(request.method.name)),
       headers = request.headerMap.iterator.toSeq,
-      peerId = Some(clientId(request)),
+      peer = Some(clientId(request)),
     ).url(request.uri)
 
-  private def setResponseContext(response: Response, responseContext: Option[Context]): Unit =
-    responseContext.toSeq.flatMap(_.headers).foreach { case (name, value) => response.headerMap.add(name, value) }
+  private def setResponseContext(response: Response, context: Context): Unit =
+    context.headers.foreach { case (name, value) => response.headerMap.add(name, value) }
 
   private def clientId(request: Request): String = {
     val forwardedFor = request.xForwardedFor
     val nodeId = request.headerMap.get(headerRpcNodeId)
     val address = request.remoteAddress.toString
-    HttpRequestHandler.clientId(address, forwardedFor, nodeId)
+    ServerHttpHandler.client(address, forwardedFor, nodeId)
   }
 
   private def runAsFuture[T](value: => Effect[T]): Future[T] = {

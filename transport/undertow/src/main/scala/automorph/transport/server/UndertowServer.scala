@@ -1,7 +1,7 @@
 package automorph.transport.server
 
 import automorph.log.Logging
-import automorph.spi.{EffectSystem, RequestHandler, ServerTransport}
+import automorph.spi.{EffectSystem, RpcHandler, ServerTransport}
 import automorph.transport.server.UndertowServer.Context
 import automorph.transport.websocket.endpoint.UndertowWebSocketEndpoint
 import automorph.transport.{HttpContext, HttpMethod}
@@ -57,7 +57,7 @@ final case class UndertowServer[Effect[_]](
   webSocket: Boolean = true,
   mapException: Throwable => Int = HttpContext.toStatusCode,
   builder: Undertow.Builder = UndertowServer.builder,
-  handler: RequestHandler[Effect, Context] = RequestHandler.dummy[Effect, Context],
+  handler: RpcHandler[Effect, Context] = RpcHandler.dummy[Effect, Context],
 ) extends ServerTransport[Effect, Context, Unit] with Logging {
 
   private lazy val server = createServer()
@@ -92,7 +92,7 @@ final case class UndertowServer[Effect[_]](
       }
     })
 
-  override def requestHandler(handler: RequestHandler[Effect, Context]): UndertowServer[Effect] =
+  override def requestHandler(handler: RpcHandler[Effect, Context]): UndertowServer[Effect] =
     copy(handler = handler)
 
   private def createServer(): Undertow = {

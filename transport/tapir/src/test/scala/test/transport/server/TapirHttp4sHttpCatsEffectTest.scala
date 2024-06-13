@@ -1,6 +1,6 @@
 package test.transport.server
 
-import automorph.spi.{EffectSystem, RequestHandler, ServerTransport}
+import automorph.spi.{EffectSystem, RpcHandler, ServerTransport}
 import automorph.system.CatsEffectSystem
 import automorph.transport.server.TapirHttpEndpoint
 import cats.effect.IO
@@ -55,7 +55,7 @@ object TapirHttp4sHttpCatsEffectTest {
         }
       }.getOrElse(effectSystem.successful {})
 
-    override def requestHandler(handler: RequestHandler[Effect, Context]): ServerTransport[Effect, Context, Unit] = {
+    override def requestHandler(handler: RpcHandler[Effect, Context]): ServerTransport[Effect, Context, Unit] = {
       rpcServer = rpcServer.requestHandler(handler)
       this
     }

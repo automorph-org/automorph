@@ -1,6 +1,6 @@
 package test.transport.server
 
-import automorph.spi.{EffectSystem, RequestHandler, ServerTransport}
+import automorph.spi.{EffectSystem, RpcHandler, ServerTransport}
 import automorph.system.FutureSystem
 import automorph.transport.server.FinagleHttpEndpoint
 import com.twitter.finagle.{Http, ListeningServer}
@@ -58,7 +58,7 @@ object FinagleHttpEndpointHttpFutureTest {
         promise.future
       }.getOrElse(effectSystem.successful {})
 
-    override def requestHandler(handler: RequestHandler[Effect, Context]): ServerTransport[Effect, Context, Unit] = {
+    override def requestHandler(handler: RpcHandler[Effect, Context]): ServerTransport[Effect, Context, Unit] = {
       rpcServer = rpcServer.requestHandler(handler)
       this
     }

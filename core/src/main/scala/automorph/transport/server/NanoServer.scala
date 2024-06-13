@@ -1,19 +1,20 @@
 package automorph.transport.server
 
 import automorph.log.{Logger, Logging, MessageLog}
-import automorph.spi.{EffectSystem, RequestHandler, ServerTransport}
+import automorph.spi.{EffectSystem, RpcHandler, ServerTransport}
 import automorph.transport.HttpContext.headerRpcNodeId
-import automorph.transport.HttpRequestHandler.{RequestMetadata, ResponseMetadata, headerXForwardedFor}
+import automorph.transport.ServerHttpHandler.{HttpMetadata, headerXForwardedFor}
 import automorph.transport.server.NanoHTTPD.Response.Status
 import automorph.transport.server.NanoHTTPD.{IHTTPSession, Response, newFixedLengthResponse}
 import automorph.transport.server.NanoServer.{Context, WebSocketListener, WebSocketRequest}
 import automorph.transport.server.NanoWSD.WebSocketFrame.CloseCode
 import automorph.transport.server.NanoWSD.{WebSocket, WebSocketFrame}
-import automorph.transport.{HttpContext, HttpMethod, HttpRequestHandler, CallbackHttpRequestHandler, Protocol}
+import automorph.transport.{ClientServerHttpHandler, HttpContext, HttpMethod, ServerHttpHandler, Protocol}
 import automorph.util.Extensions.{ByteArrayOps, EffectOps}
 import java.io.IOException
 import java.net.URI
 import java.util.concurrent.{ArrayBlockingQueue, BlockingQueue}
+import scala.annotation.unused
 import scala.collection.immutable.ListMap
 import scala.concurrent.duration.{DurationInt, FiniteDuration}
 import scala.jdk.CollectionConverters.MapHasAsScala
@@ -64,12 +65,12 @@ final case class NanoServer[Effect[_]](
 ) extends NanoWSD(port, threads) with Logging with ServerTransport[Effect, Context, Unit] {
   private val allowedMethods = methods.map(_.name).toSet
   implicit private val system: EffectSystem[Effect] = effectSystem
-  private var handler: RequestHandler[Effect, Context] = RequestHandler.dummy
+  private var handler: RpcHandler[Effect, Context] = RpcHandler.dummy
 
   private var httpHandler =
-    CallbackHttpRequestHandler(receiveHttpRequest, sendHttpResponse, Protocol.Http, effectSystem, mapException, handler)
+    ClientServerHttpHandler(receiveHttpRequest, sendHttpResponse, Protocol.Http, effectSystem, mapException, handler)
 
-  private var webSocketHandler = CallbackHttpRequestHandler(
+  private var webSocketHandler = ClientServerHttpHandler(
     receiveWebSocketRequest,
     sendWebSocketResponse,
     Protocol.WebSocket,
@@ -78,11 +79,18 @@ final case class NanoServer[Effect[_]](
     handler,
   )
 
-  override def requestHandler(handler: RequestHandler[Effect, Context]): NanoServer[Effect] = {
+  override def requestHandler(handler: RpcHandler[Effect, Context]): NanoServer[Effect] = {
     this.handler = handler
     httpHandler =
-      CallbackHttpRequestHandler(receiveHttpRequest, sendHttpResponse, Protocol.Http, effectSystem, mapException, handler)
-    webSocketHandler = CallbackHttpRequestHandler(
+      ClientServerHttpHandler(
+        receiveHttpRequest,
+        sendHttpResponse,
+        Protocol.Http,
+        effectSystem,
+        mapException,
+        handler,
+      )
+    webSocketHandler = ClientServerHttpHandler(
       receiveWebSocketRequest,
       sendWebSocketResponse,
       Protocol.WebSocket,
@@ -154,68 +162,73 @@ final case class NanoServer[Effect[_]](
   override protected def openWebSocket(session: IHTTPSession): WebSocket =
     WebSocketListener(session, webSocket, effectSystem, webSocketHandler, logger)
 
-  private def receiveHttpRequest(request: IHTTPSession): (RequestMetadata[Context], Effect[Array[Byte]]) = {
+  private def receiveHttpRequest(request: IHTTPSession): (Effect[Array[Byte]], HttpMetadata[Context]) = {
     val query = Option(request.getQueryParameterString).filter(_.nonEmpty).map("?" + _).getOrElse("")
-    val requestMetadata = RequestMetadata(
-      getRequestContext(request, clientId(request)),
+    val requestMetadata = HttpMetadata(
+      getRequestContext(request, client(request)),
       httpHandler.protocol,
       s"${request.getUri}$query",
       Some(request.getMethod.toString),
     )
     val requestBody = system.evaluate(request.getInputStream.readNBytes(request.getBodySize.toInt))
-    (requestMetadata, requestBody)
+    requestBody -> requestMetadata
   }
 
-  private def receiveWebSocketRequest(request: WebSocketRequest): (RequestMetadata[Context], Effect[Array[Byte]]) = {
+  private def receiveWebSocketRequest(request: WebSocketRequest): (Effect[Array[Byte]], HttpMetadata[Context]) = {
     val (session, frame) = request
     val query = Option(session.getQueryParameterString).filter(_.nonEmpty).map("?" + _).getOrElse("")
-    val requestMetadata = RequestMetadata(
-      getRequestContext(session, clientId(session)),
+    val requestMetadata = HttpMetadata(
+      getRequestContext(session, client(session)),
       Protocol.WebSocket,
       s"${session.getUri}$query",
+      None,
     )
-    val requestBody = system.successful(frame.getBinaryPayload)
-    (requestMetadata, requestBody)
+    system.successful(frame.getBinaryPayload) -> requestMetadata
   }
 
   private def sendHttpResponse(
-    responseData: ResponseMetadata[Context],
+    body: Array[Byte],
+    metadata: HttpMetadata[Context],
     channel: (IHTTPSession, BlockingQueue[Response]),
   ): Effect[Unit] =
     system.evaluate {
       val (_, queue) = channel
       val response = newFixedLengthResponse(
-        Status.lookup(responseData.statusCode),
-        responseData.contentType,
-        responseData.body.toInputStream,
-        responseData.body.length.toLong,
+        Status.lookup(metadata.statusCodeOrOk),
+        metadata.contentType,
+        body.toInputStream,
+        body.length.toLong,
       )
-      setResponseContext(response, responseData.context)
+      setResponseContext(response, metadata.context)
       queue.add(response)
       ()
     }
 
-  private def sendWebSocketResponse(responseData: ResponseMetadata[Context], channel: WebSocket): Effect[Unit] =
-    system.evaluate(channel.send(responseData.body))
+  private def sendWebSocketResponse(
+    body: Array[Byte],
+    @unused metadata: HttpMetadata[Context],
+    channel: WebSocket,
+  ): Effect[Unit] =
+    system.evaluate(channel.send(body))
 
   private def getRequestContext(session: IHTTPSession, peerId: String): Context = {
     val http = HttpContext(
       transportContext = Some(session),
       method = Some(HttpMethod.valueOf(session.getMethod.name)),
       headers = session.getHeaders.asScala.toSeq,
-      peerId = Some(peerId),
+      peer = Some(peerId),
     ).url(session.getUri).scheme("http").host("localhost").port(port)
     Option(session.getQueryParameterString).map(http.query).getOrElse(http)
   }
 
-  private def setResponseContext(response: Response, context: Option[Context]): Unit =
-    context.toSeq.flatMap(_.headers).foreach { case (name, value) => response.addHeader(name, value) }
+  private def setResponseContext(response: Response, context: Context): Unit =
+    context.headers.foreach { case (name, value) => response.addHeader(name, value) }
 
-  private def clientId(session: IHTTPSession): String = {
+  private def client(session: IHTTPSession): String = {
     val address = Option(session.getRemoteIpAddress).filter(_.nonEmpty).getOrElse(session.getRemoteHostName)
     val forwardedFor = Option(session.getHeaders.get(headerXForwardedFor))
     val nodeId = Option(session.getHeaders.get(headerRpcNodeId))
-    HttpRequestHandler.clientId(address, forwardedFor, nodeId)
+    ServerHttpHandler.client(address, forwardedFor, nodeId)
   }
 }
 
@@ -230,7 +243,7 @@ object NanoServer {
     session: IHTTPSession,
     webSocket: Boolean,
     effectSystem: EffectSystem[Effect],
-    handler: CallbackHttpRequestHandler[Effect, Context, WebSocketRequest, WebSocket],
+    handler: ClientServerHttpHandler[Effect, Context, WebSocketRequest, WebSocket],
     logger: Logger,
   ) extends WebSocket(session) {
     private val log = MessageLog(logger, Protocol.WebSocket.name)

@@ -1,6 +1,6 @@
 package automorph.spi
 
-import automorph.spi.RequestHandler.Result
+import automorph.spi.RpcHandler.Result
 
 /**
  * RPC request handler.
@@ -12,7 +12,7 @@ import automorph.spi.RequestHandler.Result
  * @tparam Context
  *   RPC message context type
  */
-trait RequestHandler[Effect[_], Context] {
+trait RpcHandler[Effect[_], Context] {
 
   /**
    * Processes an RPC request by invoking a bound remote function based on the specified RPC request along with request
@@ -37,7 +37,7 @@ trait RequestHandler[Effect[_], Context] {
    * @return
    *   RPC request handler
    */
-  def discovery(discovery: Boolean): RequestHandler[Effect, Context]
+  def discovery(discovery: Boolean): RpcHandler[Effect, Context]
 
   /**
    * * Automatic provision of service discovery via RPC functions returning bound API schema.
@@ -48,7 +48,7 @@ trait RequestHandler[Effect[_], Context] {
   def mediaType: String
 }
 
-object RequestHandler {
+object RpcHandler {
 
   /**
    * RPC handler request processing result.
@@ -68,12 +68,12 @@ object RequestHandler {
     context: Option[Context],
   )
 
-  final private case class DummyRequestHandler[Effect[_], Context]() extends RequestHandler[Effect, Context] {
+  final private case class DummyRpcHandler[Effect[_], Context]() extends RpcHandler[Effect, Context] {
 
     def processRequest(body: Array[Byte], context: Context, id: String): Effect[Option[Result[Context]]] =
       error
 
-    override def discovery(enabled: Boolean): RequestHandler[Effect, Context] =
+    override def discovery(enabled: Boolean): RpcHandler[Effect, Context] =
       error
 
     /** Automatic provision of service discovery via RPC functions returning bound API schema. */
@@ -98,6 +98,6 @@ object RequestHandler {
    * @return
    *   dummy RPC request handler
    */
-  private[automorph] def dummy[Effect[_], Context]: RequestHandler[Effect, Context] =
-    DummyRequestHandler()
+  private[automorph] def dummy[Effect[_], Context]: RpcHandler[Effect, Context] =
+    DummyRpcHandler()
 }

@@ -8,7 +8,7 @@ import org.apache.pekko.http.scaladsl.server.Directives.{complete, extractReques
 import org.apache.pekko.http.scaladsl.server.Route
 import org.apache.pekko.http.scaladsl.settings.ServerSettings
 import automorph.log.Logging
-import automorph.spi.{EffectSystem, RequestHandler, ServerTransport}
+import automorph.spi.{EffectSystem, RpcHandler, ServerTransport}
 import automorph.transport.server.PekkoServer.Context
 import automorph.transport.{HttpContext, HttpMethod, Protocol}
 import com.typesafe.config.{Config, ConfigFactory}
@@ -63,7 +63,7 @@ final case class PekkoServer[Effect[_]](
   serverSettings: ServerSettings = ServerSettings(""),
   config: Config = ConfigFactory.empty(),
   guardianProps: Props = Props.empty,
-  handler: RequestHandler[Effect, Context] = RequestHandler.dummy[Effect, Context],
+  handler: RpcHandler[Effect, Context] = RpcHandler.dummy[Effect, Context],
 ) extends ServerTransport[Effect, Context, Unit] with Logging {
 
   private lazy val route = createRoute()
@@ -106,7 +106,7 @@ final case class PekkoServer[Effect[_]](
       }
     })
 
-  override def requestHandler(handler: RequestHandler[Effect, Context]): PekkoServer[Effect] =
+  override def requestHandler(handler: RpcHandler[Effect, Context]): PekkoServer[Effect] =
     copy(handler = handler)
 
   private def createRoute(): Route = {

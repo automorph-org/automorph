@@ -1,20 +1,19 @@
 package automorph.transport.websocket.endpoint
 
 import automorph.spi.EffectSystem.Completable
-import automorph.spi.{EffectSystem, RequestHandler, ServerTransport}
+import automorph.spi.{EffectSystem, RpcHandler, ServerTransport}
 import automorph.transport.HttpContext.headerRpcNodeId
-import automorph.transport.HttpRequestHandler.{RequestMetadata, ResponseMetadata}
+import automorph.transport.ServerHttpHandler.HttpMetadata
 import automorph.transport.server.UndertowHttpEndpoint.requestQuery
 import automorph.transport.websocket.endpoint.UndertowWebSocketEndpoint.{ConnectionListener, Context, ResponseCallback}
-import automorph.transport.{HttpContext, HttpMethod, HttpRequestHandler, CallbackHttpRequestHandler, Protocol}
+import automorph.transport.{ClientServerHttpHandler, HttpContext, ServerHttpHandler, Protocol}
 import automorph.util.Extensions.{ByteArrayOps, ByteBufferOps, EffectOps, StringOps}
 import io.undertow.server.{HttpHandler, HttpServerExchange}
 import io.undertow.util.Headers
-import io.undertow.websockets.core.{
-  AbstractReceiveListener, BufferedBinaryMessage, BufferedTextMessage, WebSocketCallback, WebSocketChannel, WebSockets,
-}
+import io.undertow.websockets.core.{AbstractReceiveListener, BufferedBinaryMessage, BufferedTextMessage, WebSocketCallback, WebSocketChannel, WebSockets}
 import io.undertow.websockets.spi.WebSocketHttpExchange
 import io.undertow.websockets.{WebSocketConnectionCallback, WebSocketProtocolHandshakeHandler}
+import scala.annotation.unused
 import scala.jdk.CollectionConverters.{ListHasAsScala, MapHasAsScala}
 
 /**
@@ -40,7 +39,7 @@ import scala.jdk.CollectionConverters.{ListHasAsScala, MapHasAsScala}
  */
 final case class UndertowWebSocketEndpoint[Effect[_]](
   effectSystem: EffectSystem[Effect],
-  handler: RequestHandler[Effect, Context] = RequestHandler.dummy[Effect, Context],
+  handler: RpcHandler[Effect, Context] = RpcHandler.dummy[Effect, Context],
 ) extends ServerTransport[Effect, Context, WebSocketConnectionCallback] {
 
   private lazy val webSocketConnectionCallback = new WebSocketConnectionCallback {
@@ -52,7 +51,7 @@ final case class UndertowWebSocketEndpoint[Effect[_]](
     }
   }
   private val webSocketHandler =
-    CallbackHttpRequestHandler(receiveRequest, sendResponse, Protocol.WebSocket, effectSystem, _ => 0, handler)
+    ClientServerHttpHandler(receiveRequest, sendResponse, Protocol.WebSocket, effectSystem, _ => 0, handler)
   implicit private val system: EffectSystem[Effect] = effectSystem
 
   /**
@@ -73,28 +72,31 @@ final case class UndertowWebSocketEndpoint[Effect[_]](
   override def close(): Effect[Unit] =
     effectSystem.successful {}
 
-  override def requestHandler(handler: RequestHandler[Effect, Context]): UndertowWebSocketEndpoint[Effect] =
+  override def requestHandler(handler: RpcHandler[Effect, Context]): UndertowWebSocketEndpoint[Effect] =
     copy(handler = handler)
 
   private def receiveRequest(
     request: (WebSocketHttpExchange, Array[Byte])
-  ): (RequestMetadata[Context], Effect[Array[Byte]]) = {
+  ): (Effect[Array[Byte]], HttpMetadata[Context]) = {
     val (exchange, body) = request
     val query = requestQuery(exchange.getQueryString)
-    val requestMetadata = RequestMetadata(
+    val requestMetadata = HttpMetadata(
       getRequestContext(exchange),
       webSocketHandler.protocol,
       s"${exchange.getRequestURI}$query",
-      Some(HttpMethod.Get.name),
+      None,
     )
-    val requestBody = effectSystem.successful(body)
-    (requestMetadata, requestBody)
+    effectSystem.successful(body) -> requestMetadata
   }
 
-  private def sendResponse(responseData: ResponseMetadata[Context], channel: WebSocketChannel): Effect[Unit] =
+  private def sendResponse(
+    body: Array[Byte],
+    @unused metadata: HttpMetadata[Context],
+    channel: WebSocketChannel,
+  ): Effect[Unit] =
     effectSystem.completable[Unit].flatMap { completable =>
       val responseCallback = ResponseCallback(completable, effectSystem)
-      WebSockets.sendBinary(responseData.body.toByteBuffer, channel, responseCallback, ())
+      WebSockets.sendBinary(body.toByteBuffer, channel, responseCallback, ())
       completable.effect
     }
 
@@ -105,7 +107,7 @@ final case class UndertowWebSocketEndpoint[Effect[_]](
     HttpContext(
       transportContext = Some(Right(exchange).withLeft[HttpServerExchange]),
       headers = headers,
-      peerId = Some(clientId(exchange)),
+      peer = Some(clientId(exchange)),
     )
       .url(exchange.getRequestURI)
   }
@@ -114,7 +116,7 @@ final case class UndertowWebSocketEndpoint[Effect[_]](
     val address = exchange.getPeerConnections.iterator().next().getSourceAddress.toString
     val forwardedFor = Option(exchange.getRequestHeaders.get(Headers.X_FORWARDED_FOR_STRING)).map(_.get(0))
     val nodeId = Option(exchange.getRequestHeaders.get(headerRpcNodeId)).map(_.get(0))
-    HttpRequestHandler.clientId(address, forwardedFor, nodeId)
+    ServerHttpHandler.client(address, forwardedFor, nodeId)
   }
 }
 
@@ -125,7 +127,7 @@ object UndertowWebSocketEndpoint {
 
   final private case class ConnectionListener[Effect[_]](
     effectSystem: EffectSystem[Effect],
-    handler: CallbackHttpRequestHandler[Effect, Context, (WebSocketHttpExchange, Array[Byte]), WebSocketChannel],
+    handler: ClientServerHttpHandler[Effect, Context, (WebSocketHttpExchange, Array[Byte]), WebSocketChannel],
     exchange: WebSocketHttpExchange,
   ) extends AbstractReceiveListener {
     implicit private val system: EffectSystem[Effect] = effectSystem

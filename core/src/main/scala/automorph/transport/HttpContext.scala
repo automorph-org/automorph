@@ -1,6 +1,6 @@
 package automorph.transport
 
-import automorph.RpcException.{FunctionNotFound, InvalidRequest, ServerError}
+import automorph.RpcException.{FunctionNotFound, InvalidArguments, InvalidRequest, InvalidResponse, ServerError}
 import automorph.transport.HttpContext.SetCookie
 import java.io.IOException
 import java.net.URI
@@ -38,7 +38,7 @@ import scala.concurrent.duration.Duration
  *   automatically follow redirects if true
  * @param timeout
  *   response timeout
- * @param peerId
+ * @param peer
  *   peer identifier
  * @param transportContext
  *   message properties for specific transport plugin
@@ -58,7 +58,7 @@ final case class HttpContext[TransportContext](
   statusCode: Option[Int] = None,
   followRedirects: Option[Boolean] = None,
   timeout: Option[Duration] = None,
-  peerId: Option[String] = None,
+  peer: Option[String] = None,
   transportContext: Option[TransportContext] = None,
 ) {
 
@@ -430,7 +430,7 @@ final case class HttpContext[TransportContext](
    *   HTTP message context
    */
   def peerId(peerId: String): HttpContext[TransportContext] =
-    copy(peerId = Some(peerId))
+    copy(peer = Some(peerId))
 
   /**
    * Set transport context property.
@@ -617,10 +617,13 @@ object HttpContext {
 
   private val exceptionToStatusCode: Map[Class[?], Int] = Map[Class[?], Int](
     classOf[InvalidRequest] -> 400,
+    classOf[InvalidResponse] -> 400,
+    classOf[InvalidArguments] -> 400,
     classOf[IllegalArgumentException] -> 400,
     classOf[FunctionNotFound] -> 501,
     classOf[ServerError] -> 500,
     classOf[IOException] -> 500,
+    classOf[IllegalStateException] -> 500,
   ).withDefaultValue(500)
 
   /**

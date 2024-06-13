@@ -1,10 +1,10 @@
 package automorph.transport.server
 
-import automorph.spi.{EffectSystem, RequestHandler, ServerTransport}
+import automorph.spi.{EffectSystem, RpcHandler, ServerTransport}
 import automorph.transport.HttpContext.headerRpcNodeId
-import automorph.transport.HttpRequestHandler.{RequestMetadata, ResponseMetadata}
+import automorph.transport.ServerHttpHandler.HttpMetadata
 import automorph.transport.server.JettyHttpEndpoint.{Context, requestQuery}
-import automorph.transport.{HttpContext, HttpMethod, HttpRequestHandler, CallbackHttpRequestHandler, Protocol}
+import automorph.transport.{ClientServerHttpHandler, HttpContext, HttpMethod, ServerHttpHandler, Protocol}
 import automorph.util.Extensions.{EffectOps, InputStreamOps}
 import jakarta.servlet.AsyncContext
 import jakarta.servlet.http.{HttpServlet, HttpServletRequest, HttpServletResponse}
@@ -37,7 +37,7 @@ import scala.jdk.CollectionConverters.EnumerationHasAsScala
 final case class JettyHttpEndpoint[Effect[_]](
   effectSystem: EffectSystem[Effect],
   mapException: Throwable => Int = HttpContext.toStatusCode,
-  handler: RequestHandler[Effect, Context] = RequestHandler.dummy[Effect, Context],
+  handler: RpcHandler[Effect, Context] = RpcHandler.dummy[Effect, Context],
 ) extends ServerTransport[Effect, Context, HttpServlet] {
   private lazy val httpServlet = new HttpServlet {
     implicit private val system: EffectSystem[Effect] = effectSystem
@@ -50,7 +50,7 @@ final case class JettyHttpEndpoint[Effect[_]](
     }
   }
   private val httpHandler =
-    CallbackHttpRequestHandler(receiveRequest, sendResponse, Protocol.Http, effectSystem, mapException, handler)
+    ClientServerHttpHandler(receiveRequest, sendResponse, Protocol.Http, effectSystem, mapException, handler)
 
   override def adapter: HttpServlet =
     httpServlet
@@ -61,40 +61,40 @@ final case class JettyHttpEndpoint[Effect[_]](
   override def close(): Effect[Unit] =
     effectSystem.successful {}
 
-  override def requestHandler(handler: RequestHandler[Effect, Context]): JettyHttpEndpoint[Effect] =
+  override def requestHandler(handler: RpcHandler[Effect, Context]): JettyHttpEndpoint[Effect] =
     copy(handler = handler)
 
-  private def receiveRequest(request: HttpServletRequest): (RequestMetadata[Context], Effect[Array[Byte]]) = {
+  private def receiveRequest(request: HttpServletRequest): (Effect[Array[Byte]], HttpMetadata[Context]) = {
     val query = requestQuery(request.getQueryString)
-    val requestMetadata = RequestMetadata(
+    val requestMetadata = HttpMetadata(
       getRequestContext(request),
       httpHandler.protocol,
       s"${request.getRequestURI}$query",
       Some(request.getMethod),
     )
-    val requestBody = effectSystem.evaluate(request.getInputStream.toByteArray)
-    (requestMetadata, requestBody)
+    effectSystem.evaluate(request.getInputStream.toByteArray) -> requestMetadata
   }
 
   private def sendResponse(
-    responseData: ResponseMetadata[Context],
+    body: Array[Byte],
+    metadata: HttpMetadata[Context],
     channel: (HttpServletResponse, AsyncContext),
   ): Effect[Unit] = {
     val (response, asyncContext) = channel
-    setResponseContext(response, responseData.context)
+    setResponseContext(response, metadata.context)
     response.setContentType(handler.mediaType)
-    response.setStatus(responseData.statusCode)
+    response.setStatus(metadata.statusCodeOrOk)
     effectSystem.evaluate {
       val outputStream = response.getOutputStream
-      outputStream.write(responseData.body)
+      outputStream.write(body)
       outputStream.flush()
       outputStream.close()
       asyncContext.complete()
     }
   }
 
-  private def setResponseContext(response: HttpServletResponse, context: Option[Context]): Unit =
-    context.toSeq.flatMap(_.headers).foreach { case (name, value) => response.setHeader(name, value) }
+  private def setResponseContext(response: HttpServletResponse, context: Context): Unit =
+    context.headers.foreach { case (name, value) => response.setHeader(name, value) }
 
   private def getRequestContext(request: HttpServletRequest): Context = {
     val headers = request.getHeaderNames.asScala.flatMap { name =>
@@ -104,15 +104,15 @@ final case class JettyHttpEndpoint[Effect[_]](
       transportContext = Some(request),
       method = Some(HttpMethod.valueOf(request.getMethod)),
       headers = headers,
-      peerId = Some(clientId(request)),
+      peer = Some(client(request)),
     ).url(request.getRequestURI)
   }
 
-  private def clientId(request: HttpServletRequest): String = {
+  private def client(request: HttpServletRequest): String = {
     val address = request.getRemoteAddr
     val forwardedFor = Option(request.getHeader(HttpHeader.X_FORWARDED_FOR.name))
     val nodeId = Option(request.getHeader(headerRpcNodeId))
-    HttpRequestHandler.clientId(address, forwardedFor, nodeId)
+    ServerHttpHandler.client(address, forwardedFor, nodeId)
   }
 }
 
