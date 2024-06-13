@@ -137,7 +137,7 @@ trait EffectSystemTest[Effect[_]] extends BaseTest {
         run(effect).shouldEqual(Right(text))
       }
       "Failure" in {
-        val effect = system.retry(system.failed(error), 3)
+        lazy val effect = system.retry(system.failed(error), 3)
         run(effect).shouldEqual(Left(error))
       }
     }
