@@ -61,13 +61,23 @@ trait CoreTest extends BaseTest {
                 consistent(apis)(_.method("value")).shouldBe(true)
               }
             }
-            "Discover" - {
-              "OpenAPI" in {
-                val result = run(fixture.functions.callOpenApi(openApiFunction))
-                val functions = result.paths.getOrElse(Map.empty).keys.toSet
-                fixture.server.rpcProtocol match {
-                  case _: WebRpcProtocol[?, ?, ?] => functions.should(equal(apiMethodNames - openRpcFunction))
-                  case _ => functions.should(equal(apiMethodNames))
+
+            if ((basic && !TestLevel.complex) || TestLevel.simple) {
+              "Discover" - {
+                if (!fixture.server.rpcProtocol.isInstanceOf[WebRpcProtocol[?, ?, ?]]) {
+                  "OpenRPC" in {
+                    val result = run(fixture.functions.callOpenApi(openApiFunction))
+                    val functions = result.paths.getOrElse(Map.empty).keys.toSet
+                    functions.should(equal(apiMethodNames))
+                  }
+                }
+                "OpenAPI" in {
+                  val result = run(fixture.functions.callOpenApi(openApiFunction))
+                  val functions = result.paths.getOrElse(Map.empty).keys.toSet
+                  fixture.server.rpcProtocol match {
+                    case _: WebRpcProtocol[?, ?, ?] => functions.should(equal(apiMethodNames - openRpcFunction))
+                    case _ => functions.should(equal(apiMethodNames))
+                  }
                 }
               }
             }
@@ -75,7 +85,7 @@ trait CoreTest extends BaseTest {
         }
 
         // Complex tests
-        if ((basic && !TestLevel.simple) || TestLevel.complex) {
+        if ((basic && !TestLevel.complex) || TestLevel.complex) {
           "Static" - {
             "Simple API" - {
               val apis = (fixture.apis.simpleApi, simpleApi)

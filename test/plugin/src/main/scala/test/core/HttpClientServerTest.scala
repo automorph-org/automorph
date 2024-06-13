@@ -14,7 +14,7 @@ trait HttpClientServerTest extends ClientServerTest {
 
   override def fixtures: Seq[TestFixture] = {
     implicit val context: Context = arbitraryContext.arbitrary.sample.get
-    Option.when(!TestLevel.simple)(circeWebRpcJsonFixture()).toSeq ++ super.fixtures
+    Option.when(TestLevel.complex)(circeWebRpcJsonFixture()).toSeq ++ super.fixtures
   }
 
   private def circeWebRpcJsonFixture()(implicit context: Context): TestFixture = {
