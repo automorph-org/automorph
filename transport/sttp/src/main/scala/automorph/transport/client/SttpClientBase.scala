@@ -106,7 +106,7 @@ private[automorph] trait SttpClientBase[Effect[_]] extends ClientTransport[Effec
 
   private def createRequest(
     requestBody: Array[Byte],
-    mediaType: String,
+    contentType: String,
     context: Context,
   ): Request[Array[Byte], WebSocket] = {
     // URL & method
@@ -115,10 +115,10 @@ private[automorph] trait SttpClientBase[Effect[_]] extends ClientTransport[Effec
     val requestMethod = Method.unsafeApply(context.method.getOrElse(method).name)
 
     // Headers, timeout & follow redirects
-    val contentType = MediaType.unsafeParse(mediaType)
+    val contentTypeValue = MediaType.unsafeParse(contentType)
     val sttpRequest = transportRequest.method(requestMethod, requestUrl).headers(context.headers.map {
       case (name, value) => Header(name, value)
-    }*).contentType(contentType).header(Header.accept(contentType))
+    }*).contentType(contentTypeValue).header(Header.accept(contentTypeValue))
       .readTimeout(context.timeout.getOrElse(transportRequest.options.readTimeout))
       .followRedirects(context.followRedirects.getOrElse(transportRequest.options.followRedirects))
       .maxRedirects(transportRequest.options.maxRedirects)
