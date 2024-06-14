@@ -739,11 +739,11 @@ public abstract class NanoWSD extends NanoHTTPD {
      */
     private static final Logger LOG = Logger.getLogger(NanoWSD.class.getName());
 
-    public static final String HEADER_UPGRADE = "Upgrade";
+    public static final String HEADER_UPGRADE = "upgrade";
 
     public static final String HEADER_UPGRADE_VALUE = "websocket";
 
-    public static final String HEADER_CONNECTION = "Connection";
+    public static final String HEADER_CONNECTION = "connection";
 
     public static final String HEADER_CONNECTION_VALUE = "Upgrade";
 
@@ -751,11 +751,11 @@ public abstract class NanoWSD extends NanoHTTPD {
 
     public static final String HEADER_WEBSOCKET_VERSION_VALUE = "13";
 
-    public static final String HEADER_WEBSOCKET_KEY = "Sec-WebSocket-Key";
+    public static final String HEADER_WEBSOCKET_KEY = "sec-websocket-key";
 
-    public static final String HEADER_WEBSOCKET_ACCEPT = "Sec-WebSocket-Accept";
+    public static final String HEADER_WEBSOCKET_ACCEPT = "sec-webSocket-accept";
 
-    public static final String HEADER_WEBSOCKET_PROTOCOL = "Sec-WebSocket-Protocol";
+    public static final String HEADER_WEBSOCKET_PROTOCOL = "sec-webSocket-protocol";
 
     private final static String WEBSOCKET_KEY_MAGIC = "258EAFA5-E914-47DA-95CA-C5AB0DC85B11";
 
