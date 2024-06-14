@@ -745,7 +745,7 @@ public abstract class NanoWSD extends NanoHTTPD {
 
     public static final String HEADER_CONNECTION = "Connection";
 
-    public static final String HEADER_CONNECTION_VALUE = "upgrade";
+    public static final String HEADER_CONNECTION_VALUE = "Upgrade";
 
     public static final String HEADER_WEBSOCKET_VERSION = "sec-websocket-version";
 
