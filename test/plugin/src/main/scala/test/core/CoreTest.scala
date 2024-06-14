@@ -63,7 +63,7 @@ trait CoreTest extends BaseTest {
             }
           }
 
-          if ((basic && !TestLevel.complex) || TestLevel.complex) {
+          if ((basic && !TestLevel.simple) || TestLevel.complex) {
             "Discover" - {
               if (!fixture.server.rpcProtocol.isInstanceOf[WebRpcProtocol[?, ?, ?]]) {
                 "OpenRPC" in {
@@ -85,7 +85,7 @@ trait CoreTest extends BaseTest {
         }
 
         // Complex tests
-        if ((basic && !TestLevel.complex) || TestLevel.complex) {
+        if ((basic && !TestLevel.simple) || TestLevel.complex) {
           "Static" - {
             "Simple API" - {
               val apis = (fixture.apis.simpleApi, simpleApi)
