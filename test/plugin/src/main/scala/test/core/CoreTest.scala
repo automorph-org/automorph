@@ -53,31 +53,31 @@ trait CoreTest extends BaseTest {
     testFixtures.foreach { fixture =>
       fixture.id - {
         // Simple tests
-        if (basic || TestLevel.simple) {
-          "Standard" - {
+        "Standard" - {
+          if (basic || TestLevel.simple) {
             "Simple API" - {
               val apis = (fixture.apis.simpleApi, simpleApi)
               "method" in {
                 consistent(apis)(_.method("value")).shouldBe(true)
               }
             }
+          }
 
-            if ((basic && !TestLevel.complex) || TestLevel.simple) {
-              "Discover" - {
-                if (!fixture.server.rpcProtocol.isInstanceOf[WebRpcProtocol[?, ?, ?]]) {
-                  "OpenRPC" in {
-                    val result = run(fixture.functions.callOpenApi(openApiFunction))
-                    val functions = result.paths.getOrElse(Map.empty).keys.toSet
-                    functions.should(equal(apiMethodNames))
-                  }
-                }
-                "OpenAPI" in {
+          if ((basic && !TestLevel.complex) || TestLevel.complex) {
+            "Discover" - {
+              if (!fixture.server.rpcProtocol.isInstanceOf[WebRpcProtocol[?, ?, ?]]) {
+                "OpenRPC" in {
                   val result = run(fixture.functions.callOpenApi(openApiFunction))
                   val functions = result.paths.getOrElse(Map.empty).keys.toSet
-                  fixture.server.rpcProtocol match {
-                    case _: WebRpcProtocol[?, ?, ?] => functions.should(equal(apiMethodNames - openRpcFunction))
-                    case _ => functions.should(equal(apiMethodNames))
-                  }
+                  functions.should(equal(apiMethodNames))
+                }
+              }
+              "OpenAPI" in {
+                val result = run(fixture.functions.callOpenApi(openApiFunction))
+                val functions = result.paths.getOrElse(Map.empty).keys.toSet
+                fixture.server.rpcProtocol match {
+                  case _: WebRpcProtocol[?, ?, ?] => functions.should(equal(apiMethodNames - openRpcFunction))
+                  case _ => functions.should(equal(apiMethodNames))
                 }
               }
             }
