@@ -1,6 +1,6 @@
 package automorph.transport.server
 
-import automorph.log.{Logger, Logging, MessageLog}
+import automorph.log.{Logger, Logging}
 import automorph.spi.{EffectSystem, RpcHandler, ServerTransport}
 import automorph.transport.HttpContext.headerRpcNodeId
 import automorph.transport.ServerHttpHandler.{HttpMetadata, headerXForwardedFor}
@@ -9,10 +9,10 @@ import automorph.transport.server.NanoHTTPD.{IHTTPSession, Response, newFixedLen
 import automorph.transport.server.NanoServer.{Context, WebSocketListener, WebSocketRequest}
 import automorph.transport.server.NanoWSD.WebSocketFrame.CloseCode
 import automorph.transport.server.NanoWSD.{WebSocket, WebSocketFrame}
-import automorph.transport.{ClientServerHttpHandler, HttpContext, HttpMethod, ServerHttpHandler, Protocol}
+import automorph.transport.{ClientServerHttpHandler, HttpContext, HttpMethod, Protocol, ServerHttpHandler}
 import automorph.util.Extensions.{ByteArrayOps, EffectOps}
 import java.io.IOException
-import java.net.URI
+import java.net.{SocketException, URI}
 import java.util.concurrent.{ArrayBlockingQueue, BlockingQueue}
 import scala.annotation.unused
 import scala.collection.immutable.ListMap
@@ -246,7 +246,6 @@ object NanoServer {
     handler: ClientServerHttpHandler[Effect, Context, WebSocketRequest, WebSocket],
     logger: Logger,
   ) extends WebSocket(session) {
-    private val log = MessageLog(logger, Protocol.WebSocket.name)
     implicit private val system: EffectSystem[Effect] = effectSystem
 
     override protected def onOpen(): Unit =
@@ -264,6 +263,8 @@ object NanoServer {
       ()
 
     override protected def onException(error: IOException): Unit =
-      log.failedReceiveRequest(error, Map.empty, Protocol.WebSocket.name)
+      if (!error.isInstanceOf[SocketException]) {
+        handler.failedReceiveWebSocketRequest(error)
+      }
   }
 }

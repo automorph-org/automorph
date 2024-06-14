@@ -97,6 +97,9 @@ final private[automorph] case class ClientServerHttpHandler[
     }
   }
 
+  def failedReceiveWebSocketRequest(error: Throwable): Unit =
+    log.failedReceiveRequest(error, Map.empty, Protocol.WebSocket.name)
+
   /**
    * Sends a request to a remote endpoint and retrieves the response.
    *
