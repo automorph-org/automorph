@@ -45,14 +45,19 @@ final case class JettyWebSocketEndpoint[Effect[_]](
   private lazy val webSocketAdapter = new WebSocketAdapter {
     implicit private val system: EffectSystem[Effect] = effectSystem
 
+    override def onWebSocketBinary(payload: Array[Byte], offset: Int, length: Int): Unit = {
+      val session = getSession
+      webSocketHandler.processRequest((session, payload), session).runAsync
+    }
+
     override def onWebSocketText(message: String): Unit = {
       val session = getSession
       webSocketHandler.processRequest((session, message.toByteArray), session).runAsync
     }
 
-    override def onWebSocketBinary(payload: Array[Byte], offset: Int, length: Int): Unit = {
-      val session = getSession
-      webSocketHandler.processRequest((session, payload), session).runAsync
+    override def onWebSocketError(cause: Throwable): Unit = {
+      webSocketHandler.failedReceiveWebSocketRequest(cause)
+      super.onWebSocketError(cause)
     }
   }
   private lazy val jettyWebSocketCreator = new JettyWebSocketCreator {

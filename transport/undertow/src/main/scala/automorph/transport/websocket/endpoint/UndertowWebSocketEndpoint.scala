@@ -132,15 +132,20 @@ object UndertowWebSocketEndpoint {
   ) extends AbstractReceiveListener {
     implicit private val system: EffectSystem[Effect] = effectSystem
 
-    override def onFullTextMessage(channel: WebSocketChannel, message: BufferedTextMessage): Unit =
-      handler.processRequest((exchange, message.getData.toByteArray), channel).runAsync
-
     @scala.annotation.nowarn("msg=deprecated")
     override def onFullBinaryMessage(channel: WebSocketChannel, message: BufferedBinaryMessage): Unit = {
       val data = message.getData
       handler.processRequest((exchange, WebSockets.mergeBuffers(data.getResource*).toByteArray), channel).either.map(
         _ => data.free()
       ).runAsync
+    }
+
+    override def onFullTextMessage(channel: WebSocketChannel, message: BufferedTextMessage): Unit =
+      handler.processRequest((exchange, message.getData.toByteArray), channel).runAsync
+
+    override def onError(channel: WebSocketChannel, error: Throwable): Unit = {
+      handler.failedReceiveWebSocketRequest(error)
+      super.onError(channel, error)
     }
   }
 

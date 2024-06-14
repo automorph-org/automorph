@@ -4,8 +4,8 @@ import automorph.spi.{EffectSystem, RpcHandler, ServerTransport}
 import automorph.transport.ServerHttpHandler.HttpMetadata
 import automorph.transport.server.VertxHttpEndpoint
 import automorph.transport.websocket.endpoint.VertxWebSocketEndpoint.Context
-import automorph.transport.{ClientServerHttpHandler, HttpContext, HttpMethod, Protocol}
-import automorph.util.Extensions.EffectOps
+import automorph.transport.{ClientServerHttpHandler, HttpContext, Protocol}
+import automorph.util.Extensions.{EffectOps, StringOps}
 import io.vertx.core.Handler
 import io.vertx.core.buffer.Buffer
 import io.vertx.core.http.{HttpServerRequest, ServerWebSocket}
@@ -42,7 +42,13 @@ final case class VertxWebSocketEndpoint[Effect[_]](
 
     override def handle(session: ServerWebSocket): Unit = {
       session.binaryMessageHandler { buffer =>
-        webSocketHandler.processRequest((buffer, session), session).runAsync
+        webSocketHandler.processRequest((buffer.getBytes, session), session).runAsync
+      }
+      session.textMessageHandler { message =>
+        webSocketHandler.processRequest((message.toByteArray, session), session).runAsync
+      }
+      session.exceptionHandler { error =>
+        webSocketHandler.failedReceiveWebSocketRequest(error)
       }
       ()
     }
@@ -65,7 +71,7 @@ final case class VertxWebSocketEndpoint[Effect[_]](
     copy(handler = handler)
 
   private def receiveRequest(
-    incomingRequest: (Buffer, ServerWebSocket)
+    incomingRequest: (Array[Byte], ServerWebSocket)
   ): (Effect[Array[Byte]], HttpMetadata[Context]) = {
     val (body, webSocket) = incomingRequest
     val requestMetadata = HttpMetadata(
@@ -74,7 +80,7 @@ final case class VertxWebSocketEndpoint[Effect[_]](
       webSocket.uri,
       None,
     )
-    effectSystem.evaluate(body.getBytes) -> requestMetadata
+    system.successful(body) -> requestMetadata
   }
 
   private def sendResponse(

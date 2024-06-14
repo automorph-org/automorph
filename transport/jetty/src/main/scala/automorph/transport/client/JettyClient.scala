@@ -204,7 +204,7 @@ final case class JettyClient[Effect[_]](
     requestUrl.getScheme.toLowerCase match {
       case scheme if scheme.startsWith(webSocketSchemePrefix) =>
         // Create WebSocket request
-        val upgradeRequest = createWebSocketRequest(context, requestUrl)
+        val upgradeRequest = createWebSocketRequest(context, requestUrl, contentType)
         (Right((upgradeRequest, requestBody)), requestUrl, Protocol.WebSocket)
       case _ =>
         // Create HTTP request
@@ -256,7 +256,7 @@ final case class JettyClient[Effect[_]](
       .getOrElse(httpClient.newRequest(requestUrl))
     val transportHeaders = transportRequest.getHeaders.asScala.map(field => field.getName -> field.getValue)
     val headers = transportHeaders ++ httpContext.headers
-      ++ Seq(HttpHeader.CONTENT_TYPE -> contentType, HttpHeader.CONTENT_TYPE -> contentType)
+      ++ Seq(HttpHeader.CONTENT_TYPE.asString -> contentType, HttpHeader.CONTENT_TYPE.asString -> contentType)
     val request = new ClientUpgradeRequest
     headers.toSeq.groupBy(_._1).view.mapValues(_.map(_._2)).toSeq.foreach { case (name, values) =>
       request.setHeader(name, values.asJava)
