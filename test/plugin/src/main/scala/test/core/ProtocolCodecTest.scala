@@ -32,7 +32,7 @@ trait ProtocolCodecTest extends CoreTest {
 
   override def fixtures: Seq[TestFixture] = {
     implicit val context: Context = arbitraryContext.arbitrary.sample.get
-    Seq(circeJsonRpcFixture) ++ Option.when(basic || TestLevel.all)(Seq(
+    Seq(circeJsonRpcFixture) ++ Option.when((basic && !TestLevel.simple) || TestLevel.all)(Seq(
       jacksonJsonRpcJsonFixture,
       jacksonJsonRpcSmileFixture,
       jacksonJsonRpcCborFixture,
