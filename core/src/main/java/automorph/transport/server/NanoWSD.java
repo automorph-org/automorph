@@ -752,15 +752,15 @@ public abstract class NanoWSD extends NanoHTTPD {
 
     public static final String HEADER_CONNECTION_VALUE = "Upgrade";
 
-    public static final String HEADER_WEBSOCKET_VERSION = "Sec-Websocket-Version";
+    public static final String HEADER_WEBSOCKET_VERSION = "Sec-WebSocket-Version";
 
     public static final String HEADER_WEBSOCKET_VERSION_VALUE = "13";
 
-    public static final String HEADER_WEBSOCKET_KEY = "Sec-Websocket-Key";
+    public static final String HEADER_WEBSOCKET_KEY = "Sec-WebSocket-Key";
 
-    public static final String HEADER_WEBSOCKET_ACCEPT = "Sec-Websocket-Accept";
+    public static final String HEADER_WEBSOCKET_ACCEPT = "Sec-WebSocket-Accept";
 
-    public static final String HEADER_WEBSOCKET_PROTOCOL = "Sec-Websocket-Protocol";
+    public static final String HEADER_WEBSOCKET_PROTOCOL = "Sec-WebSocket-Protocol";
 
     private final static String WEBSOCKET_KEY_MAGIC = "258EAFA5-E914-47DA-95CA-C5AB0DC85B11";
 
@@ -866,6 +866,7 @@ public abstract class NanoWSD extends NanoHTTPD {
             }
 
             responseQueue.add(handshakeResponse);
+
             return responseQueue;
         } else {
             return serveHttp(session);
