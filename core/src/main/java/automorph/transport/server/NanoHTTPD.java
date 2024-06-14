@@ -1122,8 +1122,8 @@ public abstract class NanoHTTPD {
          * read bytes.
          */
         public long getBodySize() {
-            if (this.headers.containsKey("content-length")) {
-                return Long.parseLong(this.headers.get("content-length"));
+            if (this.headers.containsKey("Content-Length")) {
+                return Long.parseLong(this.headers.get("Content-Length"));
             } else if (this.splitbyte < this.rlen) {
                 return this.rlen - this.splitbyte;
             }
@@ -1610,7 +1610,7 @@ public abstract class NanoHTTPD {
                 if (this.mimeType != null) {
                     printHeader(pw, "Content-Type", this.mimeType);
                 }
-                if (getHeader("date") == null) {
+                if (getHeader("Date") == null) {
                     printHeader(pw, "Date", gmtFrmt.format(new Date()));
                 }
                 for (Entry<String, String> entry : this.header.entrySet()) {
@@ -1648,7 +1648,7 @@ public abstract class NanoHTTPD {
         }
 
         protected long sendContentLengthHeaderIfNotAlreadyPresent(PrintWriter pw, long defaultSize) {
-            String contentLengthString = getHeader("content-length");
+            String contentLengthString = getHeader("Content-Length");
             long size = defaultSize;
             if (contentLengthString != null) {
                 try {
