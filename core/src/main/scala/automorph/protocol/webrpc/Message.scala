@@ -22,7 +22,7 @@ final case class Message[Value](result: Option[Value], error: Option[MessageErro
 
   /** Message properties. */
   lazy val properties: Map[String, String] = ListMap("Type" -> messageType.toString) ++ error.toSeq.flatMap { value =>
-    value.code.map(code => "Error Code" -> code.toString) ++ value.message.map(message => "ErrorMessage" -> message)
+    value.code.map(code => "Error Code" -> code.toString) ++ value.message.map(message => "Error Message" -> message)
   }
 }
 

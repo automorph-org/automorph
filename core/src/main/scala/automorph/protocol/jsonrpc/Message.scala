@@ -40,7 +40,7 @@ final case class Message[Value](
   lazy val properties: Map[String, String] = ListMap("Type" -> messageType.toString) ++
     method.map(value => "Method" -> value) ++ params.map(value => "Arguments" -> value.fold(_.size, _.size).toString) ++
     error.toSeq.flatMap { value =>
-      value.code.map(code => "Error Code" -> code.toString) ++ value.message.map(message => "ErrorMessage" -> message)
+      value.code.map(code => "Error Code" -> code.toString) ++ value.message.map(message => "Error Message" -> message)
     } ++ id.map(value => "Identifier" -> value.fold(_.toString, identity))
 }
 
