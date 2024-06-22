@@ -77,7 +77,6 @@ final private[automorph] case class ClientServerHttpHandler[
    */
   def processRequest(request: Request, connection: Connection): Effect[Unit] = {
     handler.retrieveRequest(request).flatMap { case (requestBody, requestMetadata) =>
-      handler.handleRequest(requestBody, requestMetadata, connection)
       val context = requestMetadata.context
       context.header(headerRpcListen).filter(_.toLowerCase == valueRpcListen).flatMap(_ => context.peer).map { peer =>
         // Register client connection
