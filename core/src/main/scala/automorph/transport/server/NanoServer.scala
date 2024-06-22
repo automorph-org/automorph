@@ -13,6 +13,7 @@ import automorph.transport.{ClientServerHttpHandler, HttpContext, HttpMethod, Pr
 import automorph.util.Extensions.{ByteArrayOps, EffectOps}
 import java.io.IOException
 import java.net.{SocketException, URI}
+import java.util.concurrent.{ArrayBlockingQueue, BlockingQueue}
 import scala.annotation.unused
 import scala.collection.immutable.ListMap
 import scala.concurrent.duration.{DurationInt, FiniteDuration}
@@ -133,19 +134,21 @@ final case class NanoServer[Effect[_]](
    * @return
    *   HTTP response
    */
-  override protected def serveHttp(session: IHTTPSession): Unit = {
+  override protected def serveHttp(session: IHTTPSession): BlockingQueue[Response] = {
     // Validate URL path
+    val queue = new ArrayBlockingQueue[Response](1)
     val url = new URI(session.getUri)
     if (!url.getPath.startsWith(pathPrefix)) {
-      session.send(newFixedLengthResponse(Status.NOT_FOUND, NanoHTTPD.MIME_PLAINTEXT, "Not Found"))
+      queue.add(newFixedLengthResponse(Status.NOT_FOUND, NanoHTTPD.MIME_PLAINTEXT, "Not Found"))
     } else {
       // Validate HTTP request method
       if (!allowedMethods.contains(session.getMethod.toString.toUpperCase)) {
-        session.send(newFixedLengthResponse(Status.METHOD_NOT_ALLOWED, NanoHTTPD.MIME_PLAINTEXT, "Method Not Allowed"))
+        queue.add(newFixedLengthResponse(Status.METHOD_NOT_ALLOWED, NanoHTTPD.MIME_PLAINTEXT, "Method Not Allowed"))
       } else {
-        httpHandler.processRequest(session, session).runAsync
+        httpHandler.processRequest(session, (session, queue)).runAsync
       }
     }
+    queue
   }
 
   /**
@@ -186,9 +189,10 @@ final case class NanoServer[Effect[_]](
   private def sendHttpResponse(
     body: Array[Byte],
     metadata: HttpMetadata[Context],
-    session: IHTTPSession,
+    channel: (IHTTPSession, BlockingQueue[Response]),
   ): Effect[Unit] =
     system.evaluate {
+      val (_, queue) = channel
       val response = newFixedLengthResponse(
         Status.lookup(metadata.statusCodeOrOk),
         metadata.contentType,
@@ -196,7 +200,7 @@ final case class NanoServer[Effect[_]](
         body.length.toLong,
       )
       setResponseContext(response, metadata.context)
-      session.send(response)
+      queue.add(response)
       ()
     }
 
