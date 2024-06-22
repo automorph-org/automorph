@@ -47,6 +47,7 @@ import java.io.InputStream;
 import java.io.OutputStream;
 import java.nio.charset.CharacterCodingException;
 import java.nio.charset.Charset;
+import java.nio.charset.StandardCharsets;
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
 import java.util.Arrays;
@@ -419,7 +420,7 @@ public abstract class NanoWSD extends NanoHTTPD {
             }
         }
 
-        public static final Charset TEXT_CHARSET = Charset.forName("UTF-8");
+        public static final Charset TEXT_CHARSET = StandardCharsets.UTF_8;
 
         public static String binary2Text(byte[] payload) throws CharacterCodingException {
             return new String(payload, WebSocketFrame.TEXT_CHARSET);

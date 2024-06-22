@@ -519,7 +519,7 @@ public abstract class NanoHTTPD {
 
     private static final Pattern CONTENT_DISPOSITION_PATTERN = Pattern.compile(CONTENT_DISPOSITION_REGEX, Pattern.CASE_INSENSITIVE);
 
-    private static final String CONTENT_TYPE_REGEX = "([ |\t]*content-type[ |\t]*:)(.*)";
+    private static final String CONTENT_TYPE_REGEX = "([ |\t]*Content-Type[ |\t]*:)(.*)";
 
     private static final Pattern CONTENT_TYPE_PATTERN = Pattern.compile(CONTENT_TYPE_REGEX, Pattern.CASE_INSENSITIVE);
 
@@ -923,8 +923,8 @@ public abstract class NanoHTTPD {
                 decodeHeader(hin, pre, this.parms, this.headers);
 
                 if (null != this.remoteIp) {
-                    this.headers.put("remote-addr", this.remoteIp);
-                    this.headers.put("http-client-ip", this.remoteIp);
+                    this.headers.put("Remote-Addr", this.remoteIp);
+                    this.headers.put("HTTP-Client-IP", this.remoteIp);
                 }
 
                 this.method = Method.lookup(pre.get("method"));
@@ -951,7 +951,7 @@ public abstract class NanoHTTPD {
                 if (r == null) {
                     throw new ResponseException(Response.Status.INTERNAL_ERROR, "SERVER INTERNAL ERROR: Serve() returned a null response.");
                 } else {
-                    String acceptEncoding = this.headers.get("accept-encoding");
+                    String acceptEncoding = this.headers.get("Accept-Encoding");
                     this.cookies.unloadQueue(r);
                     r.setRequestMethod(this.method);
                     r.setGzipEncoding(useGzipWhenAccepted(r) && acceptEncoding != null && acceptEncoding.contains("gzip"));
@@ -1114,12 +1114,12 @@ public abstract class NanoHTTPD {
         }
 
         /**
-         * Deduce body length in bytes. Either from "content-length" header or
+         * Deduce body length in bytes. Either from "Content-Length" header or
          * read bytes.
          */
         public long getBodySize() {
-            if (this.headers.containsKey("content-length")) {
-                return Long.parseLong(this.headers.get("content-length"));
+            if (this.headers.containsKey("Content-Length")) {
+                return Long.parseLong(this.headers.get("Content-Length"));
             } else if (this.splitbyte < this.rlen) {
                 return this.rlen - this.splitbyte;
             }
@@ -1164,7 +1164,7 @@ public abstract class NanoHTTPD {
                 // If the method is POST, there may be parameters
                 // in data section, too, read it:
                 if (Method.POST.equals(this.method)) {
-                    ContentType contentType = new ContentType(this.headers.get("content-type"));
+                    ContentType contentType = new ContentType(this.headers.get("Content-Type"));
                     if (contentType.isMultipart()) {
                         String boundary = contentType.getBoundary();
                         if (boundary == null) {
@@ -1599,16 +1599,16 @@ public abstract class NanoHTTPD {
                 if (this.mimeType != null) {
                     printHeader(pw, "Content-Type", this.mimeType);
                 }
-                if (getHeader("date") == null) {
+                if (getHeader("Date") == null) {
                     printHeader(pw, "Date", gmtFrmt.format(new Date()));
                 }
                 for (Entry<String, String> entry : this.header.entrySet()) {
                     printHeader(pw, entry.getKey(), entry.getValue());
                 }
-                if (getHeader("connection") == null) {
+                if (getHeader("Connection") == null) {
                     printHeader(pw, "Connection", (this.keepAlive ? "keep-alive" : "close"));
                 }
-                if (getHeader("content-length") != null) {
+                if (getHeader("Content-Length") != null) {
                     encodeAsGzip = false;
                 }
                 if (encodeAsGzip) {
@@ -1637,13 +1637,13 @@ public abstract class NanoHTTPD {
         }
 
         protected long sendContentLengthHeaderIfNotAlreadyPresent(PrintWriter pw, long defaultSize) {
-            String contentLengthString = getHeader("content-length");
+            String contentLengthString = getHeader("Content-Length");
             long size = defaultSize;
             if (contentLengthString != null) {
                 try {
                     size = Long.parseLong(contentLengthString);
                 } catch (NumberFormatException ex) {
-                    LOG.severe("content-length was no number " + contentLengthString);
+                    LOG.severe("Content-Length was no number " + contentLengthString);
                 }
             }
             pw.print("Content-Length: " + size + "\r\n");
