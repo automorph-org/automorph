@@ -2,9 +2,8 @@ package automorph.transport.server
 
 import automorph.log.Logging
 import automorph.spi.{EffectSystem, RpcHandler, ServerTransport}
-import automorph.transport.ServerHttpHandler.HttpMetadata
 import automorph.transport.server.ZioHttpWebSocketEndpoint.Context
-import automorph.transport.{ClientServerHttpHandler, HttpContext, Protocol}
+import automorph.transport.{ClientServerHttpHandler, HttpContext, HttpMetadata, Protocol}
 import zio.http.ChannelEvent.{ExceptionCaught, Read}
 import zio.http.{WebSocketChannel, WebSocketFrame}
 import zio.{Chunk, IO}

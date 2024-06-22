@@ -8,9 +8,8 @@ import akka.http.scaladsl.server.Route
 import akka.stream.Materializer
 import automorph.spi.{EffectSystem, RpcHandler, ServerTransport}
 import automorph.transport.HttpContext.headerRpcNodeId
-import automorph.transport.ServerHttpHandler.HttpMetadata
 import automorph.transport.server.AkkaHttpEndpoint.Context
-import automorph.transport.{HttpContext, HttpMethod, ServerHttpHandler, Protocol}
+import automorph.transport.{HttpContext, HttpMetadata, HttpMethod, Protocol, ServerHttpHandler}
 import automorph.util.Extensions.{EffectOps, ThrowableOps}
 import scala.annotation.unused
 import scala.concurrent.duration.{DurationInt, FiniteDuration}

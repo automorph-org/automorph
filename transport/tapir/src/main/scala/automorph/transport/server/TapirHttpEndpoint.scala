@@ -2,11 +2,11 @@ package automorph.transport.server
 
 import automorph.spi.{EffectSystem, RpcHandler, ServerTransport}
 import automorph.transport.HttpContext.headerRpcNodeId
-import automorph.transport.ServerHttpHandler.HttpMetadata
+import automorph.transport.HttpMetadata.headerXForwardedFor
 import automorph.transport.server.TapirHttpEndpoint.{
   Adapter, Context, MessageFormat, createResponse, pathComponents, pathEndpointInput, receiveRequest,
 }
-import automorph.transport.{HttpContext, HttpMethod, ServerHttpHandler, Protocol}
+import automorph.transport.{HttpContext, HttpMetadata, HttpMethod, Protocol, ServerHttpHandler}
 import automorph.util.Extensions.EffectOps
 import sttp.model.{Header, MediaType, Method, QueryParams, StatusCode}
 import sttp.tapir
@@ -158,7 +158,7 @@ object TapirHttpEndpoint {
 
   private def client(request: Request): String = {
     val (_, _, _, headers) = request
-    val forwardedFor = headers.find(_.name == ServerHttpHandler.headerXForwardedFor).map(_.value)
+    val forwardedFor = headers.find(_.name == headerXForwardedFor).map(_.value)
     val nodeId = headers.find(_.name == headerRpcNodeId).map(_.value)
     ServerHttpHandler.client("", forwardedFor, nodeId)
   }

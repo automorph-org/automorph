@@ -2,9 +2,9 @@ package automorph.transport.server
 
 import automorph.spi.{EffectSystem, RpcHandler, ServerTransport}
 import automorph.transport.HttpContext.headerRpcNodeId
-import automorph.transport.ServerHttpHandler.HttpMetadata
-import automorph.transport.server.PlayHttpEndpoint.{Context, headerXForwardedFor}
-import automorph.transport.{HttpContext, HttpMethod, ServerHttpHandler, Protocol}
+import automorph.transport.HttpMetadata.headerXForwardedFor
+import automorph.transport.server.PlayHttpEndpoint.Context
+import automorph.transport.{HttpContext, HttpMetadata, HttpMethod, Protocol, ServerHttpHandler}
 import automorph.util.Extensions.EffectOps
 import org.apache.pekko.stream.Materializer
 import org.apache.pekko.util.ByteString
@@ -130,6 +130,4 @@ object PlayHttpEndpoint {
 
   /** Request context type. */
   type Context = HttpContext[Request[ByteString]]
-
-  private[automorph] val headerXForwardedFor = "X-Forwarded-For"
 }

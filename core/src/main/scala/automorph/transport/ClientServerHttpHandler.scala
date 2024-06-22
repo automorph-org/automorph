@@ -5,7 +5,7 @@ import automorph.log.{Logging, MessageLog}
 import automorph.spi.EffectSystem.Completable
 import automorph.spi.{EffectSystem, RpcHandler}
 import automorph.transport.HttpContext.{headerRpcCallId, headerRpcListen}
-import automorph.transport.ServerHttpHandler.{HttpMetadata, valueRpcListen}
+import automorph.transport.ServerHttpHandler.valueRpcListen
 import automorph.util.Extensions.EffectOps
 import automorph.util.Random
 import scala.collection.concurrent.TrieMap

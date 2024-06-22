@@ -2,9 +2,9 @@ package automorph.transport.server
 
 import automorph.spi.{EffectSystem, RpcHandler, ServerTransport}
 import automorph.transport.HttpContext.headerRpcNodeId
-import automorph.transport.ServerHttpHandler.{HttpMetadata, headerXForwardedFor}
+import automorph.transport.HttpMetadata.headerXForwardedFor
 import automorph.transport.server.ZioHttpEndpoint.Context
-import automorph.transport.{HttpContext, HttpMethod, ServerHttpHandler, Protocol}
+import automorph.transport.{HttpContext, HttpMetadata, HttpMethod, Protocol, ServerHttpHandler}
 import zio.http.{Body, Handler, Header, Headers, MediaType, Request, Response, Status}
 import zio.{Chunk, IO, http}
 import scala.annotation.unused

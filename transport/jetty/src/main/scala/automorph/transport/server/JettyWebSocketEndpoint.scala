@@ -3,10 +3,9 @@ package automorph.transport.server
 import automorph.spi.EffectSystem.Completable
 import automorph.spi.{EffectSystem, RpcHandler, ServerTransport}
 import automorph.transport.HttpContext.headerRpcNodeId
-import automorph.transport.ServerHttpHandler.HttpMetadata
 import automorph.transport.server.JettyHttpEndpoint.{Context, requestQuery}
 import automorph.transport.server.JettyWebSocketEndpoint.ResponseCallback
-import automorph.transport.{ClientServerHttpHandler, HttpContext, HttpMethod, ServerHttpHandler, Protocol}
+import automorph.transport.{ClientServerHttpHandler, HttpContext, HttpMetadata, HttpMethod, Protocol, ServerHttpHandler}
 import automorph.util.Extensions.{ByteArrayOps, EffectOps, StringOps}
 import org.eclipse.jetty.http.HttpHeader
 import org.eclipse.jetty.websocket.api.{Session, WebSocketAdapter, WriteCallback}

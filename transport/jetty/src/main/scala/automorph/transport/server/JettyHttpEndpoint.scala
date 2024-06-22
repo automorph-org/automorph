@@ -2,9 +2,8 @@ package automorph.transport.server
 
 import automorph.spi.{EffectSystem, RpcHandler, ServerTransport}
 import automorph.transport.HttpContext.headerRpcNodeId
-import automorph.transport.ServerHttpHandler.HttpMetadata
 import automorph.transport.server.JettyHttpEndpoint.{Context, requestQuery}
-import automorph.transport.{ClientServerHttpHandler, HttpContext, HttpMethod, ServerHttpHandler, Protocol}
+import automorph.transport.{ClientServerHttpHandler, HttpContext, HttpMetadata, HttpMethod, Protocol, ServerHttpHandler}
 import automorph.util.Extensions.{EffectOps, InputStreamOps}
 import jakarta.servlet.AsyncContext
 import jakarta.servlet.http.{HttpServlet, HttpServletRequest, HttpServletResponse}

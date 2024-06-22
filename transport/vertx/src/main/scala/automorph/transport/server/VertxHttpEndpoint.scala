@@ -2,9 +2,9 @@ package automorph.transport.server
 
 import automorph.spi.{EffectSystem, RpcHandler, ServerTransport}
 import automorph.transport.HttpContext.headerRpcNodeId
-import automorph.transport.ServerHttpHandler.{HttpMetadata, headerXForwardedFor}
+import automorph.transport.HttpMetadata.headerXForwardedFor
 import automorph.transport.server.VertxHttpEndpoint.Context
-import automorph.transport.{ClientServerHttpHandler, HttpContext, HttpMethod, ServerHttpHandler, Protocol}
+import automorph.transport.{ClientServerHttpHandler, HttpContext, HttpMetadata, HttpMethod, Protocol, ServerHttpHandler}
 import automorph.util.Extensions.EffectOps
 import io.vertx.core.buffer.Buffer
 import io.vertx.core.http.{HttpHeaders, HttpServerRequest, HttpServerResponse, ServerWebSocket}

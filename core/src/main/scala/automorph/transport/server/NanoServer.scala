@@ -3,13 +3,13 @@ package automorph.transport.server
 import automorph.log.{Logger, Logging}
 import automorph.spi.{EffectSystem, RpcHandler, ServerTransport}
 import automorph.transport.HttpContext.headerRpcNodeId
-import automorph.transport.ServerHttpHandler.{HttpMetadata, headerXForwardedFor}
+import automorph.transport.HttpMetadata.headerXForwardedFor
 import automorph.transport.server.NanoHTTPD.Response.Status
 import automorph.transport.server.NanoHTTPD.{IHTTPSession, Response, newFixedLengthResponse}
 import automorph.transport.server.NanoServer.{Context, WebSocketListener, WebSocketRequest}
 import automorph.transport.server.NanoWSD.WebSocketFrame.CloseCode
 import automorph.transport.server.NanoWSD.{WebSocket, WebSocketFrame}
-import automorph.transport.{ClientServerHttpHandler, HttpContext, HttpMethod, Protocol, ServerHttpHandler}
+import automorph.transport.{ClientServerHttpHandler, HttpContext, HttpMetadata, HttpMethod, Protocol, ServerHttpHandler}
 import automorph.util.Extensions.{ByteArrayOps, EffectOps}
 import java.io.IOException
 import java.net.{SocketException, URI}

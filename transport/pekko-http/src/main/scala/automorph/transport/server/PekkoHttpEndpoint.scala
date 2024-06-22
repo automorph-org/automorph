@@ -2,9 +2,8 @@ package automorph.transport.server
 
 import automorph.spi.{EffectSystem, RpcHandler, ServerTransport}
 import automorph.transport.HttpContext.headerRpcNodeId
-import automorph.transport.ServerHttpHandler.HttpMetadata
 import automorph.transport.server.PekkoHttpEndpoint.Context
-import automorph.transport.{HttpContext, HttpMethod, ServerHttpHandler, Protocol}
+import automorph.transport.{HttpContext, HttpMetadata, HttpMethod, Protocol, ServerHttpHandler}
 import automorph.util.Extensions.{EffectOps, ThrowableOps}
 import org.apache.pekko.http.scaladsl.model.StatusCodes.InternalServerError
 import org.apache.pekko.http.scaladsl.model.headers.RawHeader

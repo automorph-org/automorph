@@ -3,14 +3,15 @@ package automorph.transport.websocket.endpoint
 import automorph.spi.EffectSystem.Completable
 import automorph.spi.{EffectSystem, RpcHandler, ServerTransport}
 import automorph.transport.HttpContext.headerRpcNodeId
-import automorph.transport.ServerHttpHandler.HttpMetadata
 import automorph.transport.server.UndertowHttpEndpoint.requestQuery
 import automorph.transport.websocket.endpoint.UndertowWebSocketEndpoint.{ConnectionListener, Context, ResponseCallback}
-import automorph.transport.{ClientServerHttpHandler, HttpContext, ServerHttpHandler, Protocol}
+import automorph.transport.{ClientServerHttpHandler, HttpContext, HttpMetadata, Protocol, ServerHttpHandler}
 import automorph.util.Extensions.{ByteArrayOps, ByteBufferOps, EffectOps, StringOps}
 import io.undertow.server.{HttpHandler, HttpServerExchange}
 import io.undertow.util.Headers
-import io.undertow.websockets.core.{AbstractReceiveListener, BufferedBinaryMessage, BufferedTextMessage, WebSocketCallback, WebSocketChannel, WebSockets}
+import io.undertow.websockets.core.{
+  AbstractReceiveListener, BufferedBinaryMessage, BufferedTextMessage, WebSocketCallback, WebSocketChannel, WebSockets,
+}
 import io.undertow.websockets.spi.WebSocketHttpExchange
 import io.undertow.websockets.{WebSocketConnectionCallback, WebSocketProtocolHandshakeHandler}
 import scala.annotation.unused

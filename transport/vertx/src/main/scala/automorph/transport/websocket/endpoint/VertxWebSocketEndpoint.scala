@@ -1,10 +1,9 @@
 package automorph.transport.websocket.endpoint
 
 import automorph.spi.{EffectSystem, RpcHandler, ServerTransport}
-import automorph.transport.ServerHttpHandler.HttpMetadata
 import automorph.transport.server.VertxHttpEndpoint
 import automorph.transport.websocket.endpoint.VertxWebSocketEndpoint.Context
-import automorph.transport.{ClientServerHttpHandler, HttpContext, Protocol}
+import automorph.transport.{ClientServerHttpHandler, HttpContext, HttpMetadata, Protocol}
 import automorph.util.Extensions.{EffectOps, StringOps}
 import io.vertx.core.Handler
 import io.vertx.core.buffer.Buffer

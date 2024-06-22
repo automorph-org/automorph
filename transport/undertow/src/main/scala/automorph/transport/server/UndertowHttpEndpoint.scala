@@ -2,9 +2,8 @@ package automorph.transport.server
 
 import automorph.spi.{EffectSystem, RpcHandler, ServerTransport}
 import automorph.transport.HttpContext.headerRpcNodeId
-import automorph.transport.ServerHttpHandler.HttpMetadata
 import automorph.transport.server.UndertowHttpEndpoint.{Context, HttpRequest, RequestCallback, requestQuery}
-import automorph.transport.{ClientServerHttpHandler, HttpContext, HttpMethod, ServerHttpHandler, Protocol}
+import automorph.transport.{ClientServerHttpHandler, HttpContext, HttpMetadata, HttpMethod, Protocol, ServerHttpHandler}
 import automorph.util.Extensions.{ByteArrayOps, EffectOps}
 import io.undertow.io.Receiver
 import io.undertow.server.{HttpHandler, HttpServerExchange}
