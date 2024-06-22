@@ -94,14 +94,13 @@ final case class UrlClient[Effect[_]](
   ): Effect[HttpURLConnection] =
     effectSystem.evaluate {
       // Create the request
-      val connection = openConnection(context)
-      val httpMethod = setConnectionProperties(connection, request, contentType, context)
+      val connection = createRequest(request, contentType, context)
 
       // Log the request
       lazy val requestProperties = ListMap(
         LogProperties.requestId -> requestId,
         LogProperties.url -> connection.getURL.toExternalForm,
-        LogProperties.method -> httpMethod,
+        LogProperties.method -> connection.getRequestMethod,
       )
       log.sendingRequest(requestProperties)
 
@@ -117,18 +116,15 @@ final case class UrlClient[Effect[_]](
       connection
     }
 
-  private def openConnection(context: Context): HttpURLConnection = {
-    val baseUrl = context.transportContext.map(_.connection.getURL.toURI).getOrElse(url)
-    val requestUrl = overrideUrl(baseUrl, context)
-    requestUrl.toURL.openConnection().asInstanceOf[HttpURLConnection]
-  }
-
-  private def setConnectionProperties(
-    connection: HttpURLConnection,
+  private def createRequest(
     requestBody: Array[Byte],
     contentType: String,
-    context: Context,
-  ): String = {
+    context: Context
+  ): HttpURLConnection = {
+    val baseUrl = context.transportContext.map(_.connection.getURL.toURI).getOrElse(url)
+    val requestUrl = overrideUrl(baseUrl, context)
+    val connection = requestUrl.toURL.openConnection().asInstanceOf[HttpURLConnection]
+
     // Method
     val transportConnection = context.transportContext.map(_.connection).getOrElse(connection)
     val contextMethod = context.method.map(_.name)
@@ -163,7 +159,7 @@ final case class UrlClient[Effect[_]](
     connection.setInstanceFollowRedirects(
       context.followRedirects.getOrElse(transportConnection.getInstanceFollowRedirects)
     )
-    requestMethod
+    connection
   }
 
   private def responseContext(connection: HttpURLConnection): Context =
