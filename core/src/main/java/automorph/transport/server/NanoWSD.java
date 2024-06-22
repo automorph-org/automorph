@@ -836,19 +836,18 @@ public abstract class NanoWSD extends NanoHTTPD {
 
     protected abstract WebSocket openWebSocket(NanoHTTPD.IHTTPSession handshake);
 
-    public BlockingQueue<NanoHTTPD.Response> serve(final NanoHTTPD.IHTTPSession session) {
-        BlockingQueue<Response> responseQueue = new ArrayBlockingQueue<>(1);
+    public void serve(final NanoHTTPD.IHTTPSession session) {
         Map<String, String> headers = session.getHeaders();
         if (isWebsocketRequested(session)) {
             if (!NanoWSD.HEADER_WEBSOCKET_VERSION_VALUE.equalsIgnoreCase(headers.get(NanoWSD.HEADER_WEBSOCKET_VERSION))) {
-                responseQueue.add(newFixedLengthResponse(Response.Status.BAD_REQUEST, NanoHTTPD.MIME_PLAINTEXT,
-                  "Invalid Websocket-Version " + headers.get(NanoWSD.HEADER_WEBSOCKET_VERSION)));
-                return responseQueue;
+                session.send(newFixedLengthResponse(Response.Status.BAD_REQUEST, NanoHTTPD.MIME_PLAINTEXT,
+                        "Invalid Websocket-Version " + headers.get(NanoWSD.HEADER_WEBSOCKET_VERSION)));
+                return;
             }
 
             if (!headers.containsKey(NanoWSD.HEADER_WEBSOCKET_KEY)) {
-                responseQueue.add(newFixedLengthResponse(Response.Status.BAD_REQUEST, NanoHTTPD.MIME_PLAINTEXT, "Missing Websocket-Key"));
-                return responseQueue;
+                session.send(newFixedLengthResponse(Response.Status.BAD_REQUEST, NanoHTTPD.MIME_PLAINTEXT, "Missing Websocket-Key"));
+                return;
             }
 
             WebSocket webSocket = openWebSocket(session);
@@ -856,25 +855,23 @@ public abstract class NanoWSD extends NanoHTTPD {
             try {
                 handshakeResponse.addHeader(NanoWSD.HEADER_WEBSOCKET_ACCEPT, makeAcceptKey(headers.get(NanoWSD.HEADER_WEBSOCKET_KEY)));
             } catch (NoSuchAlgorithmException e) {
-                responseQueue.add(newFixedLengthResponse(Response.Status.INTERNAL_ERROR, NanoHTTPD.MIME_PLAINTEXT,
+                session.send(newFixedLengthResponse(Response.Status.INTERNAL_ERROR, NanoHTTPD.MIME_PLAINTEXT,
                   "The SHA-1 Algorithm required for websockets is not available on the server."));
-                return responseQueue;
+                return;
             }
 
             if (headers.containsKey(NanoWSD.HEADER_WEBSOCKET_PROTOCOL)) {
                 handshakeResponse.addHeader(NanoWSD.HEADER_WEBSOCKET_PROTOCOL, headers.get(NanoWSD.HEADER_WEBSOCKET_PROTOCOL).split(",")[0]);
             }
 
-            responseQueue.add(handshakeResponse);
-
-            return responseQueue;
+            session.send(handshakeResponse);
         } else {
-            return serveHttp(session);
+            serveHttp(session);
         }
     }
 
-    protected BlockingQueue<NanoHTTPD.Response> serveHttp(final NanoHTTPD.IHTTPSession session) {
-        return super.serve(session);
+    protected void serveHttp(final NanoHTTPD.IHTTPSession session) {
+        super.serve(session);
     }
 
     /**
