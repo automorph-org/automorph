@@ -9,6 +9,7 @@ import automorph.transport.ServerHttpHandler.{HttpMetadata, valueRpcListen}
 import automorph.util.Extensions.EffectOps
 import automorph.util.Random
 import scala.collection.concurrent.TrieMap
+import scala.collection.mutable
 
 /**
  * HTTP or WebSocket RPC request handler with client transport support.
@@ -62,7 +63,8 @@ final private[automorph] case class ClientServerHttpHandler[
       None,
       retain = protocol == Protocol.WebSocket,
     )
-  private val expectedResponses = TrieMap[String, Completable[Effect, (Array[Byte], Context)]]()
+  private val expectedResponses =
+    TrieMap.empty[String, mutable.Map[String, Completable[Effect, (Array[Byte], Context)]]].withDefault(TrieMap.empty)
   implicit private val system: EffectSystem[Effect] = effectSystem
 
   /**
@@ -75,7 +77,7 @@ final private[automorph] case class ClientServerHttpHandler[
    * @return
    *   response
    */
-  def processRequest(request: Request, connection: Connection): Effect[Unit] = {
+  def processRequest(request: Request, connection: Connection): Effect[Unit] =
     handler.retrieveRequest(request).flatMap { case (requestBody, requestMetadata) =>
       val context = requestMetadata.context
       context.header(headerRpcListen).filter(_.toLowerCase == valueRpcListen).flatMap(_ => context.peer).map { peer =>
@@ -83,16 +85,15 @@ final private[automorph] case class ClientServerHttpHandler[
         log.receivedConnection(requestMetadata.properties, requestMetadata.protocol.name)
         connectionPool.add(peer, connection)
       }.getOrElse {
-        context.header(headerRpcCallId).map { callId =>
+        context.header(headerRpcCallId).flatMap(callId => context.peer.map(_ -> callId)).map { case (peer, callId) =>
           // Return the received response
-          processRpcResponse(callId, requestBody, requestMetadata, connection)
+          processRpcResponse(peer, callId, requestBody, requestMetadata, connection)
         }.getOrElse {
           // Process the request
           handler.handleRequest(requestBody, requestMetadata, connection)
         }
       }
     }
-  }
 
   def failedReceiveWebSocketRequest(error: Throwable): Unit =
     log.failedReceiveRequest(error, Map.empty, Protocol.WebSocket.name)
@@ -110,11 +111,15 @@ final private[automorph] case class ClientServerHttpHandler[
    *   response body and context
    */
   def call(body: Array[Byte], context: Context): Effect[(Array[Byte], Context)] =
-    effectSystem.completable[(Array[Byte], Context)].flatMap { expectedResponse =>
-      val callId = Random.id
-      val rpcCallContext = context.header(headerRpcCallId, callId).asInstanceOf[Context]
-      expectedResponses.put(callId, expectedResponse)
-      tell(body, rpcCallContext).flatMap(_ => expectedResponse.effect)
+    context.peer.map { peer =>
+      effectSystem.completable[(Array[Byte], Context)].flatMap { expectedResponse =>
+        val callId = Random.id
+        val rpcCallContext = context.header(headerRpcCallId, callId).asInstanceOf[Context]
+        expectedResponses(peer).put(callId, expectedResponse)
+        send(body, rpcCallContext, peer).flatMap(_ => expectedResponse.effect)
+      }
+    }.getOrElse {
+      system.failed(InvalidArguments("Peer identifier not found in the call context"))
     }
 
   /**
@@ -131,27 +136,31 @@ final private[automorph] case class ClientServerHttpHandler[
    */
   def tell(body: Array[Byte], context: Context): Effect[Unit] =
     context.peer.map { peer =>
-      val contentType = handler.rpcHandler.mediaType
-      val statusCode = context.statusCode
-      val metadata = HttpMetadata(context, protocol, None, None, contentType, context.statusCode)
-      system.retry(
-        connectionPool.using(peer, (), handler.respond(body, contentType, statusCode, Some(context), metadata, _)),
-        requestRetries,
-      )
+      send(body, context, peer)
     }.getOrElse {
       system.failed(InvalidArguments("Peer identifier not found in the call context"))
     }
 
+  private def send(body: Array[Byte], context: Context, peer: String): Effect[Unit] = {
+    val contentType = handler.rpcHandler.mediaType
+    val statusCode = context.statusCode
+    val metadata = HttpMetadata(context, protocol, None, None, contentType, context.statusCode)
+    system.retry(
+      connectionPool.using(peer, (), handler.respond(body, contentType, statusCode, Some(context), metadata, _)),
+      requestRetries,
+    )
+  }
+
   @scala.annotation.nowarn
   private def processRpcResponse(
+    peer: String,
     callId: String,
     body: Array[Byte],
     metadata: HttpMetadata[Context],
     connection: Connection,
   ): Effect[Unit] = {
     log.receivedResponse(metadata.properties, metadata.protocol.name)
-    expectedResponses.get(callId).map { expectedResponse =>
-      expectedResponses.remove(callId)
+    expectedResponses(peer).remove(callId).map { expectedResponse =>
       expectedResponse.succeed(body -> metadata.context)
       val contentType = handler.rpcHandler.mediaType
       if (protocol == Protocol.Http) {
