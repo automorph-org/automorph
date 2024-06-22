@@ -360,7 +360,7 @@ public abstract class NanoHTTPD {
             for (NanoHTTPD.ClientHandler clientHandler : new ArrayList<NanoHTTPD.ClientHandler>(this.running)) {
                 clientHandler.close();
             }
-//            executorService.shutdown();
+            executorService.shutdown();
         }
 
         @Override
@@ -370,11 +370,7 @@ public abstract class NanoHTTPD {
 
         @Override
         public void exec(NanoHTTPD.ClientHandler clientHandler) {
-            Thread t = new Thread(clientHandler);
-            t.setDaemon(true);
-            this.running.add(clientHandler);
-            t.start();
-//            executorService.execute(clientHandler);
+            executorService.execute(clientHandler);
         }
     }
 
