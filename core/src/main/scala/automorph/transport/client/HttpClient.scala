@@ -1,14 +1,14 @@
 package automorph.transport.client
 
-import automorph.log.{LogProperties, Logger, Logging, MessageLog}
+import automorph.log.{LogProperties, Logger, Logging}
 import automorph.spi.EffectSystem.Completable
 import automorph.spi.{ClientTransport, EffectSystem}
 import automorph.transport.HttpClientBase.{
   completableEffect, overrideUrl, webSocketCloseReason, webSocketCloseStatusCode, webSocketConnectionClosed,
   webSocketSchemePrefix, webSocketUnexpectedMessage,
 }
-import automorph.transport.client.HttpClient.{Context, FrameListener, Response, Transport}
-import automorph.transport.{ConnectionPool, HttpContext, HttpMethod, Protocol}
+import automorph.transport.client.HttpClient.{Context, FrameListener, Transport}
+import automorph.transport.{ClientServerHttpSender, ConnectionPool, HttpContext, HttpMethod, Protocol}
 import automorph.util.Extensions.{ByteArrayOps, ByteBufferOps, EffectOps}
 import java.net.URI
 import java.net.http.HttpClient.Builder
@@ -18,7 +18,6 @@ import java.net.http.WebSocket.Listener
 import java.net.http.{HttpRequest, WebSocket}
 import java.nio.ByteBuffer
 import java.util.concurrent.CompletionStage
-import scala.collection.immutable.ListMap
 import scala.collection.mutable.ArrayBuffer
 import scala.jdk.CollectionConverters.{ListHasAsScala, MapHasAsScala}
 import scala.jdk.OptionConverters.RichOptional
@@ -57,7 +56,7 @@ final case class HttpClient[Effect[_]](
   builder: Builder = HttpClient.builder,
 ) extends ClientTransport[Effect, Context] with Logging {
 
-  private type Request = Either[HttpRequest, (WebSocket.Builder, Array[Byte])]
+  private type Request = Either[HttpRequest, (Array[Byte], WebSocket.Builder, URI)]
 
   private val contentTypeHeader = "Content-Type"
   private val acceptHeader = "Accept"
@@ -68,7 +67,7 @@ final case class HttpClient[Effect[_]](
     val maxPeerConnections = Option(System.getProperty("jdk.httpclient.connectionPoolSize")).flatMap(_.toIntOption)
     ConnectionPool(Some(openWebSocket), closeWebSocket, Protocol.WebSocket, effectSystem, maxPeerConnections)
   }
-  private val log = MessageLog(logger, Protocol.Http.name)
+  private val sender = ClientServerHttpSender(createRequest, sendRequest, url, method, effectSystem)
   implicit private val system: EffectSystem[Effect] = effectSystem
 
   override def call(
@@ -76,37 +75,16 @@ final case class HttpClient[Effect[_]](
     context: Context,
     id: String,
     mediaType: String,
-  ): Effect[(Array[Byte], Context)] = {
-    // Create the request
-    val (request, requestUrl, protocol) = createRequest(body, mediaType, context)
-    lazy val responseProperties = ListMap(
-      LogProperties.requestId -> id,
-      LogProperties.url -> requestUrl.toString,
-    )
-
-    // Send the request and process the response
-    send(request, requestUrl, id, protocol).flatFold(
-      { error =>
-        log.failedReceiveResponse(error, responseProperties, protocol.name)
-        effectSystem.failed(error)
-      },
-      { response =>
-        lazy val allProperties = responseProperties ++ response.statusCode.map(LogProperties.status -> _.toString)
-        log.receivedResponse(allProperties, protocol.name)
-        effectSystem.successful(response.body -> responseContext(response))
-      },
-    )
-  }
+  ): Effect[(Array[Byte], Context)] =
+    sender.call(body, context, id, mediaType)
 
   override def tell(
     body: Array[Byte],
     context: Context,
     id: String,
     mediaType: String,
-  ): Effect[Unit] = {
-    val (request, requestUrl, protocol) = createRequest(body, mediaType, context)
-    send(request, requestUrl, id, protocol).map(_ => ())
-  }
+  ): Effect[Unit] =
+    sender.tell(body, context, id, mediaType)
 
   override def context: Context =
     Transport.context.url(url).method(method)
@@ -117,70 +95,49 @@ final case class HttpClient[Effect[_]](
   override def close(): Effect[Unit] =
     webSocketConnectionPool.close()
 
-  private def responseContext(response: Response): Context =
-    response.statusCode.map(context.statusCode).getOrElse(context).headers(response.headers*)
-
-  private def send(request: Request, requestUrl: URI, requestId: String, protocol: Protocol): Effect[Response] = {
-    lazy val requestProperties = ListMap(
-      LogProperties.requestId -> requestId,
-      LogProperties.url -> requestUrl.toString,
-    ) ++ request.swap.toOption.map(httpRequest => LogProperties.method -> httpRequest.method)
-    log.sendingRequest(requestProperties, protocol.name)
-    request.fold(sendHttp, webSocketRequest => sendWebSocket(webSocketRequest, requestUrl)).flatFold(
-      error => {
-        log.failedSendRequest(error, requestProperties, protocol.name)
-        effectSystem.failed(error)
-      },
-      response => {
-        log.sentRequest(requestProperties, protocol.name)
-        effectSystem.successful(response)
-      },
-    )
-  }
-
-  private def sendHttp(httpRequest: HttpRequest): Effect[Response] =
-    completableEffect(httpClient.sendAsync(httpRequest, BodyHandlers.ofByteArray), effectSystem).map { response =>
-      val headers = response
-        .headers.map.asScala.toSeq
-        .flatMap { case (name, values) => values.asScala.map(name -> _) }
-      Response(response.body, Some(response.statusCode), headers)
-    }
-
-  private def sendWebSocket(request: (WebSocket.Builder, Array[Byte]), requestUrl: URI): Effect[Response] = {
-    val (webSocketBuilder, requestBody) = request
-    effectSystem.completable[Response].flatMap { expectedResponse =>
-      webSocketConnectionPool.using(
-        requestUrl.toString,
-        (webSocketBuilder, requestUrl),
-        { case (webSocket, frameListener) =>
-          frameListener.expectedResponse = Some(expectedResponse)
-          completableEffect(webSocket.sendBinary(requestBody.toByteBuffer, true), effectSystem)
-            .flatMap(_ => expectedResponse.effect)
-        },
-      )
-    }
-  }
-
   private def createRequest(
     requestBody: Array[Byte],
-    contentType: String,
     context: Context,
-  ): (Request, URI, Protocol) = {
+    contentType: String,
+  ): (Request, Context, Protocol) = {
     val baseUrl = context.transportContext
       .flatMap(transport => Try(transport.request.build).toOption)
       .map(_.uri).getOrElse(url)
     val requestUrl = overrideUrl(baseUrl, context)
     requestUrl.getScheme.toLowerCase match {
       case scheme if scheme.startsWith(webSocketSchemePrefix) =>
-        // Create WebSocket request
         val webSocketBuilder = createWebSocketBuilder(context, contentType)
-        (Right((webSocketBuilder, requestBody)), requestUrl, Protocol.WebSocket)
+        (Right((requestBody, webSocketBuilder, requestUrl)), context.url(requestUrl), Protocol.WebSocket)
       case _ =>
-        // Create HTTP request
         val httpRequest = createHttpRequest(requestBody, requestUrl, contentType, context)
-        (Left(httpRequest), httpRequest.uri, Protocol.Http)
+        val requestContext = context.url(httpRequest.uri).method(HttpMethod.valueOf(httpRequest.method))
+        (Left(httpRequest), requestContext, Protocol.Http)
     }
   }
+
+  private def sendRequest(request: Request, requestContext: Context): Effect[(Array[Byte], Context)] =
+    request.fold(
+      httpRequest =>
+        completableEffect(httpClient.sendAsync(httpRequest, BodyHandlers.ofByteArray), effectSystem).map { response =>
+          val headers = response
+            .headers.map.asScala.toSeq
+            .flatMap { case (name, values) => values.asScala.map(name -> _) }
+          response.body -> requestContext.statusCode(response.statusCode).headers(headers*)
+        },
+      { case (requestBody, webSocketBuilder, requestUrl) =>
+        effectSystem.completable[Array[Byte]].flatMap { expectedResponse =>
+          webSocketConnectionPool.using(
+            requestUrl.toString,
+            (webSocketBuilder, requestUrl),
+            { case (webSocket, frameListener) =>
+              frameListener.expectedResponse = Some(expectedResponse)
+              completableEffect(webSocket.sendBinary(requestBody.toByteBuffer, true), effectSystem)
+                .flatMap(_ => expectedResponse.effect.map(_ -> requestContext.headers(Seq.empty[(String, String)]*)))
+            },
+          )
+        }
+      },
+    )
 
   private def createHttpRequest(
     requestBody: Array[Byte],
@@ -258,20 +215,13 @@ object HttpClient {
   /** Transport-specific context. */
   final case class Transport(request: HttpRequest.Builder)
 
-  final private case class Response(
-    body: Array[Byte],
-    statusCode: Option[Int],
-    headers: Seq[(String, String)],
-  )
-
   final private case class FrameListener[Effect[_]](
     url: URI,
     removeConnection: () => Unit,
     effectSystem: EffectSystem[Effect],
     logger: Logger,
-    var expectedResponse: Option[Completable[Effect, Response]] = None,
+    var expectedResponse: Option[Completable[Effect, Array[Byte]]] = None,
   ) extends Listener {
-
     implicit val system: EffectSystem[Effect] = effectSystem
     private val buffers = ArrayBuffer.empty[ByteBuffer]
 
@@ -288,7 +238,7 @@ object HttpClient {
         buffers.clear()
         expectedResponse.map { response =>
           expectedResponse = None
-          response.succeed(Response(responseBody, None, Seq.empty)).runAsync
+          response.succeed(responseBody).runAsync
         }.getOrElse(logger.error(webSocketUnexpectedMessage, Map(LogProperties.url -> url)))
       }
       super.onBinary(webSocket, data, last)

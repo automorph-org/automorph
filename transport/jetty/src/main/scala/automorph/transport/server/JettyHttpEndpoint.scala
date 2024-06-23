@@ -28,7 +28,7 @@ import scala.jdk.CollectionConverters.EnumerationHasAsScala
  *   effect system plugin
  * @param mapException
  *   maps an exception to a corresponding HTTP status code
- * @param handler
+ * @param rpcHandler
  *   RPC request handler
  * @tparam Effect
  *   effect type
@@ -36,7 +36,7 @@ import scala.jdk.CollectionConverters.EnumerationHasAsScala
 final case class JettyHttpEndpoint[Effect[_]](
   effectSystem: EffectSystem[Effect],
   mapException: Throwable => Int = HttpContext.toStatusCode,
-  handler: RpcHandler[Effect, Context] = RpcHandler.dummy[Effect, Context],
+  rpcHandler: RpcHandler[Effect, Context] = RpcHandler.dummy[Effect, Context],
 ) extends ServerTransport[Effect, Context, HttpServlet] {
   private lazy val httpServlet = new HttpServlet {
     implicit private val system: EffectSystem[Effect] = effectSystem
@@ -44,12 +44,12 @@ final case class JettyHttpEndpoint[Effect[_]](
     override def service(request: HttpServletRequest, response: HttpServletResponse): Unit = {
       val asyncContext = request.startAsync()
       asyncContext.start { () =>
-        httpHandler.processRequest(request, (response, asyncContext)).runAsync
+        handler.processRequest(request, (response, asyncContext)).runAsync
       }
     }
   }
-  private val httpHandler =
-    ClientServerHttpHandler(receiveRequest, sendResponse, Protocol.Http, effectSystem, mapException, handler)
+  private val handler =
+    ClientServerHttpHandler(receiveRequest, sendResponse, Protocol.Http, effectSystem, mapException, rpcHandler)
 
   override def adapter: HttpServlet =
     httpServlet
@@ -61,18 +61,10 @@ final case class JettyHttpEndpoint[Effect[_]](
     effectSystem.successful {}
 
   override def requestHandler(handler: RpcHandler[Effect, Context]): JettyHttpEndpoint[Effect] =
-    copy(handler = handler)
+    copy(rpcHandler = handler)
 
-  private def receiveRequest(request: HttpServletRequest): (Effect[Array[Byte]], HttpMetadata[Context]) = {
-    val query = requestQuery(request.getQueryString)
-    val requestMetadata = HttpMetadata(
-      getRequestContext(request),
-      httpHandler.protocol,
-      s"${request.getRequestURI}$query",
-      Some(request.getMethod),
-    )
-    effectSystem.evaluate(request.getInputStream.toByteArray) -> requestMetadata
-  }
+  private def receiveRequest(request: HttpServletRequest): (Effect[Array[Byte]], Context) =
+    effectSystem.evaluate(request.getInputStream.toByteArray) -> getRequestContext(request)
 
   private def sendResponse(
     body: Array[Byte],
@@ -81,7 +73,7 @@ final case class JettyHttpEndpoint[Effect[_]](
   ): Effect[Unit] = {
     val (response, asyncContext) = channel
     setResponseContext(response, metadata.context)
-    response.setContentType(handler.mediaType)
+    response.setContentType(rpcHandler.mediaType)
     response.setStatus(metadata.statusCodeOrOk)
     effectSystem.evaluate {
       val outputStream = response.getOutputStream
@@ -99,12 +91,13 @@ final case class JettyHttpEndpoint[Effect[_]](
     val headers = request.getHeaderNames.asScala.flatMap { name =>
       request.getHeaders(name).asScala.map(value => name -> value)
     }.toSeq
+    val query = requestQuery(request.getQueryString)
     HttpContext(
       transportContext = Some(request),
       method = Some(HttpMethod.valueOf(request.getMethod)),
       headers = headers,
       peer = Some(client(request)),
-    ).url(request.getRequestURI)
+    ).url(s"${request.getRequestURI}$query")
   }
 
   private def client(request: HttpServletRequest): String = {

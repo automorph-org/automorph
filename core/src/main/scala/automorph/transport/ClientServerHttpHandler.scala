@@ -43,7 +43,7 @@ final private[automorph] case class ClientServerHttpHandler[
   Request,
   Connection,
 ](
-  receiveRequest: Request => (Effect[Array[Byte]], HttpMetadata[Context]),
+  receiveRequest: Request => (Effect[Array[Byte]], Context),
   sendResponse: (Array[Byte], HttpMetadata[Context], Connection) => Effect[Unit],
   protocol: Protocol,
   effectSystem: EffectSystem[Effect],
@@ -144,7 +144,7 @@ final private[automorph] case class ClientServerHttpHandler[
   private def send(body: Array[Byte], context: Context, peer: String): Effect[Unit] = {
     val contentType = handler.rpcHandler.mediaType
     val statusCode = context.statusCode
-    val metadata = HttpMetadata(context, protocol, None, None, contentType, context.statusCode)
+    val metadata = HttpMetadata(context, protocol, contentType)
     system.retry(
       connectionPool.using(peer, (), handler.respond(body, contentType, statusCode, Some(context), metadata, _)),
       requestRetries,

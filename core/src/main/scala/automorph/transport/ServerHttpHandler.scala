@@ -44,7 +44,7 @@ final private[automorph] case class ServerHttpHandler[
   Response,
   Connection,
 ](
-  receiveRequest: Request => (Effect[Array[Byte]], HttpMetadata[Context]),
+  receiveRequest: Request => (Effect[Array[Byte]], Context),
   sendResponse: (Array[Byte], HttpMetadata[Context], Connection) => Effect[Response],
   protocol: Protocol,
   effectSystem: EffectSystem[Effect],
@@ -84,21 +84,23 @@ final private[automorph] case class ServerHttpHandler[
    *   response
    */
   def handleRequest(body: Array[Byte], metadata: HttpMetadata[Context], connection: Connection): Effect[Response] =
-    if (metadata.contentType == rpcHandler.mediaType) {
-      // Process the request
-      rpcHandler.processRequest(body, metadata.context, metadata.id).flatFold(
-        error => respondError(error, connection, metadata),
-        { result =>
-          // Send the response
-          val responseBody = result.map(_.responseBody).getOrElse(Array.emptyByteArray)
-          val context = result.flatMap(_.context)
-          lazy val statusCode = result.flatMap(_.exception).map(mapException).orElse(context.flatMap(_.statusCode))
-          respond(responseBody, rpcHandler.mediaType, statusCode, context, metadata, connection)
-        },
-      )
-    } else {
-      system.failed(InvalidRequest(s"Invalid content type: ${metadata.contentType}"))
-    }
+    metadata.context.contentType.map { contentType =>
+      if (contentType == rpcHandler.mediaType) {
+        // Process the request
+        rpcHandler.processRequest(body, metadata.context, metadata.id).flatFold(
+          error => respondError(error, connection, metadata),
+          { result =>
+            // Send the response
+            val responseBody = result.map(_.responseBody).getOrElse(Array.emptyByteArray)
+            val context = result.flatMap(_.context)
+            lazy val statusCode = result.flatMap(_.exception).map(mapException).orElse(context.flatMap(_.statusCode))
+            respond(responseBody, rpcHandler.mediaType, statusCode, context, metadata, connection)
+          },
+        )
+      } else {
+        system.failed[Response](InvalidRequest(s"Invalid content type: $contentType"))
+      }
+    }.getOrElse(system.failed(InvalidRequest("Missing content type")))
 
   /**
    * Retrieves HTTP or WebSocket request body and metadata.
@@ -110,8 +112,9 @@ final private[automorph] case class ServerHttpHandler[
    */
   def retrieveRequest(request: Request): Effect[(Array[Byte], HttpMetadata[Context])] = {
     log.receivingRequest(Map.empty, protocol.name)
-    Try(receiveRequest(request)).map { case (retrieveBody, requestMetadata) =>
+    Try(receiveRequest(request)).map { case (retrieveBody, context) =>
       retrieveBody.map { requestBody =>
+        val requestMetadata = HttpMetadata(context, protocol)
         log.receivedRequest(requestMetadata.properties, protocol.name)
         requestBody -> requestMetadata
       }
@@ -139,16 +142,18 @@ final private[automorph] case class ServerHttpHandler[
   def respond(
     body: Array[Byte],
     contentType: String,
-    statusCode: => Option[Int],
+    statusCode: Option[Int],
     context: Option[Context],
     metadata: HttpMetadata[Context],
     connection: Connection,
   ): Effect[Response] = {
-    val responseMetadata = metadata.copy(
-      contentType = rpcHandler.mediaType,
-      statusCode = if (protocol == Protocol.Http) statusCode.orElse(Some(statusOk)) else None,
-      context = context.getOrElse(HttpContext().asInstanceOf[Context])
-    )
+    val responseContext = if (protocol == Protocol.Http) {
+      context.getOrElse(HttpContext()).statusCode(statusCode.getOrElse(statusOk))
+    } else {
+      context.getOrElse(HttpContext())
+    }
+    val responseMetadata =
+      metadata.copy(context = responseContext.contentType(rpcHandler.mediaType).asInstanceOf[Context])
     val protocolName = metadata.protocol.name
     log.sendingResponse(responseMetadata.properties, protocolName)
     sendResponse(body, responseMetadata, connection).flatFold(
@@ -167,8 +172,7 @@ final private[automorph] case class ServerHttpHandler[
    * Sends HTTP or WebSocket error response.
    *
    * @param error
-   *   error
-   *   response context
+   *   error response context
    * @param connection
    *   HTTP or WebSocket connection
    * @param metadata

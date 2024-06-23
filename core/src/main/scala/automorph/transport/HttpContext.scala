@@ -447,9 +447,31 @@ final case class HttpContext[TransportContext](
   def contentType: Option[String] =
     header(headerContentType)
 
+  /**
+   * Set `Content-Type` header value.
+   *
+   * @param contentType
+   *   content type
+   * @return
+   *   HTTP message context
+   */
+  def contentType(contentType: String): HttpContext[TransportContext] =
+    header(headerContentType, contentType)
+
   /** `Content-Length` header value. */
   def contentLength: Option[String] =
     header(headerContentLength)
+
+  /**
+   * Set `Content-Length` header value.
+   *
+   * @param contentLength
+   *   content type
+   * @return
+   *   HTTP message context
+   */
+  def contentLength(contentLength: String): HttpContext[TransportContext] =
+    header(headerContentLength, contentLength)
 
   /**
    * Cookie value.

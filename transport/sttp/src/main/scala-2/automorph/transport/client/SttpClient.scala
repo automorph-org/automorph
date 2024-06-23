@@ -41,7 +41,7 @@ final case class SttpClient[Effect[_]] private (
   backend: SttpBackend[Effect, ?],
   url: URI,
   method: HttpMethod,
-  webSocket: Boolean,
+  webSocketSupport: Boolean,
 ) extends SttpClientBase[Effect] {}
 
 object SttpClient {
@@ -51,8 +51,6 @@ object SttpClient {
 
   /**
    * Creates an STTP HTTP client message transport plugin with the specified STTP backend.
-   *
-   * Use the alternative [[SttpClient.webSocket]] function for STTP backends with WebSocket capability.
    *
    * @param effectSystem
    *   effect system plugin
@@ -85,20 +83,20 @@ object SttpClient {
   ): c.Expr[SttpClient[Effect]] = {
     import c.universe.{Quasiquote, weakTypeOf}
 
-    val webSocket = c.Expr[Boolean](if (weakTypeOf[Capabilities] <:< weakTypeOf[WebSockets]) {
+    val webSocketSupport = c.Expr[Boolean](if (weakTypeOf[Capabilities] <:< weakTypeOf[WebSockets]) {
       q"""true"""
     } else {
       q"""false"""
     })
     c.Expr[SttpClient[Effect]](q"""
-      automorph.transport.client.SttpClient.create($effectSystem, $backend, $url, $method, webSocket = $webSocket)
+      automorph.transport.client.SttpClient.create(
+        $effectSystem, $backend, $url, $method, webSocketSupport = $webSocketSupport
+      )
     """)
   }
 
   /**
    * Creates an STTP HTTP client message transport plugin with the specified STTP backend using POST HTTP method.
-   *
-   * Use the alternative [[SttpClient.webSocket]] function for STTP backends with WebSocket capability.
    *
    * @param effectSystem
    *   effect system plugin
@@ -127,7 +125,7 @@ object SttpClient {
   ): c.Expr[SttpClient[Effect]] = {
     import c.universe.{Quasiquote, weakTypeOf}
 
-    val webSocket = c.Expr[Boolean](if (weakTypeOf[Capabilities] <:< weakTypeOf[WebSockets]) {
+    val webSocketSupport = c.Expr[Boolean](if (weakTypeOf[Capabilities] <:< weakTypeOf[WebSockets]) {
       q"""true"""
     } else {
       q"""false"""
@@ -135,7 +133,7 @@ object SttpClient {
     c.Expr[SttpClient[Effect]](q"""
       import automorph.transport.HttpMethod
       automorph.transport.client.SttpClient.create(
-        $effectSystem, $backend, $url, HttpMethod.Post, webSocket = $webSocket
+        $effectSystem, $backend, $url, HttpMethod.Post, webSocketSupport = $webSocketSupport
       )
     """)
   }
@@ -146,9 +144,9 @@ object SttpClient {
     backend: SttpBackend[Effect, ?],
     url: URI,
     method: HttpMethod,
-    webSocket: Boolean,
+    webSocketSupport: Boolean,
   ): SttpClient[Effect] =
-    SttpClient(effectSystem, backend, url, method, webSocket)
+    SttpClient(effectSystem, backend, url, method, webSocketSupport)
 
   /** Transport-specific context. */
   final case class Transport(request: PartialRequest[Either[String, String], Any])

@@ -36,7 +36,7 @@ import scala.jdk.OptionConverters.RichOptional
  *   maps an exception to a corresponding HTTP status code
  * @param readTimeout
  *   HTTP request read timeout
- * @param handler
+ * @param rpcHandler
  *   RPC request handler
  * @tparam Effect
  *   effect type
@@ -45,10 +45,10 @@ final case class AkkaHttpEndpoint[Effect[_]](
   effectSystem: EffectSystem[Effect],
   mapException: Throwable => Int = HttpContext.toStatusCode,
   readTimeout: FiniteDuration = 30.seconds,
-  handler: RpcHandler[Effect, Context] = RpcHandler.dummy[Effect, Context],
+  rpcHandler: RpcHandler[Effect, Context] = RpcHandler.dummy[Effect, Context],
 ) extends ServerTransport[Effect, Context, Route] {
 
-  private lazy val contentType = ContentType.parse(handler.mediaType).swap.map { errors =>
+  private lazy val contentType = ContentType.parse(rpcHandler.mediaType).swap.map { errors =>
     new IllegalStateException(s"Invalid message content type: ${errors.mkString("\n")}")
   }.swap.toTry.get
   private lazy val route: Route =
@@ -64,8 +64,8 @@ final case class AkkaHttpEndpoint[Effect[_]](
         }
       }
     }
-  private val httpHandler =
-    ServerHttpHandler(receiveRequest, createResponse, Protocol.Http, effectSystem, mapException, handler)
+  private val handler =
+    ServerHttpHandler(receiveRequest, createResponse, Protocol.Http, effectSystem, mapException, rpcHandler)
   implicit private val system: EffectSystem[Effect] = effectSystem
 
   def adapter: Route =
@@ -78,7 +78,7 @@ final case class AkkaHttpEndpoint[Effect[_]](
     effectSystem.successful {}
 
   override def requestHandler(handler: RpcHandler[Effect, Context]): AkkaHttpEndpoint[Effect] =
-    copy(handler = handler)
+    copy(rpcHandler = handler)
 
   private def handleRequest(request: HttpRequest, remoteAddress: RemoteAddress)(
     implicit
@@ -87,7 +87,7 @@ final case class AkkaHttpEndpoint[Effect[_]](
   ): Future[HttpResponse] = {
     val handleRequestResult = Promise[HttpResponse]()
     request.entity.toStrict(readTimeout).flatMap { requestEntity =>
-      httpHandler.processRequest((request, requestEntity, remoteAddress), ()).fold(
+      handler.processRequest((request, requestEntity, remoteAddress), ()).fold(
         error => handleRequestResult.failure(error),
         result => handleRequestResult.success(result),
       )
@@ -97,15 +97,9 @@ final case class AkkaHttpEndpoint[Effect[_]](
 
   private def receiveRequest(
     incomingRequest: (HttpRequest, HttpEntity.Strict, RemoteAddress)
-  ): (Effect[Array[Byte]], HttpMetadata[Context]) = {
+  ): (Effect[Array[Byte]], Context) = {
     val (request, requestEntity, remoteAddress) = incomingRequest
-    val requestMetadata = HttpMetadata(
-      getRequestContext(request, remoteAddress),
-      httpHandler.protocol,
-      request.uri.toString,
-      Some(request.method.value),
-    )
-    effectSystem.evaluate(requestEntity.data.toArray[Byte]) -> requestMetadata
+    effectSystem.evaluate(requestEntity.data.toArray[Byte]) -> getRequestContext(request, remoteAddress)
   }
 
   private def createResponse(

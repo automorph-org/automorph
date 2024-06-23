@@ -30,7 +30,7 @@ import scala.jdk.CollectionConverters.ListHasAsScala
  *   effect system plugin
  * @param mapException
  *   maps an exception to a corresponding HTTP status code
- * @param handler
+ * @param rpcHandler
  *   RPC request handler
  * @tparam Effect
  *   effect type
@@ -38,21 +38,21 @@ import scala.jdk.CollectionConverters.ListHasAsScala
 final case class VertxHttpEndpoint[Effect[_]](
   effectSystem: EffectSystem[Effect],
   mapException: Throwable => Int = HttpContext.toStatusCode,
-  handler: RpcHandler[Effect, Context] = RpcHandler.dummy[Effect, Context],
+  rpcHandler: RpcHandler[Effect, Context] = RpcHandler.dummy[Effect, Context],
 ) extends ServerTransport[Effect, Context, Handler[HttpServerRequest]] {
 
   private lazy val requestHandler = new Handler[HttpServerRequest] {
 
     override def handle(request: HttpServerRequest): Unit = {
       request.bodyHandler { buffer =>
-        httpHandler.processRequest((request, buffer), request).runAsync
+        handler.processRequest((request, buffer), request).runAsync
       }
       ()
     }
   }
 
-  private val httpHandler =
-    ClientServerHttpHandler(receiveRequest, sendResponse, Protocol.Http, effectSystem, mapException, handler)
+  private val handler =
+    ClientServerHttpHandler(receiveRequest, sendResponse, Protocol.Http, effectSystem, mapException, rpcHandler)
   implicit private val system: EffectSystem[Effect] = effectSystem
 
   override def adapter: Handler[HttpServerRequest] =
@@ -65,19 +65,11 @@ final case class VertxHttpEndpoint[Effect[_]](
     effectSystem.successful {}
 
   override def requestHandler(handler: RpcHandler[Effect, Context]): VertxHttpEndpoint[Effect] =
-    copy(handler = handler)
+    copy(rpcHandler = handler)
 
-  private def receiveRequest(
-    incomingRequest: (HttpServerRequest, Buffer)
-  ): (Effect[Array[Byte]], HttpMetadata[Context]) = {
+  private def receiveRequest(incomingRequest: (HttpServerRequest, Buffer)): (Effect[Array[Byte]], Context) = {
     val (request, body) = incomingRequest
-    val requestMetadata = HttpMetadata(
-      getRequestContext(request),
-      httpHandler.protocol,
-      request.absoluteURI,
-      Some(request.method.name),
-    )
-    effectSystem.evaluate(body.getBytes) -> requestMetadata
+    effectSystem.evaluate(body.getBytes) -> getRequestContext(request)
   }
 
   private def sendResponse(

@@ -38,7 +38,7 @@ final case class SttpClient[Effect[_]] private (
   backend: SttpBackend[Effect, ?],
   url: URI,
   method: HttpMethod,
-  webSocket: Boolean,
+  webSocketSupport: Boolean,
 ) extends SttpClientBase[Effect] {}
 
 object SttpClient:
@@ -48,8 +48,6 @@ object SttpClient:
 
   /**
    * Creates an STTP HTTP client message transport plugin with the specified STTP backend.
-   *
-   * Use the alternative [[SttpClient.webSocket]] function for STTP backends with WebSocket capability.
    *
    * @param effectSystem
    *   effect system plugin
@@ -82,16 +80,18 @@ object SttpClient:
   )(using quotes: Quotes): Expr[SttpClient[Effect]] =
     import quotes.reflect.TypeRepr
 
-    val webSocket = if TypeRepr.of[Capabilities] <:< TypeRepr.of[WebSockets] then
+    val webSocketSupport = if TypeRepr.of[Capabilities] <:< TypeRepr.of[WebSockets] then
       '{ true }
     else
       '{ false }
-    '{ SttpClient(${ effectSystem }, ${ backend }, ${ url }, ${ method }, webSocket = ${ webSocket }) }
+    '{
+      SttpClient(${ effectSystem }, ${ backend }, ${ url }, ${ method }, webSocketSupport = ${ webSocketSupport })
+    }
 
   /**
    * Creates an STTP HTTP client message transport plugin with the specified STTP backend using POST HTTP method.
    *
-   * Use the alternative [[SttpClient.webSocket]] function for STTP backends with WebSocket capability.
+   * Use the alternative [[SttpClient.webSocketSupport]] function for STTP backends with WebSocket capability.
    *
    * @param effectSystem
    *   effect system plugin
@@ -120,11 +120,13 @@ object SttpClient:
   )(using quotes: Quotes): Expr[SttpClient[Effect]] =
     import quotes.reflect.TypeRepr
 
-    val webSocket = if TypeRepr.of[Capabilities] <:< TypeRepr.of[WebSockets] then
+    val webSocketSupport = if TypeRepr.of[Capabilities] <:< TypeRepr.of[WebSockets] then
       '{ true }
     else
       '{ false }
-    '{ SttpClient(${ effectSystem }, ${ backend }, ${ url }, HttpMethod.Post, webSocket = ${ webSocket }) }
+    '{
+      SttpClient(${ effectSystem }, ${ backend }, ${ url }, HttpMethod.Post, webSocketSupport = ${ webSocketSupport })
+    }
 
   /** Transport-specific context. */
   final case class Transport(request: PartialRequest[Either[String, String], Any])

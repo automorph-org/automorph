@@ -32,7 +32,7 @@ import scala.concurrent.{ExecutionContext, Future, Promise}
  *   effect system plugin
  * @param mapException
  *   maps an exception to a corresponding HTTP status code
- * @param handler
+ * @param rpcHandler
  *   RPC request handler
  * @param executionContext
  *   execution context
@@ -44,7 +44,7 @@ import scala.concurrent.{ExecutionContext, Future, Promise}
 final case class PlayHttpEndpoint[Effect[_]](
   effectSystem: EffectSystem[Effect],
   mapException: Throwable => Int = HttpContext.toStatusCode,
-  handler: RpcHandler[Effect, Context] = RpcHandler.dummy[Effect, Context],
+  rpcHandler: RpcHandler[Effect, Context] = RpcHandler.dummy[Effect, Context],
 )(implicit val executionContext: ExecutionContext, val materializer: Materializer)
   extends ServerTransport[Effect, Context, Action[ByteString]] {
 
@@ -55,15 +55,15 @@ final case class PlayHttpEndpoint[Effect[_]](
 
     override def apply(request: Request[ByteString]): Future[Result] =
       runAsFuture {
-        httpHandler.processRequest(request, ())
+        handler.processRequest(request, ())
       }
 
     override def executionContext: ExecutionContext =
       suppliedExecutionContext
   }
   private val suppliedExecutionContext = executionContext
-  private val httpHandler =
-    ServerHttpHandler(receiveRequest, createResponse, Protocol.Http, effectSystem, mapException, handler)
+  private val handler =
+    ServerHttpHandler(receiveRequest, createResponse, Protocol.Http, effectSystem, mapException, rpcHandler)
   implicit private val system: EffectSystem[Effect] = effectSystem
 
   override def adapter: Action[ByteString] =
@@ -76,24 +76,17 @@ final case class PlayHttpEndpoint[Effect[_]](
     effectSystem.successful {}
 
   override def requestHandler(handler: RpcHandler[Effect, Context]): PlayHttpEndpoint[Effect] =
-    copy(handler = handler)
+    copy(rpcHandler = handler)
 
-  private def receiveRequest(request: Request[ByteString]): (Effect[Array[Byte]], HttpMetadata[Context]) = {
-    val requestMetadata = HttpMetadata(
-      getRequestContext(request),
-      httpHandler.protocol,
-      request.uri,
-      Some(request.method),
-    )
-    effectSystem.evaluate(request.body.toArray) -> requestMetadata
-  }
+  private def receiveRequest(request: Request[ByteString]): (Effect[Array[Byte]], Context) =
+    effectSystem.evaluate(request.body.toArray) -> getRequestContext(request)
 
   private def createResponse(
     body: Array[Byte],
     metadata: HttpMetadata[Context],
     @unused session: Unit,
   ): Effect[Result] = {
-    val httpEntity = HttpEntity.Strict.apply(ByteString(body), Some(handler.mediaType))
+    val httpEntity = HttpEntity.Strict.apply(ByteString(body), Some(rpcHandler.mediaType))
     val result = setResponseContext(Status(metadata.statusCodeOrOk).sendEntity(httpEntity), metadata.context)
     effectSystem.successful(result)
   }

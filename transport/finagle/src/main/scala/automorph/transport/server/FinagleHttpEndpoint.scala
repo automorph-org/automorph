@@ -28,7 +28,7 @@ import com.twitter.util.{Future, Promise}
  *   effect system plugin
  * @param mapException
  *   maps an exception to a corresponding HTTP status code
- * @param handler
+ * @param rpcHandler
  *   RPC request handler
  * @tparam Effect
  *   effect type
@@ -36,13 +36,13 @@ import com.twitter.util.{Future, Promise}
 final case class FinagleHttpEndpoint[Effect[_]](
   effectSystem: EffectSystem[Effect],
   mapException: Throwable => Int = HttpContext.toStatusCode,
-  handler: RpcHandler[Effect, Context] = RpcHandler.dummy[Effect, Context],
+  rpcHandler: RpcHandler[Effect, Context] = RpcHandler.dummy[Effect, Context],
 ) extends ServerTransport[Effect, Context, Service[Request, Response]] {
 
   private lazy val service: Service[Request, Response] = (request: Request) =>
-    runAsFuture(httpHandler.processRequest(request, request))
-  private val httpHandler =
-    ServerHttpHandler(receiveRequest, createResponse, Protocol.Http, effectSystem, mapException, handler)
+    runAsFuture(handler.processRequest(request, request))
+  private val handler =
+    ServerHttpHandler(receiveRequest, createResponse, Protocol.Http, effectSystem, mapException, rpcHandler)
   implicit private val system: EffectSystem[Effect] = effectSystem
 
   override def adapter: Service[Request, Response] =
@@ -55,17 +55,10 @@ final case class FinagleHttpEndpoint[Effect[_]](
     effectSystem.successful {}
 
   override def requestHandler(handler: RpcHandler[Effect, Context]): FinagleHttpEndpoint[Effect] =
-    copy(handler = handler)
+    copy(rpcHandler = handler)
 
-  private def receiveRequest(request: Request): (Effect[Array[Byte]], HttpMetadata[Context]) = {
-    val requestMetadata = HttpMetadata(
-      getRequestContext(request),
-      httpHandler.protocol,
-      request.uri,
-      Some(request.method.toString),
-    )
-    effectSystem.evaluate(Buf.ByteArray.Owned.extract(request.content)) -> requestMetadata
-  }
+  private def receiveRequest(request: Request): (Effect[Array[Byte]], Context) =
+    effectSystem.evaluate(Buf.ByteArray.Owned.extract(request.content)) -> getRequestContext(request)
 
   private def createResponse(body: Array[Byte], metadata: HttpMetadata[Context], request: Request): Effect[Response] = {
     val response = Response(

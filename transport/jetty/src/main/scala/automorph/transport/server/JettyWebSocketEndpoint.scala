@@ -4,7 +4,7 @@ import automorph.spi.EffectSystem.Completable
 import automorph.spi.{EffectSystem, RpcHandler, ServerTransport}
 import automorph.transport.HttpContext.headerRpcNodeId
 import automorph.transport.server.JettyHttpEndpoint.{Context, requestQuery}
-import automorph.transport.server.JettyWebSocketEndpoint.ResponseCallback
+import automorph.transport.server.JettyWebSocketEndpoint.{ResponseCallback, WebSocketRequest}
 import automorph.transport.{ClientServerHttpHandler, HttpContext, HttpMetadata, HttpMethod, Protocol, ServerHttpHandler}
 import automorph.util.Extensions.{ByteArrayOps, EffectOps, StringOps}
 import org.eclipse.jetty.http.HttpHeader
@@ -31,7 +31,7 @@ import scala.jdk.CollectionConverters.{ListHasAsScala, MapHasAsScala}
  *   effect system plugin
  * @param mapException
  *   maps an exception to a corresponding HTTP status code
- * @param handler
+ * @param rpcHandler
  *   RPC request handler
  * @tparam Effect
  *   effect type
@@ -39,23 +39,23 @@ import scala.jdk.CollectionConverters.{ListHasAsScala, MapHasAsScala}
 final case class JettyWebSocketEndpoint[Effect[_]](
   effectSystem: EffectSystem[Effect],
   mapException: Throwable => Int = HttpContext.toStatusCode,
-  handler: RpcHandler[Effect, Context] = RpcHandler.dummy[Effect, Context],
+  rpcHandler: RpcHandler[Effect, Context] = RpcHandler.dummy[Effect, Context],
 ) extends ServerTransport[Effect, Context, WebSocketAdapter] {
   private lazy val webSocketAdapter = new WebSocketAdapter {
     implicit private val system: EffectSystem[Effect] = effectSystem
 
     override def onWebSocketBinary(payload: Array[Byte], offset: Int, length: Int): Unit = {
       val session = getSession
-      webSocketHandler.processRequest((session, payload), session).runAsync
+      handler.processRequest(payload -> session, session).runAsync
     }
 
     override def onWebSocketText(message: String): Unit = {
       val session = getSession
-      webSocketHandler.processRequest((session, message.toByteArray), session).runAsync
+      handler.processRequest(message.toByteArray -> session, session).runAsync
     }
 
     override def onWebSocketError(cause: Throwable): Unit = {
-      webSocketHandler.failedReceiveWebSocketRequest(cause)
+      handler.failedReceiveWebSocketRequest(cause)
       super.onWebSocketError(cause)
     }
   }
@@ -64,8 +64,8 @@ final case class JettyWebSocketEndpoint[Effect[_]](
     override def createWebSocket(request: JettyServerUpgradeRequest, response: JettyServerUpgradeResponse): AnyRef =
       adapter
   }
-  private val webSocketHandler =
-    ClientServerHttpHandler(receiveRequest, sendResponse, Protocol.WebSocket, effectSystem, mapException, handler)
+  private val handler =
+    ClientServerHttpHandler(receiveRequest, sendResponse, Protocol.WebSocket, effectSystem, mapException, rpcHandler)
   implicit private val system: EffectSystem[Effect] = effectSystem
 
   /** Jetty WebSocket creator. */
@@ -82,26 +82,18 @@ final case class JettyWebSocketEndpoint[Effect[_]](
     effectSystem.successful {}
 
   override def requestHandler(handler: RpcHandler[Effect, Context]): JettyWebSocketEndpoint[Effect] =
-    copy(handler = handler)
+    copy(rpcHandler = handler)
 
-  private def receiveRequest(incomingRequest: (Session, Array[Byte])): (Effect[Array[Byte]], HttpMetadata[Context]) = {
-    val (session, body) = incomingRequest
-    val request = session.getUpgradeRequest
-    val query = requestQuery(request.getQueryString)
-    val requestMetadata = HttpMetadata(
-      getRequestContext(session),
-      webSocketHandler.protocol,
-      s"${request.getRequestURI.toString}$query",
-      None,
-    )
-    effectSystem.successful(body) -> requestMetadata
+  private def receiveRequest(incomingRequest: WebSocketRequest): (Effect[Array[Byte]], Context) = {
+    val (body, session) = incomingRequest
+    effectSystem.successful(body) -> getRequestContext(session)
   }
 
   private def sendResponse(body: Array[Byte], @unused metadata: HttpMetadata[Context], session: Session): Effect[Unit] =
-    effectSystem.completable[Unit].flatMap { completable =>
-      val responseCallback = ResponseCallback(completable, effectSystem)
+    effectSystem.completable[Unit].flatMap { expectedResponseSent =>
+      val responseCallback = ResponseCallback(expectedResponseSent, effectSystem, handler)
       session.getRemote.sendBytes(body.toByteBuffer, responseCallback)
-      completable.effect
+      expectedResponseSent.effect
     }
 
   private def getRequestContext(session: Session): Context = {
@@ -109,13 +101,13 @@ final case class JettyWebSocketEndpoint[Effect[_]](
     val headers = request.getHeaders.asScala.flatMap { case (name, values) =>
       values.asScala.map(name -> _)
     }.toSeq
+    val query = requestQuery(request.getQueryString)
     HttpContext(
       transportContext = None,
       method = Some(HttpMethod.valueOf(request.getMethod)),
       headers = headers,
       peer = Some(client(session)),
-    )
-      .url(request.getRequestURI)
+    ).url(s"${request.getRequestURI.toString}$query")
   }
 
   private def client(session: Session): String = {
@@ -131,16 +123,18 @@ object JettyWebSocketEndpoint {
   /** Request context type. */
   type Context = JettyHttpEndpoint.Context
 
-  final private case class ResponseCallback[Effect[_]](
-    completable: Completable[Effect, Unit],
+  private type WebSocketRequest = (Array[Byte], Session)
+
+  final private case class ResponseCallback[Effect[_]](expectedResponseSent: Completable[Effect, Unit],
     effectSystem: EffectSystem[Effect],
+    handler: ClientServerHttpHandler[Effect, Context, WebSocketRequest, Session],
   ) extends WriteCallback {
     implicit private val system: EffectSystem[Effect] = effectSystem
 
     override def writeSuccess(): Unit =
-      completable.succeed(()).runAsync
+      expectedResponseSent.succeed(()).runAsync
 
     override def writeFailed(error: Throwable): Unit =
-      completable.fail(error).runAsync
+      expectedResponseSent.fail(error).runAsync
   }
 }

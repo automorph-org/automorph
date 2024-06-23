@@ -120,12 +120,9 @@ object TapirHttpEndpoint {
 
   private def receiveRequest[Effect[_]](effectSystem: EffectSystem[Effect])(
     incomingRequest: (Request, Option[HttpMethod], HttpContext[Unit])
-  ): (Effect[Array[Byte]], HttpMetadata[Context]) = {
+  ): (Effect[Array[Byte]], Context) = {
     val (request, method, baseContext) = incomingRequest
-    val context = getRequestContext(request, method, baseContext)
-    val url = context.url.map(_.toString).getOrElse("")
-    val requestMetadata = HttpMetadata(context, Protocol.Http, url, method.map(_.name))
-    effectSystem.successful(request._1) -> requestMetadata
+    effectSystem.successful(request._1) -> getRequestContext(request, method, baseContext)
   }
 
   private def createResponse[Effect[_]](effectSystem: EffectSystem[Effect])(

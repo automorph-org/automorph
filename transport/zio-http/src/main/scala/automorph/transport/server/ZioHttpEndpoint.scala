@@ -27,7 +27,7 @@ import scala.annotation.unused
  *   effect system plugin
  * @param mapException
  *   maps an exception to a corresponding HTTP status code
- * @param handler
+ * @param rpcHandler
  *   RPC request handler
  * @tparam Fault
  *   ZIO error type
@@ -35,16 +35,16 @@ import scala.annotation.unused
 final case class ZioHttpEndpoint[Fault](
   effectSystem: EffectSystem[({ type Effect[A] = IO[Fault, A] })#Effect],
   mapException: Throwable => Int = HttpContext.toStatusCode,
-  handler: RpcHandler[({ type Effect[A] = IO[Fault, A] })#Effect, Context] =
+  rpcHandler: RpcHandler[({ type Effect[A] = IO[Fault, A] })#Effect, Context] =
     RpcHandler.dummy[({ type Effect[A] = IO[Fault, A] })#Effect, Context],
 ) extends ServerTransport[({ type Effect[A] = IO[Fault, A] })#Effect, Context, http.RequestHandler[Any, Response]] {
 
-  private lazy val mediaType = MediaType.forContentType(handler.mediaType).getOrElse(
-    throw new IllegalStateException(s"Invalid message content type: ${handler.mediaType}")
+  private lazy val mediaType = MediaType.forContentType(rpcHandler.mediaType).getOrElse(
+    throw new IllegalStateException(s"Invalid message content type: ${rpcHandler.mediaType}")
   )
   private lazy val requestHandler = Handler.fromFunctionZIO(handle)
-  private val httpHandler =
-    ServerHttpHandler(receiveRequest, createResponse, Protocol.Http, effectSystem, mapException, handler)
+  private val handler =
+    ServerHttpHandler(receiveRequest, createResponse, Protocol.Http, effectSystem, mapException, rpcHandler)
 
   override def adapter: http.RequestHandler[Any, Response] =
     requestHandler
@@ -58,23 +58,17 @@ final case class ZioHttpEndpoint[Fault](
   override def requestHandler(
     handler: RpcHandler[({ type Effect[A] = IO[Fault, A] })#Effect, Context]
   ): ZioHttpEndpoint[Fault] =
-    copy(handler = handler)
+    copy(rpcHandler = handler)
 
   private def handle(request: Request): IO[Response, Response] =
-    httpHandler.processRequest(request, ()).mapError(_ => Response())
+    handler.processRequest(request, ()).mapError(_ => Response())
 
-  private def receiveRequest(request: Request): (IO[Fault, Array[Byte]], HttpMetadata[Context]) = {
-    val requestMetadata = HttpMetadata(
-      getRequestContext(request),
-      httpHandler.protocol,
-      request.url.toString,
-      Some(request.method.name),
-    )
+  private def receiveRequest(request: Request): (IO[Fault, Array[Byte]], Context) = {
     val requestBody = request.body.asArray.foldZIO(
       error => effectSystem.failed(error),
       body => effectSystem.successful(body),
     )
-    requestBody -> requestMetadata
+    requestBody -> getRequestContext(request)
   }
 
   private def createResponse(

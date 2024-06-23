@@ -25,19 +25,19 @@ import scala.annotation.unused
  *   Creates an ZIO HTTP WebSocket endpoint message transport plugin with specified effect system and request handler.
  * @param effectSystem
  *   effect system plugin
- * @param handler
+ * @param rpcHandler
  *   RPC request handler
  * @tparam Fault
  *   ZIO error type
  */
 final case class ZioHttpWebSocketEndpoint[Fault](
   effectSystem: EffectSystem[({ type Effect[A] = IO[Fault, A] })#Effect],
-  handler: RpcHandler[({ type Effect[A] = IO[Fault, A] })#Effect, Context] =
+  rpcHandler: RpcHandler[({ type Effect[A] = IO[Fault, A] })#Effect, Context] =
     RpcHandler.dummy[({ type Effect[A] = IO[Fault, A] })#Effect, Context],
 ) extends ServerTransport[({ type Effect[A] = IO[Fault, A] })#Effect, Context, WebSocketChannel => IO[Throwable, Any]]
   with Logging {
-  private val webSocketHandler =
-    ClientServerHttpHandler(receiveRequest, sendResponse, Protocol.WebSocket, effectSystem, _ => 0, handler)
+  private val handler =
+    ClientServerHttpHandler(receiveRequest, sendResponse, Protocol.WebSocket, effectSystem, _ => 0, rpcHandler)
 
   override def adapter: WebSocketChannel => IO[Throwable, Any] =
     channel => handle(channel)
@@ -51,15 +51,14 @@ final case class ZioHttpWebSocketEndpoint[Fault](
   override def requestHandler(
     handler: RpcHandler[({ type Effect[A] = IO[Fault, A] })#Effect, Context]
   ): ZioHttpWebSocketEndpoint[Fault] =
-    copy(handler = handler)
+    copy(rpcHandler = handler)
 
   private def handle(channel: WebSocketChannel): IO[Throwable, Unit] =
-    webSocketHandler.processRequest(channel, channel).mapError { _ =>
+    handler.processRequest(channel, channel).mapError { _ =>
       new RuntimeException(s"Error processing ${Protocol.WebSocket.name} request")
     }
 
-  private def receiveRequest(channel: WebSocketChannel): (IO[Fault, Array[Byte]], HttpMetadata[Context]) = {
-    val requestMetadata = HttpMetadata(HttpContext[Unit](), webSocketHandler.protocol, "", None)
+  private def receiveRequest(channel: WebSocketChannel): (IO[Fault, Array[Byte]], Context) = {
     val requestBody = effectSystem.completable[Array[Byte]].flatMap { completable =>
       channel.receiveAll {
         case Read(WebSocketFrame.Binary(request)) => completable.succeed(request.toArray)
@@ -70,7 +69,7 @@ final case class ZioHttpWebSocketEndpoint[Fault](
       }
       completable.effect
     }
-    requestBody -> requestMetadata
+    requestBody -> HttpContext[Unit]()
   }
 
   private def sendResponse(

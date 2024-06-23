@@ -30,7 +30,7 @@ import scala.jdk.CollectionConverters.{IterableHasAsScala, IteratorHasAsScala}
  *   effect system plugin
  * @param mapException
  *   maps an exception to a corresponding HTTP status code
- * @param handler
+ * @param rpcHandler
  *   RPC request handler
  * @tparam Effect
  *   effect type
@@ -38,19 +38,19 @@ import scala.jdk.CollectionConverters.{IterableHasAsScala, IteratorHasAsScala}
 final case class UndertowHttpEndpoint[Effect[_]](
   effectSystem: EffectSystem[Effect],
   mapException: Throwable => Int = HttpContext.toStatusCode,
-  handler: RpcHandler[Effect, Context] = RpcHandler.dummy[Effect, Context],
+  rpcHandler: RpcHandler[Effect, Context] = RpcHandler.dummy[Effect, Context],
 ) extends ServerTransport[Effect, Context, HttpHandler] {
   private lazy val httpHandler = new HttpHandler {
 
     override def handleRequest(exchange: HttpServerExchange): Unit =
       exchange.getRequestReceiver.receiveFullBytes(receiverCallback)
   }
-  private val httpRequestHandler =
-    ClientServerHttpHandler(receiveRequest, sendResponse, Protocol.Http, effectSystem, mapException, handler)
+  private val handler =
+    ClientServerHttpHandler(receiveRequest, sendResponse, Protocol.Http, effectSystem, mapException, rpcHandler)
   private val receiverCallback = new Receiver.FullBytesCallback {
 
     override def handle(exchange: HttpServerExchange, requestBody: Array[Byte]): Unit = {
-      val handlerRunnable = RequestCallback(effectSystem, httpRequestHandler, exchange, requestBody)
+      val handlerRunnable = RequestCallback(requestBody, exchange, effectSystem, handler)
       if (exchange.isInIoThread) {
         exchange.dispatch(handlerRunnable)
         ()
@@ -68,18 +68,11 @@ final case class UndertowHttpEndpoint[Effect[_]](
     effectSystem.successful {}
 
   override def requestHandler(handler: RpcHandler[Effect, Context]): UndertowHttpEndpoint[Effect] =
-    copy(handler = handler)
+    copy(rpcHandler = handler)
 
-  private def receiveRequest(request: HttpRequest): (Effect[Array[Byte]], HttpMetadata[Context]) = {
-    val (exchange, body) = request
-    val query = requestQuery(exchange.getQueryString)
-    val requestMetadata = HttpMetadata(
-      getRequestContext(exchange),
-      httpRequestHandler.protocol,
-      s"${exchange.getRequestURI}$query",
-      Some(exchange.getRequestMethod.toString),
-    )
-    effectSystem.successful(body) -> requestMetadata
+  private def receiveRequest(request: HttpRequest): (Effect[Array[Byte]], Context) = {
+    val (body, exchange) = request
+    effectSystem.successful(body) -> getRequestContext(exchange)
   }
 
   private def sendResponse(
@@ -100,12 +93,13 @@ final case class UndertowHttpEndpoint[Effect[_]](
     val headers = exchange.getRequestHeaders.asScala.flatMap { headerValues =>
       headerValues.iterator.asScala.map(value => headerValues.getHeaderName.toString -> value)
     }.toSeq
+    val query = requestQuery(exchange.getQueryString)
     HttpContext(
       transportContext = Some(Left(exchange).withRight[WebSocketHttpExchange]),
       method = Some(HttpMethod.valueOf(exchange.getRequestMethod.toString)),
       headers = headers,
       peer = Some(client(exchange)),
-    ).url(exchange.getRequestURI)
+    ).url(s"${exchange.getRequestURI}$query")
   }
 
   private def setResponseContext(exchange: HttpServerExchange, context: Context): Unit = {
@@ -128,20 +122,20 @@ object UndertowHttpEndpoint {
   /** Request context type. */
   type Context = HttpContext[Either[HttpServerExchange, WebSocketHttpExchange]]
 
-  private type HttpRequest = (HttpServerExchange, Array[Byte])
+  private type HttpRequest = (Array[Byte], HttpServerExchange)
 
   private[automorph] def requestQuery(query: String): String =
     Option(query).filter(_.nonEmpty).map("?" + _).getOrElse("")
 
   final private case class RequestCallback[Effect[_]](
+    requestBody: Array[Byte],
+    exchange: HttpServerExchange,
     effectSystem: EffectSystem[Effect],
     handler: ClientServerHttpHandler[Effect, Context, HttpRequest, HttpServerExchange],
-    exchange: HttpServerExchange,
-    requestBody: Array[Byte],
   ) extends Runnable {
     implicit private val system: EffectSystem[Effect] = effectSystem
 
     override def run(): Unit =
-      handler.processRequest((exchange, requestBody), exchange).runAsync
+      handler.processRequest((requestBody, exchange), exchange).runAsync
   }
 }

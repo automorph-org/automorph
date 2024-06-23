@@ -65,10 +65,10 @@ final case class NanoServer[Effect[_]](
 ) extends NanoWSD(port, threads) with Logging with ServerTransport[Effect, Context, Unit] {
   private val allowedMethods = methods.map(_.name).toSet
   implicit private val system: EffectSystem[Effect] = effectSystem
-  private var handler: RpcHandler[Effect, Context] = RpcHandler.dummy
+  private var rpcHandler: RpcHandler[Effect, Context] = RpcHandler.dummy
 
   private var httpHandler =
-    ClientServerHttpHandler(receiveHttpRequest, sendHttpResponse, Protocol.Http, effectSystem, mapException, handler)
+    ClientServerHttpHandler(receiveHttpRequest, sendHttpResponse, Protocol.Http, effectSystem, mapException, rpcHandler)
 
   private var webSocketHandler = ClientServerHttpHandler(
     receiveWebSocketRequest,
@@ -76,11 +76,11 @@ final case class NanoServer[Effect[_]](
     Protocol.WebSocket,
     effectSystem,
     _ => 0,
-    handler,
+    rpcHandler,
   )
 
   override def requestHandler(handler: RpcHandler[Effect, Context]): NanoServer[Effect] = {
-    this.handler = handler
+    this.rpcHandler = handler
     httpHandler =
       ClientServerHttpHandler(
         receiveHttpRequest,
@@ -162,28 +162,14 @@ final case class NanoServer[Effect[_]](
   override protected def openWebSocket(session: IHTTPSession): WebSocket =
     WebSocketListener(session, webSocket, effectSystem, webSocketHandler, logger)
 
-  private def receiveHttpRequest(request: IHTTPSession): (Effect[Array[Byte]], HttpMetadata[Context]) = {
-    val query = Option(request.getQueryParameterString).filter(_.nonEmpty).map("?" + _).getOrElse("")
-    val requestMetadata = HttpMetadata(
-      getRequestContext(request, client(request)),
-      httpHandler.protocol,
-      s"${request.getUri}$query",
-      Some(request.getMethod.toString),
-    )
+  private def receiveHttpRequest(request: IHTTPSession): (Effect[Array[Byte]], Context) = {
     val requestBody = system.evaluate(request.getInputStream.readNBytes(request.getBodySize.toInt))
-    requestBody -> requestMetadata
+    requestBody -> getRequestContext(request, client(request))
   }
 
-  private def receiveWebSocketRequest(request: WebSocketRequest): (Effect[Array[Byte]], HttpMetadata[Context]) = {
+  private def receiveWebSocketRequest(request: WebSocketRequest): (Effect[Array[Byte]], Context) = {
     val (session, frame) = request
-    val query = Option(session.getQueryParameterString).filter(_.nonEmpty).map("?" + _).getOrElse("")
-    val requestMetadata = HttpMetadata(
-      getRequestContext(session, client(session)),
-      Protocol.WebSocket,
-      s"${session.getUri}$query",
-      None,
-    )
-    system.successful(frame.getBinaryPayload) -> requestMetadata
+    system.successful(frame.getBinaryPayload) -> getRequestContext(session, client(session))
   }
 
   private def sendHttpResponse(
@@ -212,12 +198,13 @@ final case class NanoServer[Effect[_]](
     system.evaluate(channel.send(body))
 
   private def getRequestContext(session: IHTTPSession, peerId: String): Context = {
+    val query = Option(session.getQueryParameterString).filter(_.nonEmpty).map("?" + _).getOrElse("")
     val http = HttpContext(
       transportContext = Some(session),
       method = Some(HttpMethod.valueOf(session.getMethod.name)),
       headers = session.getHeaders.asScala.toSeq,
       peer = Some(peerId),
-    ).url(session.getUri).scheme("http").host("localhost").port(port)
+    ).url(s"${session.getUri}$query").scheme("http").host("localhost").port(port)
     Option(session.getQueryParameterString).map(http.query).getOrElse(http)
   }
 

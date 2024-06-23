@@ -27,34 +27,34 @@ import scala.jdk.CollectionConverters.ListHasAsScala
  *   Creates a Vert.x Websocket endpoint message transport plugin with specified effect system and request handler.
  * @param effectSystem
  *   effect system plugin
- * @param handler
+ * @param rpcHandler
  *   RPC request handler
  * @tparam Effect
  *   effect type
  */
 final case class VertxWebSocketEndpoint[Effect[_]](
   effectSystem: EffectSystem[Effect],
-  handler: RpcHandler[Effect, Context] = RpcHandler.dummy[Effect, Context],
+  rpcHandler: RpcHandler[Effect, Context] = RpcHandler.dummy[Effect, Context],
 ) extends ServerTransport[Effect, Context, Handler[ServerWebSocket]] {
 
   private lazy val requestHandler = new Handler[ServerWebSocket] {
 
     override def handle(session: ServerWebSocket): Unit = {
       session.binaryMessageHandler { buffer =>
-        webSocketHandler.processRequest((buffer.getBytes, session), session).runAsync
+        handler.processRequest((buffer.getBytes, session), session).runAsync
       }
       session.textMessageHandler { message =>
-        webSocketHandler.processRequest((message.toByteArray, session), session).runAsync
+        handler.processRequest((message.toByteArray, session), session).runAsync
       }
       session.exceptionHandler { error =>
-        webSocketHandler.failedReceiveWebSocketRequest(error)
+        handler.failedReceiveWebSocketRequest(error)
       }
       ()
     }
   }
 
-  private val webSocketHandler =
-    ClientServerHttpHandler(receiveRequest, sendResponse, Protocol.WebSocket, effectSystem, _ => 0, handler)
+  private val handler =
+    ClientServerHttpHandler(receiveRequest, sendResponse, Protocol.WebSocket, effectSystem, _ => 0, rpcHandler)
   implicit private val system: EffectSystem[Effect] = effectSystem
 
   override def adapter: Handler[ServerWebSocket] =
@@ -67,19 +67,11 @@ final case class VertxWebSocketEndpoint[Effect[_]](
     effectSystem.successful {}
 
   override def requestHandler(handler: RpcHandler[Effect, Context]): VertxWebSocketEndpoint[Effect] =
-    copy(handler = handler)
+    copy(rpcHandler = handler)
 
-  private def receiveRequest(
-    incomingRequest: (Array[Byte], ServerWebSocket)
-  ): (Effect[Array[Byte]], HttpMetadata[Context]) = {
+  private def receiveRequest(incomingRequest: (Array[Byte], ServerWebSocket)): (Effect[Array[Byte]], Context) = {
     val (body, webSocket) = incomingRequest
-    val requestMetadata = HttpMetadata(
-      getRequestContext(webSocket),
-      webSocketHandler.protocol,
-      webSocket.uri,
-      None,
-    )
-    system.successful(body) -> requestMetadata
+    system.successful(body) -> getRequestContext(webSocket)
   }
 
   private def sendResponse(
