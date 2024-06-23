@@ -26,6 +26,8 @@ private[automorph] trait SttpClientBase[Effect[_]] extends ClientTransport[Effec
 
   def method: HttpMethod
 
+  def listenConnections: Int
+
   def webSocketSupport: Boolean
 
   override def call(
@@ -48,7 +50,7 @@ private[automorph] trait SttpClientBase[Effect[_]] extends ClientTransport[Effec
     Transport.context.url(url).method(method)
 
   override def init(): Effect[Unit] =
-    effectSystem.successful {}
+    effectSystem.evaluate(sender.listen(listenConnections))
 
   override def close(): Effect[Unit] =
     effectSystem.successful {}

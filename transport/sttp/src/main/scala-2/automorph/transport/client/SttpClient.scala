@@ -32,6 +32,10 @@ import scala.reflect.macros.blackbox
  *   remote API HTTP or WebSocket URL
  * @param method
  *   HTTP request method
+ * @param listenConnections
+ *   number of opened connections reserved for listening to requests from the server
+ * @param webSocketSupport
+ *   specified STTP backend supports WebSocket
  * @tparam Effect
  *   effect type
  */
@@ -41,6 +45,7 @@ final case class SttpClient[Effect[_]] private (
   backend: SttpBackend[Effect, ?],
   url: URI,
   method: HttpMethod,
+  listenConnections: Int,
   webSocketSupport: Boolean,
 ) extends SttpClientBase[Effect] {}
 
@@ -51,6 +56,56 @@ object SttpClient {
 
   /**
    * Creates an STTP HTTP client message transport plugin with the specified STTP backend.
+   *
+   * @param effectSystem
+   *   effect system plugin
+   * @param backend
+   *   STTP backend
+   * @param url
+   *   remote API HTTP URL
+   * @param method
+   *   HTTP request method (default: POST)
+   * @param listenConnections
+   *   number of opened connections reserved for listening to requests from the server
+   * @tparam Effect
+   *   effect type
+   * @tparam Capabilities
+   *   STTP backend capabilities
+   * @return
+   *   STTP HTTP client message transport plugin
+   */
+  def apply[Effect[_], Capabilities](
+    effectSystem: EffectSystem[Effect],
+    backend: SttpBackend[Effect, Capabilities],
+    url: URI,
+    method: HttpMethod,
+    listenConnections: Int,
+  ): SttpClient[Effect] =
+    macro applyMacro[Effect, Capabilities]
+
+  def applyMacro[Effect[_], Capabilities: c.WeakTypeTag](c: blackbox.Context)(
+    effectSystem: c.Expr[EffectSystem[Effect]],
+    backend: c.Expr[SttpBackend[Effect, Capabilities]],
+    url: c.Expr[URI],
+    method: c.Expr[HttpMethod],
+    listenConnections: c.Expr[Int],
+  ): c.Expr[SttpClient[Effect]] = {
+    import c.universe.{Quasiquote, weakTypeOf}
+
+    val webSocketSupport = c.Expr[Boolean](if (weakTypeOf[Capabilities] <:< weakTypeOf[WebSockets]) {
+      q"""true"""
+    } else {
+      q"""false"""
+    })
+    c.Expr[SttpClient[Effect]](q"""
+      automorph.transport.client.SttpClient.create(
+        $effectSystem, $backend, $url, $method, $listenConnections, webSocketSupport = $webSocketSupport
+      )
+    """)
+  }
+
+  /**
+   * Creates an STTP HTTP client message transport plugin with the specified STTP backend and no listen connections.
    *
    * @param effectSystem
    *   effect system plugin
@@ -71,11 +126,11 @@ object SttpClient {
     effectSystem: EffectSystem[Effect],
     backend: SttpBackend[Effect, Capabilities],
     url: URI,
-    method: HttpMethod = HttpMethod.Post,
+    method: HttpMethod,
   ): SttpClient[Effect] =
-    macro applyMacro[Effect, Capabilities]
+  macro applyListenMacro[Effect, Capabilities]
 
-  def applyMacro[Effect[_], Capabilities: c.WeakTypeTag](c: blackbox.Context)(
+  def applyListenMacro[Effect[_], Capabilities: c.WeakTypeTag](c: blackbox.Context)(
     effectSystem: c.Expr[EffectSystem[Effect]],
     backend: c.Expr[SttpBackend[Effect, Capabilities]],
     url: c.Expr[URI],
@@ -90,13 +145,14 @@ object SttpClient {
     })
     c.Expr[SttpClient[Effect]](q"""
       automorph.transport.client.SttpClient.create(
-        $effectSystem, $backend, $url, $method, webSocketSupport = $webSocketSupport
+        $effectSystem, $backend, $url, $method, 0, webSocketSupport = $webSocketSupport
       )
     """)
   }
 
   /**
-   * Creates an STTP HTTP client message transport plugin with the specified STTP backend using POST HTTP method.
+   * Creates an STTP HTTP client message transport plugin with the specified STTP backend using POST HTTP method
+   * and no listen connections.
    *
    * @param effectSystem
    *   effect system plugin
@@ -116,9 +172,9 @@ object SttpClient {
     backend: SttpBackend[Effect, Capabilities],
     url: URI,
   ): SttpClient[Effect] =
-    macro applyMethodMacro[Effect, Capabilities]
+    macro applyMethodListenMacro[Effect, Capabilities]
 
-  def applyMethodMacro[Effect[_], Capabilities: c.WeakTypeTag](c: blackbox.Context)(
+  def applyMethodListenMacro[Effect[_], Capabilities: c.WeakTypeTag](c: blackbox.Context)(
     effectSystem: c.Expr[EffectSystem[Effect]],
     backend: c.Expr[SttpBackend[Effect, Capabilities]],
     url: c.Expr[URI],
@@ -133,7 +189,7 @@ object SttpClient {
     c.Expr[SttpClient[Effect]](q"""
       import automorph.transport.HttpMethod
       automorph.transport.client.SttpClient.create(
-        $effectSystem, $backend, $url, HttpMethod.Post, webSocketSupport = $webSocketSupport
+        $effectSystem, $backend, $url, HttpMethod.Post, 0, webSocketSupport = $webSocketSupport
       )
     """)
   }
@@ -144,9 +200,10 @@ object SttpClient {
     backend: SttpBackend[Effect, ?],
     url: URI,
     method: HttpMethod,
+    listenConnections: Int,
     webSocketSupport: Boolean,
   ): SttpClient[Effect] =
-    SttpClient(effectSystem, backend, url, method, webSocketSupport)
+    SttpClient(effectSystem, backend, url, method, listenConnections, webSocketSupport)
 
   /** Transport-specific context. */
   final case class Transport(request: PartialRequest[Either[String, String], Any])

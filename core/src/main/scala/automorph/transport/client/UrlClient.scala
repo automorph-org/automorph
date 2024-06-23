@@ -28,6 +28,8 @@ import scala.util.Using
  *   remote API HTTP URL
  * @param method
  *   HTTP request method (default: POST)
+ * @param listenConnections
+ *   number of opened connections reserved for listening to requests from the server
  * @tparam Effect
  *   effect type
  */
@@ -35,6 +37,7 @@ final case class UrlClient[Effect[_]](
   effectSystem: EffectSystem[Effect],
   url: URI,
   method: HttpMethod = HttpMethod.Post,
+  listenConnections: Int = 0,
 ) extends ClientTransport[Effect, Context] with Logging {
 
   private type Request = (Array[Byte], HttpURLConnection)
@@ -66,7 +69,7 @@ final case class UrlClient[Effect[_]](
     Transport.context.url(url).method(method)
 
   override def init(): Effect[Unit] =
-    effectSystem.successful {}
+    effectSystem.evaluate(sender.listen(listenConnections))
 
   override def close(): Effect[Unit] =
     effectSystem.successful {}

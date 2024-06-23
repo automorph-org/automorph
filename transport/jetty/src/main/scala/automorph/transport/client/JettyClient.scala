@@ -40,6 +40,8 @@ import scala.jdk.CollectionConverters.{IterableHasAsScala, SeqHasAsJava}
  *   remote API HTTP or WebSocket URL
  * @param method
  *   HTTP request method (default: POST)
+ * @param listenConnections
+ *   number of opened connections reserved for listening to requests from the server
  * @param httpClient
  *   Jetty HTTP client
  * @tparam Effect
@@ -49,6 +51,7 @@ final case class JettyClient[Effect[_]](
   effectSystem: EffectSystem[Effect],
   url: URI,
   method: HttpMethod = HttpMethod.Post,
+  listenConnections: Int = 0,
   httpClient: HttpClient = new HttpClient,
 ) extends ClientTransport[Effect, Context] with Logging {
 
@@ -81,8 +84,8 @@ final case class JettyClient[Effect[_]](
   override def context: Context =
     Transport.context.url(url).method(method)
 
-  override def init(): Effect[Unit] =
-    webSocketConnectionPool.init().map { _ =>
+  override def init(): Effect[Unit] = {
+    system.evaluate {
       this.synchronized {
         if (!httpClient.isStarted) {
           httpClient.start()
@@ -91,7 +94,8 @@ final case class JettyClient[Effect[_]](
         }
         webSocketClient.start()
       }
-    }
+    }.flatMap(_ => webSocketConnectionPool.init()).map(_ => sender.listen(listenConnections))
+  }
 
   override def close(): Effect[Unit] =
     webSocketConnectionPool.close().map { _ =>

@@ -44,6 +44,8 @@ import scala.util.Try
  *   remote API HTTP or WebSocket URL
  * @param method
  *   HTTP request method (default: POST)
+ * @param listenConnections
+ *   number of opened connections reserved for listening to requests from the server
  * @param builder
  *   HttpClient builder (default: empty)
  * @tparam Effect
@@ -53,6 +55,7 @@ final case class HttpClient[Effect[_]](
   effectSystem: EffectSystem[Effect],
   url: URI,
   method: HttpMethod = HttpMethod.Post,
+  listenConnections: Int = 0,
   builder: Builder = HttpClient.builder,
 ) extends ClientTransport[Effect, Context] with Logging {
 
@@ -90,7 +93,7 @@ final case class HttpClient[Effect[_]](
     Transport.context.url(url).method(method)
 
   override def init(): Effect[Unit] =
-    webSocketConnectionPool.init()
+    webSocketConnectionPool.init().map(_ => sender.listen(listenConnections))
 
   override def close(): Effect[Unit] =
     webSocketConnectionPool.close()

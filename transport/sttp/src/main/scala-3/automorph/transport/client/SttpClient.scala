@@ -30,6 +30,10 @@ import scala.quoted.{Expr, Quotes, Type}
  *   remote API HTTP or WebSocket URL
  * @param method
  *   HTTP request method
+ * @param listenConnections
+ *   number of opened connections reserved for listening to requests from the server
+ * @param webSocketSupport
+ *   specified STTP backend supports WebSocket
  * @tparam Effect
  *   effect type
  */
@@ -38,6 +42,7 @@ final case class SttpClient[Effect[_]] private (
   backend: SttpBackend[Effect, ?],
   url: URI,
   method: HttpMethod,
+  listenConnections: Int,
   webSocketSupport: Boolean,
 ) extends SttpClientBase[Effect] {}
 
@@ -57,6 +62,8 @@ object SttpClient:
    *   remote API HTTP URL
    * @param method
    *   HTTP request method (default: POST)
+   * @param listenConnections
+   *   number of opened connections reserved for listening to requests from the server
    * @tparam Effect
    *   effect type
    * @tparam Capabilities
@@ -68,11 +75,64 @@ object SttpClient:
     effectSystem: EffectSystem[Effect],
     backend: SttpBackend[Effect, Capabilities],
     url: URI,
-    method: HttpMethod = HttpMethod.Post,
+    method: HttpMethod,
+    listenConnections: Int,
   ): SttpClient[Effect] =
-    ${ applyMacro[Effect, Capabilities]('effectSystem, 'backend, 'url, 'method) }
+    ${ applyMacro[Effect, Capabilities]('effectSystem, 'backend, 'url, 'method, 'listenConnections) }
 
   private def applyMacro[Effect[_]: Type, Capabilities: Type](
+    effectSystem: Expr[EffectSystem[Effect]],
+    backend: Expr[SttpBackend[Effect, Capabilities]],
+    url: Expr[URI],
+    method: Expr[HttpMethod],
+    listenConnections: Expr[Int],
+  )(using quotes: Quotes): Expr[SttpClient[Effect]] =
+    import quotes.reflect.TypeRepr
+
+    val webSocketSupport = if TypeRepr.of[Capabilities] <:< TypeRepr.of[WebSockets] then
+      '{ true }
+    else
+      '{ false }
+    '{
+      SttpClient(
+        ${ effectSystem },
+        ${ backend },
+        ${ url },
+        ${ method },
+        ${ listenConnections },
+        webSocketSupport = ${ webSocketSupport },
+      )
+    }
+
+  /**
+   * Creates an STTP HTTP client message transport plugin with the specified STTP backend and no listen connections.
+   *
+   * @param effectSystem
+   *   effect system plugin
+   * @param backend
+   *   STTP backend
+   * @param url
+   *   remote API HTTP URL
+   * @param method
+   *   HTTP request method (default: POST)
+   * @param listenConnections
+   *   number of opened connections reserved for listening to requests from the server
+   * @tparam Effect
+   *   effect type
+   * @tparam Capabilities
+   *   STTP backend capabilities
+   * @return
+   *   STTP HTTP client message transport plugin
+   */
+  inline def apply[Effect[_], Capabilities](
+    effectSystem: EffectSystem[Effect],
+    backend: SttpBackend[Effect, Capabilities],
+    url: URI,
+    method: HttpMethod,
+  ): SttpClient[Effect] =
+    ${ applyListenMacro[Effect, Capabilities]('effectSystem, 'backend, 'url, 'method) }
+
+  private def applyListenMacro[Effect[_]: Type, Capabilities: Type](
     effectSystem: Expr[EffectSystem[Effect]],
     backend: Expr[SttpBackend[Effect, Capabilities]],
     url: Expr[URI],
@@ -85,13 +145,12 @@ object SttpClient:
     else
       '{ false }
     '{
-      SttpClient(${ effectSystem }, ${ backend }, ${ url }, ${ method }, webSocketSupport = ${ webSocketSupport })
+      SttpClient(${ effectSystem }, ${ backend }, ${ url }, ${ method }, 0, webSocketSupport = ${ webSocketSupport })
     }
 
   /**
-   * Creates an STTP HTTP client message transport plugin with the specified STTP backend using POST HTTP method.
-   *
-   * Use the alternative [[SttpClient.webSocketSupport]] function for STTP backends with WebSocket capability.
+   * Creates an STTP HTTP client message transport plugin with the specified STTP backend using POST HTTP method
+   * and no listen connections.
    *
    * @param effectSystem
    *   effect system plugin
@@ -111,9 +170,9 @@ object SttpClient:
     backend: SttpBackend[Effect, Capabilities],
     url: URI,
   ): SttpClient[Effect] =
-    ${ applyMethodMacro[Effect, Capabilities]('effectSystem, 'backend, 'url) }
+    ${ applyMethodListenMacro[Effect, Capabilities]('effectSystem, 'backend, 'url) }
 
-  private def applyMethodMacro[Effect[_]: Type, Capabilities: Type](
+  private def applyMethodListenMacro[Effect[_]: Type, Capabilities: Type](
     effectSystem: Expr[EffectSystem[Effect]],
     backend: Expr[SttpBackend[Effect, Capabilities]],
     url: Expr[URI],
@@ -125,7 +184,14 @@ object SttpClient:
     else
       '{ false }
     '{
-      SttpClient(${ effectSystem }, ${ backend }, ${ url }, HttpMethod.Post, webSocketSupport = ${ webSocketSupport })
+      SttpClient(
+        ${ effectSystem },
+        ${ backend },
+        ${ url },
+        HttpMethod.Post,
+        0,
+        webSocketSupport = ${ webSocketSupport },
+      )
     }
 
   /** Transport-specific context. */
