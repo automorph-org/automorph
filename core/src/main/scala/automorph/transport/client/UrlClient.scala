@@ -1,7 +1,7 @@
 package automorph.transport.client
 
 import automorph.log.Logging
-import automorph.spi.{ClientTransport, EffectSystem}
+import automorph.spi.{ClientTransport, EffectSystem, RpcHandler}
 import automorph.transport.HttpClientBase.{overrideUrl, webSocketSchemePrefix}
 import automorph.transport.client.UrlClient.{Context, Transport}
 import automorph.transport.{ClientServerHttpSender, HttpContext, HttpListen, HttpMethod, Protocol}
@@ -30,6 +30,8 @@ import scala.util.Using
  *   HTTP request method (default: POST)
  * @param listen
  *   listen for RPC requests from the server settings (default: disabled)
+ * @param rpcHandler
+ *   RPC request handler
  * @tparam Effect
  *   effect type
  */
@@ -38,6 +40,7 @@ final case class UrlClient[Effect[_]](
   url: URI,
   method: HttpMethod = HttpMethod.Post,
   listen: HttpListen = HttpListen(),
+  rpcHandler: RpcHandler[Effect, Context] = RpcHandler.dummy[Effect, Context],
 ) extends ClientTransport[Effect, Context] with Logging {
 
   private type Request = (Array[Byte], HttpURLConnection)
@@ -73,6 +76,9 @@ final case class UrlClient[Effect[_]](
 
   override def close(): Effect[Unit] =
     effectSystem.successful {}
+
+  override def rpcHandler(handler: RpcHandler[Effect, Context]): UrlClient[Effect] =
+    copy(rpcHandler = handler)
 
   private def createRequest(
     requestBody: Array[Byte],

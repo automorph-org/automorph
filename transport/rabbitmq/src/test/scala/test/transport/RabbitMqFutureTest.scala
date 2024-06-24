@@ -2,8 +2,7 @@ package test.transport
 
 import automorph.spi.{ClientTransport, ServerTransport}
 import automorph.system.FutureSystem
-import automorph.transport.client.RabbitMqClient
-import automorph.transport.local.client.LocalClient
+import automorph.transport.client.{LocalClient, RabbitMqClient}
 import automorph.transport.server.RabbitMqServer
 import org.scalacheck.Arbitrary
 import test.base.{Await, Mutex}

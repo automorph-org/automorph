@@ -98,7 +98,7 @@ final case class TapirHttpEndpoint[Effect[_]](
   override def close(): Effect[Unit] =
     effectSystem.successful {}
 
-  override def requestHandler(handler: RpcHandler[Effect, Context]): TapirHttpEndpoint[Effect] =
+  override def rpcHandler(handler: RpcHandler[Effect, Context]): TapirHttpEndpoint[Effect] =
     copy(handler = handler)
 }
 

@@ -79,7 +79,7 @@ final case class NanoServer[Effect[_]](
     rpcHandler,
   )
 
-  override def requestHandler(handler: RpcHandler[Effect, Context]): NanoServer[Effect] = {
+  override def rpcHandler(handler: RpcHandler[Effect, Context]): NanoServer[Effect] = {
     this.rpcHandler = handler
     httpHandler =
       ClientServerHttpHandler(

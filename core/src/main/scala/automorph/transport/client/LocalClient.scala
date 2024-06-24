@@ -1,8 +1,8 @@
-package automorph.transport.local.client
+package automorph.transport.client
 
 import automorph.RpcException.InvalidResponse
 import automorph.RpcServer
-import automorph.spi.{ClientTransport, EffectSystem}
+import automorph.spi.{ClientTransport, EffectSystem, RpcHandler}
 import automorph.util.Extensions.EffectOps
 
 /**
@@ -16,6 +16,8 @@ import automorph.util.Extensions.EffectOps
  *   default request context
  * @param server
  *   RPC server
+ * @param rpcHandler
+ *   RPC request handler
  * @constructor
  *   Creates a local client transport plugin
  * @tparam Effect
@@ -27,6 +29,7 @@ final case class LocalClient[Effect[_], Context] (
   effectSystem: EffectSystem[Effect],
   context: Context,
   server: RpcServer[?, ?, Effect, Context, ?],
+  rpcHandler: RpcHandler[Effect, Context] = RpcHandler.dummy[Effect, Context],
 ) extends ClientTransport[Effect, Context] {
 
   implicit private val system: EffectSystem[Effect] = effectSystem
@@ -58,4 +61,7 @@ final case class LocalClient[Effect[_], Context] (
 
   override def close(): Effect[Unit] =
     effectSystem.successful {}
+
+  override def rpcHandler(handler: RpcHandler[Effect, Context]): LocalClient[Effect, Context] =
+    copy(rpcHandler = handler)
 }

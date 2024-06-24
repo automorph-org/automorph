@@ -2,11 +2,8 @@ package automorph.transport.client
 
 import automorph.log.{LogProperties, Logger, Logging}
 import automorph.spi.EffectSystem.Completable
-import automorph.spi.{ClientTransport, EffectSystem}
-import automorph.transport.HttpClientBase.{
-  completableEffect, overrideUrl, webSocketCloseReason, webSocketCloseStatusCode, webSocketConnectionClosed,
-  webSocketSchemePrefix, webSocketUnexpectedMessage,
-}
+import automorph.spi.{ClientTransport, EffectSystem, RpcHandler}
+import automorph.transport.HttpClientBase.{completableEffect, overrideUrl, webSocketCloseReason, webSocketCloseStatusCode, webSocketConnectionClosed, webSocketSchemePrefix, webSocketUnexpectedMessage}
 import automorph.transport.client.HttpClient.{Context, FrameListener, Transport}
 import automorph.transport.{ClientServerHttpSender, ConnectionPool, HttpContext, HttpListen, HttpMethod, Protocol}
 import automorph.util.Extensions.{ByteArrayOps, ByteBufferOps, EffectOps}
@@ -49,6 +46,8 @@ import scala.util.Try
  *   listen for RPC requests from the server settings (default: disabled)
  * @param builder
  *   HttpClient builder (default: empty with5 seconds connect timeout)
+ * @param rpcHandler
+ *   RPC request handler
  * @tparam Effect
  *   effect type
  */
@@ -58,6 +57,7 @@ final case class HttpClient[Effect[_]](
   method: HttpMethod = HttpMethod.Post,
   listen: HttpListen = HttpListen(),
   builder: Builder = HttpClient.builder,
+  rpcHandler: RpcHandler[Effect, Context] = RpcHandler.dummy[Effect, Context],
 ) extends ClientTransport[Effect, Context] with Logging {
 
   private type Request = Either[HttpRequest, (Array[Byte], WebSocket.Builder, URI)]
@@ -98,6 +98,9 @@ final case class HttpClient[Effect[_]](
 
   override def close(): Effect[Unit] =
     webSocketConnectionPool.close()
+
+  override def rpcHandler(handler: RpcHandler[Effect, Context]): HttpClient[Effect] =
+    copy(rpcHandler = handler)
 
   private def createRequest(
     requestBody: Array[Byte],

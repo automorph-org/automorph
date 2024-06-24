@@ -75,4 +75,14 @@ trait ClientTransport[Effect[_], Context] {
    *   nothing
    */
   def close(): Effect[Unit]
+
+  /**
+   * Create a copy of this client transport with specified RPC request handler.
+   *
+   * @param handler
+   *   RPC request handler
+   * @return
+   *   server transport
+   */
+  def rpcHandler(handler: RpcHandler[Effect, Context]): ClientTransport[Effect, Context]
 }

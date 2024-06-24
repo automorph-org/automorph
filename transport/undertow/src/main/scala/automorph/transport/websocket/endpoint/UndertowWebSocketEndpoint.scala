@@ -71,7 +71,7 @@ final case class UndertowWebSocketEndpoint[Effect[_]](
   override def close(): Effect[Unit] =
     effectSystem.successful {}
 
-  override def requestHandler(handler: RpcHandler[Effect, Context]): UndertowWebSocketEndpoint[Effect] =
+  override def rpcHandler(handler: RpcHandler[Effect, Context]): UndertowWebSocketEndpoint[Effect] =
     copy(rpcHandler = handler)
 
   private def receiveRequest(request: WebSocketRequest): (Effect[Array[Byte]], Context) = {

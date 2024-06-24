@@ -60,7 +60,7 @@ final case class JettyHttpEndpoint[Effect[_]](
   override def close(): Effect[Unit] =
     effectSystem.successful {}
 
-  override def requestHandler(handler: RpcHandler[Effect, Context]): JettyHttpEndpoint[Effect] =
+  override def rpcHandler(handler: RpcHandler[Effect, Context]): JettyHttpEndpoint[Effect] =
     copy(rpcHandler = handler)
 
   private def receiveRequest(request: HttpServletRequest): (Effect[Array[Byte]], Context) =

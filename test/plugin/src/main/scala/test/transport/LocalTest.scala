@@ -1,7 +1,7 @@
 package test.transport
 
 import automorph.spi.{ClientTransport, ServerTransport}
-import automorph.transport.local.client.LocalClient
+import automorph.transport.client.LocalClient
 import org.scalacheck.{Arbitrary, Gen}
 import test.core.ClientServerTest
 

@@ -4,7 +4,7 @@
 package examples.special
 
 import automorph.transport.HttpContext
-import automorph.transport.local.client.LocalClient
+import automorph.transport.client.LocalClient
 import automorph.{Default, RpcClient}
 import scala.concurrent.ExecutionContext.Implicits.global
 import scala.concurrent.duration.Duration

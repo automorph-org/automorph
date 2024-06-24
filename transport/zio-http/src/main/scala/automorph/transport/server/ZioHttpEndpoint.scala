@@ -55,7 +55,7 @@ final case class ZioHttpEndpoint[Fault](
   override def close(): IO[Fault, Unit] =
     effectSystem.successful {}
 
-  override def requestHandler(
+  override def rpcHandler(
     handler: RpcHandler[({ type Effect[A] = IO[Fault, A] })#Effect, Context]
   ): ZioHttpEndpoint[Fault] =
     copy(rpcHandler = handler)

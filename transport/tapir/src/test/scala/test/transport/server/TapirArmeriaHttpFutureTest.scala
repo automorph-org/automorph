@@ -56,8 +56,8 @@ object TapirArmeriaHttpFutureTest {
         }
       }
 
-    override def requestHandler(handler: RpcHandler[Effect, Context]): ServerTransport[Effect, Context, Unit] = {
-      rpcServer = rpcServer.requestHandler(handler)
+    override def rpcHandler(handler: RpcHandler[Effect, Context]): ServerTransport[Effect, Context, Unit] = {
+      rpcServer = rpcServer.rpcHandler(handler)
       this
     }
   }

@@ -44,7 +44,7 @@ final case class RpcServer[Value, Codec <: MessageCodec[Value], Effect[_], Conte
 ) extends ServerBase[Value, Codec, Effect, Context, Adapter] {
 
   private val handler = ServerRpcHandler(transport.effectSystem, rpcProtocol, discovery, apiBindings)
-  private lazy val configuredTransport = transport.requestHandler(handler)
+  private lazy val configuredTransport = transport.rpcHandler(handler)
   private lazy val rpcFunctions = handler.functions
 
   /** Transport layer integration adapter. */

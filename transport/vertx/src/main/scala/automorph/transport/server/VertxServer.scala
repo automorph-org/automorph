@@ -90,7 +90,7 @@ final case class VertxServer[Effect[_]](
       ()
     })
 
-  override def requestHandler(handler: RpcHandler[Effect, Context]): VertxServer[Effect] =
+  override def rpcHandler(handler: RpcHandler[Effect, Context]): VertxServer[Effect] =
     copy(handler = handler)
 
   private def createServer(): HttpServer = {

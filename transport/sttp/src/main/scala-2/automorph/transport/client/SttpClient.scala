@@ -1,6 +1,7 @@
 package automorph.transport.client
 
-import automorph.spi.EffectSystem
+import automorph.spi.{EffectSystem, RpcHandler}
+import automorph.transport.client.SttpClient.Context
 import automorph.transport.{HttpContext, HttpListen, HttpMethod}
 import sttp.capabilities.WebSockets
 import sttp.client3.{PartialRequest, SttpBackend}
@@ -36,6 +37,8 @@ import scala.reflect.macros.blackbox
  *   listen for RPC requests from the server settings (default: disabled)
  * @param webSocketSupport
  *   specified STTP backend supports WebSocket
+ * @param rpcHandler
+ *   RPC request handler
  * @tparam Effect
  *   effect type
  */
@@ -46,8 +49,13 @@ final case class SttpClient[Effect[_]] private (
   url: URI,
   method: HttpMethod,
   listen: HttpListen,
+  rpcHandler: RpcHandler[Effect, Context],
   webSocketSupport: Boolean,
-) extends SttpClientBase[Effect] {}
+) extends SttpClientBase[Effect] {
+
+  override def rpcHandler(handler: RpcHandler[Effect, Context]): SttpClient[Effect] =
+    copy(rpcHandler = handler)
+}
 
 object SttpClient {
 
@@ -89,6 +97,8 @@ object SttpClient {
     url: c.Expr[URI],
     method: c.Expr[HttpMethod],
     listen: c.Expr[HttpListen],
+  )(implicit
+    effectType: c.WeakTypeTag[Effect[?]]
   ): c.Expr[SttpClient[Effect]] = {
     import c.universe.{Quasiquote, weakTypeOf}
 
@@ -99,7 +109,9 @@ object SttpClient {
     })
     c.Expr[SttpClient[Effect]](q"""
       automorph.transport.client.SttpClient.create(
-        $effectSystem, $backend, $url, $method, $listen, webSocketSupport = $webSocketSupport
+        $effectSystem, $backend, $url, $method, $listen,
+        automorph.spi.RpcHandler.dummy[${weakTypeOf[Effect[?]]}, automorph.transport.client.SttpClient.Context],
+        webSocketSupport = $webSocketSupport
       )
     """)
   }
@@ -136,6 +148,8 @@ object SttpClient {
     backend: c.Expr[SttpBackend[Effect, Capabilities]],
     url: c.Expr[URI],
     method: c.Expr[HttpMethod],
+  )(implicit
+    effectType: c.WeakTypeTag[Effect[?]]
   ): c.Expr[SttpClient[Effect]] = {
     import c.universe.{Quasiquote, weakTypeOf}
 
@@ -146,7 +160,9 @@ object SttpClient {
     })
     c.Expr[SttpClient[Effect]](q"""
       automorph.transport.client.SttpClient.create(
-        $effectSystem, $backend, $url, $method, automorph.transport.HttpListen(), webSocketSupport = $webSocketSupport
+        $effectSystem, $backend, $url, $method, automorph.transport.HttpListen(),
+        automorph.spi.RpcHandler.dummy[${weakTypeOf[Effect[?]]}, automorph.transport.client.SttpClient.Context],
+        webSocketSupport = $webSocketSupport
       )
     """)
   }
@@ -179,6 +195,8 @@ object SttpClient {
     effectSystem: c.Expr[EffectSystem[Effect]],
     backend: c.Expr[SttpBackend[Effect, Capabilities]],
     url: c.Expr[URI],
+  )(implicit
+    effectType: c.WeakTypeTag[Effect[?]]
   ): c.Expr[SttpClient[Effect]] = {
     import c.universe.{Quasiquote, weakTypeOf}
 
@@ -188,10 +206,10 @@ object SttpClient {
       q"""false"""
     })
     c.Expr[SttpClient[Effect]](q"""
-      import automorph.transport.HttpMethod
       automorph.transport.client.SttpClient.create(
-        $effectSystem, $backend, $url, HttpMethod.Post,
-        automorph.transport.HttpListen(), webSocketSupport = $webSocketSupport
+        $effectSystem, $backend, $url, automorph.transport.HttpMethod.Post, automorph.transport.HttpListen(),
+        automorph.spi.RpcHandler.dummy[${weakTypeOf[Effect[?]]}, automorph.transport.client.SttpClient.Context],
+        webSocketSupport = $webSocketSupport
       )
     """)
   }
@@ -203,9 +221,10 @@ object SttpClient {
     url: URI,
     method: HttpMethod,
     listen: HttpListen = HttpListen(),
+    rpcHandler: RpcHandler[Effect, Context],
     webSocketSupport: Boolean,
   ): SttpClient[Effect] =
-    SttpClient(effectSystem, backend, url, method, listen, webSocketSupport)
+    SttpClient(effectSystem, backend, url, method, listen, rpcHandler, webSocketSupport)
 
   /** Transport-specific context. */
   final case class Transport(request: PartialRequest[Either[String, String], Any])

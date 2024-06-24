@@ -108,7 +108,7 @@ final case class JettyServer[Effect[_]](
       server.stop()
     })
 
-  override def requestHandler(handler: RpcHandler[Effect, Context]): JettyServer[Effect] =
+  override def rpcHandler(handler: RpcHandler[Effect, Context]): JettyServer[Effect] =
     copy(handler = handler)
 
   private def createServer(): Server = {

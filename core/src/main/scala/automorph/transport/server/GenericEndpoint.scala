@@ -32,7 +32,7 @@ final case class GenericEndpoint[Effect[_], Context](
   override def close(): Effect[Unit] =
     effectSystem.successful {}
 
-  override def requestHandler(handler: RpcHandler[Effect, Context]): GenericEndpoint[Effect, Context] =
+  override def rpcHandler(handler: RpcHandler[Effect, Context]): GenericEndpoint[Effect, Context] =
     copy(handler = handler)
 }
 

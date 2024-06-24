@@ -106,7 +106,7 @@ final case class AkkaServer[Effect[_]](
       }
     })
 
-  override def requestHandler(handler: RpcHandler[Effect, Context]): AkkaServer[Effect] =
+  override def rpcHandler(handler: RpcHandler[Effect, Context]): AkkaServer[Effect] =
     copy(handler = handler)
 
   private def createRoute(): Route = {

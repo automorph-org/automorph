@@ -64,7 +64,7 @@ final case class VertxHttpEndpoint[Effect[_]](
   override def close(): Effect[Unit] =
     effectSystem.successful {}
 
-  override def requestHandler(handler: RpcHandler[Effect, Context]): VertxHttpEndpoint[Effect] =
+  override def rpcHandler(handler: RpcHandler[Effect, Context]): VertxHttpEndpoint[Effect] =
     copy(rpcHandler = handler)
 
   private def receiveRequest(incomingRequest: (HttpServerRequest, Buffer)): (Effect[Array[Byte]], Context) = {

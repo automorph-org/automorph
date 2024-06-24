@@ -75,7 +75,7 @@ final case class PlayHttpEndpoint[Effect[_]](
   override def close(): Effect[Unit] =
     effectSystem.successful {}
 
-  override def requestHandler(handler: RpcHandler[Effect, Context]): PlayHttpEndpoint[Effect] =
+  override def rpcHandler(handler: RpcHandler[Effect, Context]): PlayHttpEndpoint[Effect] =
     copy(rpcHandler = handler)
 
   private def receiveRequest(request: Request[ByteString]): (Effect[Array[Byte]], Context) =

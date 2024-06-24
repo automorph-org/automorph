@@ -77,7 +77,7 @@ final case class AkkaHttpEndpoint[Effect[_]](
   override def close(): Effect[Unit] =
     effectSystem.successful {}
 
-  override def requestHandler(handler: RpcHandler[Effect, Context]): AkkaHttpEndpoint[Effect] =
+  override def rpcHandler(handler: RpcHandler[Effect, Context]): AkkaHttpEndpoint[Effect] =
     copy(rpcHandler = handler)
 
   private def handleRequest(request: HttpRequest, remoteAddress: RemoteAddress)(

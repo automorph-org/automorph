@@ -1,6 +1,7 @@
 package automorph.transport.client
 
-import automorph.spi.EffectSystem
+import automorph.spi.{EffectSystem, RpcHandler}
+import automorph.transport.client.SttpClient.Context
 import automorph.transport.{HttpContext, HttpListen, HttpMethod}
 import sttp.capabilities.WebSockets
 import sttp.client3.{PartialRequest, SttpBackend}
@@ -34,6 +35,8 @@ import scala.quoted.{Expr, Quotes, Type}
  *   listen for RPC requests from the server settings (default: disabled)
  * @param webSocketSupport
  *   specified STTP backend supports WebSocket
+ * @param rpcHandler
+ *   RPC request handler
  * @tparam Effect
  *   effect type
  */
@@ -43,8 +46,12 @@ final case class SttpClient[Effect[_]] private (
   url: URI,
   method: HttpMethod,
   listen: HttpListen,
+  rpcHandler: RpcHandler[Effect, Context],
   webSocketSupport: Boolean,
-) extends SttpClientBase[Effect] {}
+) extends SttpClientBase[Effect]:
+
+  override def rpcHandler(handler: RpcHandler[Effect, Context]): SttpClient[Effect] =
+    copy(rpcHandler = handler)
 
 object SttpClient:
 
@@ -100,6 +107,7 @@ object SttpClient:
         ${ url },
         ${ method },
         ${ listen },
+        RpcHandler.dummy[Effect, Context],
         webSocketSupport = ${ webSocketSupport },
       )
     }
@@ -152,6 +160,7 @@ object SttpClient:
         ${ url },
         ${ method },
         HttpListen(),
+        RpcHandler.dummy[Effect, Context],
         webSocketSupport = ${ webSocketSupport },
       )
     }
@@ -198,6 +207,7 @@ object SttpClient:
         ${ url },
         HttpMethod.Post,
         HttpListen(),
+        RpcHandler.dummy[Effect, Context],
         webSocketSupport = ${ webSocketSupport },
       )
     }

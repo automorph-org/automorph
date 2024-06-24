@@ -98,6 +98,6 @@ object RpcHandler {
    * @return
    *   dummy RPC request handler
    */
-  private[automorph] def dummy[Effect[_], Context]: RpcHandler[Effect, Context] =
+  def dummy[Effect[_], Context]: RpcHandler[Effect, Context] =
     DummyRpcHandler()
 }

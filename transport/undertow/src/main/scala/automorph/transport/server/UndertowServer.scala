@@ -92,7 +92,7 @@ final case class UndertowServer[Effect[_]](
       }
     })
 
-  override def requestHandler(handler: RpcHandler[Effect, Context]): UndertowServer[Effect] =
+  override def rpcHandler(handler: RpcHandler[Effect, Context]): UndertowServer[Effect] =
     copy(handler = handler)
 
   private def createServer(): Undertow = {

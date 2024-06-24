@@ -66,7 +66,7 @@ final case class VertxWebSocketEndpoint[Effect[_]](
   override def close(): Effect[Unit] =
     effectSystem.successful {}
 
-  override def requestHandler(handler: RpcHandler[Effect, Context]): VertxWebSocketEndpoint[Effect] =
+  override def rpcHandler(handler: RpcHandler[Effect, Context]): VertxWebSocketEndpoint[Effect] =
     copy(rpcHandler = handler)
 
   private def receiveRequest(incomingRequest: (Array[Byte], ServerWebSocket)): (Effect[Array[Byte]], Context) = {

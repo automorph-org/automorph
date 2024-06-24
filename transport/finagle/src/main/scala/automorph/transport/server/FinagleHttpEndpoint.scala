@@ -54,7 +54,7 @@ final case class FinagleHttpEndpoint[Effect[_]](
   override def close(): Effect[Unit] =
     effectSystem.successful {}
 
-  override def requestHandler(handler: RpcHandler[Effect, Context]): FinagleHttpEndpoint[Effect] =
+  override def rpcHandler(handler: RpcHandler[Effect, Context]): FinagleHttpEndpoint[Effect] =
     copy(rpcHandler = handler)
 
   private def receiveRequest(request: Request): (Effect[Array[Byte]], Context) =

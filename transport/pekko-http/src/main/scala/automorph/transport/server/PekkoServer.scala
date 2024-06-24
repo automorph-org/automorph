@@ -106,7 +106,7 @@ final case class PekkoServer[Effect[_]](
       }
     })
 
-  override def requestHandler(handler: RpcHandler[Effect, Context]): PekkoServer[Effect] =
+  override def rpcHandler(handler: RpcHandler[Effect, Context]): PekkoServer[Effect] =
     copy(handler = handler)
 
   private def createRoute(): Route = {

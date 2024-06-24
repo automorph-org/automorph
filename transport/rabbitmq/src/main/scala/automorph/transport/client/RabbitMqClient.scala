@@ -2,7 +2,7 @@ package automorph.transport.client
 
 import automorph.log.{Logging, MessageLog}
 import automorph.spi.EffectSystem.Completable
-import automorph.spi.{EffectSystem, ClientTransport}
+import automorph.spi.{ClientTransport, EffectSystem, RpcHandler}
 import automorph.transport.client.RabbitMqClient.{Context, Response}
 import automorph.transport.{AmqpContext, RabbitMq}
 import automorph.util.Extensions.{EffectOps, TryOps}
@@ -37,6 +37,8 @@ import scala.util.Try
  *   broker hostnames and ports for reconnection attempts
  * @param connectionFactory
  *   AMQP broker connection factory
+ * @param rpcHandler
+ *   RPC request handler
  * @tparam Effect
  *   effect type
  */
@@ -47,6 +49,7 @@ final case class RabbitMqClient[Effect[_]](
   exchange: String = RabbitMq.directExchange,
   addresses: Seq[Address] = Seq.empty,
   connectionFactory: ConnectionFactory = new ConnectionFactory,
+  rpcHandler: RpcHandler[Effect, Context] = RpcHandler.dummy[Effect, Context],
 ) extends ClientTransport[Effect, Context] with Logging {
   private var session = Option.empty[RabbitMq.Session]
   private val directReplyToQueue = "amq.rabbitmq.reply-to"
@@ -92,6 +95,9 @@ final case class RabbitMqClient[Effect[_]](
       RabbitMq.close(session)
       session = None
     })
+
+  override def rpcHandler(handler: RpcHandler[Effect, Context]): RabbitMqClient[Effect] =
+    copy(rpcHandler = handler)
 
   private def send(
     requestBody: Array[Byte],

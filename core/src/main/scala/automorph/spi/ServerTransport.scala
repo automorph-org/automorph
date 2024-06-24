@@ -44,5 +44,5 @@ trait ServerTransport[Effect[_], Context, Adapter] {
    * @return
    *   server transport
    */
-  def requestHandler(handler: RpcHandler[Effect, Context]): ServerTransport[Effect, Context, Adapter]
+  def rpcHandler(handler: RpcHandler[Effect, Context]): ServerTransport[Effect, Context, Adapter]
 }

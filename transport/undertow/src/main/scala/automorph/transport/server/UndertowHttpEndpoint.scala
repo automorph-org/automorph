@@ -67,7 +67,7 @@ final case class UndertowHttpEndpoint[Effect[_]](
   override def close(): Effect[Unit] =
     effectSystem.successful {}
 
-  override def requestHandler(handler: RpcHandler[Effect, Context]): UndertowHttpEndpoint[Effect] =
+  override def rpcHandler(handler: RpcHandler[Effect, Context]): UndertowHttpEndpoint[Effect] =
     copy(rpcHandler = handler)
 
   private def receiveRequest(request: HttpRequest): (Effect[Array[Byte]], Context) = {
