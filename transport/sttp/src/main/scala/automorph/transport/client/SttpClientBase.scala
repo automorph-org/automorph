@@ -4,7 +4,7 @@ import automorph.log.Logging
 import automorph.spi.{ClientTransport, EffectSystem}
 import automorph.transport.HttpClientBase.{overrideUrl, webSocketSchemePrefix}
 import automorph.transport.client.SttpClient.{Context, Transport}
-import automorph.transport.{ClientServerHttpSender, HttpMethod, Protocol}
+import automorph.transport.{ClientServerHttpSender, HttpListen, HttpMethod, Protocol}
 import automorph.util.Extensions.EffectOps
 import sttp.capabilities.WebSockets
 import sttp.client3.{Request, SttpBackend, asByteArrayAlways, asWebSocketAlways, basicRequest}
@@ -17,7 +17,8 @@ private[automorph] trait SttpClientBase[Effect[_]] extends ClientTransport[Effec
   private type GenericRequest = Request[Array[Byte], WebSocket]
 
   private val baseUrl = Uri(url).toJavaUri
-  private val sender = ClientServerHttpSender(createRequest, sendRequest, url, method, effectSystem)
+  private val sender =
+    ClientServerHttpSender(createRequest, sendRequest, url, method, listen, effectSystem)
   implicit private val system: EffectSystem[Effect] = effectSystem
 
   def url: URI
@@ -26,7 +27,7 @@ private[automorph] trait SttpClientBase[Effect[_]] extends ClientTransport[Effec
 
   def method: HttpMethod
 
-  def listenConnections: Int
+  def listen: HttpListen
 
   def webSocketSupport: Boolean
 
@@ -50,7 +51,7 @@ private[automorph] trait SttpClientBase[Effect[_]] extends ClientTransport[Effec
     Transport.context.url(url).method(method)
 
   override def init(): Effect[Unit] =
-    effectSystem.evaluate(sender.listen(listenConnections))
+    effectSystem.evaluate(sender.listen())
 
   override def close(): Effect[Unit] =
     effectSystem.successful {}
@@ -86,7 +87,7 @@ private[automorph] trait SttpClientBase[Effect[_]] extends ClientTransport[Effec
           webSocket.sendBinary(requestBody).flatMap(_ => webSocket.receiveBinary(true))
         })
         (request, context.url(request.uri.toJavaUri), Protocol.WebSocket)
-     case _ =>
+      case _ =>
         val request = sttpRequest.body(requestBody).response(asByteArrayAlways)
         val requestContext = context.url(request.uri.toJavaUri).method(HttpMethod.valueOf(requestMethod.method))
         (request, requestContext, Protocol.Http)

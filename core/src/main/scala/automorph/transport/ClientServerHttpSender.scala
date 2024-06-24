@@ -17,6 +17,8 @@ import scala.util.Try
  *   function to send a HTTP/WebSocket request
  * @param effectSystem
  *   effect system plugin
+ * @param httpListen
+ *   listen for server requests settings
  * @tparam Effect
  *   effect type
  * @tparam Context
@@ -28,7 +30,8 @@ final private[automorph] case class ClientServerHttpSender[Effect[_], Context <:
   createRequest: (Array[Byte], Context, String) => (Request, Context, Protocol),
   sendRequest: (Request, Context) => Effect[(Array[Byte], Context)],
   url: URI,
-  method: HttpMethod = HttpMethod.Post,
+  method: HttpMethod,
+  httpListen: HttpListen,
   effectSystem: EffectSystem[Effect],
 ) extends Logging {
   private val log = MessageLog(logger, Protocol.Http.name)
@@ -63,8 +66,8 @@ final private[automorph] case class ClientServerHttpSender[Effect[_], Context <:
       },
     )
 
-  def listen(connections: Int): Unit =
-    if (connections >= 0) {
+  def listen(): Unit =
+    if (httpListen.connections >= 0) {
       ()
     }
 

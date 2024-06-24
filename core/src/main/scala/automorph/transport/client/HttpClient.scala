@@ -3,12 +3,9 @@ package automorph.transport.client
 import automorph.log.{LogProperties, Logger, Logging}
 import automorph.spi.EffectSystem.Completable
 import automorph.spi.{ClientTransport, EffectSystem}
-import automorph.transport.HttpClientBase.{
-  completableEffect, overrideUrl, webSocketCloseReason, webSocketCloseStatusCode, webSocketConnectionClosed,
-  webSocketSchemePrefix, webSocketUnexpectedMessage,
-}
+import automorph.transport.HttpClientBase.{completableEffect, overrideUrl, webSocketCloseReason, webSocketCloseStatusCode, webSocketConnectionClosed, webSocketSchemePrefix, webSocketUnexpectedMessage}
 import automorph.transport.client.HttpClient.{Context, FrameListener, Transport}
-import automorph.transport.{ClientServerHttpSender, ConnectionPool, HttpContext, HttpMethod, Protocol}
+import automorph.transport.{ClientServerHttpSender, ConnectionPool, HttpContext, HttpListen, HttpMethod, Protocol}
 import automorph.util.Extensions.{ByteArrayOps, ByteBufferOps, EffectOps}
 import java.net.URI
 import java.net.http.HttpClient.Builder
@@ -17,6 +14,7 @@ import java.net.http.HttpResponse.BodyHandlers
 import java.net.http.WebSocket.Listener
 import java.net.http.{HttpRequest, WebSocket}
 import java.nio.ByteBuffer
+import java.time.Duration
 import java.util.concurrent.CompletionStage
 import scala.collection.mutable.ArrayBuffer
 import scala.jdk.CollectionConverters.{ListHasAsScala, MapHasAsScala}
@@ -44,10 +42,10 @@ import scala.util.Try
  *   remote API HTTP or WebSocket URL
  * @param method
  *   HTTP request method (default: POST)
- * @param listenConnections
- *   number of opened connections reserved for listening to requests from the server
+ * @param listen
+ *   listen for server requests settings
  * @param builder
- *   HttpClient builder (default: empty)
+ *   HttpClient builder (default: empty with5 seconds connect timeout)
  * @tparam Effect
  *   effect type
  */
@@ -55,7 +53,7 @@ final case class HttpClient[Effect[_]](
   effectSystem: EffectSystem[Effect],
   url: URI,
   method: HttpMethod = HttpMethod.Post,
-  listenConnections: Int = 0,
+  listen: HttpListen = HttpListen(),
   builder: Builder = HttpClient.builder,
 ) extends ClientTransport[Effect, Context] with Logging {
 
@@ -70,7 +68,7 @@ final case class HttpClient[Effect[_]](
     val maxPeerConnections = Option(System.getProperty("jdk.httpclient.connectionPoolSize")).flatMap(_.toIntOption)
     ConnectionPool(Some(openWebSocket), closeWebSocket, Protocol.WebSocket, effectSystem, maxPeerConnections)
   }
-  private val sender = ClientServerHttpSender(createRequest, sendRequest, url, method, effectSystem)
+  private val sender = ClientServerHttpSender(createRequest, sendRequest, url, method, listen, effectSystem)
   implicit private val system: EffectSystem[Effect] = effectSystem
 
   override def call(
@@ -93,7 +91,7 @@ final case class HttpClient[Effect[_]](
     Transport.context.url(url).method(method)
 
   override def init(): Effect[Unit] =
-    webSocketConnectionPool.init().map(_ => sender.listen(listenConnections))
+    webSocketConnectionPool.init().map(_ => sender.listen())
 
   override def close(): Effect[Unit] =
     webSocketConnectionPool.close()
@@ -213,7 +211,7 @@ object HttpClient {
   type Context = HttpContext[Transport]
 
   /** Default HTTP client builder. */
-  val builder: Builder = java.net.http.HttpClient.newBuilder
+  val builder: Builder = java.net.http.HttpClient.newBuilder.connectTimeout(Duration.ofSeconds(5))
 
   /** Transport-specific context. */
   final case class Transport(request: HttpRequest.Builder)

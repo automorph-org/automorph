@@ -3,9 +3,12 @@ package automorph.transport.client
 import automorph.log.{LogProperties, Logger, Logging}
 import automorph.spi.EffectSystem.Completable
 import automorph.spi.{ClientTransport, EffectSystem}
-import automorph.transport.HttpClientBase.{completableEffect, overrideUrl, webSocketCloseReason, webSocketCloseStatusCode, webSocketConnectionClosed, webSocketSchemePrefix, webSocketUnexpectedMessage}
+import automorph.transport.HttpClientBase.{
+  completableEffect, overrideUrl, webSocketCloseReason, webSocketCloseStatusCode, webSocketConnectionClosed,
+  webSocketSchemePrefix, webSocketUnexpectedMessage,
+}
 import automorph.transport.client.JettyClient.{Context, FrameListener, ResponseListener, SentCallback, Transport}
-import automorph.transport.{ClientServerHttpSender, ConnectionPool, HttpContext, HttpMethod, Protocol}
+import automorph.transport.{ClientServerHttpSender, ConnectionPool, HttpContext, HttpListen, HttpMethod, Protocol}
 import automorph.util.Extensions.{ByteArrayOps, EffectOps}
 import org.eclipse.jetty.client.HttpClient
 import org.eclipse.jetty.client.api.{Request, Response, Result}
@@ -40,8 +43,8 @@ import scala.jdk.CollectionConverters.{IterableHasAsScala, SeqHasAsJava}
  *   remote API HTTP or WebSocket URL
  * @param method
  *   HTTP request method (default: POST)
- * @param listenConnections
- *   number of opened connections reserved for listening to requests from the server
+ * @param listen
+ *   listen for server requests settings
  * @param httpClient
  *   Jetty HTTP client
  * @tparam Effect
@@ -51,7 +54,7 @@ final case class JettyClient[Effect[_]](
   effectSystem: EffectSystem[Effect],
   url: URI,
   method: HttpMethod = HttpMethod.Post,
-  listenConnections: Int = 0,
+  listen: HttpListen = HttpListen(),
   httpClient: HttpClient = new HttpClient,
 ) extends ClientTransport[Effect, Context] with Logging {
 
@@ -62,7 +65,7 @@ final case class JettyClient[Effect[_]](
     val maxPeerConnections = Some(httpClient.getMaxConnectionsPerDestination)
     ConnectionPool(Some(openWebSocket), closeWebSocket, Protocol.WebSocket, effectSystem, maxPeerConnections)
   }
-  private val sender = ClientServerHttpSender(createRequest, sendRequest, url, method, effectSystem)
+  private val sender = ClientServerHttpSender(createRequest, sendRequest, url, method, listen, effectSystem)
   implicit private val system: EffectSystem[Effect] = effectSystem
 
   override def call(
@@ -84,7 +87,7 @@ final case class JettyClient[Effect[_]](
   override def context: Context =
     Transport.context.url(url).method(method)
 
-  override def init(): Effect[Unit] = {
+  override def init(): Effect[Unit] =
     system.evaluate {
       this.synchronized {
         if (!httpClient.isStarted) {
@@ -94,8 +97,7 @@ final case class JettyClient[Effect[_]](
         }
         webSocketClient.start()
       }
-    }.flatMap(_ => webSocketConnectionPool.init()).map(_ => sender.listen(listenConnections))
-  }
+    }.flatMap(_ => webSocketConnectionPool.init()).map(_ => sender.listen())
 
   override def close(): Effect[Unit] =
     webSocketConnectionPool.close().map { _ =>

@@ -1,7 +1,7 @@
 package automorph.transport.client
 
 import automorph.spi.EffectSystem
-import automorph.transport.{HttpContext, HttpMethod}
+import automorph.transport.{HttpContext, HttpListen, HttpMethod}
 import sttp.capabilities.WebSockets
 import sttp.client3.{PartialRequest, SttpBackend}
 import java.net.URI
@@ -32,8 +32,8 @@ import scala.reflect.macros.blackbox
  *   remote API HTTP or WebSocket URL
  * @param method
  *   HTTP request method
- * @param listenConnections
- *   number of opened connections reserved for listening to requests from the server
+ * @param listen
+ *   listen for server requests settings
  * @param webSocketSupport
  *   specified STTP backend supports WebSocket
  * @tparam Effect
@@ -45,7 +45,7 @@ final case class SttpClient[Effect[_]] private (
   backend: SttpBackend[Effect, ?],
   url: URI,
   method: HttpMethod,
-  listenConnections: Int,
+  listen: HttpListen,
   webSocketSupport: Boolean,
 ) extends SttpClientBase[Effect] {}
 
@@ -65,7 +65,7 @@ object SttpClient {
    *   remote API HTTP URL
    * @param method
    *   HTTP request method (default: POST)
-   * @param listenConnections
+   * @param listen
    *   number of opened connections reserved for listening to requests from the server
    * @tparam Effect
    *   effect type
@@ -79,7 +79,7 @@ object SttpClient {
     backend: SttpBackend[Effect, Capabilities],
     url: URI,
     method: HttpMethod,
-    listenConnections: Int,
+    listen: HttpListen,
   ): SttpClient[Effect] =
     macro applyMacro[Effect, Capabilities]
 
@@ -88,7 +88,7 @@ object SttpClient {
     backend: c.Expr[SttpBackend[Effect, Capabilities]],
     url: c.Expr[URI],
     method: c.Expr[HttpMethod],
-    listenConnections: c.Expr[Int],
+    listen: c.Expr[HttpListen],
   ): c.Expr[SttpClient[Effect]] = {
     import c.universe.{Quasiquote, weakTypeOf}
 
@@ -99,7 +99,7 @@ object SttpClient {
     })
     c.Expr[SttpClient[Effect]](q"""
       automorph.transport.client.SttpClient.create(
-        $effectSystem, $backend, $url, $method, $listenConnections, webSocketSupport = $webSocketSupport
+        $effectSystem, $backend, $url, $method, $listen, webSocketSupport = $webSocketSupport
       )
     """)
   }
@@ -126,7 +126,7 @@ object SttpClient {
     effectSystem: EffectSystem[Effect],
     backend: SttpBackend[Effect, Capabilities],
     url: URI,
-    method: HttpMethod,
+    method: HttpMethod = HttpMethod.Post,
   ): SttpClient[Effect] =
   macro applyListenMacro[Effect, Capabilities]
 
@@ -145,7 +145,7 @@ object SttpClient {
     })
     c.Expr[SttpClient[Effect]](q"""
       automorph.transport.client.SttpClient.create(
-        $effectSystem, $backend, $url, $method, 0, webSocketSupport = $webSocketSupport
+        $effectSystem, $backend, $url, $method, automorph.transport.HttpListen(), webSocketSupport = $webSocketSupport
       )
     """)
   }
@@ -189,7 +189,8 @@ object SttpClient {
     c.Expr[SttpClient[Effect]](q"""
       import automorph.transport.HttpMethod
       automorph.transport.client.SttpClient.create(
-        $effectSystem, $backend, $url, HttpMethod.Post, 0, webSocketSupport = $webSocketSupport
+        $effectSystem, $backend, $url, HttpMethod.Post,
+        automorph.transport.HttpListen(), webSocketSupport = $webSocketSupport
       )
     """)
   }
@@ -200,10 +201,10 @@ object SttpClient {
     backend: SttpBackend[Effect, ?],
     url: URI,
     method: HttpMethod,
-    listenConnections: Int,
+    listen: HttpListen = HttpListen(),
     webSocketSupport: Boolean,
   ): SttpClient[Effect] =
-    SttpClient(effectSystem, backend, url, method, listenConnections, webSocketSupport)
+    SttpClient(effectSystem, backend, url, method, listen, webSocketSupport)
 
   /** Transport-specific context. */
   final case class Transport(request: PartialRequest[Either[String, String], Any])

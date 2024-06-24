@@ -1,7 +1,7 @@
 package automorph.transport.client
 
 import automorph.spi.EffectSystem
-import automorph.transport.{HttpContext, HttpMethod}
+import automorph.transport.{HttpContext, HttpListen, HttpMethod}
 import sttp.capabilities.WebSockets
 import sttp.client3.{PartialRequest, SttpBackend}
 import java.net.URI
@@ -30,7 +30,7 @@ import scala.quoted.{Expr, Quotes, Type}
  *   remote API HTTP or WebSocket URL
  * @param method
  *   HTTP request method
- * @param listenConnections
+ * @param listen
  *   number of opened connections reserved for listening to requests from the server
  * @param webSocketSupport
  *   specified STTP backend supports WebSocket
@@ -42,7 +42,7 @@ final case class SttpClient[Effect[_]] private (
   backend: SttpBackend[Effect, ?],
   url: URI,
   method: HttpMethod,
-  listenConnections: Int,
+  listen: HttpListen,
   webSocketSupport: Boolean,
 ) extends SttpClientBase[Effect] {}
 
@@ -62,7 +62,7 @@ object SttpClient:
    *   remote API HTTP URL
    * @param method
    *   HTTP request method (default: POST)
-   * @param listenConnections
+   * @param listen
    *   number of opened connections reserved for listening to requests from the server
    * @tparam Effect
    *   effect type
@@ -76,16 +76,16 @@ object SttpClient:
     backend: SttpBackend[Effect, Capabilities],
     url: URI,
     method: HttpMethod,
-    listenConnections: Int,
+    listen: HttpListen,
   ): SttpClient[Effect] =
-    ${ applyMacro[Effect, Capabilities]('effectSystem, 'backend, 'url, 'method, 'listenConnections) }
+    ${ applyMacro[Effect, Capabilities]('effectSystem, 'backend, 'url, 'method, 'listen) }
 
   private def applyMacro[Effect[_]: Type, Capabilities: Type](
     effectSystem: Expr[EffectSystem[Effect]],
     backend: Expr[SttpBackend[Effect, Capabilities]],
     url: Expr[URI],
     method: Expr[HttpMethod],
-    listenConnections: Expr[Int],
+    listen: Expr[HttpListen],
   )(using quotes: Quotes): Expr[SttpClient[Effect]] =
     import quotes.reflect.TypeRepr
 
@@ -99,7 +99,7 @@ object SttpClient:
         ${ backend },
         ${ url },
         ${ method },
-        ${ listenConnections },
+        ${ listen },
         webSocketSupport = ${ webSocketSupport },
       )
     }
@@ -115,7 +115,7 @@ object SttpClient:
    *   remote API HTTP URL
    * @param method
    *   HTTP request method (default: POST)
-   * @param listenConnections
+   * @param listen
    *   number of opened connections reserved for listening to requests from the server
    * @tparam Effect
    *   effect type
@@ -145,12 +145,19 @@ object SttpClient:
     else
       '{ false }
     '{
-      SttpClient(${ effectSystem }, ${ backend }, ${ url }, ${ method }, 0, webSocketSupport = ${ webSocketSupport })
+      SttpClient(
+        ${ effectSystem },
+        ${ backend },
+        ${ url },
+        ${ method },
+        HttpListen(),
+        webSocketSupport = ${ webSocketSupport },
+      )
     }
 
   /**
-   * Creates an STTP HTTP client message transport plugin with the specified STTP backend using POST HTTP method
-   * and no listen connections.
+   * Creates an STTP HTTP client message transport plugin with the specified STTP backend using POST HTTP method and no
+   * listen connections.
    *
    * @param effectSystem
    *   effect system plugin
@@ -189,7 +196,7 @@ object SttpClient:
         ${ backend },
         ${ url },
         HttpMethod.Post,
-        0,
+        HttpListen(),
         webSocketSupport = ${ webSocketSupport },
       )
     }

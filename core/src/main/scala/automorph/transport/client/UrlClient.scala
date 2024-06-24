@@ -4,7 +4,7 @@ import automorph.log.Logging
 import automorph.spi.{ClientTransport, EffectSystem}
 import automorph.transport.HttpClientBase.{overrideUrl, webSocketSchemePrefix}
 import automorph.transport.client.UrlClient.{Context, Transport}
-import automorph.transport.{ClientServerHttpSender, HttpContext, HttpMethod, Protocol}
+import automorph.transport.{ClientServerHttpSender, HttpContext, HttpListen, HttpMethod, Protocol}
 import automorph.util.Extensions.InputStreamOps
 import java.net.{HttpURLConnection, URI}
 import scala.concurrent.duration.Duration
@@ -28,8 +28,8 @@ import scala.util.Using
  *   remote API HTTP URL
  * @param method
  *   HTTP request method (default: POST)
- * @param listenConnections
- *   number of opened connections reserved for listening to requests from the server
+ * @param listen
+ *   listen for server requests settings
  * @tparam Effect
  *   effect type
  */
@@ -37,7 +37,7 @@ final case class UrlClient[Effect[_]](
   effectSystem: EffectSystem[Effect],
   url: URI,
   method: HttpMethod = HttpMethod.Post,
-  listenConnections: Int = 0,
+  listen: HttpListen = HttpListen(),
 ) extends ClientTransport[Effect, Context] with Logging {
 
   private type Request = (Array[Byte], HttpURLConnection)
@@ -46,7 +46,7 @@ final case class UrlClient[Effect[_]](
   private val contentTypeHeader = "Content-Type"
   private val acceptHeader = "Accept"
   private val httpMethods = HttpMethod.values.map(_.name).toSet
-  private val sender = ClientServerHttpSender(createRequest, sendRequest, url, method, effectSystem)
+  private val sender = ClientServerHttpSender(createRequest, sendRequest, url, method, listen, effectSystem)
   System.setProperty("sun.net.http.allowRestrictedHeaders", "true")
 
   override def call(
@@ -69,7 +69,7 @@ final case class UrlClient[Effect[_]](
     Transport.context.url(url).method(method)
 
   override def init(): Effect[Unit] =
-    effectSystem.evaluate(sender.listen(listenConnections))
+    effectSystem.evaluate(sender.listen())
 
   override def close(): Effect[Unit] =
     effectSystem.successful {}
