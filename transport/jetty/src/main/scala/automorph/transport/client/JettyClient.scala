@@ -44,7 +44,7 @@ import scala.jdk.CollectionConverters.{IterableHasAsScala, SeqHasAsJava}
  * @param method
  *   HTTP request method (default: POST)
  * @param listen
- *   listen for server requests settings
+ *   listen for RPC requests from the server settings (default: disabled)
  * @param httpClient
  *   Jetty HTTP client
  * @tparam Effect

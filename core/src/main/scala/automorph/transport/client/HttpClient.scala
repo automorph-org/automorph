@@ -43,7 +43,7 @@ import scala.util.Try
  * @param method
  *   HTTP request method (default: POST)
  * @param listen
- *   listen for server requests settings
+ *   listen for RPC requests from the server settings (default: disabled)
  * @param builder
  *   HttpClient builder (default: empty with5 seconds connect timeout)
  * @tparam Effect

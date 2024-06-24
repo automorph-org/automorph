@@ -31,9 +31,9 @@ import scala.reflect.macros.blackbox
  * @param url
  *   remote API HTTP or WebSocket URL
  * @param method
- *   HTTP request method
+ *   HTTP request method (default: POST)
  * @param listen
- *   listen for server requests settings
+ *   listen for RPC requests from the server settings (default: disabled)
  * @param webSocketSupport
  *   specified STTP backend supports WebSocket
  * @tparam Effect
@@ -66,7 +66,7 @@ object SttpClient {
    * @param method
    *   HTTP request method (default: POST)
    * @param listen
-   *   number of opened connections reserved for listening to requests from the server
+   *   listen for RPC requests from the server settings (default: disabled)
    * @tparam Effect
    *   effect type
    * @tparam Capabilities
@@ -105,7 +105,8 @@ object SttpClient {
   }
 
   /**
-   * Creates an STTP HTTP client message transport plugin with the specified STTP backend and no listen connections.
+   * Creates an STTP HTTP client message transport plugin with the specified STTP backend
+   * and listening for RPC requests from the server disabled.
    *
    * @param effectSystem
    *   effect system plugin
@@ -152,7 +153,7 @@ object SttpClient {
 
   /**
    * Creates an STTP HTTP client message transport plugin with the specified STTP backend using POST HTTP method
-   * and no listen connections.
+   * and listening for RPC requests from the server disabled.
    *
    * @param effectSystem
    *   effect system plugin
