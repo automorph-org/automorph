@@ -97,7 +97,7 @@ final case class JettyClient[Effect[_]](
         }
         webSocketClient.start()
       }
-    }.flatMap(_ => webSocketConnectionPool.init()).map(_ => sender.listen())
+    }.flatMap(_ => webSocketConnectionPool.init()).map(_ => sender.init())
 
   override def close(): Effect[Unit] =
     webSocketConnectionPool.close().map { _ =>

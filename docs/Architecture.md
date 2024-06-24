@@ -71,8 +71,8 @@ The underlying RPC protocol must support remote function invocation.
 
 **Used by**
 
-- [Client](https://automorph.org/api/automorph/RpcClient.html)
-- [Server](https://automorph.org/api/automorph/RpcServer.html)
+- [RPC client](https://automorph.org/api/automorph/RpcClient.html)
+- [RPC server](https://automorph.org/api/automorph/RpcServer.html)
 
 
 ### [Effect system](https://automorph.org/api/automorph/spi/EffectSystem.html)
@@ -96,14 +96,12 @@ The underlying data format must support storing arbitrarily nested structures of
 
 - [RPC protocol](https://automorph.org/api/automorph/spi/RpcProtocol.html)
 
-The underlying transport protocol must support request/response messaging pattern.
-
 
 ### [Client transport](https://automorph.org/api/automorph/spi/ClientTransport.html)
 
-Client transport protocol plugin.
+Client transport layer plugin.
 
-Passively sends requests and receives responses to and from a remote endpoint using specific transport protocol.
+Enables RPC client to send requests and receive responses to and from a remote server using specific transport protocol.
 
 **Depends on**
 
@@ -111,14 +109,14 @@ Passively sends requests and receives responses to and from a remote endpoint us
 
 **Used by**
 
-- [Client](https://automorph.org/api/automorph/RpcClientTransport.html)
+- [RPC client](https://automorph.org/api/automorph/RpcClient.html)
 
 
 ### [Server transport](https://automorph.org/api/automorph/spi/ServerTransport.html)
 
-Server transport protocol plugin.
+Server transport layer plugin.
 
-Either actively listens for requests or passively receives requests from an existing server layer and sends responses using specific transport protocol.
+Enables RPC server to receive requests from remote client and send responses using specific transport protocol.
 
 **Depends on**
 
@@ -126,5 +124,5 @@ Either actively listens for requests or passively receives requests from an exis
 
 **Used by**
 
-- Applications
+- [RPC server](https://automorph.org/api/automorph/RpcServer.html)
 

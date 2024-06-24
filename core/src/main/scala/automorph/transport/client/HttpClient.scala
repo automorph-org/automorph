@@ -94,7 +94,7 @@ final case class HttpClient[Effect[_]](
     Transport.context.url(url).method(method)
 
   override def init(): Effect[Unit] =
-    webSocketConnectionPool.init().map(_ => sender.listen())
+    webSocketConnectionPool.init().map(_ => sender.init())
 
   override def close(): Effect[Unit] =
     webSocketConnectionPool.close()

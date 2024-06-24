@@ -1,11 +1,9 @@
 package automorph.spi
 
 /**
- * Existing server transport layer integration plugin.
+ * RPC server transport layer plugin.
  *
- * Enables RPC endpoint to integrate with and handle requests from an existing server infrastructure.
- *
- * Passively parses requests to be processed by the RPC handler and creates responses usable by specific server.
+ * Enables RPC server to receive requests from remote client and send responses using specific transport protocol.
  *
  * @tparam Effect
  *   effect type
@@ -19,7 +17,7 @@ trait ServerTransport[Effect[_], Context, Adapter] {
   /** Effect system plugin. */
   def effectSystem: EffectSystem[Effect]
 
-  /** Transport layer integration adapter. */
+  /** Adapter to be used to integrate this transport plugin into an existing server infrastructure. */
   def adapter: Adapter
 
   /**
@@ -39,7 +37,7 @@ trait ServerTransport[Effect[_], Context, Adapter] {
   def close(): Effect[Unit]
 
   /**
-   * Create a copy of this endpoint transport with specified RPC request handler.
+   * Create a copy of this server transport with specified RPC request handler.
    *
    * @param handler
    *   RPC request handler

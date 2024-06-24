@@ -51,7 +51,7 @@ private[automorph] trait SttpClientBase[Effect[_]] extends ClientTransport[Effec
     Transport.context.url(url).method(method)
 
   override def init(): Effect[Unit] =
-    effectSystem.evaluate(sender.listen())
+    effectSystem.evaluate(sender.init())
 
   override def close(): Effect[Unit] =
     effectSystem.successful {}

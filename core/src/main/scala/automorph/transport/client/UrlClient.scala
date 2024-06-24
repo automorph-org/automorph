@@ -69,7 +69,7 @@ final case class UrlClient[Effect[_]](
     Transport.context.url(url).method(method)
 
   override def init(): Effect[Unit] =
-    effectSystem.evaluate(sender.listen())
+    effectSystem.evaluate(sender.init())
 
   override def close(): Effect[Unit] =
     effectSystem.successful {}

@@ -67,10 +67,13 @@ final private[automorph] case class ClientServerHttpSender[Effect[_], Context <:
       },
     )
 
-  def listen(): Unit =
+  def init(): Unit =
     if (httpListen.connections >= 0) {
       ()
     }
+
+  def close(): Unit =
+    ()
 
   private def send(request: Request, requestMetadata: HttpMetadata[Context]): Effect[(Array[Byte], Context)] = {
     log.sendingRequest(requestMetadata.properties, requestMetadata.protocol.name)
