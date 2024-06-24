@@ -95,7 +95,7 @@ final case class UrlClient[Effect[_]](
         connection.setRequestMethod(requestMethod)
 
         // Headers
-        val transportHeaders = transportConnection.getHeaderFields.asScala.toSeq.flatMap { case (name, values) =>
+        val transportHeaders = transportConnection.getRequestProperties.asScala.toSeq.flatMap { case (name, values) =>
           values.asScala.map(name -> _)
         }
         val headers = transportHeaders ++ context.headers

@@ -37,7 +37,7 @@ final private[automorph] case class ClientServerHttpSender[Effect[_], Context <:
   private val log = MessageLog(logger, Protocol.Http.name)
   implicit private val system: EffectSystem[Effect] = effectSystem
 
-  def call(body: Array[Byte], context: Context, id: String, contentType: String): Effect[(Array[Byte], Context)] =
+  def call(body: Array[Byte], context: Context, id: String, contentType: String): Effect[(Array[Byte], Context)] = {
     Try(createRequest(body, context, contentType)).fold(
       system.failed,
       { case (request, requestContext, protocol) =>
@@ -56,6 +56,7 @@ final private[automorph] case class ClientServerHttpSender[Effect[_], Context <:
         )
       },
     )
+  }
 
   def tell(body: Array[Byte], context: Context, id: String, contentType: String): Effect[Unit] =
     Try(createRequest(body, context, contentType)).fold(
