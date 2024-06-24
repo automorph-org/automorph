@@ -129,9 +129,10 @@ final case class UrlClient[Effect[_]](
         stream.write(requestBody)
         stream.flush()
       }.get
+      val responseCode = connection.getResponseCode
       val responseBody = Option(connection.getErrorStream).getOrElse(connection.getInputStream).toByteArray
       val responseContext = requestContext
-        .statusCode(connection.getResponseCode)
+        .statusCode(responseCode)
         .headers(connection.getHeaderFields.asScala.toSeq.flatMap {
           case (name, values) => values.asScala.map(name -> _)
         }*)

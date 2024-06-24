@@ -3,7 +3,10 @@ package automorph.transport.client
 import automorph.log.{LogProperties, Logger, Logging}
 import automorph.spi.EffectSystem.Completable
 import automorph.spi.{ClientTransport, EffectSystem}
-import automorph.transport.HttpClientBase.{completableEffect, overrideUrl, webSocketCloseReason, webSocketCloseStatusCode, webSocketConnectionClosed, webSocketSchemePrefix, webSocketUnexpectedMessage}
+import automorph.transport.HttpClientBase.{
+  completableEffect, overrideUrl, webSocketCloseReason, webSocketCloseStatusCode, webSocketConnectionClosed,
+  webSocketSchemePrefix, webSocketUnexpectedMessage,
+}
 import automorph.transport.client.HttpClient.{Context, FrameListener, Transport}
 import automorph.transport.{ClientServerHttpSender, ConnectionPool, HttpContext, HttpListen, HttpMethod, Protocol}
 import automorph.util.Extensions.{ByteArrayOps, ByteBufferOps, EffectOps}
