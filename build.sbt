@@ -295,31 +295,6 @@ lazy val examples = source(
   Test / scalaSource := baseDirectory.value / "project/src/test/scala",
 )
 
-// Test
-val logbackVersion = "1.5.6"
-ThisBuild / Test / testOptions ++= Seq(
-  Tests.Argument(TestFrameworks.ScalaTest, "-oDST"),
-  Tests.Argument(TestFrameworks.ScalaCheck, "-minSuccessfulTests", "7"),
-)
-lazy val testBase = source(project, "test/base").settings(
-  libraryDependencies ++= Seq(
-    "org.scalatest" %% "scalatest" % "3.2.18",
-    "org.scalatestplus" %% "scalacheck-1-17" % "3.2.18.0",
-    "org.slf4j" % "jul-to-slf4j" % slf4jVersion,
-    "ch.qos.logback" % "logback-classic" % logbackVersion,
-    "com.lihaoyi" %% "pprint" % "0.9.0",
-  )
-)
-lazy val testCodec = source(project, "test/codec", testBase, meta).settings(
-  libraryDependencies += "com.fasterxml.jackson.core" % "jackson-databind" % jacksonVersion
-)
-lazy val testPlugin =
-  source(project, "test/plugin", testCodec, core, circe, jackson, playJson, json4s, weepickle, upickle)
-lazy val testStandard = source(project, "test/standard", testPlugin, core, testPlugin % Test)
-
-def testJavaOptions: Seq[String] =
-  Seq(s"-Dproject.target=${System.getProperty("project.target")}")
-
 // Compile
 val commonScalacOptions = Seq(
   "-feature",
@@ -380,10 +355,34 @@ Compile / scalastyleSources ++= (Compile / unmanagedSourceDirectories).value
 scalastyleFailOnError := true
 
 // Test
+val logbackVersion = "1.5.6"
+lazy val testBase = source(project, "test/base").settings(
+  libraryDependencies ++= Seq(
+    "org.scalatest" %% "scalatest" % "3.2.18",
+    "org.scalatestplus" %% "scalacheck-1-17" % "3.2.18.0",
+    "org.slf4j" % "jul-to-slf4j" % slf4jVersion,
+    "ch.qos.logback" % "logback-classic" % logbackVersion,
+    "com.lihaoyi" %% "pprint" % "0.9.0",
+  )
+)
+lazy val testCodec = source(project, "test/codec", testBase, meta).settings(
+  libraryDependencies += "com.fasterxml.jackson.core" % "jackson-databind" % jacksonVersion
+)
+lazy val testPlugin =
+  source(project, "test/plugin", testCodec, core, circe, jackson, playJson, json4s, weepickle, upickle)
+lazy val testStandard = source(project, "test/standard", testPlugin, core, testPlugin % Test)
+
+def testJavaOptions: Seq[String] =
+  Seq(s"-Dproject.target=${System.getProperty("project.target")}")
+
 lazy val testScalastyle = taskKey[Unit]("testScalastyle")
 testScalastyle := (Test / scalastyle).toTask("").value
 val testEnvironment = taskKey[Unit]("Prepares testing environment.")
 testEnvironment := IO.delete(target.value / "lock")
+ThisBuild / Test / testOptions ++= Seq(
+  Tests.Argument(TestFrameworks.ScalaTest, "-oDST"),
+  Tests.Argument(TestFrameworks.ScalaCheck, "-minSuccessfulTests", "7"),
+)
 Test / test := (Test / test).dependsOn(testScalastyle).dependsOn(testEnvironment).value
 
 // Documentation
