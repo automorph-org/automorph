@@ -50,5 +50,5 @@ jobs:
           title: 'Build Status'
           value: ${{ job.status }}
           badge-type: 'boolean'
-          badge-path: 'build.svg'
+          badge-path: 'status.svg'
 
