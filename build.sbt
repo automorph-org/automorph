@@ -383,7 +383,7 @@ ThisBuild / Test / testOptions ++= Seq(
   Tests.Argument(TestFrameworks.ScalaTest, "-oDST"),
   Tests.Argument(TestFrameworks.ScalaCheck, "-minSuccessfulTests", "7"),
 )
-Test / test := (Test / test).dependsOn(testScalastyle).dependsOn(testEnvironment).value
+ThisBuild / Test / test := (Test / test).dependsOn(testScalastyle).dependsOn(testEnvironment).value
 
 // Documentation
 def flattenTasks[A](tasks: Seq[Def.Initialize[Task[A]]]): Def.Initialize[Task[Seq[A]]] =
