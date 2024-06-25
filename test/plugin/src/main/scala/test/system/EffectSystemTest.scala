@@ -2,6 +2,8 @@ package test.system
 
 import automorph.spi.EffectSystem
 import test.base.BaseTest
+import java.util.concurrent.TimeUnit
+import scala.concurrent.duration.FiniteDuration
 import scala.util.{Failure, Success, Try}
 
 /**
@@ -14,7 +16,8 @@ trait EffectSystemTest[Effect[_]] extends BaseTest {
 
   private val text = "test"
   private val number = 0
-  private val error = TestException(text)
+  private val exception = TestException(text)
+  private val delay = 5
 
   def system: EffectSystem[Effect]
 
@@ -29,9 +32,9 @@ trait EffectSystemTest[Effect[_]] extends BaseTest {
         run(effect).shouldEqual(Right(text))
       }
       "Failure" in {
-        Try(system.evaluate(throw error)) match {
-          case Success(effect) => run(effect).shouldEqual(Left(error))
-          case Failure(error) => error.shouldEqual(error)
+        Try(system.evaluate(throw exception)) match {
+          case Success(effect) => run(effect).shouldEqual(Left(exception))
+          case Failure(error) => error.shouldEqual(exception)
         }
       }
     }
@@ -40,9 +43,9 @@ trait EffectSystemTest[Effect[_]] extends BaseTest {
       run(effect).shouldEqual(Right(text))
     }
     "Failed" in {
-      Try(system.failed(error)) match {
-        case Success(effect) => run(effect).shouldEqual(Left(error))
-        case Failure(error) => error.shouldEqual(error)
+      Try(system.failed(exception)) match {
+        case Success(effect) => run(effect).shouldEqual(Left(exception))
+        case Failure(error) => error.shouldEqual(exception)
       }
     }
     "Map" - {
@@ -51,9 +54,9 @@ trait EffectSystemTest[Effect[_]] extends BaseTest {
         run(effect).shouldEqual(Right(s"$text$number"))
       }
       "Failure" in {
-        Try(system.map(system.failed[String](error))(_ => ())) match {
-          case Success(effect) => run(effect).shouldEqual(Left(error))
-          case Failure(error) => error.shouldEqual(error)
+        Try(system.map(system.failed[String](exception))(_ => ())) match {
+          case Success(effect) => run(effect).shouldEqual(Left(exception))
+          case Failure(error) => error.shouldEqual(exception)
         }
       }
     }
@@ -63,9 +66,9 @@ trait EffectSystemTest[Effect[_]] extends BaseTest {
         run(effect).shouldEqual(Right(s"$text$number"))
       }
       "Failure" in {
-        Try(system.flatMap(system.failed[String](error))(_ => system.successful {})) match {
-          case Success(effect) => run(effect).shouldEqual(Left(error))
-          case Failure(error) => error.shouldEqual(error)
+        Try(system.flatMap(system.failed[String](exception))(_ => system.successful {})) match {
+          case Success(effect) => run(effect).shouldEqual(Left(exception))
+          case Failure(error) => error.shouldEqual(exception)
         }
       }
     }
@@ -75,9 +78,9 @@ trait EffectSystemTest[Effect[_]] extends BaseTest {
         run(effect).shouldEqual(Right(Right(true)))
       }
       "Failure" in {
-        Try(system.either(system.failed[Boolean](error))) match {
-          case Success(effect) => run(effect).shouldEqual(Right(Left(error)))
-          case Failure(error) => error.shouldEqual(error)
+        Try(system.either(system.failed[Boolean](exception))) match {
+          case Success(effect) => run(effect).shouldEqual(Right(Left(exception)))
+          case Failure(error) => error.shouldEqual(exception)
         }
       }
     }
@@ -87,7 +90,7 @@ trait EffectSystemTest[Effect[_]] extends BaseTest {
         run(effect).shouldEqual(Right(true))
       }
       "Failure" in {
-        val effect = system.fold(system.failed[Boolean](error))(_ => false, _ => true)
+        val effect = system.fold(system.failed[Boolean](exception))(_ => false, _ => true)
         run(effect).shouldEqual(Right(false))
       }
     }
@@ -100,12 +103,18 @@ trait EffectSystemTest[Effect[_]] extends BaseTest {
         run(effect).shouldEqual(Right(true))
       }
       "Failure" in {
-        val effect = system.flatFold(system.failed[Boolean](error))(
+        val effect = system.flatFold(system.failed[Boolean](exception))(
           _ => system.successful(false),
           _ => system.successful(true),
         )
         run(effect).shouldEqual(Right(false))
       }
+    }
+    "Sleep" in {
+      var state = false
+      system.map(system.sleep(FiniteDuration(delay, TimeUnit.MILLISECONDS)))(_ => state = true)
+      Thread.sleep(2 * delay)
+      state.shouldEqual(true)
     }
     "RunAsync" in {
       system.runAsync(system.evaluate(text))
@@ -119,9 +128,9 @@ trait EffectSystemTest[Effect[_]] extends BaseTest {
       }
       "Failure" in {
         lazy val effect = system.flatMap(system.completable[String]) { completable =>
-          system.flatMap(completable.fail(error))(_ => completable.effect)
+          system.flatMap(completable.fail(exception))(_ => completable.effect)
         }
-        run(effect).shouldEqual(Left(error))
+        run(effect).shouldEqual(Left(exception))
       }
     }
     "Retry" - {
@@ -130,15 +139,15 @@ trait EffectSystemTest[Effect[_]] extends BaseTest {
         val effect = system.retry(
           {
             retries -= 1
-            if (retries < 0) system.successful(text) else system.failed(error)
+            if (retries < 0) system.successful(text) else system.failed(exception)
           },
           retries,
         )
         run(effect).shouldEqual(Right(text))
       }
       "Failure" in {
-        lazy val effect = system.retry(system.failed(error), 3)
-        run(effect).shouldEqual(Left(error))
+        lazy val effect = system.retry(system.failed(exception), 3)
+        run(effect).shouldEqual(Left(exception))
       }
     }
   }
