@@ -296,7 +296,7 @@ ThisBuild / Test / testOptions ++= Seq(
   Tests.Argument(TestFrameworks.ScalaTest, "-oDST"),
   Tests.Argument(
     TestFrameworks.ScalaTest, "-fDSTW",
-    (target.value / s"test-${scalaVersion.value.substring(0, 1)}.log").getPath
+    (target.value / s"test-scala-${scalaVersion.value.substring(0, 1)}.log").getPath
   ),
   Tests.Argument(TestFrameworks.ScalaCheck, "-minSuccessfulTests", "7"),
 )
