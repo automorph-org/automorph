@@ -90,10 +90,15 @@ lazy val root = project.in(file(".")).settings(
 
 // Dependencies
 def source(project: Project, path: String, dependsOn: ClasspathDep[ProjectReference]*): Project = {
+  val shortName = path.replaceAll(Path.sep.toString, "-")
   val subProject = project.in(file(path)).dependsOn(dependsOn: _*).settings(
-    Compile / doc / scalacOptions := (if (scala3.value) docScalac3Options else docScalac2Options)
+    Compile / doc / scalacOptions := (if (scala3.value) docScalac3Options else docScalac2Options),
+    Test / testOptions += Tests.Argument(
+      TestFrameworks.ScalaTest, "-fDSTW",
+      s"${System.getProperty("project.target")}/test-$shortName-scala-${scalaVersion.value.substring(0, 1)}.log"
+    )
   )
-  val directories = path.split('/').toSeq
+  val directories = path.split(Path.sep).toSeq
   directories.headOption.map(Set("examples", "test").contains) match {
     case Some(true) => subProject.settings(
         name := s"$projectName-${directories.mkString("-")}",
@@ -125,7 +130,7 @@ lazy val core = source(project, "core", meta, testBase % Test)
 
 // Effect system
 lazy val zio = source(project, "system/zio", core, testPlugin % Test).settings(
-  libraryDependencies += "dev.zio" %% "zio" % "2.1.1"
+  libraryDependencies += "dev.zio" %% "zio" % "2.1.4"
 )
 lazy val monix = source(project, "system/monix", core, testPlugin % Test).settings(
   libraryDependencies += "io.monix" %% "monix-eval" % "3.4.1"
@@ -138,7 +143,7 @@ lazy val scalazEffect = source(project, "system/scalaz-effect", core, testPlugin
 )
 
 // Message codec
-val circeVersion = "0.14.7"
+val circeVersion = "0.14.8"
 lazy val circe = source(project, s"codec/circe", core, testCodec % Test).settings(
   libraryDependencies ++= Seq(
     "io.circe" %% "circe-parser" % circeVersion,
@@ -155,11 +160,11 @@ lazy val jackson = source(project, "codec/jackson", core, testCodec % Test).sett
 )
 lazy val json4s = source(project, "codec/json4s", core, testCodec % Test).settings(
   publish / skip := scala3.value,
-  libraryDependencies += "org.json4s" %% "json4s-native" % "4.0.7",
+  libraryDependencies += "org.json4s" %% "json4s-native" % "4.1.0-M5",
 )
 lazy val playJson = source(project, "codec/play-json", core, testCodec % Test).settings(
   publish / skip := scala3.value,
-  libraryDependencies += "org.playframework" %% "play-json" % "3.0.3",
+  libraryDependencies += "org.playframework" %% "play-json" % "3.0.4",
 )
 lazy val weepickle = source(project, "codec/weepickle", core, testCodec % Test).settings(
   libraryDependencies ++= Seq(
@@ -192,7 +197,7 @@ lazy val rabbitmq = source(project, "transport/rabbitmq", core, testPlugin % Tes
 )
 
 // Server transport
-val tapirVersion = "1.10.8"
+val tapirVersion = "1.10.10"
 lazy val tapir = source(project, "transport/tapir", core, catsEffect % Test, testPlugin % Test).settings(
   libraryDependencies ++= Seq(
     "com.softwaremill.sttp.tapir" %% "tapir-server" % tapirVersion,
@@ -204,7 +209,7 @@ lazy val tapir = source(project, "transport/tapir", core, catsEffect % Test, tes
   )
 )
 lazy val undertow = source(project, "transport/undertow", core, testPlugin % Test).settings(
-  libraryDependencies += "io.undertow" % "undertow-core" % "2.3.13.Final"
+  libraryDependencies += "io.undertow" % "undertow-core" % "2.3.14.Final"
 )
 lazy val vertx = source(project, "transport/vertx", core, testPlugin % Test).settings(
   libraryDependencies += "io.vertx" % "vertx-core" % "4.5.8"
@@ -233,7 +238,7 @@ lazy val akkaHttp = source(project, "transport/akka-http", core, testPlugin % Te
     "com.typesafe.akka" %% "akka-slf4j" % akkaVersion % Test,
   ),
 )
-val pekkoVersion = "1.0.2"
+val pekkoVersion = "1.0.3"
 lazy val pekkoHttp = source(project, "transport/pekko-http", core, testPlugin % Test).settings(
   Test / fork := true,
   Test / testForkedParallel := true,
@@ -245,7 +250,7 @@ lazy val pekkoHttp = source(project, "transport/pekko-http", core, testPlugin % 
     "org.apache.pekko" %% "pekko-slf4j" % pekkoVersion % Test,
   ),
 )
-val playVersion = "3.0.3"
+val playVersion = "3.0.4"
 lazy val play = source(project, "transport/play", core, testPlugin % Test).settings(
   Test / fork := true,
   Test / testForkedParallel := true,
@@ -259,7 +264,7 @@ lazy val play = source(project, "transport/play", core, testPlugin % Test).setti
 // Endpoint transport
 lazy val finagle = source(project, "transport/finagle", core, testPlugin % Test).settings(
   libraryDependencies ++= Seq(
-    ("com.twitter" % "finagle-http" % "23.11.0")
+    ("com.twitter" % "finagle-http" % "24.2.0")
       .exclude("org.scala-lang.modules", "scala-collection-compat_2.13")
       .exclude("com.fasterxml.jackson.module", "jackson-module-scala_2.13")
       .cross(CrossVersion.for3Use2_13),
@@ -294,10 +299,6 @@ lazy val examples = source(
 val logbackVersion = "1.5.6"
 ThisBuild / Test / testOptions ++= Seq(
   Tests.Argument(TestFrameworks.ScalaTest, "-oDST"),
-  Tests.Argument(
-    TestFrameworks.ScalaTest, "-fDSTW",
-    (target.value / s"test-scala-${scalaVersion.value.substring(0, 1)}.log").getPath
-  ),
   Tests.Argument(TestFrameworks.ScalaCheck, "-minSuccessfulTests", "7"),
 )
 lazy val testBase = source(project, "test/base").settings(

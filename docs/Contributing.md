@@ -78,9 +78,7 @@ LOG_CODE=true sbt '+ test'
 ### Test log files
 
 ```
-less target/test-scala-2.log
-less target/test-scala-3.log
-less target/test-extra.log
+ls target/test-*.log
 ```
 
 
