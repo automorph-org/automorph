@@ -75,10 +75,12 @@ LOG_LEVEL=DEBUG sbt + test
 LOG_CODE=true sbt + test
 ```
 
-### Test log file
+### Test log files
 
 ```
-less target/test.log
+less target/test-scala-2.log
+less target/test-scala-3.log
+less target/test-extra.log
 ```
 
 
