@@ -6,7 +6,7 @@
 [![API](https://img.shields.io/badge/Scaladoc-API-blue)](https://automorph.org/api/automorph.html)
 [![Artifacts](https://img.shields.io/badge/Releases-artifacts-yellow)](
 https://central.sonatype.com/namespace/org.automorph)
-[![Build](https://github.com/automorph-org/automorph/workflows/Build/status.svg)](github.com/automorph-org/automorph/actions/workflows/build.yml)
+[![Build](https://github.com/automorph-org/automorph/workflows/build.yml/status.svg)](github.com/automorph-org/automorph/actions/workflows/build.yml)
 
 **Automorph** is a Scala [RPC](https://en.wikipedia.org/wiki/Remote_procedure_call) client and server library
 for invoking and exposing remote APIs in a few lines of code.
