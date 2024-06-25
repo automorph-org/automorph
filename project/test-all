@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
 # Build the project and run all tests
 
-TEST_LEVEL=all ./sbt '+ test'
+TEST_LEVEL=all sbt '+ test'
 
