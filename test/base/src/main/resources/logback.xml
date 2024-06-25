@@ -20,7 +20,7 @@
     <filter class="ch.qos.logback.classic.filter.ThresholdFilter">
       <level>${LOG_LEVEL:-DEBUG}</level>
     </filter>
-    <file>target/test.log</file>
+    <file>target/test-extra.log</file>
     <append>false</append>
     <encoder>
       <pattern>%date [%-5level] %message - %mdc %n</pattern>
