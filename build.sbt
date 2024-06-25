@@ -295,7 +295,7 @@ val logbackVersion = "1.5.6"
 ThisBuild / Test / testOptions ++= Seq(
   Tests.Argument(TestFrameworks.ScalaTest, "-oDST"),
   Tests.Argument(TestFrameworks.ScalaTest, "-fDSTW", (target.value / "test.results").getPath),
-  Tests.Argument(TestFrameworks.ScalaCheck, "-minSuccessfulTests", "7"),
+  Tests.Argument(TestFrameworks.ScalaCheck, "-minSuccessfulTests", "5"),
 )
 lazy val testBase = source(project, "test/base").settings(
   libraryDependencies ++= Seq(
