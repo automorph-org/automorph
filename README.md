@@ -7,7 +7,7 @@
 [![Artifacts](https://img.shields.io/maven-central/v/org.automorph/automorph-default_3?label=Artifacts)](
 https://central.sonatype.com/namespace/org.automorph)
 [![Scala](https://img.shields.io/badge/Scala-2.13%20%2F%203.3-yellow)](https://www.scala-lang.org)
-[![License](https://img.shields.io/github/license/automorph-org/automorph?label=License)](https://github.com/automorph-org/automorph/blob/main/LICENSE)
+[![License](https://img.shields.io/github/license/automorph-org/automorph?label=License&color=yellowgreen)](https://github.com/automorph-org/automorph/blob/main/LICENSE)
 [![Build](https://github.com/automorph-org/automorph/actions/workflows/build.yml/badge.svg)](https://github.com/automorph-org/automorph/actions/workflows/build.yml)
 
 **Automorph** is a Scala [RPC](https://en.wikipedia.org/wiki/Remote_procedure_call) client and server library
