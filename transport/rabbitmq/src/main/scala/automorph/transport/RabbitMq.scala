@@ -1,6 +1,6 @@
 package automorph.transport
 
-import automorph.log.{LogProperties, Logging}
+import automorph.log.{Logging, MessageLog}
 import automorph.transport.client.RabbitMqClient.Context
 import automorph.util.Extensions.TryOps
 import com.rabbitmq.client.AMQP.BasicProperties
@@ -222,8 +222,8 @@ object RabbitMq extends Logging {
     url: String,
     consumerTag: Option[String],
   ): Map[String, String] =
-    ListMap() ++ requestId.map(LogProperties.requestId -> _) ++ ListMap(
+    ListMap() ++ requestId.map(MessageLog.requestId -> _) ++ ListMap(
       routingKeyProperty -> routingKey,
-      LogProperties.url -> url,
+      MessageLog.url -> url,
     ) ++ consumerTag.map(consumerTagProperty -> _)
 }

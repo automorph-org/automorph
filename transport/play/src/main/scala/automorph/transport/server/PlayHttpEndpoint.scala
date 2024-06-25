@@ -86,7 +86,7 @@ final case class PlayHttpEndpoint[Effect[_]](
     metadata: HttpMetadata[Context],
     @unused session: Unit,
   ): Effect[Result] = {
-    val httpEntity = HttpEntity.Strict.apply(ByteString(body), Some(rpcHandler.mediaType))
+    val httpEntity = HttpEntity.Strict.apply(ByteString(body), Some(metadata.contentType))
     val result = setResponseContext(Status(metadata.statusCodeOrOk).sendEntity(httpEntity), metadata.context)
     effectSystem.successful(result)
   }

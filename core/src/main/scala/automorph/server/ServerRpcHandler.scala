@@ -2,7 +2,7 @@ package automorph.server
 
 import automorph.RpcFunction
 import automorph.RpcException.{FunctionNotFound, InvalidArguments}
-import automorph.log.{LogProperties, Logging}
+import automorph.log.{Logging, MessageLog}
 import automorph.spi.RpcHandler.Result
 import automorph.spi.protocol.{Message, Request}
 import automorph.spi.{EffectSystem, MessageCodec, RpcHandler, RpcProtocol}
@@ -48,6 +48,7 @@ final private[automorph] case class ServerRpcHandler[Value, Codec <: MessageCode
     binding.function.copy(name = name)
   }.toSeq
   private val bindings = Option.when(discovery)(apiSchemaBindings).getOrElse(ListMap.empty) ++ apiBindings
+  private val log = MessageLog(logger)
   implicit private val system: EffectSystem[Effect] = effectSystem
 
   /**
@@ -69,14 +70,13 @@ final private[automorph] case class ServerRpcHandler[Value, Codec <: MessageCode
         errorResponse(
           error.exception,
           error.message,
-          responseRequired = true,
-          ListMap(LogProperties.requestId -> id),
+          respond = true,
+          ListMap(MessageLog.requestId -> id),
         ),
       { rpcRequest =>
         // Invoke requested RPC function
-        lazy val requestProperties = ListMap(LogProperties.requestId -> rpcRequest.id) ++ rpcRequest.message.properties
-        lazy val allProperties = requestProperties ++ getMessageBody(rpcRequest.message)
-        logger.trace(s"Received ${rpcProtocol.name} request", allProperties)
+        lazy val requestProperties = ListMap(MessageLog.requestId -> rpcRequest.id) ++ rpcRequest.message.properties
+        log.receivedRequest(requestProperties, rpcRequest.message.text, rpcProtocol.name)
         callFunction(rpcRequest, context, requestProperties)
       },
     )
@@ -115,7 +115,7 @@ final private[automorph] case class ServerRpcHandler[Value, Codec <: MessageCode
   ): Effect[Option[Result[Context]]] = {
     // Lookup bindings for the specified remote function
     val responseRequired = rpcRequest.respond
-    logger.debug(s"Processing ${rpcProtocol.name} request", requestProperties)
+    logger.debug(s"Processing ${rpcProtocol.name} ${operation(rpcRequest.respond)}", requestProperties)
     bindings.get(rpcRequest.function).map { binding =>
       // Extract bound function argument nodes
       extractArguments(rpcRequest, binding).map { argumentValues =>
@@ -129,10 +129,10 @@ final private[automorph] case class ServerRpcHandler[Value, Codec <: MessageCode
         { result =>
           // Encode bound API method result
           val contextualResultValue = result.asInstanceOf[Effect[Any]].map { resultValue =>
-            encodeResult(resultValue, binding)
+            Option.when(rpcRequest.respond)(encodeResult(resultValue, binding))
           }
 
-          // Create RPC response
+          // Create RPC response from the call result
           resultResponse(contextualResultValue, rpcRequest, requestProperties)
         },
       )
@@ -229,7 +229,7 @@ final private[automorph] case class ServerRpcHandler[Value, Codec <: MessageCode
     }.get
 
   /**
-   * Creates a response for remote function call result.
+   * Creates an RPC response from the remote function call result.
    *
    * @param callResult
    *   remote function call result
@@ -241,52 +241,32 @@ final private[automorph] case class ServerRpcHandler[Value, Codec <: MessageCode
    *   bound function call RPC response
    */
   private def resultResponse(
-    callResult: Effect[(Value, Option[Context])],
+    callResult: Effect[Option[(Value, Option[Context])]],
     rpcRequest: Request[Value, rpcProtocol.Metadata, Context],
     requestProperties: => Map[String, String],
-  ): Effect[Option[Result[Context]]] =
+  ): Effect[Option[Result[Context]]] = {
     callResult.flatFold(
       { error =>
-        logger.error(s"Failed to process ${rpcProtocol.name} request", error, requestProperties)
-        createResponse(Failure(error), rpcRequest, requestProperties)
+        logger.error(s"Failed to process ${rpcProtocol.name} ${operation(rpcRequest.respond)}", error, requestProperties)
+        response(Failure(error), rpcRequest.message, requestProperties)
       },
       { result =>
-        logger.info(s"Processed ${rpcProtocol.name} request", requestProperties)
-        createResponse(Success(result), rpcRequest, requestProperties)
+        logger.info(s"Processed ${rpcProtocol.name} ${operation(rpcRequest.respond)}", requestProperties)
+        result.map { resultValue =>
+          response(Success(resultValue), rpcRequest.message, requestProperties)
+        }.getOrElse(effectSystem.successful(None))
       },
     )
+  }
 
   /**
-   * Creates a handler result containing an RPC response for the specified result.
-   *
-   * @param result
-   *   remote function call result
-   * @param rpcRequest
-   *   RPC request
-   * @param requestProperties
-   *   request properties
-   * @return
-   *   handler result
-   */
-  private def createResponse(
-    result: Try[(Value, Option[Context])],
-    rpcRequest: Request[Value, rpcProtocol.Metadata, Context],
-    requestProperties: => Map[String, String],
-  ): Effect[Option[Result[Context]]] =
-    if (rpcRequest.respond) {
-      response(result, rpcRequest.message, requestProperties)
-    } else {
-      effectSystem.successful(None)
-    }
-
-  /**
-   * Creates a handler result containing an RPC response for the specified error.
+   * Creates an RPC response for the specified error.
    *
    * @param error
    *   exception
    * @param message
    *   RPC message
-   * @param responseRequired
+   * @param respond
    *   true if response is required
    * @param requestProperties
    *   request properties
@@ -296,11 +276,11 @@ final private[automorph] case class ServerRpcHandler[Value, Codec <: MessageCode
   private def errorResponse(
     error: Throwable,
     message: Message[rpcProtocol.Metadata],
-    responseRequired: Boolean,
+    respond: Boolean,
     requestProperties: => Map[String, String],
   ): Effect[Option[Result[Context]]] = {
-    logger.error(s"Failed to process ${rpcProtocol.name} request", error, requestProperties)
-    Option.when(responseRequired) {
+    logger.error(s"Failed to process ${rpcProtocol.name} ${operation(respond)}", error, requestProperties)
+    Option.when(respond) {
       response(Failure(error), message, requestProperties)
     }.getOrElse(effectSystem.successful(None))
   }
@@ -326,17 +306,13 @@ final private[automorph] case class ServerRpcHandler[Value, Codec <: MessageCode
       error => effectSystem.failed(error),
       { rpcResponse =>
         val responseBody = rpcResponse.message.body
-        lazy val allProperties = rpcResponse.message.properties ++ requestProperties ++
-          getMessageBody(rpcResponse.message)
-        logger.trace(s"Sending ${rpcProtocol.name} response", allProperties)
+        lazy val responseProperties = rpcResponse.message.properties ++ requestProperties
+        log.sendingResponse(responseProperties, rpcResponse.message.text, rpcProtocol.name)
         effectSystem.successful(
           Some(Result(responseBody, result.failed.toOption, result.toOption.flatMap(_._2)))
         )
       },
     )
-
-  private def getMessageBody(message: Message[?]): Option[(String, String)] =
-    message.text.map(LogProperties.messageBody -> _)
 
   private def apiSchemaBindings: ListMap[String, ServerBinding[Value, Effect, Context]] =
     ListMap(rpcProtocol.apiSchemas.map { apiSchema =>
@@ -351,4 +327,7 @@ final private[automorph] case class ServerRpcHandler[Value, Codec <: MessageCode
         acceptsContext = false,
       )
     }*)
+
+  private def operation(respond: Boolean): String =
+    if (respond) "call" else "tell"
 }

@@ -1,11 +1,12 @@
 package automorph.transport
 
 import automorph.RpcException.{InvalidArguments, InvalidResponse}
+import automorph.log.MessageLog.messageText
 import automorph.log.{Logging, MessageLog}
 import automorph.spi.EffectSystem.Completable
 import automorph.spi.{EffectSystem, RpcHandler}
 import automorph.transport.HttpContext.{headerRpcCallId, headerRpcListen}
-import automorph.transport.ServerHttpHandler.valueRpcListen
+import automorph.transport.ServerHttpHandler.{contentTypeText, valueRpcListen}
 import automorph.util.Extensions.EffectOps
 import automorph.util.Random
 import scala.collection.concurrent.TrieMap
@@ -159,12 +160,11 @@ final private[automorph] case class ClientServerHttpHandler[
     metadata: HttpMetadata[Context],
     connection: Connection,
   ): Effect[Unit] = {
-    log.receivedResponse(metadata.properties, metadata.protocol.name)
+    log.receivedResponse(metadata.properties, messageText(body, metadata.context.contentType), metadata.protocol.name)
     expectedResponses(peer).remove(callId).map { expectedResponse =>
       expectedResponse.succeed(body -> metadata.context)
-      val contentType = handler.rpcHandler.mediaType
       if (protocol == Protocol.Http) {
-        handler.respond(Array.emptyByteArray, contentType, None, None, metadata, connection)
+        handler.respond(Array.emptyByteArray, contentTypeText, None, None, metadata, connection)
       } else {
         system.successful {}
       }

@@ -1,10 +1,10 @@
 package automorph
 
 import automorph.RpcException.InvalidResponse
-import automorph.client.meta.ClientBase
 import automorph.client.RemoteTell
-import automorph.log.{LogProperties, Logging}
-import automorph.spi.protocol.{Message, Request}
+import automorph.client.meta.ClientBase
+import automorph.log.{Logging, MessageLog}
+import automorph.spi.protocol.Request
 import automorph.spi.{ClientTransport, EffectSystem, MessageCodec, RpcProtocol}
 import automorph.util.Extensions.EffectOps
 import automorph.util.Random
@@ -39,6 +39,7 @@ final case class RpcClient[Value, Codec <: MessageCodec[Value], Effect[_], Conte
   rpcProtocol: RpcProtocol[Value, Codec, Context],
 ) extends ClientBase[Value, Codec, Effect, Context] with Logging {
 
+  private val log = MessageLog(logger)
   implicit private val system: EffectSystem[Effect] = transport.effectSystem
 
   /**
@@ -108,8 +109,7 @@ final case class RpcClient[Value, Codec <: MessageCodec[Value], Effect[_], Conte
       rpcRequest =>
         system.successful(rpcRequest).flatMap { request =>
           lazy val requestProperties = getRequestProperties(rpcRequest, requestId)
-          lazy val allProperties = requestProperties ++ getMessageBody(rpcRequest.message)
-          logger.trace(s"Sending ${rpcProtocol.name} request", allProperties)
+          log.sendingRequest(requestProperties, rpcRequest.message.text, rpcProtocol.name)
           transport
             .call(request.message.body, request.context, requestId, rpcProtocol.messageCodec.mediaType)
             .flatMap { case (responseBody, responseContext) =>
@@ -147,8 +147,7 @@ final case class RpcClient[Value, Codec <: MessageCodec[Value], Effect[_], Conte
       rpcRequest =>
         system.successful(rpcRequest).flatMap { request =>
           lazy val requestProperties = getRequestProperties(rpcRequest, requestId)
-          lazy val allProperties = requestProperties ++ getMessageBody(rpcRequest.message)
-          logger.trace(s"Sending ${rpcProtocol.name} request", allProperties)
+          log.sendingRequest(requestProperties, rpcRequest.message.text, rpcProtocol.name)
           transport.tell(request.message.body, request.context, requestId, rpcProtocol.messageCodec.mediaType)
         },
     )
@@ -158,10 +157,7 @@ final case class RpcClient[Value, Codec <: MessageCodec[Value], Effect[_], Conte
     rpcRequest: Request[Value, rpcProtocol.Metadata, Context],
     requestId: String,
   ): Map[String, String] =
-    ListMap(LogProperties.requestId -> requestId) ++ rpcRequest.message.properties
-
-  private def getMessageBody(message: Message[?]): Option[(String, String)] =
-    message.text.map(LogProperties.messageBody -> _)
+    ListMap(MessageLog.requestId -> requestId) ++ rpcRequest.message.properties
 
   /**
    * Processes an remote function call response.
@@ -190,9 +186,8 @@ final case class RpcClient[Value, Codec <: MessageCodec[Value], Effect[_], Conte
     rpcProtocol.parseResponse(body, context, requestId).fold(
       error => raiseError[R](error.exception, requestProperties),
       { rpcResponse =>
-        lazy val responseProperties = rpcResponse.message.properties
-        lazy val allProperties = requestProperties ++ responseProperties ++ getMessageBody(rpcResponse.message)
-        logger.trace(s"Received ${rpcProtocol.name} response", allProperties)
+        lazy val responseProperties = requestProperties ++ rpcResponse.message.properties
+        log.receivedResponse(responseProperties, rpcResponse.message.text, rpcProtocol.name)
         rpcResponse.result.fold(
           // Raise error
           error => raiseError[R](error, requestProperties),
@@ -201,7 +196,7 @@ final case class RpcClient[Value, Codec <: MessageCodec[Value], Effect[_], Conte
             Try(decodeResult(result, context)).fold(
               error => raiseError[R](InvalidResponse("Malformed result", error), requestProperties),
               result => {
-                logger.info(s"Performed ${rpcProtocol.name} request", requestProperties)
+                logger.info(s"Performed ${rpcProtocol.name} call", requestProperties)
                 system.successful(result)
               },
             ),
@@ -222,7 +217,7 @@ final case class RpcClient[Value, Codec <: MessageCodec[Value], Effect[_], Conte
    *   error value
    */
   private def raiseError[T](error: Throwable, properties: Map[String, String]): Effect[T] = {
-    logger.error(s"Failed to perform ${rpcProtocol.name} request", error, properties)
+    logger.error(s"Failed to perform ${rpcProtocol.name} call", error, properties)
     system.failed(error)
   }
 }

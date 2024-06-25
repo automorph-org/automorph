@@ -1118,6 +1118,7 @@ public abstract class NanoHTTPD {
          * read bytes.
          */
         public long getBodySize() {
+            println(this.headers)
             if (this.headers.containsKey("Content-Length")) {
                 return Long.parseLong(this.headers.get("Content-Length"));
             } else if (this.splitbyte < this.rlen) {

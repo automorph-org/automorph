@@ -1,6 +1,7 @@
 package automorph.transport
 
-import automorph.log.{LogProperties, Logging, MessageLog}
+import automorph.log.MessageLog.messageText
+import automorph.log.{Logging, MessageLog}
 import automorph.spi.EffectSystem
 import automorph.util.Extensions.EffectOps
 import java.net.URI
@@ -34,36 +35,39 @@ final private[automorph] case class ClientServerHttpSender[Effect[_], Context <:
   httpListen: HttpListen,
   effectSystem: EffectSystem[Effect],
 ) extends Logging {
-  private val log = MessageLog(logger, Protocol.Http.name)
+  private val log = MessageLog(logger)
   implicit private val system: EffectSystem[Effect] = effectSystem
 
-  def call(body: Array[Byte], context: Context, id: String, contentType: String): Effect[(Array[Byte], Context)] = {
+  def call(body: Array[Byte], context: Context, id: String, contentType: String): Effect[(Array[Byte], Context)] =
     Try(createRequest(body, context, contentType)).fold(
       system.failed,
       { case (request, requestContext, protocol) =>
-        val requestMetadata = HttpMetadata(requestContext, protocol, id)
-        send(request, requestMetadata).flatFold(
+        val requestMetadata = HttpMetadata(requestContext.contentType(contentType).asInstanceOf[Context], protocol, id)
+        send(request, body, requestMetadata).flatFold(
           { error =>
             log.failedReceiveResponse(error, requestMetadata.properties, requestMetadata.protocol.name)
             effectSystem.failed(error)
           },
           { case (responseBody, responseContext) =>
             lazy val responseProperties =
-              requestMetadata.properties ++ responseContext.statusCode.map(LogProperties.status -> _.toString)
-            log.receivedResponse(responseProperties, requestMetadata.protocol.name)
+              requestMetadata.properties ++ responseContext.statusCode.map(MessageLog.status -> _.toString)
+            log.receivedResponse(
+              responseProperties,
+              messageText(responseBody, responseContext.contentType),
+              requestMetadata.protocol.name,
+            )
             effectSystem.successful(responseBody -> responseContext)
           },
         )
       },
     )
-  }
 
   def tell(body: Array[Byte], context: Context, id: String, contentType: String): Effect[Unit] =
     Try(createRequest(body, context, contentType)).fold(
       system.failed,
       { case (request, requestContext, protocol) =>
         val requestMetadata = HttpMetadata(requestContext, protocol, id)
-        send(request, requestMetadata).map(_ => ())
+        send(request, body, requestMetadata).map(_ => ())
       },
     )
 
@@ -75,8 +79,16 @@ final private[automorph] case class ClientServerHttpSender[Effect[_], Context <:
   def close(): Unit =
     ()
 
-  private def send(request: Request, requestMetadata: HttpMetadata[Context]): Effect[(Array[Byte], Context)] = {
-    log.sendingRequest(requestMetadata.properties, requestMetadata.protocol.name)
+  private def send(
+    request: Request,
+    requestBody: Array[Byte],
+    requestMetadata: HttpMetadata[Context],
+  ): Effect[(Array[Byte], Context)] = {
+    log.sendingRequest(
+      requestMetadata.properties,
+      messageText(requestBody, requestMetadata.context.contentType),
+      requestMetadata.protocol.name,
+    )
     sendRequest(request, requestMetadata.context).flatFold(
       { error =>
         log.failedSendRequest(error, requestMetadata.properties, requestMetadata.protocol.name)

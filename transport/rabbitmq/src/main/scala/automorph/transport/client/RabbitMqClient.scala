@@ -1,5 +1,6 @@
 package automorph.transport.client
 
+import automorph.log.MessageLog.messageText
 import automorph.log.{Logging, MessageLog}
 import automorph.spi.EffectSystem.Completable
 import automorph.spi.{ClientTransport, EffectSystem, RpcHandler}
@@ -51,13 +52,13 @@ final case class RabbitMqClient[Effect[_]](
   connectionFactory: ConnectionFactory = new ConnectionFactory,
   rpcHandler: RpcHandler[Effect, Context] = RpcHandler.dummy[Effect, Context],
 ) extends ClientTransport[Effect, Context] with Logging {
-  private var session = Option.empty[RabbitMq.Session]
   private val directReplyToQueue = "amq.rabbitmq.reply-to"
   private val clientId = RabbitMq.applicationId(getClass.getName)
   private val urlText = url.toString
   private val responseHandlers = TrieMap[String, Completable[Effect, Response]]()
   private val log = MessageLog(logger, RabbitMq.protocol)
   implicit private val system: EffectSystem[Effect] = effectSystem
+  private var session = Option.empty[RabbitMq.Session]
 
   override def call(
     body: Array[Byte],
@@ -117,7 +118,7 @@ final case class RabbitMqClient[Effect[_]](
     )
     val requestId = amqpProperties.getCorrelationId
     lazy val requestProperties = RabbitMq.messageProperties(Some(requestId), routingKey, urlText, None)
-    log.sendingRequest(requestProperties)
+    log.sendingRequest(requestProperties, messageText(requestBody, Option(amqpProperties.getContentType)))
 
     // Register deferred response effect if available
     response.foreach(responseHandlers.put(requestId, _))
@@ -152,7 +153,7 @@ final case class RabbitMqClient[Effect[_]](
         // Log the response
         lazy val responseProperties = RabbitMq
           .messageProperties(Option(properties.getCorrelationId), routingKey, urlText, None)
-        log.receivedResponse(responseProperties)
+        log.receivedResponse(responseProperties, messageText(responseBody, Option(properties.getContentType)))
 
         // Complete the registered deferred response effect
         val responseContext = RabbitMq.messageContext(properties)

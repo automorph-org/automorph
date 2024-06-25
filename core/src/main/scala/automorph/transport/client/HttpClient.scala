@@ -1,9 +1,13 @@
 package automorph.transport.client
 
-import automorph.log.{LogProperties, Logger, Logging}
+import automorph.log.{Logger, Logging, MessageLog}
 import automorph.spi.EffectSystem.Completable
 import automorph.spi.{ClientTransport, EffectSystem, RpcHandler}
-import automorph.transport.HttpClientBase.{completableEffect, overrideUrl, webSocketCloseReason, webSocketCloseStatusCode, webSocketConnectionClosed, webSocketSchemePrefix, webSocketUnexpectedMessage}
+import automorph.transport.HttpClientBase.{
+  completableEffect, overrideUrl, webSocketCloseReason, webSocketCloseStatusCode, webSocketConnectionClosed,
+  webSocketSchemePrefix, webSocketUnexpectedMessage,
+}
+import automorph.transport.HttpContext.{headerAccept, headerContentType}
 import automorph.transport.client.HttpClient.{Context, FrameListener, Transport}
 import automorph.transport.{ClientServerHttpSender, ConnectionPool, HttpContext, HttpListen, HttpMethod, Protocol}
 import automorph.util.Extensions.{ByteArrayOps, ByteBufferOps, EffectOps}
@@ -62,8 +66,6 @@ final case class HttpClient[Effect[_]](
 
   private type Request = Either[HttpRequest, (Array[Byte], WebSocket.Builder, URI)]
 
-  private val contentTypeHeader = "Content-Type"
-  private val acceptHeader = "Accept"
   private val httpEmptyUrl = new URI("http://empty")
   private val httpMethods = HttpMethod.values.map(_.name).toSet
   private val httpClient = builder.build
@@ -166,7 +168,7 @@ final case class HttpClient[Effect[_]](
     val headersBuilder = (headers match {
       case Seq() => methodBuilder
       case values => methodBuilder.headers(values.toArray*)
-    }).header(contentTypeHeader, mediaType).header(acceptHeader, mediaType)
+    }).header(headerContentType, mediaType).header(headerAccept, mediaType)
 
     // Timeout
     httpContext.timeout
@@ -183,7 +185,7 @@ final case class HttpClient[Effect[_]](
       .uri(httpEmptyUrl).build.headers.map.asScala.toSeq
       .flatMap { case (name, values) =>
         values.asScala.map(name -> _)
-      } ++ httpContext.headers ++ Seq(contentTypeHeader -> contentType, acceptHeader -> contentType)
+      } ++ httpContext.headers ++ Seq(headerContentType -> contentType, headerAccept -> contentType)
     val headersBuilder = LazyList.iterate(httpClient.newWebSocketBuilder -> headers) { case (builder, headers) =>
       headers
         .headOption.map { case (name, value) => builder.header(name, value) -> headers.tail }
@@ -246,7 +248,7 @@ object HttpClient {
         expectedResponse.map { response =>
           expectedResponse = None
           response.succeed(responseBody).runAsync
-        }.getOrElse(logger.error(webSocketUnexpectedMessage, Map(LogProperties.url -> url)))
+        }.getOrElse(logger.error(webSocketUnexpectedMessage, Map(MessageLog.url -> url)))
       }
       super.onBinary(webSocket, data, last)
     }
@@ -256,7 +258,7 @@ object HttpClient {
       expectedResponse.map { response =>
         expectedResponse = None
         response.fail(error).runAsync
-      }.getOrElse(logger.error(webSocketUnexpectedMessage, Map(LogProperties.url -> url)))
+      }.getOrElse(logger.error(webSocketUnexpectedMessage, Map(MessageLog.url -> url)))
       super.onError(webSocket, error)
     }
 

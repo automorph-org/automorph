@@ -263,7 +263,7 @@ public abstract class NanoHTTPD {
         private final ArrayList<Cookie> queue = new ArrayList<Cookie>();
 
         public CookieHandler(Map<String, String> httpHeaders) {
-            String raw = httpHeaders.get("cookie");
+            String raw = httpHeaders.get("Cookie");
             if (raw != null) {
                 String[] tokens = raw.split(";");
                 for (String token : tokens) {
@@ -623,23 +623,17 @@ public abstract class NanoHTTPD {
 
         private Map<String, List<String>> parms;
 
-        private Map<String, String> headers;
+        private final Map<String, String> headers;
 
         private CookieHandler cookies;
 
         private String queryParameterString;
 
-        private String remoteIp;
+        private final String remoteIp;
 
-        private String remoteHostname;
+        private final String remoteHostname;
 
         private String protocolVersion;
-
-        public HTTPSession(TempFileManager tempFileManager, InputStream inputStream, OutputStream outputStream) {
-            this.tempFileManager = tempFileManager;
-            this.inputStream = new BufferedInputStream(inputStream, HTTPSession.BUFSIZE);
-            this.outputStream = outputStream;
-        }
 
         public HTTPSession(TempFileManager tempFileManager, InputStream inputStream, OutputStream outputStream, InetAddress inetAddress) {
             this.tempFileManager = tempFileManager;
@@ -647,7 +641,22 @@ public abstract class NanoHTTPD {
             this.outputStream = outputStream;
             this.remoteIp = inetAddress.isLoopbackAddress() || inetAddress.isAnyLocalAddress() ? "127.0.0.1" : inetAddress.getHostAddress().toString();
             this.remoteHostname = inetAddress.isLoopbackAddress() || inetAddress.isAnyLocalAddress() ? "localhost" : inetAddress.getHostName().toString();
-            this.headers = new HashMap<String, String>();
+            this.headers = new HashMap<String, String>() {
+
+                @Override
+                public String get(Object key) {
+                    String result = super.get(key);
+                    if (result == null) {
+                        result = super.get(key.toString().toLowerCase());
+                    }
+                    return result;
+                }
+
+                @Override
+                public boolean containsKey(Object key) {
+                    return super.containsKey(key) || super.containsKey(key.toString().toLowerCase());
+                }
+            };
         }
 
         /**
@@ -904,11 +913,7 @@ public abstract class NanoHTTPD {
                 }
 
                 this.parms = new HashMap<String, List<String>>();
-                if (null == this.headers) {
-                    this.headers = new HashMap<String, String>();
-                } else {
-                    this.headers.clear();
-                }
+                this.headers.clear();
 
                 // Create a BufferedReader for parsing the header.
                 BufferedReader hin = new BufferedReader(new InputStreamReader(new ByteArrayInputStream(buf, 0, this.rlen)));
@@ -951,7 +956,7 @@ public abstract class NanoHTTPD {
                 if (r == null) {
                     throw new ResponseException(Response.Status.INTERNAL_ERROR, "SERVER INTERNAL ERROR: Serve() returned a null response.");
                 } else {
-                    String acceptEncoding = this.headers.get("accept-encoding");
+                    String acceptEncoding = this.headers.get("Accept-Encoding");
                     this.cookies.unloadQueue(r);
                     r.setRequestMethod(this.method);
                     r.setGzipEncoding(useGzipWhenAccepted(r) && acceptEncoding != null && acceptEncoding.contains("gzip"));
@@ -1118,8 +1123,9 @@ public abstract class NanoHTTPD {
          * read bytes.
          */
         public long getBodySize() {
-            if (this.headers.containsKey("Content-Length")) {
-                return Long.parseLong(this.headers.get("Content-Length"));
+            String contentLength = this.headers.get("Content-Length");
+            if (contentLength != null) {
+                return Long.parseLong(contentLength);
             } else if (this.splitbyte < this.rlen) {
                 return this.rlen - this.splitbyte;
             }
@@ -1164,7 +1170,7 @@ public abstract class NanoHTTPD {
                 // If the method is POST, there may be parameters
                 // in data section, too, read it:
                 if (Method.POST.equals(this.method)) {
-                    ContentType contentType = new ContentType(this.headers.get("content-type"));
+                    ContentType contentType = new ContentType(this.headers.get("Content-Type"));
                     if (contentType.isMultipart()) {
                         String boundary = contentType.getBoundary();
                         if (boundary == null) {

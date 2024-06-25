@@ -1,9 +1,12 @@
 package automorph.transport.client
 
-import automorph.log.{LogProperties, Logger, Logging}
+import automorph.log.{Logger, Logging, MessageLog}
 import automorph.spi.EffectSystem.Completable
 import automorph.spi.{ClientTransport, EffectSystem, RpcHandler}
-import automorph.transport.HttpClientBase.{completableEffect, overrideUrl, webSocketCloseReason, webSocketCloseStatusCode, webSocketConnectionClosed, webSocketSchemePrefix, webSocketUnexpectedMessage}
+import automorph.transport.HttpClientBase.{
+  completableEffect, overrideUrl, webSocketCloseReason, webSocketCloseStatusCode, webSocketConnectionClosed,
+  webSocketSchemePrefix, webSocketUnexpectedMessage,
+}
 import automorph.transport.client.JettyClient.{Context, FrameListener, ResponseListener, SentCallback, Transport}
 import automorph.transport.{ClientServerHttpSender, ConnectionPool, HttpContext, HttpListen, HttpMethod, Protocol}
 import automorph.util.Extensions.{ByteArrayOps, EffectOps}
@@ -277,7 +280,7 @@ object JettyClient {
       expectedResponse.map { response =>
         expectedResponse = None
         response.succeed(responseBody).runAsync
-      }.getOrElse(logger.error(webSocketUnexpectedMessage, Map(LogProperties.url -> url)))
+      }.getOrElse(logger.error(webSocketUnexpectedMessage, Map(MessageLog.url -> url)))
     }
 
     override def onWebSocketError(error: Throwable): Unit = {
@@ -285,7 +288,7 @@ object JettyClient {
       expectedResponse.map { response =>
         expectedResponse = None
         response.fail(error).runAsync
-      }.getOrElse(logger.error(webSocketUnexpectedMessage, Map(LogProperties.url -> url)))
+      }.getOrElse(logger.error(webSocketUnexpectedMessage, Map(MessageLog.url -> url)))
     }
 
     override def onWebSocketClose(statusCode: Int, reason: String): Unit = {

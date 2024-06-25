@@ -1,5 +1,6 @@
 package automorph.transport.server
 
+import automorph.log.MessageLog.messageText
 import automorph.log.{Logging, MessageLog}
 import automorph.spi.{EffectSystem, RpcHandler, ServerTransport}
 import automorph.transport.server.RabbitMqServer.Context
@@ -97,7 +98,7 @@ final case class RabbitMqServer[Effect[_]](
         val requestId = Option(amqpProperties.getCorrelationId)
         lazy val requestProperties = RabbitMq
           .messageProperties(requestId, envelope.getRoutingKey, urlText, Option(consumerTag))
-        log.receivedRequest(requestProperties)
+        log.receivedRequest(requestProperties, messageText(requestBody, Option(amqpProperties.getContentType)))
         Option(amqpProperties.getReplyTo).map { replyTo =>
           requestId.map { actualRequestId =>
             // Process the request
@@ -130,7 +131,7 @@ final case class RabbitMqServer[Effect[_]](
   }
 
   private def sendResponse(
-    message: Array[Byte],
+    responseBody: Array[Byte],
     replyTo: String,
     responseContext: Option[Context],
     requestProperties: => Map[String, String],
@@ -142,27 +143,26 @@ final case class RabbitMqServer[Effect[_]](
         transport => Option(transport.properties.getReplyTo)
       })
     }.getOrElse(replyTo)
+    val amqpProperties = RabbitMq.amqpProperties(
+      responseContext,
+      handler.mediaType,
+      actualReplyTo,
+      requestId,
+      serverId,
+      useDefaultRequestId = true,
+    )
     lazy val responseProperties = requestProperties + (RabbitMq.routingKeyProperty -> actualReplyTo)
-    log.sendingResponse(responseProperties)
+    log.sendingResponse(responseProperties, messageText(responseBody, Option(amqpProperties.getContentType)))
 
     // Send the response
     Try {
-      val mediaType = handler.mediaType
-      val amqpProperties = RabbitMq.amqpProperties(
-        responseContext,
-        mediaType,
-        actualReplyTo,
-        requestId,
-        serverId,
-        useDefaultRequestId = true,
-      )
       session.get.consumer.get.getChannel.basicPublish(
         exchange,
         actualReplyTo,
         true,
         false,
         amqpProperties,
-        message,
+        responseBody,
       )
       log.sentResponse(responseProperties)
     }.onError { error =>

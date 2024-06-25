@@ -1,7 +1,6 @@
 package automorph.transport
 
-import java.util.concurrent.TimeUnit
-import scala.concurrent.duration.FiniteDuration
+import scala.concurrent.duration.{DurationInt, FiniteDuration}
 
 /**
  * HTTP/WebSocket client settings for listening for RPC requests from the server.
@@ -11,7 +10,7 @@ import scala.concurrent.duration.FiniteDuration
  * @param retryInterval
  *   time interval between retries of failed listen connection attempts (default: 5 seconds)
  */
-final case class HttpListen(connections: Int = 0, retryInterval: FiniteDuration = FiniteDuration(5, TimeUnit.SECONDS)) {
+final case class HttpListen(connections: Int = 0, retryInterval: FiniteDuration = 5.seconds) {
 
   /**
    * Set number of opened connections reserved for listening for requests from the server.

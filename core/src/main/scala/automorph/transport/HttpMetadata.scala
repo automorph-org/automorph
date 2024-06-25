@@ -1,6 +1,6 @@
 package automorph.transport
 
-import automorph.log.LogProperties
+import automorph.log.MessageLog
 import automorph.transport.HttpMetadata.statusOk
 import automorph.util.Random
 import scala.collection.immutable.ListMap
@@ -24,12 +24,12 @@ private[automorph] final case class HttpMetadata[Context <: HttpContext[?]](
 ) {
   lazy val contentType: String = context.contentType.getOrElse("")
   lazy val properties: Map[String, String] = ListMap(
-    LogProperties.requestId -> id,
-    LogProperties.protocol -> protocol.toString,
-  ) ++ context.url.map(LogProperties.url -> _.toString)
-    ++ context.method.map(LogProperties.method -> _.name)
-    ++ context.statusCode.map(LogProperties.status -> _.toString)
-    ++ context.peer.map(LogProperties.client -> _)
+    MessageLog.requestId -> id,
+    MessageLog.protocol -> protocol.toString,
+  ) ++ context.url.map(MessageLog.url -> _.toString)
+    ++ context.method.map(MessageLog.method -> _.name)
+    ++ context.statusCode.map(MessageLog.status -> _.toString)
+    ++ context.peer.map(MessageLog.client -> _)
   lazy val statusCodeOrOk: Int = context.statusCode.getOrElse(statusOk)
 }
 

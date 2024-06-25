@@ -3,6 +3,7 @@ package automorph.transport.client
 import automorph.log.Logging
 import automorph.spi.{ClientTransport, EffectSystem, RpcHandler}
 import automorph.transport.HttpClientBase.{overrideUrl, webSocketSchemePrefix}
+import automorph.transport.HttpContext.{headerAccept, headerContentLength, headerContentType}
 import automorph.transport.client.UrlClient.{Context, Transport}
 import automorph.transport.{ClientServerHttpSender, HttpContext, HttpListen, HttpMethod, Protocol}
 import automorph.util.Extensions.InputStreamOps
@@ -45,9 +46,6 @@ final case class UrlClient[Effect[_]](
 
   private type Request = (Array[Byte], HttpURLConnection)
 
-  private val contentLengthHeader = "Content-Length"
-  private val contentTypeHeader = "Content-Type"
-  private val acceptHeader = "Accept"
   private val httpMethods = HttpMethod.values.map(_.name).toSet
   private val sender = ClientServerHttpSender(createRequest, sendRequest, url, method, listen, effectSystem)
   System.setProperty("sun.net.http.allowRestrictedHeaders", "true")
@@ -106,9 +104,9 @@ final case class UrlClient[Effect[_]](
         }
         val headers = transportHeaders ++ context.headers
         headers.foreach { case (name, value) => connection.setRequestProperty(name, value) }
-        connection.setRequestProperty(contentLengthHeader, requestBody.length.toString)
-        connection.setRequestProperty(contentTypeHeader, contentType)
-        connection.setRequestProperty(acceptHeader, contentType)
+        connection.setRequestProperty(headerContentLength, requestBody.length.toString)
+        connection.setRequestProperty(headerContentType, contentType)
+        connection.setRequestProperty(headerAccept, contentType)
 
         // Timeouts & follow redirects
         connection.setConnectTimeout(

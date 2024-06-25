@@ -3,11 +3,13 @@ package automorph.transport.server
 import akka.http.scaladsl.model.StatusCodes.InternalServerError
 import akka.http.scaladsl.model.headers.RawHeader
 import akka.http.scaladsl.model.{ContentType, HttpEntity, HttpRequest, HttpResponse, RemoteAddress, StatusCode}
-import akka.http.scaladsl.server.Directives.{complete, extractClientIP, extractExecutionContext, extractMaterializer, extractRequest, onComplete}
+import akka.http.scaladsl.server.Directives.{
+  complete, extractClientIP, extractExecutionContext, extractMaterializer, extractRequest, onComplete,
+}
 import akka.http.scaladsl.server.Route
 import akka.stream.Materializer
 import automorph.spi.{EffectSystem, RpcHandler, ServerTransport}
-import automorph.transport.HttpContext.headerRpcNodeId
+import automorph.transport.HttpContext.{headerContentType, headerRpcNodeId}
 import automorph.transport.server.AkkaHttpEndpoint.Context
 import automorph.transport.{HttpContext, HttpMetadata, HttpMethod, Protocol, ServerHttpHandler}
 import automorph.util.Extensions.{EffectOps, ThrowableOps}
@@ -48,9 +50,6 @@ final case class AkkaHttpEndpoint[Effect[_]](
   rpcHandler: RpcHandler[Effect, Context] = RpcHandler.dummy[Effect, Context],
 ) extends ServerTransport[Effect, Context, Route] {
 
-  private lazy val contentType = ContentType.parse(rpcHandler.mediaType).swap.map { errors =>
-    new IllegalStateException(s"Invalid message content type: ${errors.mkString("\n")}")
-  }.swap.toTry.get
   private lazy val route: Route =
     extractRequest { httpRequest =>
       extractClientIP { remoteAddress =>
@@ -106,23 +105,31 @@ final case class AkkaHttpEndpoint[Effect[_]](
     body: Array[Byte],
     metadata: HttpMetadata[Context],
     @unused channel: Unit,
-  ): Effect[HttpResponse] =
+  ): Effect[HttpResponse] = {
+    val contentType = ContentType.parse(metadata.contentType).swap.map { errors =>
+      new IllegalStateException(s"Invalid message content type: ${errors.mkString("\n")}")
+    }.swap.toTry.get
     effectSystem.successful(
       createResponseContext(HttpResponse(), metadata.context)
         .withStatus(StatusCode.int2StatusCode(metadata.statusCodeOrOk))
         .withEntity(contentType, body)
     )
+  }
 
-  private def getRequestContext(request: HttpRequest, remoteAddress: RemoteAddress): Context =
+  private def getRequestContext(request: HttpRequest, remoteAddress: RemoteAddress): Context = {
+    val contentType = request.entity.contentType.toString
     HttpContext(
       transportContext = Some(request),
       method = Some(HttpMethod.valueOf(request.method.value)),
-      headers = request.headers.map(header => header.name -> header.value),
+      headers = request.headers.map(header => header.name -> header.value) ++ Seq(headerContentType -> contentType),
       peer = Some(client(remoteAddress, request)),
     ).url(request.uri.toString)
+  }
 
   private def createResponseContext(response: HttpResponse, context: Context): HttpResponse =
-    response.withHeaders(context.headers.map { case (name, value) => RawHeader(name, value) })
+    response.withHeaders(context.headers.filter { case (name, _) =>
+      name != headerContentType
+    }.map { case (name, value) => RawHeader(name, value) })
 
   private def client(remoteAddress: RemoteAddress, request: HttpRequest): String = {
     val address = remoteAddress.toOption.flatMap(address => Option(address.getHostAddress)).getOrElse("")

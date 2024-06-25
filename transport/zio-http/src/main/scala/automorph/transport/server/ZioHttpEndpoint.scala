@@ -39,9 +39,6 @@ final case class ZioHttpEndpoint[Fault](
     RpcHandler.dummy[({ type Effect[A] = IO[Fault, A] })#Effect, Context],
 ) extends ServerTransport[({ type Effect[A] = IO[Fault, A] })#Effect, Context, http.RequestHandler[Any, Response]] {
 
-  private lazy val mediaType = MediaType.forContentType(rpcHandler.mediaType).getOrElse(
-    throw new IllegalStateException(s"Invalid message content type: ${rpcHandler.mediaType}")
-  )
   private lazy val requestHandler = Handler.fromFunctionZIO(handle)
   private val handler =
     ServerHttpHandler(receiveRequest, createResponse, Protocol.Http, effectSystem, mapException, rpcHandler)
@@ -76,6 +73,9 @@ final case class ZioHttpEndpoint[Fault](
     metadata: HttpMetadata[Context],
     @unused session: Unit,
   ): IO[Fault, Response] = {
+    lazy val mediaType = MediaType.forContentType(metadata.contentType).getOrElse(
+      throw new IllegalStateException(s"Invalid message content type: ${metadata.contentType}")
+    )
     val response = setResponseContext(
       Response(
         Status.fromInt(metadata.statusCodeOrOk),

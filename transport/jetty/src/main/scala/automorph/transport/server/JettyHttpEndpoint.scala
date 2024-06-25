@@ -73,7 +73,7 @@ final case class JettyHttpEndpoint[Effect[_]](
   ): Effect[Unit] = {
     val (response, asyncContext) = channel
     setResponseContext(response, metadata.context)
-    response.setContentType(rpcHandler.mediaType)
+    response.setContentType(metadata.contentType)
     response.setStatus(metadata.statusCodeOrOk)
     effectSystem.evaluate {
       val outputStream = response.getOutputStream

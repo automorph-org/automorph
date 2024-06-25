@@ -1,7 +1,7 @@
 package automorph.transport
 
 import automorph.RpcException.{FunctionNotFound, InvalidArguments, InvalidRequest, InvalidResponse, ServerError}
-import automorph.transport.HttpContext.SetCookie
+import automorph.transport.HttpContext.{SetCookie, headerContentLength, headerContentType}
 import java.io.IOException
 import java.net.URI
 import scala.concurrent.duration.Duration
@@ -62,9 +62,9 @@ final case class HttpContext[TransportContext](
   transportContext: Option[TransportContext] = None,
 ) {
 
+  private val headerContentLengthLowerCase = headerContentLength.toLowerCase
+  private val headerContentTypeLowerCase = headerContentType.toLowerCase
   private val headerAuthorization = "Authorization"
-  private val headerContentLength = "Content-Length"
-  private val headerContentType = "Content-Type"
   private val headerCookie = "Cookie"
   private val headerProxyAuthorization = "Proxy-Authorization"
   private val headerSetCookie = "Set-Cookie"
@@ -445,7 +445,7 @@ final case class HttpContext[TransportContext](
 
   /** `Content-Type` header value. */
   def contentType: Option[String] =
-    header(headerContentType)
+    header(headerContentType).orElse(header(headerContentTypeLowerCase))
 
   /**
    * Set `Content-Type` header value.
@@ -460,7 +460,7 @@ final case class HttpContext[TransportContext](
 
   /** `Content-Length` header value. */
   def contentLength: Option[String] =
-    header(headerContentLength)
+    header(headerContentLength).orElse(header(headerContentLengthLowerCase))
 
   /**
    * Set `Content-Length` header value.
@@ -626,8 +626,8 @@ final case class HttpContext[TransportContext](
 object HttpContext {
 
   /**
-   * Name of HTTP header which if set to 'true' indicates given connection is used exclusively to listen for incoming RPC
-   * requests.
+   * Name of HTTP header which if set to 'true' indicates given connection is used exclusively to listen for incoming
+   * RPC requests.
    */
   val headerRpcListen = "RPC-Listen"
 
@@ -636,6 +636,10 @@ object HttpContext {
 
   /** Name of HTTP header containing RPC call identifier for correlating requests with responses. */
   val headerRpcCallId = "RPC-Call-Id"
+
+  private[automorph] val headerContentLength = "Content-Length"
+  private[automorph] val headerContentType = "Content-Type"
+  private[automorph] val headerAccept = "Accept"
 
   private val exceptionToStatusCode: Map[Class[?], Int] = Map[Class[?], Int](
     classOf[InvalidRequest] -> 400,

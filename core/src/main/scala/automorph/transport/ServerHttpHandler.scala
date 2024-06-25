@@ -1,6 +1,7 @@
 package automorph.transport
 
 import automorph.RpcException.InvalidRequest
+import automorph.log.MessageLog.messageText
 import automorph.log.{Logging, MessageLog}
 import automorph.spi.{EffectSystem, RpcHandler}
 import automorph.transport.ServerHttpHandler.{contentTypeText, statusInternalServerError, statusOk}
@@ -92,15 +93,18 @@ final private[automorph] case class ServerHttpHandler[
           { result =>
             // Send the response
             val responseBody = result.map(_.responseBody).getOrElse(Array.emptyByteArray)
-            val context = result.flatMap(_.context)
-            lazy val statusCode = result.flatMap(_.exception).map(mapException).orElse(context.flatMap(_.statusCode))
-            respond(responseBody, rpcHandler.mediaType, statusCode, context, metadata, connection)
+            val responseContext = result.flatMap(_.context)
+            lazy val statusCode =
+              result.flatMap(_.exception).map(mapException).orElse(responseContext.flatMap(_.statusCode))
+            respond(responseBody, rpcHandler.mediaType, statusCode, responseContext, metadata, connection)
           },
         )
       } else {
-        system.failed[Response](InvalidRequest(s"Invalid content type: $contentType"))
+        respondError(InvalidRequest(s"Invalid content type: $contentType"), connection, metadata)
       }
-    }.getOrElse(system.failed(InvalidRequest("Missing content type")))
+    }.getOrElse {
+      respondError(InvalidRequest("Missing content type"), connection, metadata)
+    }
 
   /**
    * Retrieves HTTP or WebSocket request body and metadata.
@@ -112,10 +116,14 @@ final private[automorph] case class ServerHttpHandler[
    */
   def retrieveRequest(request: Request): Effect[(Array[Byte], HttpMetadata[Context])] = {
     log.receivingRequest(Map.empty, protocol.name)
-    Try(receiveRequest(request)).map { case (retrieveBody, context) =>
+    Try(receiveRequest(request)).map { case (retrieveBody, requestContext) =>
       retrieveBody.map { requestBody =>
-        val requestMetadata = HttpMetadata(context, protocol)
-        log.receivedRequest(requestMetadata.properties, protocol.name)
+        val requestMetadata = HttpMetadata(requestContext, protocol)
+        log.receivedRequest(
+          requestMetadata.properties,
+          messageText(requestBody, requestContext.contentType),
+          protocol.name,
+        )
         requestBody -> requestMetadata
       }
     }.onError(log.failedReceiveRequest(_, Map.empty, protocol.name)).get
@@ -153,9 +161,13 @@ final private[automorph] case class ServerHttpHandler[
       context.getOrElse(HttpContext())
     }
     val responseMetadata =
-      metadata.copy(context = responseContext.contentType(rpcHandler.mediaType).asInstanceOf[Context])
+      metadata.copy(context = responseContext.contentType(contentType).asInstanceOf[Context])
     val protocolName = metadata.protocol.name
-    log.sendingResponse(responseMetadata.properties, protocolName)
+    log.sendingResponse(
+      responseMetadata.properties,
+      messageText(body, responseMetadata.context.contentType),
+      protocolName,
+    )
     sendResponse(body, responseMetadata, connection).flatFold(
       { error =>
         log.failedSendResponse(error, responseMetadata.properties, protocolName)
