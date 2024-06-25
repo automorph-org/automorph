@@ -42,13 +42,16 @@ final case class TrySystem() extends EffectSystem[Try] {
   override def flatMap[T, R](effect: Try[T])(function: T => Try[R]): Try[R] =
     effect.flatMap(function)
 
+  override def runAsync[T](effect: => Try[T]): Unit =
+    new Thread(new Runnable {
+      override def run(): Unit = {
+        effect.get
+        ()
+      }
+    }).start()
+
   override def sleep(duration: FiniteDuration): Try[Unit] =
     Success(Thread.sleep(duration.toMillis))
-
-  override def runAsync[T](effect: => Try[T]): Unit = {
-    effect
-    ()
-  }
 
   override def completable[T]: Try[EffectSystem.Completable[Try, T]] =
     Success(CompletableTry())

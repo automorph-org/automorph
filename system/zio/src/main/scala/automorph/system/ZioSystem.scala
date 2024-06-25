@@ -59,9 +59,6 @@ final case class ZioSystem[Fault](
   override def flatMap[T, R](effect: IO[Fault, T])(function: T => IO[Fault, R]): IO[Fault, R] =
     effect.flatMap(function)
 
-  override def sleep(duration: FiniteDuration): IO[Fault, Unit] =
-    ZIO.sleep(Duration.fromScala(duration))
-
   override def runAsync[T](effect: => IO[Fault, T]): Unit = {
     implicit val trace: Trace = Trace.empty
     Unsafe.unsafe { implicit unsafe =>
@@ -69,6 +66,9 @@ final case class ZioSystem[Fault](
       ()
     }
   }
+
+  override def sleep(duration: FiniteDuration): IO[Fault, Unit] =
+    ZIO.sleep(Duration.fromScala(duration))
 
   override def completable[T]: IO[Fault, Completable[({ type Effect[A] = IO[Fault, A] })#Effect, T]] =
     map(Queue.dropping[Either[Fault, T]](1))(CompletableZIO.apply)

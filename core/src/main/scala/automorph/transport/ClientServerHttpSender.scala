@@ -5,6 +5,7 @@ import automorph.log.{Logging, MessageLog}
 import automorph.spi.EffectSystem
 import automorph.util.Extensions.EffectOps
 import java.net.URI
+import java.util.concurrent.atomic.AtomicBoolean
 import scala.util.Try
 
 /**
@@ -35,6 +36,7 @@ final private[automorph] case class ClientServerHttpSender[Effect[_], Context <:
   httpListen: HttpListen,
   effectSystem: EffectSystem[Effect],
 ) extends Logging {
+  private val listening = new AtomicBoolean(false)
   private val log = MessageLog(logger)
   implicit private val system: EffectSystem[Effect] = effectSystem
 
@@ -73,11 +75,11 @@ final private[automorph] case class ClientServerHttpSender[Effect[_], Context <:
 
   def init(): Unit =
     if (httpListen.connections >= 0) {
-      ()
+      listening.set(true)
     }
 
   def close(): Unit =
-    ()
+    listening.set(false)
 
   private def send(
     request: Request,
@@ -100,4 +102,8 @@ final private[automorph] case class ClientServerHttpSender[Effect[_], Context <:
       },
     )
   }
+//
+//  private def listen(): Effect[Unit] = {
+//    system.runAsync()
+//  }
 }

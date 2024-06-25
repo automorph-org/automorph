@@ -51,15 +51,15 @@ final case class FutureSystem()(implicit val executionContext: ExecutionContext)
   override def flatMap[T, R](effect: Future[T])(function: T => Future[R]): Future[R] =
     effect.flatMap(function)
 
+  override def runAsync[T](effect: => Future[T]): Unit = {
+    effect
+    ()
+  }
+
   override def sleep(duration: FiniteDuration): Future[Unit] = {
     val promise = Promise[Unit]()
     (new Timer).schedule(SleepTask(promise), duration.toMillis)
     promise.future
-  }
-
-  override def runAsync[T](effect: => Future[T]): Unit = {
-    effect
-    ()
   }
 
   override def completable[T]: Future[Completable[Future, T]] =

@@ -99,7 +99,7 @@ final case class HttpClient[Effect[_]](
     webSocketConnectionPool.init().map(_ => sender.init())
 
   override def close(): Effect[Unit] =
-    webSocketConnectionPool.close()
+    system.evaluate(sender.close()).flatMap(_ => webSocketConnectionPool.close())
 
   override def rpcHandler(handler: RpcHandler[Effect, Context]): HttpClient[Effect] =
     copy(rpcHandler = handler)

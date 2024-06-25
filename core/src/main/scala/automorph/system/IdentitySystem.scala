@@ -48,13 +48,16 @@ final case class IdentitySystem() extends EffectSystem[Identity] {
   override def flatMap[T, R](effect: T)(function: T => R): R =
     function(effect)
 
+  override def runAsync[T](effect: => T): Unit =
+    new Thread(new Runnable {
+      override def run(): Unit = {
+        effect
+        ()
+      }
+    }).start()
+
   override def sleep(duration: FiniteDuration): Unit =
     Thread.sleep(duration.toMillis)
-
-  override def runAsync[T](effect: => T): Unit = {
-    effect
-    ()
-  }
 
   override def completable[T]: Identity[EffectSystem.Completable[Identity, T]] =
     CompletableIdentity()

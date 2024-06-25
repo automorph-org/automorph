@@ -51,11 +51,11 @@ final case class MonixSystem()(implicit val scheduler: Scheduler) extends Effect
   override def flatMap[T, R](effect: Task[T])(function: T => Task[R]): Task[R] =
     effect.flatMap(function)
 
-  override def sleep(duration: FiniteDuration): Task[Unit] =
-    Task.sleep(duration)
-
   override def runAsync[T](effect: => Task[T]): Unit =
     effect.runAsyncAndForget
+
+  override def sleep(duration: FiniteDuration): Task[Unit] =
+    Task.sleep(duration)
 
   override def completable[T]: Task[Completable[Task, T]] =
     map(MVar.empty[Task, Either[Throwable, T]]())(CompletableTask.apply)

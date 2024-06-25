@@ -110,14 +110,17 @@ trait EffectSystemTest[Effect[_]] extends BaseTest {
         run(effect).shouldEqual(Right(false))
       }
     }
-    "Sleep" in {
+    "RunAsync" in {
       var state = false
-      system.map(system.sleep(FiniteDuration(delay, TimeUnit.MILLISECONDS)))(_ => state = true)
-      Thread.sleep(2 * delay)
+      system.runAsync(system.evaluate { state = true })
+      Thread.sleep(delay)
       state.shouldEqual(true)
     }
-    "RunAsync" in {
-      system.runAsync(system.evaluate(text))
+    "Sleep" in {
+      var state = false
+      system.runAsync(system.map(system.sleep(FiniteDuration(delay, TimeUnit.MILLISECONDS)))(_ => state = true))
+      Thread.sleep(2 * delay)
+      state.shouldEqual(true)
     }
     "Completable" - {
       "Success" in {

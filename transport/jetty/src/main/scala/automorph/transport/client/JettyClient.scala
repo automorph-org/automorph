@@ -105,8 +105,12 @@ final case class JettyClient[Effect[_]](
   override def close(): Effect[Unit] =
     webSocketConnectionPool.close().map { _ =>
       this.synchronized {
-        webSocketClient.stop()
-        httpClient.stop()
+        if (httpClient.isStarted) {
+          webSocketClient.stop()
+          httpClient.stop()
+        } else {
+          throw new IllegalStateException(s"${getClass.getSimpleName} already closed")
+        }
       }
     }
 

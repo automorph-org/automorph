@@ -138,16 +138,6 @@ trait EffectSystem[Effect[_]] {
   def flatMap[T, R](effect: Effect[T])(function: T => Effect[R]): Effect[R]
 
   /**
-   * Creates an effect than suspends its execution for the specified duration.
-   *
-   * @param duration
-   *   suspension duration
-   * @return
-   *   suspended effect
-   */
-  def sleep(duration: FiniteDuration): Effect[Unit]
-
-  /**
    * Executes an effect asynchronously without blocking and discard the result.
    *
    * @param effect
@@ -158,6 +148,16 @@ trait EffectSystem[Effect[_]] {
    *   nothing
    */
   def runAsync[T](effect: => Effect[T]): Unit
+
+  /**
+   * Creates an effect than suspends its execution for the specified duration.
+   *
+   * @param duration
+   *   suspension duration
+   * @return
+   *   suspended effect
+   */
+  def sleep(duration: FiniteDuration): Effect[Unit]
 
   /**
    * Creates an externally completable effect.

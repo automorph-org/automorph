@@ -51,11 +51,11 @@ final case class CatsEffectSystem()(implicit val runtime: IORuntime) extends Eff
   override def flatMap[T, R](effect: IO[T])(function: T => IO[R]): IO[R] =
     effect.flatMap(function)
 
-  override def sleep(duration: FiniteDuration): IO[Unit] =
-    IO.sleep(duration)
-
   override def runAsync[T](effect: => IO[T]): Unit =
     effect.unsafeRunAndForget()
+
+  override def sleep(duration: FiniteDuration): IO[Unit] =
+    IO.sleep(duration)
 
   override def completable[T]: IO[Completable[IO, T]] =
     map(Queue.dropping[IO, Either[Throwable, T]](1))(CompletableIO.apply)
