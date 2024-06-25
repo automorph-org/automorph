@@ -44,11 +44,11 @@ jobs:
       - name: Build project
         run: sbt --client '+ test'
 
-      - name: Generate Badge
-        uses: jaywcjlove/generated-badges@1.0.13
+      - name: Generate badge
+        uses: cjlapao/simple-badge-generator-action@v1
         with:
-          label: 'Build Status'
-          status: ${{ job.status }}
-          color: ${{ job.status == 'success' ? 'green' : 'red' }}
-          output: 'build.svg'
+          title: 'Build Status'
+          value: ${{ job.status }}
+          badge-type: 'boolean'
+          badge-path: 'build.svg'
 
