@@ -2,12 +2,13 @@
 
 ![Automorph](https://github.com/automorph-org/automorph/raw/main/site/static/banner.jpg)
 
-[![Documentation](https://img.shields.io/badge/Website-documentation-purple)](https://automorph.org)
-[![API](https://img.shields.io/badge/Scaladoc-API-blue)](https://automorph.org/api/automorph.html)
-[![Artifacts](https://img.shields.io/badge/Releases-artifacts-yellow)](
+[![Documentation](https://img.shields.io/badge/Website-documentation-blue)](https://automorph.org)
+[![API](https://img.shields.io/badge/Scaladoc-API-mediumpurple)](https://automorph.org/api/automorph.html)
+[![Artifacts](https://img.shields.io/maven-central/v/org.automorph/automorph-default_3?label=Artifacts)](
 https://central.sonatype.com/namespace/org.automorph)
-[![Build](https://github.com/automorph-org/automorph/workflows/Build/badge.svg)](
-https://github.com/automorph-org/automorph/actions)
+[![Scala](https://img.shields.io/badge/Scala-2.13%20%2F%203.3-goldenrod)](https://www.scala-lang.org)
+[![License](https://img.shields.io/github/license/automorph-org/automorph?label=License&color=teal)](https://github.com/automorph-org/automorph/blob/main/LICENSE)
+[![Build](https://github.com/automorph-org/automorph/actions/workflows/build.yml/badge.svg)](https://github.com/automorph-org/automorph/actions/workflows/build.yml)
 
 **Automorph** is a Scala [RPC](https://en.wikipedia.org/wiki/Remote_procedure_call) client and server library
 for type-safely calling and serving remote APIs in a few lines of code.
