@@ -4,7 +4,7 @@
 
 [![Documentation](https://img.shields.io/badge/Website-documentation-purple)](https://automorph.org)
 [![API](https://img.shields.io/badge/Scaladoc-API-blue)](https://automorph.org/api/automorph.html)
-[![Artifacts](https://img.shields.io/maven-central/v/org.automorph/automorph-default_3)](
+[![Artifacts](https://img.shields.io/maven-central/v/org.automorph/automorph-default_3?label=Artifacts)](
 https://central.sonatype.com/namespace/org.automorph)
 [![Build](https://github.com/automorph-org/automorph/actions/workflows/build.yml/badge.svg)](https://github.com/automorph-org/automorph/actions/workflows/build.yml)
 
