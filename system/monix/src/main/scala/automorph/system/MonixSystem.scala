@@ -5,6 +5,7 @@ import automorph.spi.EffectSystem.Completable
 import monix.catnap.MVar
 import monix.eval.Task
 import monix.execution.Scheduler
+import scala.concurrent.duration.FiniteDuration
 
 /**
  * Monix effect effect system plugin using `Task` as an effect type.
@@ -49,6 +50,9 @@ final case class MonixSystem()(implicit val scheduler: Scheduler) extends Effect
 
   override def flatMap[T, R](effect: Task[T])(function: T => Task[R]): Task[R] =
     effect.flatMap(function)
+
+  override def sleep(duration: FiniteDuration): Task[Unit] =
+    Task.sleep(duration)
 
   override def runAsync[T](effect: => Task[T]): Unit =
     effect.runAsyncAndForget

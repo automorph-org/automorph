@@ -3,9 +3,9 @@ package automorph.system
 import automorph.spi.EffectSystem
 import automorph.spi.EffectSystem.Completable
 import automorph.system.IdentitySystem.Identity
-import scala.concurrent.duration.Duration
-import scala.concurrent.{Await, Promise}
-import scala.util.Try
+import java.util.concurrent.{ArrayBlockingQueue, BlockingQueue}
+import scala.concurrent.duration.FiniteDuration
+import scala.util.{Failure, Success, Try}
 
 /**
  * Synchronous effect system plugin using identity as an effect type.
@@ -48,26 +48,30 @@ final case class IdentitySystem() extends EffectSystem[Identity] {
   override def flatMap[T, R](effect: T)(function: T => R): R =
     function(effect)
 
+  override def sleep(duration: FiniteDuration): Unit =
+    Thread.sleep(duration.toMillis)
+
   override def runAsync[T](effect: => T): Unit = {
     effect
     ()
   }
 
   override def completable[T]: Identity[EffectSystem.Completable[Identity, T]] =
-    CompletableFuture()
+    CompletableIdentity()
 
-  sealed private case class CompletableFuture[T]() extends Completable[Identity, T]() {
-    private val promise: Promise[T] = Promise()
+   sealed private case class CompletableIdentity[T]() extends Completable[Identity, T]() {
+     private val queue: BlockingQueue[Try[T]] = new ArrayBlockingQueue(1)
 
-    override def effect: T =
-      Await.result(promise.future, Duration.Inf)
+     override def effect: Identity[T] =
+       queue.take().get
 
-    override def succeed(value: T): Unit =
-      promise.success(value)
+     override def succeed(value: T): Unit =
+       queue.put(Success(value))
 
-    override def fail(exception: Throwable): Unit =
-      promise.failure(exception)
-  }
+     override def fail(exception: Throwable): Unit = {
+       queue.put(Failure(exception))
+     }
+   }
 }
 
 object IdentitySystem {

@@ -2,7 +2,8 @@ package automorph.system
 
 import automorph.spi.EffectSystem
 import automorph.spi.EffectSystem.Completable
-import zio.{IO, Queue, Runtime, Trace, Unsafe, ZIO}
+import zio.{Duration, IO, Queue, Runtime, Trace, Unsafe, ZIO}
+import scala.concurrent.duration.FiniteDuration
 
 /**
  * ZIO effect system plugin using `IO` as an effect type.
@@ -57,6 +58,9 @@ final case class ZioSystem[Fault](
 
   override def flatMap[T, R](effect: IO[Fault, T])(function: T => IO[Fault, R]): IO[Fault, R] =
     effect.flatMap(function)
+
+  override def sleep(duration: FiniteDuration): IO[Fault, Unit] =
+    ZIO.sleep(Duration.fromScala(duration))
 
   override def runAsync[T](effect: => IO[Fault, T]): Unit = {
     implicit val trace: Trace = Trace.empty

@@ -2,6 +2,8 @@ package automorph.system
 
 import automorph.spi.EffectSystem
 import automorph.spi.EffectSystem.Completable
+import java.util.{Timer, TimerTask}
+import scala.concurrent.duration.FiniteDuration
 import scala.concurrent.{ExecutionContext, Future, Promise}
 import scala.util.{Failure, Success}
 
@@ -49,6 +51,12 @@ final case class FutureSystem()(implicit val executionContext: ExecutionContext)
   override def flatMap[T, R](effect: Future[T])(function: T => Future[R]): Future[R] =
     effect.flatMap(function)
 
+  override def sleep(duration: FiniteDuration): Future[Unit] = {
+    val promise = Promise[Unit]()
+    (new Timer).schedule(SleepTask(promise), duration.toMillis)
+    promise.future
+  }
+
   override def runAsync[T](effect: => Future[T]): Unit = {
     effect
     ()
@@ -68,6 +76,12 @@ final case class FutureSystem()(implicit val executionContext: ExecutionContext)
 
     override def fail(exception: Throwable): Future[Unit] =
       Future(promise.failure(exception))
+  }
+
+  sealed private case class SleepTask(promise: Promise[Unit]) extends TimerTask {
+
+    override def run(): Unit =
+      promise.success(())
   }
 }
 

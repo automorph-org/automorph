@@ -1,6 +1,7 @@
 package automorph.spi
 
 import automorph.spi.EffectSystem.Completable
+import scala.concurrent.duration.FiniteDuration
 
 /**
  * Computational effect system plugin.
@@ -15,9 +16,9 @@ import automorph.spi.EffectSystem.Completable
 trait EffectSystem[Effect[_]] {
 
   /**
-   * Lifts a potentially blocking and side-effecting value into a new effect of specified type.
+   * Creates an effect by evaluating a potentially blocking and side-effecting value.
    *
-   * Exceptions thrown while computing the value are translated into a failed effect.
+   * Any exceptions thrown while computing the value result in a failed effect.
    *
    * @param value
    *   side-effecting value
@@ -29,7 +30,9 @@ trait EffectSystem[Effect[_]] {
   def evaluate[T](value: => T): Effect[T]
 
   /**
-   * Lifts a value without blocking or side-effects into a successfully completed effect of specified type.
+   * Creates a successfully completed effect out of an existing value without blocking or side-effects.
+   *
+   * The resulting effect cannot fail.
    *
    * @param value
    *   value
@@ -41,7 +44,7 @@ trait EffectSystem[Effect[_]] {
   def successful[T](value: T): Effect[T]
 
   /**
-   * Lifts a exception into a failed effect of specified type.
+   * Creates a failed effect from an existing exception.
    *
    * @param exception
    *   exception
@@ -53,7 +56,7 @@ trait EffectSystem[Effect[_]] {
   def failed[T](exception: Throwable): Effect[T]
 
   /**
-   * Creates a new effect by lifting an effect's errors into a value.
+   * Creates a successfully completed effect by lifting an effect's errors into a value.
    *
    * The resulting effect cannot fail.
    *
@@ -133,6 +136,16 @@ trait EffectSystem[Effect[_]] {
    *   effect containing the transformed value
    */
   def flatMap[T, R](effect: Effect[T])(function: T => Effect[R]): Effect[R]
+
+  /**
+   * Creates an effect than suspends its execution for the specified duration.
+   *
+   * @param duration
+   *   suspension duration
+   * @return
+   *   suspended effect
+   */
+  def sleep(duration: FiniteDuration): Effect[Unit]
 
   /**
    * Executes an effect asynchronously without blocking and discard the result.

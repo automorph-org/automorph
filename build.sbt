@@ -63,7 +63,6 @@ lazy val root = project.in(file(".")).settings(
   zio,
   monix,
   catsEffect,
-  scalazEffect,
 
   // Client transport
   sttp,
@@ -84,7 +83,7 @@ lazy val root = project.in(file(".")).settings(
 
   // Misc
   default,
-  testStandard,
+  standard,
   examples,
 )
 
@@ -137,9 +136,6 @@ lazy val monix = source(project, "system/monix", core, testPlugin % Test).settin
 )
 lazy val catsEffect = source(project, "system/cats-effect", core, testPlugin % Test).settings(
   libraryDependencies += "org.typelevel" %% "cats-effect" % "3.5.4"
-)
-lazy val scalazEffect = source(project, "system/scalaz-effect", core, testPlugin % Test).settings(
-  libraryDependencies += "org.scalaz" %% "scalaz-effect" % "7.4.0-M14"
 )
 
 // Message codec
@@ -370,7 +366,7 @@ lazy val testCodec = source(project, "test/codec", testBase, meta).settings(
 )
 lazy val testPlugin =
   source(project, "test/plugin", testCodec, core, circe, jackson, playJson, json4s, weepickle, upickle)
-lazy val testStandard = source(project, "test/standard", testPlugin, core, testPlugin % Test)
+lazy val standard = source(project, "test/standard", testPlugin, core, testPlugin % Test)
 
 def testJavaOptions: Seq[String] =
   Seq(s"-Dproject.target=${System.getProperty("project.target")}")

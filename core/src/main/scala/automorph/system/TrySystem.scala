@@ -2,8 +2,8 @@ package automorph.system
 
 import automorph.spi.EffectSystem
 import automorph.spi.EffectSystem.Completable
-import scala.concurrent.duration.Duration
-import scala.concurrent.{Await, Promise}
+import java.util.concurrent.{ArrayBlockingQueue, BlockingQueue}
+import scala.concurrent.duration.FiniteDuration
 import scala.util.{Failure, Success, Try}
 
 /**
@@ -42,26 +42,29 @@ final case class TrySystem() extends EffectSystem[Try] {
   override def flatMap[T, R](effect: Try[T])(function: T => Try[R]): Try[R] =
     effect.flatMap(function)
 
+  override def sleep(duration: FiniteDuration): Try[Unit] =
+    Success(Thread.sleep(duration.toMillis))
+
   override def runAsync[T](effect: => Try[T]): Unit = {
     effect
     ()
   }
 
   override def completable[T]: Try[EffectSystem.Completable[Try, T]] =
-    Success(CompletableFuture())
+    Success(CompletableTry())
 
-  sealed private case class CompletableFuture[T]() extends Completable[Try, T]() {
-    private val promise: Promise[T] = Promise()
+   sealed private case class CompletableTry[T]() extends Completable[Try, T]() {
+     private val queue: BlockingQueue[Try[T]] = new ArrayBlockingQueue(1)
 
-    override def effect: Try[T] =
-      Try(Await.result(promise.future, Duration.Inf))
+     override def effect: Try[T] =
+       queue.take()
 
-    override def succeed(value: T): Try[Unit] =
-      Try(promise.success(value))
+     override def succeed(value: T): Try[Unit] =
+       Try(queue.put(Success(value)))
 
-    override def fail(exception: Throwable): Try[Unit] =
-      Try(promise.failure(exception))
-  }
+     override def fail(exception: Throwable): Try[Unit] =
+       Try(queue.put(Failure(exception)))
+   }
 }
 
 object TrySystem {

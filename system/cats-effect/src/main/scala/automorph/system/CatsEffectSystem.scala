@@ -5,6 +5,7 @@ import automorph.spi.EffectSystem.Completable
 import cats.effect.IO
 import cats.effect.std.Queue
 import cats.effect.unsafe.IORuntime
+import scala.concurrent.duration.FiniteDuration
 
 /**
  * Cats Effect effect system plugin.
@@ -49,6 +50,9 @@ final case class CatsEffectSystem()(implicit val runtime: IORuntime) extends Eff
 
   override def flatMap[T, R](effect: IO[T])(function: T => IO[R]): IO[R] =
     effect.flatMap(function)
+
+  override def sleep(duration: FiniteDuration): IO[Unit] =
+    IO.sleep(duration)
 
   override def runAsync[T](effect: => IO[T]): Unit =
     effect.unsafeRunAndForget()
