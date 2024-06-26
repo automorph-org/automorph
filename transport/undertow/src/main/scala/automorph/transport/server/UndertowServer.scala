@@ -104,9 +104,7 @@ final case class UndertowServer[Effect[_]](
     val rootHandler = Handlers.predicate(
       Predicates.prefix(pathPrefix),
       // WebSocket support
-      Option.when(webSocket)(
-        UndertowWebSocketEndpoint(effectSystem, handler).httpHandler(httpHandler)
-      ).getOrElse(httpHandler),
+      if (webSocket) UndertowWebSocketEndpoint(effectSystem, handler).httpHandler(httpHandler) else httpHandler,
       ResponseCodeHandler.HANDLE_404,
     )
     builder.addHttpListener(port, "0.0.0.0", rootHandler).build()

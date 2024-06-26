@@ -3,10 +3,9 @@ package automorph.transport.client
 import automorph.log.{Logger, Logging, MessageLog}
 import automorph.spi.EffectSystem.Completable
 import automorph.spi.{ClientTransport, EffectSystem, RpcHandler}
-import automorph.transport.HttpClientBase.{
-  completableEffect, overrideUrl, webSocketCloseReason, webSocketCloseStatusCode, webSocketConnectionClosed,
-  webSocketSchemePrefix, webSocketUnexpectedMessage,
-}
+import automorph.transport.HttpClientBase.{completableEffect, overrideUrl, webSocketCloseReason, webSocketCloseStatusCode, webSocketConnectionClosed, webSocketSchemePrefix, webSocketUnexpectedMessage}
+import automorph.transport.HttpContext.headerRpcListen
+import automorph.transport.ServerHttpHandler.valueRpcListen
 import automorph.transport.client.JettyClient.{Context, FrameListener, ResponseListener, SentCallback, Transport}
 import automorph.transport.{ClientServerHttpSender, ConnectionPool, HttpContext, HttpListen, HttpMethod, Protocol}
 import automorph.util.Extensions.{ByteArrayOps, EffectOps}
@@ -67,10 +66,12 @@ final case class JettyClient[Effect[_]](
   private type GenericRequest = Either[Request, (Array[Byte], ClientUpgradeRequest, URI)]
 
   private val webSocketClient = new WebSocketClient(httpClient)
-  private val webSocketConnectionPool = {
+  private val callWebSocketConnections = {
     val maxPeerConnections = Some(httpClient.getMaxConnectionsPerDestination)
     ConnectionPool(Some(openWebSocket), closeWebSocket, Protocol.WebSocket, effectSystem, maxPeerConnections)
   }
+  private val listenWebSocketConnections =
+    ConnectionPool(Some(openWebSocket), closeWebSocket, Protocol.WebSocket, effectSystem, Some(listen.connections))
   private val sender = ClientServerHttpSender(createRequest, sendRequest, url, method, listen, rpcNodeId, effectSystem)
   implicit private val system: EffectSystem[Effect] = effectSystem
 
@@ -103,19 +104,25 @@ final case class JettyClient[Effect[_]](
         }
         webSocketClient.start()
       }
-    }.flatMap(_ => webSocketConnectionPool.init()).map(_ => sender.init())
+    }
+      .flatMap(_ => callWebSocketConnections.init())
+      .flatMap(_ => listenWebSocketConnections.init())
+      .map(_ => sender.init())
 
   override def close(): Effect[Unit] =
-    webSocketConnectionPool.close().map { _ =>
-      this.synchronized {
-        if (httpClient.isStarted) {
-          webSocketClient.stop()
-          httpClient.stop()
-        } else {
-          throw new IllegalStateException(s"${getClass.getSimpleName} already closed")
+    system.evaluate(sender.close())
+      .flatMap(_ => listenWebSocketConnections.close())
+      .flatMap(_ => callWebSocketConnections.close())
+      .map { _ =>
+        this.synchronized {
+          if (httpClient.isStarted) {
+            webSocketClient.stop()
+            httpClient.stop()
+          } else {
+            throw new IllegalStateException(s"${getClass.getSimpleName} already closed")
+          }
         }
       }
-    }
 
   override def rpcHandler(handler: RpcHandler[Effect, Context]): JettyClient[Effect] =
     copy(rpcHandler = handler)
@@ -141,6 +148,7 @@ final case class JettyClient[Effect[_]](
   private def sendRequest(request: GenericRequest, requestContext: Context): Effect[(Array[Byte], Context)] =
     request.fold(
       httpRequest =>
+        // Send HTTP request
         effectSystem.completable[(Array[Byte], Response)].flatMap { expectedResponse =>
           val responseListener = ResponseListener(expectedResponse, effectSystem)
           httpRequest.send(responseListener)
@@ -150,18 +158,24 @@ final case class JettyClient[Effect[_]](
           }
         },
       { case (requestBody, clientUpgradeRequest, requestUrl) =>
+        // Send WebSocket request
         effectSystem.completable[Array[Byte]].flatMap { expectedResponse =>
-          webSocketConnectionPool.using(
+          val listen = requestContext.header(headerRpcListen).contains(valueRpcListen)
+          val connections = if (listen) listenWebSocketConnections else callWebSocketConnections
+          connections.using(
             requestUrl.toString,
             (clientUpgradeRequest, requestUrl),
             { case (session, frameListener) =>
               frameListener.expectedResponse = Some(expectedResponse)
-              effectSystem.completable[Unit].flatMap { expectedRequestSent =>
-                session.getRemote.sendBytes(requestBody.toByteBuffer, SentCallback(expectedRequestSent, effectSystem))
-                expectedRequestSent.effect.flatMap(_ =>
-                  expectedResponse.effect.map(_ -> requestContext.headers(Seq.empty[(String, String)]*))
-                )
-              }
+              (if (listen) {
+                 expectedResponse.effect
+               } else {
+                 effectSystem.completable[Unit].flatMap { expectedRequestSent =>
+                   val sentCallback = SentCallback(expectedRequestSent, effectSystem)
+                   session.getRemote.sendBytes(requestBody.toByteBuffer, sentCallback)
+                   expectedRequestSent.effect.flatMap(_ => expectedResponse.effect)
+                 }
+               }).map(_ -> requestContext.headers(Seq.empty[(String, String)]*))
             },
           )
         }
@@ -228,7 +242,7 @@ final case class JettyClient[Effect[_]](
     connectionId: Int,
   ): Effect[(Session, FrameListener[Effect])] = {
     val (clientUpgradeRequest, requestUrl) = endpoint
-    val removeConnection = () => webSocketConnectionPool.remove(requestUrl.toString, connectionId)
+    val removeConnection = () => callWebSocketConnections.remove(requestUrl.toString, connectionId)
     val frameListener = FrameListener(requestUrl, removeConnection, effectSystem, logger)
     completableEffect(webSocketClient.connect(frameListener, requestUrl, clientUpgradeRequest), effectSystem)
       .map(_ -> frameListener)

@@ -15,26 +15,12 @@ import scala.util.{Try, Using}
 /** Common RabbitMQ functionality. */
 object RabbitMq extends Logging {
 
-  /** Transport-specific context. */
-  final case class Transport(properties: BasicProperties)
-
-  object Transport {
-
-    /** Implicit default context value. */
-    implicit val context: AmqpContext[Transport] = AmqpContext()
-  }
-
-  final private[automorph] case class Session(connection: Connection, consumer: ThreadLocal[DefaultConsumer])
-
   /** Default direct AMQP message exchange name. */
   private[automorph] val directExchange: String = ""
-
   /** Routing key property. */
   private[automorph] val routingKeyProperty = "Routing Key"
-
   /** Consumer tag property. */
   private[automorph] val consumerTagProperty = "Consumer Tag"
-
   /** Protocol name. */
   private[automorph] val protocol = "AMQP"
 
@@ -79,12 +65,12 @@ object RabbitMq extends Logging {
    *   nothing
    */
   private[automorph] def declareExchange(exchange: String, connection: Connection): Unit =
-    Option.when(exchange != directExchange) {
+    if (exchange != directExchange) {
       Using(connection.createChannel()) { channel =>
         channel.exchangeDeclare(exchange, BuiltinExchangeType.DIRECT, false)
         ()
       }.get
-    }.getOrElse {}
+    } else {}
 
   /**
    * Close AMQP broker session.
@@ -161,7 +147,8 @@ object RabbitMq extends Logging {
     val transportProperties = context.message.map(_.properties).getOrElse(new BasicProperties())
     new BasicProperties().builder().contentType(contentType)
       .replyTo(context.replyTo.orElse(Option(transportProperties.getReplyTo)).getOrElse(defaultReplyTo))
-      .correlationId(Option.when(useDefaultRequestId)(defaultRequestId).getOrElse {
+      .correlationId(if (useDefaultRequestId) defaultRequestId
+      else {
         context.correlationId.orElse(Option(transportProperties.getCorrelationId)).getOrElse(defaultRequestId)
       }).contentEncoding(context.contentEncoding.orElse(Option(transportProperties.getContentEncoding)).orNull)
       .appId(context.appId.orElse(Option(transportProperties.getAppId)).getOrElse(defaultAppId))
@@ -226,4 +213,15 @@ object RabbitMq extends Logging {
       routingKeyProperty -> routingKey,
       MessageLog.url -> url,
     ) ++ consumerTag.map(consumerTagProperty -> _)
+
+  /** Transport-specific context. */
+  final case class Transport(properties: BasicProperties)
+
+  final private[automorph] case class Session(connection: Connection, consumer: ThreadLocal[DefaultConsumer])
+
+  object Transport {
+
+    /** Implicit default context value. */
+    implicit val context: AmqpContext[Transport] = AmqpContext()
+  }
 }

@@ -82,12 +82,12 @@ final private[automorph] case class ClientServerHttpHandler[
     handler.retrieveRequest(request).flatMap { case (requestBody, requestMetadata) =>
       val context = requestMetadata.context
       context.header(headerRpcListen).filter(_.toLowerCase == valueRpcListen).flatMap(_ => context.peer).map { peer =>
-        // Register client connection
-        log.receivedConnection(requestMetadata.properties, requestMetadata.protocol.name)
+        // Accept listen connection
+        log.acceptedListenConnection(requestMetadata.properties, requestMetadata.protocol.name)
         connectionPool.add(peer, connection)
       }.getOrElse {
         context.header(headerRpcCallId).flatMap(callId => context.peer.map(_ -> callId)).map { case (peer, callId) =>
-          // Return the received response
+          // Return the received response to the caller
           processRpcResponse(peer, callId, requestBody, requestMetadata, connection)
         }.getOrElse {
           // Process the request

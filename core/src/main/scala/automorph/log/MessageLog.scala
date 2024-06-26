@@ -13,82 +13,85 @@ import java.nio.charset.StandardCharsets
 final private[automorph] case class MessageLog(logger: Logger, defaultProtocol: String = "") {
 
   def sendingRequest(
-    requestProperties: => Map[String, String],
+    properties: => Map[String, String],
     messageText: Option[String],
     protocol: String = defaultProtocol,
   ): Unit =
-    logger.trace(s"Sending $protocol request", requestProperties ++ messageText.map(MessageLog.messageBody -> _))
+    logger.trace(s"Sending $protocol request", properties ++ messageText.map(MessageLog.messageBody -> _))
 
-  def sentRequest(requestProperties: => Map[String, String], protocol: String = defaultProtocol): Unit =
-    logger.debug(s"Sent $protocol request", requestProperties)
+  def sentRequest(properties: => Map[String, String], protocol: String = defaultProtocol): Unit =
+    logger.debug(s"Sent $protocol request", properties)
 
   def failedSendRequest(
     error: Throwable,
-    requestProperties: => Map[String, String],
+    properties: => Map[String, String],
     protocol: String = defaultProtocol,
   ): Unit =
-    logger.error(s"Failed to send $protocol request", error, requestProperties)
+    logger.error(s"Failed to send $protocol request", error, properties)
 
-  def receivingRequest(requestProperties: => Map[String, String], protocol: String = defaultProtocol): Unit =
-    logger.debug(s"Receiving $protocol request", requestProperties)
+  def receivingRequest(properties: => Map[String, String], protocol: String = defaultProtocol): Unit =
+    logger.debug(s"Receiving $protocol request", properties)
 
   def receivedRequest(
-    requestProperties: => Map[String, String],
+    properties: => Map[String, String],
     messageText: Option[String],
     protocol: String = defaultProtocol,
   ): Unit =
-    logger.trace(s"Received $protocol request", requestProperties ++ messageText.map(MessageLog.messageBody -> _))
+    logger.trace(s"Received $protocol request", properties ++ messageText.map(MessageLog.messageBody -> _))
 
-  def receivedConnection(requestProperties: => Map[String, String], protocol: String = defaultProtocol): Unit =
-    logger.debug(s"Received $protocol connection", requestProperties)
+  def acceptedListenConnection(properties: => Map[String, String], protocol: String = defaultProtocol): Unit =
+    logger.debug(s"Accepted $protocol listen connection", properties)
+
+  def establishedListenConnection(properties: => Map[String, String], protocol: String = defaultProtocol): Unit =
+    logger.debug(s"Established $protocol listen connection", properties)
 
   def failedReceiveRequest(
     error: Throwable,
-    requestProperties: => Map[String, String],
+    properties: => Map[String, String],
     protocol: String = defaultProtocol,
   ): Unit =
-    logger.error(s"Failed to receive $protocol request", error, requestProperties)
+    logger.error(s"Failed to receive $protocol request", error, properties)
 
   def failedProcessRequest(
     error: Throwable,
-    requestProperties: => Map[String, String],
+    properties: => Map[String, String],
     protocol: String = defaultProtocol,
   ): Unit =
-    logger.error(s"Failed to process $protocol request", error, requestProperties)
+    logger.error(s"Failed to process $protocol request", error, properties)
 
   def sendingResponse(
-    responseProperties: => Map[String, String],
+    properties: => Map[String, String],
     messageText: Option[String],
     protocol: String = defaultProtocol,
   ): Unit =
-    logger.trace(s"Sending $protocol response", responseProperties ++ messageText.map(MessageLog.messageBody -> _))
+    logger.trace(s"Sending $protocol response", properties ++ messageText.map(MessageLog.messageBody -> _))
 
-  def sentResponse(responseProperties: => Map[String, String], protocol: String = defaultProtocol): Unit =
-    logger.debug(s"Sent $protocol response", responseProperties)
+  def sentResponse(properties: => Map[String, String], protocol: String = defaultProtocol): Unit =
+    logger.debug(s"Sent $protocol response", properties)
 
   def failedSendResponse(
     error: Throwable,
-    responseProperties: => Map[String, String],
+    properties: => Map[String, String],
     protocol: String = defaultProtocol,
   ): Unit =
-    logger.error(s"Failed to send $protocol response", error, responseProperties)
+    logger.error(s"Failed to send $protocol response", error, properties)
 
-  def receivingResponse(responseProperties: => Map[String, String], protocol: String = defaultProtocol): Unit =
-    logger.trace(s"Receiving $protocol response", responseProperties)
+  def receivingResponse(properties: => Map[String, String], protocol: String = defaultProtocol): Unit =
+    logger.trace(s"Receiving $protocol response", properties)
 
   def receivedResponse(
-    responseProperties: => Map[String, String],
+    properties: => Map[String, String],
     messageText: Option[String],
     protocol: String = defaultProtocol,
   ): Unit =
-    logger.trace(s"Received $protocol response", responseProperties ++ messageText.map(MessageLog.messageBody -> _))
+    logger.trace(s"Received $protocol response", properties ++ messageText.map(MessageLog.messageBody -> _))
 
   def failedReceiveResponse(
     error: Throwable,
-    responseProperties: => Map[String, String],
+    properties: => Map[String, String],
     protocol: String = defaultProtocol,
   ): Unit =
-    logger.error(s"Failed to receive $protocol response", error, responseProperties)
+    logger.error(s"Failed to receive $protocol response", error, properties)
 }
 
 private[automorph] object MessageLog {

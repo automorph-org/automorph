@@ -76,7 +76,7 @@ final case class UrlClient[Effect[_]](
     effectSystem.evaluate(sender.init())
 
   override def close(): Effect[Unit] =
-    effectSystem.successful {}
+    effectSystem.evaluate(sender.close())
 
   override def rpcHandler(handler: RpcHandler[Effect, Context]): UrlClient[Effect] =
     copy(rpcHandler = handler)

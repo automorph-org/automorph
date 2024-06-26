@@ -3,6 +3,8 @@ package automorph.transport.client
 import automorph.log.Logging
 import automorph.spi.{ClientTransport, EffectSystem}
 import automorph.transport.HttpClientBase.{overrideUrl, webSocketSchemePrefix}
+import automorph.transport.HttpContext.headerRpcListen
+import automorph.transport.ServerHttpHandler.valueRpcListen
 import automorph.transport.client.SttpClient.{Context, Transport}
 import automorph.transport.{ClientServerHttpSender, HttpListen, HttpMethod, Protocol}
 import automorph.util.Extensions.EffectOps
@@ -56,7 +58,7 @@ private[automorph] trait SttpClientBase[Effect[_]] extends ClientTransport[Effec
     effectSystem.evaluate(sender.init())
 
   override def close(): Effect[Unit] =
-    effectSystem.successful {}
+    effectSystem.evaluate(sender.close())
 
   private def createRequest(
     requestBody: Array[Byte],
@@ -81,12 +83,16 @@ private[automorph] trait SttpClientBase[Effect[_]] extends ClientTransport[Effec
     requestUrl.toString.toLowerCase match {
       case scheme if scheme.startsWith(webSocketSchemePrefix) =>
         if (!webSocketSupport) {
-          throw new UnsupportedOperationException(
-            s"Selected STTP backend does not support WebSocket: ${backend.getClass.getSimpleName}"
-          )
+          val backendName = backend.getClass.getSimpleName
+          throw new UnsupportedOperationException(s"Selected STTP backend does not support WebSocket: $backendName")
         }
+        val listen = context.header(headerRpcListen).contains(valueRpcListen)
         val request = sttpRequest.response(asWebSocketAlways[Effect, Array[Byte]] { webSocket =>
-          webSocket.sendBinary(requestBody).flatMap(_ => webSocket.receiveBinary(true))
+          if (listen) {
+            webSocket.receiveBinary(true)
+          } else {
+            webSocket.sendBinary(requestBody).flatMap(_ => webSocket.receiveBinary(true))
+          }
         })
         (request, context.url(request.uri.toJavaUri), Protocol.WebSocket)
       case _ =>

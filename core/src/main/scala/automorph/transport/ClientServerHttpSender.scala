@@ -132,7 +132,7 @@ final private[automorph] case class ClientServerHttpSender[Effect[_], Context <:
               { case (responseBody, responseContext) =>
                 // Process the request
                 system.runAsync(listen())
-                handleRequest(responseBody, requestMetadata.copy(context = responseContext))
+                handleRequest(responseBody, requestMetadata.copy(context = responseContext), protocol)
               },
             )
           }
@@ -140,8 +140,9 @@ final private[automorph] case class ClientServerHttpSender[Effect[_], Context <:
       effectSystem.successful {}
     }
 
-  private def handleRequest(body: Array[Byte], metadata: HttpMetadata[Context]): Effect[Unit] = {
+  private def handleRequest(body: Array[Byte], metadata: HttpMetadata[Context], protocol: Protocol): Unit = {
     // FIXME - implement
-
+//    system.successful {}
+    ()
   }
 }

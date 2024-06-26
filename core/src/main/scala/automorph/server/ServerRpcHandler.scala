@@ -47,7 +47,7 @@ final private[automorph] case class ServerRpcHandler[Value, Codec <: MessageCode
   lazy val functions: Seq[RpcFunction] = bindings.map { case (name, binding) =>
     binding.function.copy(name = name)
   }.toSeq
-  private val bindings = Option.when(discovery)(apiSchemaBindings).getOrElse(ListMap.empty) ++ apiBindings
+  private val bindings = (if (discovery) apiSchemaBindings else ListMap.empty) ++ apiBindings
   private val log = MessageLog(logger)
   implicit private val system: EffectSystem[Effect] = effectSystem
 
@@ -60,7 +60,7 @@ final private[automorph] case class ServerRpcHandler[Value, Codec <: MessageCode
    *   request context
    * @param id
    *   request identifier
-   *  @return
+   * @return
    *   request processing result
    */
   override def processRequest(body: Array[Byte], context: Context, id: String): Effect[Option[Result[Context]]] =
@@ -244,10 +244,14 @@ final private[automorph] case class ServerRpcHandler[Value, Codec <: MessageCode
     callResult: Effect[Option[(Value, Option[Context])]],
     rpcRequest: Request[Value, rpcProtocol.Metadata, Context],
     requestProperties: => Map[String, String],
-  ): Effect[Option[Result[Context]]] = {
+  ): Effect[Option[Result[Context]]] =
     callResult.flatFold(
       { error =>
-        logger.error(s"Failed to process ${rpcProtocol.name} ${operation(rpcRequest.respond)}", error, requestProperties)
+        logger.error(
+          s"Failed to process ${rpcProtocol.name} ${operation(rpcRequest.respond)}",
+          error,
+          requestProperties,
+        )
         response(Failure(error), rpcRequest.message, requestProperties)
       },
       { result =>
@@ -257,7 +261,6 @@ final private[automorph] case class ServerRpcHandler[Value, Codec <: MessageCode
         }.getOrElse(effectSystem.successful(None))
       },
     )
-  }
 
   /**
    * Creates an RPC response for the specified error.

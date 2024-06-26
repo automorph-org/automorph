@@ -3,11 +3,9 @@ package automorph.transport.client
 import automorph.log.{Logger, Logging, MessageLog}
 import automorph.spi.EffectSystem.Completable
 import automorph.spi.{ClientTransport, EffectSystem, RpcHandler}
-import automorph.transport.HttpClientBase.{
-  completableEffect, overrideUrl, webSocketCloseReason, webSocketCloseStatusCode, webSocketConnectionClosed,
-  webSocketSchemePrefix, webSocketUnexpectedMessage,
-}
-import automorph.transport.HttpContext.{headerAccept, headerContentType}
+import automorph.transport.HttpClientBase.{completableEffect, overrideUrl, webSocketCloseReason, webSocketCloseStatusCode, webSocketConnectionClosed, webSocketSchemePrefix, webSocketUnexpectedMessage}
+import automorph.transport.HttpContext.{headerAccept, headerContentType, headerRpcListen}
+import automorph.transport.ServerHttpHandler.valueRpcListen
 import automorph.transport.client.HttpClient.{Context, FrameListener, Transport}
 import automorph.transport.{ClientServerHttpSender, ConnectionPool, HttpContext, HttpListen, HttpMethod, Protocol}
 import automorph.util.Extensions.{ByteArrayOps, ByteBufferOps, EffectOps}
@@ -72,10 +70,12 @@ final case class HttpClient[Effect[_]](
   private val httpEmptyUrl = new URI("http://empty")
   private val httpMethods = HttpMethod.values.map(_.name).toSet
   private val httpClient = builder.build
-  private val webSocketConnectionPool = {
+  private val callWebSocketConnections = {
     val maxPeerConnections = Option(System.getProperty("jdk.httpclient.connectionPoolSize")).flatMap(_.toIntOption)
     ConnectionPool(Some(openWebSocket), closeWebSocket, Protocol.WebSocket, effectSystem, maxPeerConnections)
   }
+  private val listenWebSocketConnections =
+    ConnectionPool(Some(openWebSocket), closeWebSocket, Protocol.WebSocket, effectSystem, Some(listen.connections))
   private val sender = ClientServerHttpSender(createRequest, sendRequest, url, method, listen, rpcNodeId, effectSystem)
   implicit private val system: EffectSystem[Effect] = effectSystem
 
@@ -99,10 +99,14 @@ final case class HttpClient[Effect[_]](
     Transport.context.url(url).method(method)
 
   override def init(): Effect[Unit] =
-    webSocketConnectionPool.init().map(_ => sender.init())
+    callWebSocketConnections.init()
+      .flatMap(_ => listenWebSocketConnections.init())
+      .map(_ => sender.init())
 
   override def close(): Effect[Unit] =
-    system.evaluate(sender.close()).flatMap(_ => webSocketConnectionPool.close())
+    system.evaluate(sender.close())
+      .flatMap(_ => listenWebSocketConnections.close())
+      .flatMap(_ => callWebSocketConnections.close())
 
   override def rpcHandler(handler: RpcHandler[Effect, Context]): HttpClient[Effect] =
     copy(rpcHandler = handler)
@@ -130,6 +134,7 @@ final case class HttpClient[Effect[_]](
   private def sendRequest(request: Request, requestContext: Context): Effect[(Array[Byte], Context)] =
     request.fold(
       httpRequest =>
+        // Send HTTP request
         completableEffect(httpClient.sendAsync(httpRequest, BodyHandlers.ofByteArray), effectSystem).map { response =>
           val headers = response
             .headers.map.asScala.toSeq
@@ -137,14 +142,21 @@ final case class HttpClient[Effect[_]](
           response.body -> requestContext.statusCode(response.statusCode).headers(headers*)
         },
       { case (requestBody, webSocketBuilder, requestUrl) =>
+        // Send WebSocket request
         effectSystem.completable[Array[Byte]].flatMap { expectedResponse =>
-          webSocketConnectionPool.using(
+          val listen = requestContext.header(headerRpcListen).contains(valueRpcListen)
+          val connections = if (listen) listenWebSocketConnections else callWebSocketConnections
+          connections.using(
             requestUrl.toString,
             (webSocketBuilder, requestUrl),
             { case (webSocket, frameListener) =>
               frameListener.expectedResponse = Some(expectedResponse)
-              completableEffect(webSocket.sendBinary(requestBody.toByteBuffer, true), effectSystem)
-                .flatMap(_ => expectedResponse.effect.map(_ -> requestContext.headers(Seq.empty[(String, String)]*)))
+              (if (listen) {
+                 expectedResponse.effect
+               } else {
+                 completableEffect(webSocket.sendBinary(requestBody.toByteBuffer, true), effectSystem)
+                   .flatMap(_ => expectedResponse.effect)
+               }).map(_ -> requestContext.headers(Seq.empty[(String, String)]*))
             },
           )
         }
@@ -204,7 +216,7 @@ final case class HttpClient[Effect[_]](
     connectionId: Int,
   ): Effect[(WebSocket, FrameListener[Effect])] = {
     val (webSocketBuilder, requestUrl) = endpoint
-    val removeConnection = () => webSocketConnectionPool.remove(requestUrl.toString, connectionId)
+    val removeConnection = () => callWebSocketConnections.remove(requestUrl.toString, connectionId)
     val frameListener = FrameListener(requestUrl, removeConnection, effectSystem, logger)
     completableEffect(webSocketBuilder.buildAsync(requestUrl, frameListener), effectSystem).map(_ -> frameListener)
   }

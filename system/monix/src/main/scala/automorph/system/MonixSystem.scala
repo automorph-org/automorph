@@ -76,7 +76,8 @@ final case class MonixSystem()(implicit val scheduler: Scheduler) extends Effect
       flatMap(mVar.tryPut(Left(exception)))(complete)
 
     private def complete(success: Boolean): Task[Unit] =
-      Option.when(success)(successful {}).getOrElse {
+      if (success) successful {}
+      else {
         failed(new IllegalStateException("Completable effect already resolved"))
       }
   }

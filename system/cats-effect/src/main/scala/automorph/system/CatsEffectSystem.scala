@@ -76,7 +76,8 @@ final case class CatsEffectSystem()(implicit val runtime: IORuntime) extends Eff
       flatMap(queue.tryOffer(Left(exception)))(complete)
 
     private def complete(success: Boolean): IO[Unit] =
-      Option.when(success)(successful {}).getOrElse {
+      if (success) successful {}
+      else {
         failed(new IllegalStateException("Completable effect already resolved"))
       }
   }

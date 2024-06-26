@@ -77,7 +77,8 @@ final case class JettyServer[Effect[_]](
 
     override def doFilter(request: ServletRequest, response: ServletResponse, chain: FilterChain): Unit = {
       val method = request.asInstanceOf[HttpServletRequest].getMethod
-      Option.when(allowedMethods.contains(method.toUpperCase))(chain.doFilter(request, response)).getOrElse {
+      if (allowedMethods.contains(method.toUpperCase)) chain.doFilter(request, response)
+      else {
         response.asInstanceOf[HttpServletResponse].sendError(HttpServletResponse.SC_METHOD_NOT_ALLOWED)
       }
     }
