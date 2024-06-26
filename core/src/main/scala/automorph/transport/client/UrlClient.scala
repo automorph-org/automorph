@@ -31,6 +31,8 @@ import scala.util.Using
  *   HTTP request method (default: POST)
  * @param listen
  *   listen for RPC requests from the server settings (default: disabled)
+ * @param rpcNodeId
+ *   RPC node identifier
  * @param rpcHandler
  *   RPC request handler
  * @tparam Effect
@@ -41,13 +43,14 @@ final case class UrlClient[Effect[_]](
   url: URI,
   method: HttpMethod = HttpMethod.Post,
   listen: HttpListen = HttpListen(),
+  rpcNodeId: Option[String] = None,
   rpcHandler: RpcHandler[Effect, Context] = RpcHandler.dummy[Effect, Context],
 ) extends ClientTransport[Effect, Context] with Logging {
 
   private type Request = (Array[Byte], HttpURLConnection)
 
   private val httpMethods = HttpMethod.values.map(_.name).toSet
-  private val sender = ClientServerHttpSender(createRequest, sendRequest, url, method, listen, effectSystem)
+  private val sender = ClientServerHttpSender(createRequest, sendRequest, url, method, listen, rpcNodeId, effectSystem)
   System.setProperty("sun.net.http.allowRestrictedHeaders", "true")
 
   override def call(

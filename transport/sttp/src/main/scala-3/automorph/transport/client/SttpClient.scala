@@ -35,6 +35,8 @@ import scala.quoted.{Expr, Quotes, Type}
  *   listen for RPC requests from the server settings (default: disabled)
  * @param webSocketSupport
  *   specified STTP backend supports WebSocket
+ * @param rpcNodeId
+ *   RPC node identifier
  * @param rpcHandler
  *   RPC request handler
  * @tparam Effect
@@ -46,6 +48,7 @@ final case class SttpClient[Effect[_]] private (
   url: URI,
   method: HttpMethod,
   listen: HttpListen,
+  rpcNodeId: Option[String] = None,
   rpcHandler: RpcHandler[Effect, Context],
   webSocketSupport: Boolean,
 ) extends SttpClientBase[Effect]:
@@ -107,6 +110,7 @@ object SttpClient:
         ${ url },
         ${ method },
         ${ listen },
+        None,
         RpcHandler.dummy[Effect, Context],
         webSocketSupport = ${ webSocketSupport },
       )
@@ -160,6 +164,7 @@ object SttpClient:
         ${ url },
         ${ method },
         HttpListen(),
+        None,
         RpcHandler.dummy[Effect, Context],
         webSocketSupport = ${ webSocketSupport },
       )
@@ -207,6 +212,7 @@ object SttpClient:
         ${ url },
         HttpMethod.Post,
         HttpListen(),
+        None,
         RpcHandler.dummy[Effect, Context],
         webSocketSupport = ${ webSocketSupport },
       )

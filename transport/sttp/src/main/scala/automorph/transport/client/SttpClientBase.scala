@@ -18,7 +18,7 @@ private[automorph] trait SttpClientBase[Effect[_]] extends ClientTransport[Effec
 
   private val baseUrl = Uri(url).toJavaUri
   private val sender =
-    ClientServerHttpSender(createRequest, sendRequest, url, method, listen, effectSystem)
+    ClientServerHttpSender(createRequest, sendRequest, url, method, listen, rpcNodeId, effectSystem)
   implicit private val system: EffectSystem[Effect] = effectSystem
 
   def url: URI
@@ -30,6 +30,8 @@ private[automorph] trait SttpClientBase[Effect[_]] extends ClientTransport[Effec
   def listen: HttpListen
 
   def webSocketSupport: Boolean
+
+  def rpcNodeId: Option[String]
 
   override def call(
     body: Array[Byte],

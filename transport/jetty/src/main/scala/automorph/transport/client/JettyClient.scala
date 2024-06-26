@@ -47,6 +47,8 @@ import scala.jdk.CollectionConverters.{IterableHasAsScala, SeqHasAsJava}
  *   listen for RPC requests from the server settings (default: disabled)
  * @param httpClient
  *   Jetty HTTP client
+ * @param rpcNodeId
+ *   RPC node identifier
  * @param rpcHandler
  *   RPC request handler
  * @tparam Effect
@@ -58,6 +60,7 @@ final case class JettyClient[Effect[_]](
   method: HttpMethod = HttpMethod.Post,
   listen: HttpListen = HttpListen(),
   httpClient: HttpClient = new HttpClient,
+  rpcNodeId: Option[String] = None,
   rpcHandler: RpcHandler[Effect, Context] = RpcHandler.dummy[Effect, Context],
 ) extends ClientTransport[Effect, Context] with Logging {
 
@@ -68,7 +71,7 @@ final case class JettyClient[Effect[_]](
     val maxPeerConnections = Some(httpClient.getMaxConnectionsPerDestination)
     ConnectionPool(Some(openWebSocket), closeWebSocket, Protocol.WebSocket, effectSystem, maxPeerConnections)
   }
-  private val sender = ClientServerHttpSender(createRequest, sendRequest, url, method, listen, effectSystem)
+  private val sender = ClientServerHttpSender(createRequest, sendRequest, url, method, listen, rpcNodeId, effectSystem)
   implicit private val system: EffectSystem[Effect] = effectSystem
 
   override def call(

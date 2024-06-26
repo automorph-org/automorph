@@ -50,6 +50,8 @@ import scala.util.Try
  *   listen for RPC requests from the server settings (default: disabled)
  * @param builder
  *   HttpClient builder (default: empty with5 seconds connect timeout)
+ * @param rpcNodeId
+ *   RPC node identifier
  * @param rpcHandler
  *   RPC request handler
  * @tparam Effect
@@ -61,6 +63,7 @@ final case class HttpClient[Effect[_]](
   method: HttpMethod = HttpMethod.Post,
   listen: HttpListen = HttpListen(),
   builder: Builder = HttpClient.builder,
+  rpcNodeId: Option[String] = None,
   rpcHandler: RpcHandler[Effect, Context] = RpcHandler.dummy[Effect, Context],
 ) extends ClientTransport[Effect, Context] with Logging {
 
@@ -73,7 +76,7 @@ final case class HttpClient[Effect[_]](
     val maxPeerConnections = Option(System.getProperty("jdk.httpclient.connectionPoolSize")).flatMap(_.toIntOption)
     ConnectionPool(Some(openWebSocket), closeWebSocket, Protocol.WebSocket, effectSystem, maxPeerConnections)
   }
-  private val sender = ClientServerHttpSender(createRequest, sendRequest, url, method, listen, effectSystem)
+  private val sender = ClientServerHttpSender(createRequest, sendRequest, url, method, listen, rpcNodeId, effectSystem)
   implicit private val system: EffectSystem[Effect] = effectSystem
 
   override def call(

@@ -37,6 +37,8 @@ import scala.reflect.macros.blackbox
  *   listen for RPC requests from the server settings (default: disabled)
  * @param webSocketSupport
  *   specified STTP backend supports WebSocket
+ * @param rpcNodeId
+ *   RPC node identifier
  * @param rpcHandler
  *   RPC request handler
  * @tparam Effect
@@ -49,6 +51,7 @@ final case class SttpClient[Effect[_]] private (
   url: URI,
   method: HttpMethod,
   listen: HttpListen,
+  rpcNodeId: Option[String] = None,
   rpcHandler: RpcHandler[Effect, Context],
   webSocketSupport: Boolean,
 ) extends SttpClientBase[Effect] {
@@ -109,7 +112,7 @@ object SttpClient {
     })
     c.Expr[SttpClient[Effect]](q"""
       automorph.transport.client.SttpClient.create(
-        $effectSystem, $backend, $url, $method, $listen,
+        $effectSystem, $backend, $url, $method, $listen, None,
         automorph.spi.RpcHandler.dummy[${weakTypeOf[Effect[?]]}, automorph.transport.client.SttpClient.Context],
         webSocketSupport = $webSocketSupport
       )
@@ -160,7 +163,7 @@ object SttpClient {
     })
     c.Expr[SttpClient[Effect]](q"""
       automorph.transport.client.SttpClient.create(
-        $effectSystem, $backend, $url, $method, automorph.transport.HttpListen(),
+        $effectSystem, $backend, $url, $method, automorph.transport.HttpListen(), None,
         automorph.spi.RpcHandler.dummy[${weakTypeOf[Effect[?]]}, automorph.transport.client.SttpClient.Context],
         webSocketSupport = $webSocketSupport
       )
@@ -207,7 +210,7 @@ object SttpClient {
     })
     c.Expr[SttpClient[Effect]](q"""
       automorph.transport.client.SttpClient.create(
-        $effectSystem, $backend, $url, automorph.transport.HttpMethod.Post, automorph.transport.HttpListen(),
+        $effectSystem, $backend, $url, automorph.transport.HttpMethod.Post, automorph.transport.HttpListen(), None,
         automorph.spi.RpcHandler.dummy[${weakTypeOf[Effect[?]]}, automorph.transport.client.SttpClient.Context],
         webSocketSupport = $webSocketSupport
       )
@@ -220,11 +223,12 @@ object SttpClient {
     backend: SttpBackend[Effect, ?],
     url: URI,
     method: HttpMethod,
-    listen: HttpListen = HttpListen(),
+    listen: HttpListen,
+    rpcNodeId: Option[String],
     rpcHandler: RpcHandler[Effect, Context],
     webSocketSupport: Boolean,
   ): SttpClient[Effect] =
-    SttpClient(effectSystem, backend, url, method, listen, rpcHandler, webSocketSupport)
+    SttpClient(effectSystem, backend, url, method, listen, rpcNodeId, rpcHandler, webSocketSupport)
 
   /** Transport-specific context. */
   final case class Transport(request: PartialRequest[Either[String, String], Any])
