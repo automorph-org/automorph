@@ -83,20 +83,21 @@ final private[automorph] case class ClientServerHttpHandler[
   def processRequest(request: Request, connection: Connection): Effect[Unit] =
     handler.retrieveRequest(request).flatMap { case (requestBody, requestMetadata) =>
       val context = requestMetadata.context
-      context.header(headerRpcListen).filter(_.toLowerCase == valueRpcListen).flatMap(_ => context.peer).map { peer =>
-        // Accept listen connection
-        log.acceptedListenConnection(requestMetadata.properties, requestMetadata.protocol.name)
-        listenConnections.add(peer, connection)
-      }.getOrElse {
-        getRpcCallId.flatMap(_(connection)).orElse(context.header(headerRpcCallId))
-          .flatMap(callId => context.peer.map(_ -> callId)).map { case (peer, callId) =>
-            // Return the received response to the caller
-            processRpcResponse(peer, callId, requestBody, requestMetadata, connection)
+      getRpcCallId.flatMap(_(connection)).orElse(context.header(headerRpcCallId))
+        .flatMap(callId => context.peer.map(_ -> callId)).map { case (peer, callId) =>
+          // Return the received response to the caller
+          processRpcResponse(peer, callId, requestBody, requestMetadata, connection)
+        }.getOrElse {
+          context.header(headerRpcListen).filter(_.toLowerCase == valueRpcListen).flatMap(_ => context.peer).map {
+            peer =>
+              // Accept listen connection
+              log.acceptedListenConnection(requestMetadata.properties, requestMetadata.protocol.name)
+              listenConnections.add(peer, connection)
           }.getOrElse {
             // Process the request
             handler.handleRequest(requestBody, requestMetadata, connection)
           }
-      }
+        }
     }
 
   def failedReceiveWebSocketRequest(error: Throwable): Unit =

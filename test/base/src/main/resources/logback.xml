@@ -11,7 +11,7 @@
       <level>${LOG_LEVEL:-ERROR}</level>
     </filter>
     <encoder>
-      <pattern>%cyan(%date{HH:mm:ss.SSS}) [%highlight(%-5level)] %message - %gray(%mdc) %n</pattern>
+      <pattern>%c %cyan(%date{HH:mm:ss.SSS}) [%highlight(%-5level)] %message - %gray(%mdc) %n</pattern>
     </encoder>
   </appender>
 
@@ -44,6 +44,7 @@
   <logger name="test" level="TRACE"/>
   <logger name="io.netty" level="ERROR"/>
   <logger name="io.undertow" level="ERROR"/>
+  <logger name="org.eclipse.jetty" level="ERROR"/>
   <logger name="org.xnio" level="ERROR"/>
 </configuration>
 
