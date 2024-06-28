@@ -48,7 +48,7 @@ final case class SttpClient[Effect[_]] private (
   url: URI,
   method: HttpMethod,
   listen: HttpListen,
-  rpcNodeId: Option[String] = None,
+  rpcNodeId: Option[String],
   rpcHandler: RpcHandler[Effect, Context],
   webSocketSupport: Boolean,
 ) extends SttpClientBase[Effect]:

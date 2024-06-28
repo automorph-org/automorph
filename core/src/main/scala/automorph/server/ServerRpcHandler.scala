@@ -47,7 +47,8 @@ final private[automorph] case class ServerRpcHandler[Value, Codec <: MessageCode
   lazy val functions: Seq[RpcFunction] = bindings.map { case (name, binding) =>
     binding.function.copy(name = name)
   }.toSeq
-  private val bindings = (if (discovery) apiSchemaBindings else ListMap.empty) ++ apiBindings
+  private val bindings =
+    (if (discovery) apiSchemaBindings else ListMap.empty[String, ServerBinding[Value, Effect, Context]]) ++ apiBindings
   private val log = MessageLog(logger)
   implicit private val system: EffectSystem[Effect] = effectSystem
 

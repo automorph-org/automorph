@@ -17,7 +17,7 @@ trait EffectSystemTest[Effect[_]] extends BaseTest {
   private val text = "test"
   private val number = 0
   private val exception = TestException(text)
-  private val delay = 5
+  private val delay = 20L
 
   def system: EffectSystem[Effect]
 
@@ -119,7 +119,7 @@ trait EffectSystemTest[Effect[_]] extends BaseTest {
     "Sleep" in {
       var state = false
       system.runAsync(system.map(system.sleep(FiniteDuration(delay, TimeUnit.MILLISECONDS)))(_ => state = true))
-      Thread.sleep(2 * delay)
+      Thread.sleep(delay * delay)
       state.shouldEqual(true)
     }
     "Completable" - {
