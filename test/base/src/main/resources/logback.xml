@@ -42,5 +42,8 @@
 
   <!-- Package-specific log level -->
   <logger name="test" level="TRACE"/>
+  <logger name="io.netty" level="ERROR"/>
+  <logger name="io.undertow" level="ERROR"/>
+  <logger name="org.xnio" level="ERROR"/>
 </configuration>
 

@@ -48,5 +48,6 @@ An example logging configuration for [Logback](https://logback.qos.ch/) which su
 
   <!-- Package-specific log level -->
   <logger name="automorph" level="${LOG_LEVEL:-INFO}"/>
+  <logger name="org.xnio" level="ERROR"/>
 </configuration>
 ```

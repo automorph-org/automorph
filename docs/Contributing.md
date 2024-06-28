@@ -66,7 +66,7 @@ TEST_LEVEL=all sbt '+ test'
 ### Console log level
 
 ```shell
-LOG_LEVEL=DEBUG sbt '+ test'
+LOG_LEVEL=debug sbt '+ test'
 ```
 
 ### Generated code logging

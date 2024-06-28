@@ -119,7 +119,7 @@ def source(project: Project, path: String, dependsOn: ClasspathDep[ProjectRefere
 }
 
 // Core
-val slf4jVersion = "1.7.36"
+val slf4jVersion = "2.0.13"
 lazy val meta = source(project, "meta").settings(
   libraryDependencies ++= (
     if (scala3.value) Seq() else Seq("org.scala-lang" % "scala-reflect" % scalaVersion.value)
