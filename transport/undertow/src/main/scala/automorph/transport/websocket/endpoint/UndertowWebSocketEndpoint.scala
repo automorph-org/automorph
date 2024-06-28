@@ -2,16 +2,22 @@ package automorph.transport.websocket.endpoint
 
 import automorph.spi.EffectSystem.Completable
 import automorph.spi.{EffectSystem, RpcHandler, ServerTransport}
+import automorph.transport.ClientServerHttpHandler.RpcCallId
 import automorph.transport.HttpContext.headerRpcNodeId
 import automorph.transport.server.UndertowHttpEndpoint.requestQuery
-import automorph.transport.websocket.endpoint.UndertowWebSocketEndpoint.{ConnectionListener, Context, ResponseCallback, WebSocketRequest}
+import automorph.transport.websocket.endpoint.UndertowWebSocketEndpoint.{
+  ConnectionListener, Context, ResponseCallback, WebSocketRequest,
+}
 import automorph.transport.{ClientServerHttpHandler, HttpContext, HttpMetadata, Protocol, ServerHttpHandler}
 import automorph.util.Extensions.{ByteArrayOps, ByteBufferOps, EffectOps, StringOps}
 import io.undertow.server.{HttpHandler, HttpServerExchange}
 import io.undertow.util.Headers
-import io.undertow.websockets.core.{AbstractReceiveListener, BufferedBinaryMessage, BufferedTextMessage, WebSocketCallback, WebSocketChannel, WebSockets}
+import io.undertow.websockets.core.{
+  AbstractReceiveListener, BufferedBinaryMessage, BufferedTextMessage, WebSocketCallback, WebSocketChannel, WebSockets,
+}
 import io.undertow.websockets.spi.WebSocketHttpExchange
 import io.undertow.websockets.{WebSocketConnectionCallback, WebSocketProtocolHandshakeHandler}
+import java.util.concurrent.atomic.AtomicReference
 import scala.annotation.unused
 import scala.jdk.CollectionConverters.{ListHasAsScala, MapHasAsScala}
 
@@ -49,8 +55,16 @@ final case class UndertowWebSocketEndpoint[Effect[_]](
       channel.resumeReceives()
     }
   }
-  private val handler =
-    ClientServerHttpHandler(receiveRequest, sendResponse, Protocol.WebSocket, effectSystem, _ => 0, rpcHandler)
+  private val handler = ClientServerHttpHandler(
+    receiveRequest,
+    sendResponse,
+    Protocol.WebSocket,
+    effectSystem,
+    _ => 0,
+    rpcHandler,
+    Some(getRpcCallId),
+    Some(setRpcCallId),
+  )
   implicit private val system: EffectSystem[Effect] = effectSystem
 
   /**
@@ -82,13 +96,21 @@ final case class UndertowWebSocketEndpoint[Effect[_]](
   private def sendResponse(
     body: Array[Byte],
     @unused metadata: HttpMetadata[Context],
-    channel: WebSocketChannel,
-  ): Effect[Unit] =
+    connection: (WebSocketChannel, RpcCallId),
+  ): Effect[Unit] = {
+    val (channel, _) = connection
     effectSystem.completable[Unit].flatMap { expectedResponseSent =>
       val responseCallback = ResponseCallback(expectedResponseSent, effectSystem, handler)
       WebSockets.sendBinary(body.toByteBuffer, channel, responseCallback, ())
       expectedResponseSent.effect
     }
+  }
+
+  private def getRpcCallId(connection: (WebSocketChannel, RpcCallId)): Option[String] =
+    connection._2.get
+
+  private def setRpcCallId(connection: (WebSocketChannel, RpcCallId), id: Option[String]): Unit =
+    connection._2.set(id)
 
   private def getRequestContext(exchange: WebSocketHttpExchange): Context = {
     val headers = exchange.getRequestHeaders.asScala.view.mapValues(_.asScala).flatMap { case (name, values) =>
@@ -120,20 +142,20 @@ object UndertowWebSocketEndpoint {
   final private case class ConnectionListener[Effect[_]](
     exchange: WebSocketHttpExchange,
     effectSystem: EffectSystem[Effect],
-    handler: ClientServerHttpHandler[Effect, Context, WebSocketRequest, WebSocketChannel],
+    handler: ClientServerHttpHandler[Effect, Context, WebSocketRequest, (WebSocketChannel, RpcCallId)],
+    rpcCallId: RpcCallId = new AtomicReference(None),
   ) extends AbstractReceiveListener {
     implicit private val system: EffectSystem[Effect] = effectSystem
 
     @scala.annotation.nowarn("msg=deprecated")
     override def onFullBinaryMessage(channel: WebSocketChannel, message: BufferedBinaryMessage): Unit = {
       val data = message.getData
-      handler.processRequest(WebSockets.mergeBuffers(data.getResource*).toByteArray -> exchange, channel).either.map(
-        _ => data.free()
-      ).runAsync
+      val requestBody = WebSockets.mergeBuffers(data.getResource*).toByteArray
+      handler.processRequest(requestBody -> exchange, channel -> rpcCallId).either.map(_ => data.free()).runAsync
     }
 
     override def onFullTextMessage(channel: WebSocketChannel, message: BufferedTextMessage): Unit =
-      handler.processRequest(message.getData.toByteArray -> exchange, channel).runAsync
+      handler.processRequest(message.getData.toByteArray -> exchange, channel -> rpcCallId).runAsync
 
     override def onError(channel: WebSocketChannel, error: Throwable): Unit = {
       handler.failedReceiveWebSocketRequest(error)
@@ -144,7 +166,7 @@ object UndertowWebSocketEndpoint {
   final private case class ResponseCallback[Effect[_]](
     expectedResponseSent: Completable[Effect, Unit],
     effectSystem: EffectSystem[Effect],
-    handler: ClientServerHttpHandler[Effect, Context, WebSocketRequest, WebSocketChannel],
+    handler: ClientServerHttpHandler[Effect, Context, WebSocketRequest, (WebSocketChannel, RpcCallId)],
   ) extends WebSocketCallback[Unit] {
     implicit private val system: EffectSystem[Effect] = effectSystem
 

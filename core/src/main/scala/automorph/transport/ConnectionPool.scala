@@ -24,8 +24,6 @@ import scala.collection.mutable
  *   effect system
  * @param maxPeerConnections
  *   maximum number of connections per peer
- * @param retain
- *   enable returning used connection to pool
  * @tparam Effect
  *   effect type
  * @tparam Endpoint
@@ -39,7 +37,6 @@ final private[automorph] case class ConnectionPool[Effect[_], Endpoint, Connecti
   protocol: Protocol,
   effectSystem: EffectSystem[Effect],
   maxPeerConnections: Option[Int] = None,
-  retain: Boolean = true,
 ) extends Logging {
   private val pools = TrieMap[String, Pool[Effect, Connection]]().withDefaultValue(Pool())
   private val active = new AtomicBoolean(false)
@@ -47,7 +44,8 @@ final private[automorph] case class ConnectionPool[Effect[_], Endpoint, Connecti
   implicit private val system: EffectSystem[Effect] = effectSystem
 
   /**
-   * Performs an operation using a connection from this connection pool when it becomes available.
+   * Performs an operation using a connection acquired from this connection pool when it becomes available
+   * and then return the connection back to the pool.
    *
    * @param peer
    *   connected peer identifier
@@ -61,6 +59,25 @@ final private[automorph] case class ConnectionPool[Effect[_], Endpoint, Connecti
    *   connection use result
    */
   def using[T](peer: String, endpoint: Endpoint, use: Connection => Effect[T]): Effect[T] =
+    acquire(peer, endpoint).flatMap { case (connection, connectionId) =>
+      val pool = pools(peer)
+      use(connection).flatFold(
+        error => addConnection(pool, connection, connectionId).flatMap(_ => system.failed(error)),
+        result => addConnection(pool, connection, connectionId).map(_ => result),
+      )
+    }
+
+  /**
+   * Acquire a connection from this connection pool when it becomes available.
+   *
+   * @param peer
+   *   connected peer identifier
+   * @param endpoint
+   *   connected endpoint
+   * @return
+   *   connection & connection identifier
+   */
+  def acquire(peer: String, endpoint: Endpoint): Effect[(Connection, Int)] =
     if (active.get) {
       val pool = pools(peer)
       val action = pool.synchronized {
@@ -76,34 +93,7 @@ final private[automorph] case class ConnectionPool[Effect[_], Endpoint, Connecti
           }
         }
       }
-      provideConnection(pool, endpoint, action).flatMap { case (connection, connectionId) =>
-        if (retain) {
-          use(connection).flatFold(
-            error => addConnection(pool, connection, connectionId).flatMap(_ => system.failed(error)),
-            result => addConnection(pool, connection, connectionId).map(_ => result),
-          )
-        } else {
-          use(connection)
-        }
-      }
-    } else {
-      system.failed(new IllegalStateException(closedMessage))
-    }
-
-  /**
-   * Adds a connection to this connection pool.
-   *
-   * @param peer
-   *   connected peer identifier
-   * @param connection
-   *   connection
-   * @return
-   *   nothing
-   */
-  def add(peer: String, connection: Connection): Effect[Unit] =
-    if (active.get) {
-      val pool = pools(peer)
-      addConnection(pool, connection, pool.nextId.getAndAdd(1))
+      provideConnection(pool, endpoint, action)
     } else {
       system.failed(new IllegalStateException(closedMessage))
     }
@@ -128,6 +118,24 @@ final private[automorph] case class ConnectionPool[Effect[_], Endpoint, Connecti
       }
     }
   }
+
+  /**
+   * Adds a connection to this connection pool.
+   *
+   * @param peer
+   *   connected peer identifier
+   * @param connection
+   *   connection
+   * @return
+   *   nothing
+   */
+  def add(peer: String, connection: Connection): Effect[Unit] =
+    if (active.get) {
+      val pool = pools(peer)
+      addConnection(pool, connection, pool.nextId.getAndAdd(1))
+    } else {
+      system.failed(new IllegalStateException(closedMessage))
+    }
 
   /**
    * Initialize this connection pool.
@@ -209,7 +217,7 @@ final private[automorph] case class ConnectionPool[Effect[_], Endpoint, Connecti
           pool.pendingUses.addOne(use)
           use.effect
         }
-      case NoConnection(peer) => system.failed(new IllegalStateException(s"No connection for: ${peer}"))
+      case NoConnection(peer) => system.failed(new IllegalStateException(s"No connection for: $peer"))
       case UseConnection(connection, connectionId) => system.successful(connection -> connectionId)
     }
 }

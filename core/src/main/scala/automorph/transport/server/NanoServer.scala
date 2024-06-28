@@ -2,6 +2,7 @@ package automorph.transport.server
 
 import automorph.log.{Logger, Logging}
 import automorph.spi.{EffectSystem, RpcHandler, ServerTransport}
+import automorph.transport.ClientServerHttpHandler.RpcCallId
 import automorph.transport.HttpContext.headerRpcNodeId
 import automorph.transport.HttpMetadata.headerXForwardedFor
 import automorph.transport.server.NanoHTTPD.Response.Status
@@ -13,6 +14,7 @@ import automorph.transport.{ClientServerHttpHandler, HttpContext, HttpMetadata, 
 import automorph.util.Extensions.{ByteArrayOps, EffectOps}
 import java.io.IOException
 import java.net.{SocketException, URI}
+import java.util.concurrent.atomic.AtomicReference
 import java.util.concurrent.{ArrayBlockingQueue, BlockingQueue}
 import scala.annotation.unused
 import scala.collection.immutable.ListMap
@@ -77,6 +79,8 @@ final case class NanoServer[Effect[_]](
     effectSystem,
     _ => 0,
     rpcHandler,
+    Some(getRpcCallId),
+    Some(setRpcCallId),
   )
 
   override def rpcHandler(handler: RpcHandler[Effect, Context]): NanoServer[Effect] = {
@@ -193,9 +197,15 @@ final case class NanoServer[Effect[_]](
   private def sendWebSocketResponse(
     body: Array[Byte],
     @unused metadata: HttpMetadata[Context],
-    channel: WebSocket,
+    connection: WebSocketListener[Effect],
   ): Effect[Unit] =
-    system.evaluate(channel.send(body))
+    system.evaluate(connection.send(body))
+
+  private def getRpcCallId(connection: WebSocketListener[Effect]): Option[String] =
+    connection.rpcCallId.get
+
+  private def setRpcCallId(connection: WebSocketListener[Effect], id: Option[String]): Unit =
+    connection.rpcCallId.set(id)
 
   private def getRequestContext(session: IHTTPSession, peerId: String): Context = {
     val query = Option(session.getQueryParameterString).filter(_.nonEmpty).map("?" + _).getOrElse("")
@@ -230,8 +240,9 @@ object NanoServer {
     session: IHTTPSession,
     webSocket: Boolean,
     effectSystem: EffectSystem[Effect],
-    handler: ClientServerHttpHandler[Effect, Context, WebSocketRequest, WebSocket],
+    handler: ClientServerHttpHandler[Effect, Context, WebSocketRequest, WebSocketListener[Effect]],
     logger: Logger,
+    rpcCallId: RpcCallId = new AtomicReference(None),
   ) extends WebSocket(session) {
     implicit private val system: EffectSystem[Effect] = effectSystem
 
