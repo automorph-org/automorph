@@ -3,12 +3,15 @@ package automorph.transport.client
 import automorph.log.{Logger, Logging, MessageLog}
 import automorph.spi.EffectSystem.Completable
 import automorph.spi.{ClientTransport, EffectSystem, RpcHandler}
-import automorph.transport.HttpClientBase.{completableEffect, overrideUrl, webSocketCloseReason, webSocketCloseStatusCode, webSocketConnectionClosed, webSocketSchemePrefix, webSocketUnexpectedMessage}
+import automorph.transport.HttpClientBase.{
+  completableEffect, overrideUrl, webSocketCloseReason, webSocketCloseStatusCode, webSocketConnectionClosed,
+  webSocketSchemePrefix, webSocketUnexpectedMessage,
+}
 import automorph.transport.HttpContext.{headerAccept, headerContentType, headerRpcListen}
 import automorph.transport.ServerHttpHandler.valueRpcListen
 import automorph.transport.client.HttpClient.{Context, FrameListener, Transport}
 import automorph.transport.{ClientServerHttpSender, ConnectionPool, HttpContext, HttpListen, HttpMethod, Protocol}
-import automorph.util.Extensions.{ByteArrayOps, ByteBufferOps, EffectOps}
+import automorph.util.Extensions.{ByteArrayOps, ByteBufferOps, EffectOps, StringOps}
 import java.net.URI
 import java.net.http.HttpClient.Builder
 import java.net.http.HttpRequest.BodyPublishers
@@ -55,6 +58,7 @@ import scala.util.Try
  * @tparam Effect
  *   effect type
  */
+//noinspection DuplicatedCode
 final case class HttpClient[Effect[_]](
   effectSystem: EffectSystem[Effect],
   url: URI,
@@ -239,6 +243,7 @@ object HttpClient {
   /** Transport-specific context. */
   final case class Transport(request: HttpRequest.Builder)
 
+  //noinspection DuplicatedCode
   final private case class FrameListener[Effect[_]](
     url: URI,
     removeConnection: () => Unit,
@@ -267,6 +272,9 @@ object HttpClient {
       }
       super.onBinary(webSocket, data, last)
     }
+
+    override def onText(webSocket: WebSocket, data: CharSequence, last: Boolean): CompletionStage[?] =
+      onBinary(webSocket, data.toString.toByteArray.toByteBuffer, last)
 
     override def onError(webSocket: WebSocket, error: Throwable): Unit = {
       removeConnection()

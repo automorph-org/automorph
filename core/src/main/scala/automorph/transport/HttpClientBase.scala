@@ -13,6 +13,7 @@ private[automorph] object HttpClientBase {
   val webSocketCloseReason = ""
   val webSocketUnexpectedMessage = s"Unexpected ${Protocol.WebSocket} message"
   val webSocketConnectionClosed = s"${Protocol.WebSocket} connection closed"
+  val webSocketFailedClose = s"Failed to close ${Protocol.WebSocket} connection"
   private val missingResult = "Missing completable future result"
 
   def overrideUrl[TransportContext](url: URI, context: HttpContext[TransportContext]): URI = {
