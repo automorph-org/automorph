@@ -65,7 +65,7 @@ private[automorph] object Extensions {
 
     /** Converts this byte buffer to byte array. */
     def toByteArray: Array[Byte] =
-      if (data.hasArray) {
+      if (data.hasArray && data.arrayOffset == 0) {
         data.array
       } else {
         val array = Array.ofDim[Byte](data.remaining)
