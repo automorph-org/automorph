@@ -11,20 +11,12 @@ echo -e "\n### Files"
 echo "* Main: `find  . -name '*.scala' -type f | grep src/main/ | wc -l`"
 echo "* Test: `find  . -name '*.scala' -type f | grep src/test/ | wc -l`"
 echo "* Docs: `(find  docs -name '*.md' -type f ; find site/src -type f ; echo site/docusaurus.config.js) | wc -l`"
-echo "* Build: `(find . \( -name '*.sbt' \) -type f ; echo site/package.json ; cat <<EOF
-site/package.json
-site/docusaurus.config.js
-EOF
-) | wc -l`"
+echo "* Build: `(find . \( -name '*.sbt' \) -type f ; echo site/package.json) | wc -l`"
 
 echo -e "\n### Lines"
 echo "* Main: `find  . -name '*.scala' -type f | grep src/main/ | xargs cat | wc -l`"
 echo "* Test: `find  . -name '*.scala' -type f | grep src/test/ | xargs cat | wc -l`"
 echo "* Docs: `(find  docs -name '*.md' -type f ; find site/src -type f ; echo site/docusaurus.config.js) | xargs cat | wc -l`"
-echo "* Build: `(find . \( -name '*.sbt' \) -type f ; echo site/package.json ; cat <<EOF
-site/package.json
-site/docusaurus.config.js
-EOF
-) | xargs cat | wc -l`"
+echo "* Build: `(find . \( -name '*.sbt' \) -type f ; echo site/package.json) | xargs cat | wc -l`"
 echo
 
