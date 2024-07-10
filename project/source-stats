@@ -10,8 +10,8 @@ cd ${SCRIPT_DIR}/..
 echo -e "\n### Files"
 echo "* Main: `find  . -name '*.scala' -type f | grep src/main/ | wc -l`"
 echo "* Test: `find  . -name '*.scala' -type f | grep src/test/ | wc -l`"
-echo "* Docs: `(find  docs -name '*.md' -type f ; echo site/src/components/Home.js) | wc -l`"
-echo "* Build: `(find . \( -name '*.sbt' \) -type f ; find site/src/components -type f ; cat <<EOF
+echo "* Docs: `(find  docs -name '*.md' -type f ; find site/src -type f ; echo site/docusaurus.config.js) | wc -l`"
+echo "* Build: `(find . \( -name '*.sbt' \) -type f ; echo site/package.json ; cat <<EOF
 site/package.json
 site/docusaurus.config.js
 EOF
@@ -20,8 +20,8 @@ EOF
 echo -e "\n### Lines"
 echo "* Main: `find  . -name '*.scala' -type f | grep src/main/ | xargs cat | wc -l`"
 echo "* Test: `find  . -name '*.scala' -type f | grep src/test/ | xargs cat | wc -l`"
-echo "* Docs: `(find  docs -name '*.md' -type f ; echo site/src/components/Home.js) | xargs cat | wc -l`"
-echo "* Build: `(find . \( -name '*.sbt' \) -type f ; find site/src/components -type f ; cat <<EOF
+echo "* Docs: `(find  docs -name '*.md' -type f ; find site/src -type f ; echo site/docusaurus.config.js) | xargs cat | wc -l`"
+echo "* Build: `(find . \( -name '*.sbt' \) -type f ; echo site/package.json ; cat <<EOF
 site/package.json
 site/docusaurus.config.js
 EOF
