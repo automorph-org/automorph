@@ -28,10 +28,10 @@ private[automorph] object HttpClientBase {
 
   def completableEffect[T, Effect[_]](
     future: => CompletableFuture[T],
-    asyncSystem: EffectSystem[Effect],
+    effectSystem: EffectSystem[Effect],
   ): Effect[T] = {
-    implicit val effectSystem: EffectSystem[Effect] = asyncSystem
-    asyncSystem.completable[T].flatMap { completable =>
+    implicit val system: EffectSystem[Effect] = effectSystem
+    system.completable[T].flatMap { completable =>
       Try(future).fold(
         error => completable.fail(error).runAsync,
         { value =>
