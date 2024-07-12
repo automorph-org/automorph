@@ -61,3 +61,15 @@ client.call[String]("hello")("n" -> 1)
 - [Artifacts](https://central.sonatype.com/namespace/org.automorph)
 - [Contact](mailto:automorph.org@proton.me)
 
+--
+
+TODO:
+- Upgrade Jetty client to version 12
+- Upgrade Jetty server to verson 12
+- Test reverse call logic
+- Merge RPC client and server
+- Create standard TypeScript example using Mole RPC
+- Create reverse call TypeScript example using Mole RPC
+- Fix ZIO HTTP test
+- Fix Play test
+
