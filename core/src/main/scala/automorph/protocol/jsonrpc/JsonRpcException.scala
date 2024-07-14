@@ -18,7 +18,7 @@ package automorph.protocol.jsonrpc
  * @param cause
  *   exception cause
  * @tparam Value
- *   message codec node representation type
+ *   error information type
  */
 final case class JsonRpcException[Value](
   message: String,
