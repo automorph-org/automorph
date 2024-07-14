@@ -122,7 +122,7 @@ Await.result(run, Duration.Inf)
 
 ### Dynamic client
 
-Call a remote API using JSON-RPC over HTTP(S) dynamically not using an API trait.
+Call a remote API using JSON-RPC over HTTP(S) dynamically without using an API trait.
 
 ```scala
 import automorph.Default
@@ -139,7 +139,7 @@ val run = for {
   // Initialize the JSON-RPC client
   activeClient <- client.init()
 
-  // Call the remote API function dynamically not using an API trait
+  // Call the remote API function dynamically without using an API trait
   result <- activeClient.call[String]("hello")("n" -> 1)
   _ = println(result)
 

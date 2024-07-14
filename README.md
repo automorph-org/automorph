@@ -35,7 +35,7 @@ val remoteApi = client.proxy[Api]
 // Call the remote API function via the local proxy
 remoteApi.hello(1)
 
-// Call the remote API function dynamically not using the API trait
+// Call the remote API function dynamically without using the API trait
 client.call[String]("hello")("n" -> 1)
 ```
 
