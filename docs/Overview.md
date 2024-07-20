@@ -183,3 +183,9 @@ The following technical standards are supported by freely combining appropriate
 - [Tapir](https://tapir.softwaremill.com)
 - [STTP](https://sttp.softwaremill.com)
 - [ZIO](https://zio.dev)
+
+
+## License
+
+Licensed under [Apache License, Version 2.0](http://www.apache.org/licenses/LICENSE-2.0).
+
