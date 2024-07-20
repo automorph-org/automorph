@@ -16,6 +16,9 @@ version="$1"
 tag="v${version}"
 release_notes="release-notes.md"
 
+# Run tests
+TEST_LEVEL=all sbt '+ test'
+
 # Check binary compatibility
 if [ -z "${force}" ]; then
  # sbt '+ mimaReportBinaryIssues ; tastyMiMaReportIssues'
@@ -24,6 +27,7 @@ fi
 
 # EXtract a changelog since the last tag
 git log $(git describe --tags --abbrev=0)..HEAD --format='%s' | grep '^-' > "${release_notes}"
+B
 
 # Create a new tag
 git tag -a -m "Version: ${version}" "${tag}"
