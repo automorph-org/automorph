@@ -13,7 +13,7 @@ fi
 
 # Configure settings
 version="$1"
-tag="v${VERSION}"
+tag="v${version}"
 release_notes="release-notes.md"
 
 # Check binary compatibility
