@@ -1,5 +1,3 @@
-<br>
-
 ![Automorph](https://github.com/automorph-org/automorph/raw/main/site/static/banner.jpg)
 
 [![Documentation](https://img.shields.io/badge/Website-documentation-blue)](https://automorph.org)
@@ -13,9 +11,14 @@ https://central.sonatype.com/namespace/org.automorph)
 **Automorph** is a Scala [RPC](https://en.wikipedia.org/wiki/Remote_procedure_call) client and server library
 for invoking and exposing remote APIs in a few lines of code.
 
----
+- [Get Started](https://automorph.org/docs/Quickstart)
+- [Documentation](https://automorph.org)
+- [API](https://automorph.org/api/automorph.html)
+- [Artifacts](https://central.sonatype.com/namespace/org.automorph)
+- [Contact](mailto:automorph.org@proton.me)
 
-**Main interface**
+
+## Example
 
 ```scala
 // Define a remote API
@@ -41,7 +44,8 @@ client.call[String]("hello")("n" -> 1)
 
 *Note*: Mundane parts of the code are omitted and can be found in the [full example](https://automorph.org/docs/Quickstart).
 
----
+
+## Features
 
 - **Seamless** - Generate optimized [RPC](https://en.wikipedia.org/wiki/Remote_procedure_call) [client](https://automorph.org/docs/Quickstart#static-client) or [server](https://automorph.org/docs/Quickstart#server) bindings from existing public API methods at compile time.
 - **Flexible** - Customize [data serialization](https://automorph.org/docs/Examples#data-type-serialization), remote API [function names](https://automorph.org/docs/Examples#client-function-names), RPC protocol [errors](https://automorph.org/docs/Examples#client-exceptions) and [authentication](https://automorph.org/docs/Examples#http-authentication).
@@ -52,12 +56,4 @@ client.call[String]("hello")("n" -> 1)
 - **RPC protocols** - [JSON-RPC](https://www.jsonrpc.org/specification), [Web-RPC](https://automorph.org/docs/Web-RPC).
 - **Transport protocols** - [HTTP](https://automorph.org/docs/Examples#http-authentication), [WebSocket](https://automorph.org/docs/Examples#websocket-transport), [AMQP](https://automorph.org/docs/Examples#amqp-transport).
 - **Effect handling** - [Synchronous](https://automorph.org/docs/Examples#synchronous-call), [Asynchronous](https://automorph.org/docs/Examples#asynchronous-call), [Monadic](https://automorph.org/docs/Examples#effect-system).
-
----
-
-- [Get Started](https://automorph.org/docs/Quickstart)
-- [Documentation](https://automorph.org)
-- [API](https://automorph.org/api/automorph.html)
-- [Artifacts](https://central.sonatype.com/namespace/org.automorph)
-- [Contact](mailto:automorph.org@proton.me)
 
