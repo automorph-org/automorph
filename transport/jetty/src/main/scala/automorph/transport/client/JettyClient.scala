@@ -247,7 +247,6 @@ final case class JettyClient[Effect[_]](
   ): Effect[(Session, FrameListener[Effect])] = {
     val (clientUpgradeRequest, requestUrl) = endpoint
     val removeConnection = () => callWebSocketConnections.remove(requestUrl.toString, connectionId)
-//    val frameListener = new WebSocketListener(FrameListener(requestUrl, removeConnection, effectSystem, logger))
     val frameListener = FrameListener(requestUrl, removeConnection, effectSystem, logger)
     completableEffect(webSocketClient.connect(frameListener, requestUrl, clientUpgradeRequest), effectSystem)
       .map(_ -> frameListener)
