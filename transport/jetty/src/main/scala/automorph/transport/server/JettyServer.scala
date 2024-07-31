@@ -5,8 +5,7 @@ import automorph.spi.{EffectSystem, RpcHandler, ServerTransport}
 import automorph.transport.server.JettyServer.Context
 import automorph.transport.{HttpContext, HttpMethod}
 import org.eclipse.jetty.http.HttpStatus
-import org.eclipse.jetty.server.Request.Handler
-import org.eclipse.jetty.server.{Request, Response, Server, ServerConnector}
+import org.eclipse.jetty.server.{Handler, Request, Response, Server, ServerConnector}
 import org.eclipse.jetty.util.Callback
 import org.eclipse.jetty.util.thread.{QueuedThreadPool, ThreadPool}
 import scala.collection.immutable.ListMap
@@ -69,7 +68,7 @@ final case class JettyServer[Effect[_]](
 
   private lazy val server = createServer()
   private val allowedMethods = methods.map(_.name).toSet
-  private val httpHandler = new Handler {
+  private val httpHandler = new Handler.Abstract() {
     private val endpointTransport = JettyHttpEndpoint(effectSystem, mapException, handler)
 
     override def handle(request: Request, response: Response, callback: Callback): Boolean =
@@ -119,6 +118,7 @@ final case class JettyServer[Effect[_]](
     val connector = new ServerConnector(server)
     connector.setPort(port)
     server.addConnector(connector)
+    server.setHandler(httpHandler)
 
     // WebSocket support
 //    if (webSocket) {

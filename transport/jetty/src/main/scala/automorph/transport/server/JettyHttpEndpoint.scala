@@ -8,8 +8,7 @@ import automorph.transport.{ClientServerHttpHandler, HttpContext, HttpMetadata, 
 import automorph.util.Extensions.{ByteArrayOps, ByteBufferOps, EffectOps}
 import org.eclipse.jetty.http.HttpHeader
 import org.eclipse.jetty.io.Content
-import org.eclipse.jetty.server.Request.Handler
-import org.eclipse.jetty.server.{Request, Response}
+import org.eclipse.jetty.server.{Handler, Request, Response}
 import org.eclipse.jetty.util.Callback
 import scala.jdk.CollectionConverters.{EnumerationHasAsScala, SetHasAsScala}
 
@@ -41,7 +40,7 @@ final case class JettyHttpEndpoint[Effect[_]](
   mapException: Throwable => Int = HttpContext.toStatusCode,
   rpcHandler: RpcHandler[Effect, Context] = RpcHandler.dummy[Effect, Context],
 ) extends ServerTransport[Effect, Context, Handler] {
-  private lazy val httpHandler = new Handler {
+  private lazy val httpHandler = new Handler.Abstract() {
     implicit private val system: EffectSystem[Effect] = effectSystem
 
     override def handle(request: Request, response: Response, callback: Callback): Boolean = {
@@ -114,8 +113,8 @@ final case class JettyHttpEndpoint[Effect[_]](
 
   private def client(request: Request): String = {
     val address = Request.getRemoteAddr(request)
-    val forwardedFor = request.getHeaders.getValues(HttpHeader.X_FORWARDED_FOR.name).asScala.nextOption
-    val nodeId = request.getHeaders.getValues(headerRpcNodeId).asScala.nextOption
+    val forwardedFor = request.getHeaders.getValues(HttpHeader.X_FORWARDED_FOR.name).asScala.nextOption()
+    val nodeId = request.getHeaders.getValues(headerRpcNodeId).asScala.nextOption()
     ServerHttpHandler.client(address, forwardedFor, nodeId)
   }
 }
