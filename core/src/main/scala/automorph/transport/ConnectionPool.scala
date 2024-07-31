@@ -99,6 +99,24 @@ final private[automorph] case class ConnectionPool[Effect[_], Endpoint, Connecti
     }
 
   /**
+   * Adds a connection to this connection pool.
+   *
+   * @param peer
+   *   connected peer identifier
+   * @param connection
+   *   connection
+   * @return
+   *   nothing
+   */
+  def add(peer: String, connection: Connection): Effect[Unit] =
+    if (active.get) {
+      val pool = pools(peer)
+      addConnection(pool, connection, pool.nextId.getAndAdd(1))
+    } else {
+      system.failed(new IllegalStateException(closedMessage))
+    }
+
+  /**
    * Removes a connection from the connection pool.
    *
    * @param peer
@@ -118,24 +136,6 @@ final private[automorph] case class ConnectionPool[Effect[_], Endpoint, Connecti
       }
     }
   }
-
-  /**
-   * Adds a connection to this connection pool.
-   *
-   * @param peer
-   *   connected peer identifier
-   * @param connection
-   *   connection
-   * @return
-   *   nothing
-   */
-  def add(peer: String, connection: Connection): Effect[Unit] =
-    if (active.get) {
-      val pool = pools(peer)
-      addConnection(pool, connection, pool.nextId.getAndAdd(1))
-    } else {
-      system.failed(new IllegalStateException(closedMessage))
-    }
 
   /**
    * Initialize this connection pool.

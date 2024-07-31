@@ -22,7 +22,7 @@ trait HttpClientHttpTest extends HttpClientServerTest {
   override def serverTransport(fixtureId: String): ServerTransport[Effect, Context, Unit] =
     NanoServer(system, port(fixtureId))
 
-  override def basic: Boolean =
+  override def mandatory: Boolean =
     true
 
   private def url(fixtureId: String): URI =

@@ -31,7 +31,12 @@ trait HttpClientServerTest extends ClientServerTest {
       client,
       server,
       Apis(client.proxy[SimpleApiType], client.proxy[ComplexApiType], client.proxy[InvalidApiType]),
-      Functions(f => client.call(f)(), (f, a0) => client.call(f)(a0), (f, a0) => client.tell(f)(a0)),
+      Functions(
+        f => client.call(f)(),
+        f => client.call(f)(),
+        (f, a0) => client.call(f)(a0),
+        (f, a0) => client.tell(f)(a0),
+      ),
     )
   }
 }

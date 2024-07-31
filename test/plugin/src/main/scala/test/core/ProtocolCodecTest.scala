@@ -32,7 +32,7 @@ trait ProtocolCodecTest extends CoreTest {
 
   override def fixtures: Seq[TestFixture] = {
     implicit val context: Context = arbitraryContext.arbitrary.sample.get
-    Seq(circeJsonRpcFixture) ++ Option.when((basic && !TestLevel.simple) || TestLevel.all)(Seq(
+    Seq(circeJsonRpcFixture) ++ Option.when((mandatory && !TestLevel.simple) || TestLevel.all)(Seq(
       jacksonJsonRpcJsonFixture,
       jacksonJsonRpcSmileFixture,
       jacksonJsonRpcCborFixture,
@@ -79,7 +79,12 @@ trait ProtocolCodecTest extends CoreTest {
       client,
       server,
       Apis(client.proxy[SimpleApiType], client.proxy[ComplexApiType], client.proxy[InvalidApiType]),
-      Functions(f => client.call(f)(), (f, a0) => client.call(f)(a0), (f, a0) => client.tell(f)(a0)),
+      Functions(
+        f => client.call(f)(),
+        f => client.call(f)(),
+        (f, a0) => client.call(f)(a0),
+        (f, a0) => client.tell(f)(a0),
+      ),
     )
   }
 
@@ -95,7 +100,12 @@ trait ProtocolCodecTest extends CoreTest {
       client,
       server,
       Apis(client.proxy[SimpleApiType], client.proxy[ComplexApiType], client.proxy[InvalidApiType]),
-      Functions(f => client.call(f)(), (f, a0) => client.call(f)(a0), (f, a0) => client.tell(f)(a0)),
+      Functions(
+        f => client.call(f)(),
+        f => client.call(f)(),
+        (f, a0) => client.call(f)(a0),
+        (f, a0) => client.tell(f)(a0),
+      ),
     )
   }
 
@@ -111,7 +121,12 @@ trait ProtocolCodecTest extends CoreTest {
       client,
       server,
       Apis(client.proxy[SimpleApiType], client.proxy[ComplexApiType], client.proxy[InvalidApiType]),
-      Functions(f => client.call(f)(), (f, a0) => client.call(f)(a0), (f, a0) => client.tell(f)(a0)),
+      Functions(
+        f => client.call(f)(),
+        f => client.call(f)(),
+        (f, a0) => client.call(f)(a0),
+        (f, a0) => client.tell(f)(a0),
+      ),
     )
   }
 
@@ -127,7 +142,12 @@ trait ProtocolCodecTest extends CoreTest {
       client,
       server,
       Apis(client.proxy[SimpleApiType], client.proxy[ComplexApiType], client.proxy[InvalidApiType]),
-      Functions(f => client.call(f)(), (f, a0) => client.call(f)(a0), (f, a0) => client.tell(f)(a0)),
+      Functions(
+        f => client.call(f)(),
+        f => client.call(f)(),
+        (f, a0) => client.call(f)(a0),
+        (f, a0) => client.tell(f)(a0),
+      ),
     )
   }
 
@@ -143,7 +163,12 @@ trait ProtocolCodecTest extends CoreTest {
       client,
       server,
       Apis(client.proxy[SimpleApiType], client.proxy[ComplexApiType], client.proxy[InvalidApiType]),
-      Functions(f => client.call(f)(), (f, a0) => client.call(f)(a0), (f, a0) => client.tell(f)(a0)),
+      Functions(
+        f => client.call(f)(),
+        f => client.call(f)(),
+        (f, a0) => client.call(f)(a0),
+        (f, a0) => client.tell(f)(a0),
+      ),
     )
   }
 
@@ -159,7 +184,12 @@ trait ProtocolCodecTest extends CoreTest {
       client,
       server,
       Apis(client.proxy[SimpleApiType], client.proxy[ComplexApiType], client.proxy[InvalidApiType]),
-      Functions(f => client.call(f)(), (f, a0) => client.call(f)(a0), (f, a0) => client.tell(f)(a0)),
+      Functions(
+        f => client.call(f)(),
+        f => client.call(f)(),
+        (f, a0) => client.call(f)(a0),
+        (f, a0) => client.tell(f)(a0),
+      ),
     )
   }
 
@@ -175,7 +205,12 @@ trait ProtocolCodecTest extends CoreTest {
       client,
       server,
       Apis(client.proxy[SimpleApiType], client.proxy[ComplexApiType], client.proxy[InvalidApiType]),
-      Functions(f => client.call(f)(), (f, a0) => client.call(f)(a0), (f, a0) => client.tell(f)(a0)),
+      Functions(
+        f => client.call(f)(),
+        f => client.call(f)(),
+        (f, a0) => client.call(f)(a0),
+        (f, a0) => client.tell(f)(a0),
+      ),
     )
   }
 
@@ -191,7 +226,12 @@ trait ProtocolCodecTest extends CoreTest {
       client,
       server,
       Apis(client.proxy[SimpleApiType], client.proxy[ComplexApiType], client.proxy[InvalidApiType]),
-      Functions(f => client.call(f)(), (f, a0) => client.call(f)(a0), (f, a0) => client.tell(f)(a0)),
+      Functions(
+        f => client.call(f)(),
+        f => client.call(f)(),
+        (f, a0) => client.call(f)(a0),
+        (f, a0) => client.tell(f)(a0),
+      ),
     )
   }
 
@@ -207,7 +247,12 @@ trait ProtocolCodecTest extends CoreTest {
       client,
       server,
       Apis(client.proxy[SimpleApiType], client.proxy[ComplexApiType], client.proxy[InvalidApiType]),
-      Functions(f => client.call(f)(), (f, a0) => client.call(f)(a0), (f, a0) => client.tell(f)(a0)),
+      Functions(
+        f => client.call(f)(),
+        f => client.call(f)(),
+        (f, a0) => client.call(f)(a0),
+        (f, a0) => client.tell(f)(a0),
+      ),
     )
   }
 
@@ -230,7 +275,12 @@ trait ProtocolCodecTest extends CoreTest {
       client,
       server,
       Apis(client.proxy[SimpleApiType], client.proxy[ComplexApiType], client.proxy[InvalidApiType]),
-      Functions(f => client.call(f)(), (f, a0) => client.call(f)(a0), (f, a0) => client.tell(f)(a0)),
+      Functions(
+        f => client.call(f)(),
+        f => client.call(f)(),
+        (f, a0) => client.call(f)(a0),
+        (f, a0) => client.tell(f)(a0),
+      ),
     )
   }
 
@@ -253,7 +303,12 @@ trait ProtocolCodecTest extends CoreTest {
       client,
       server,
       Apis(client.proxy[SimpleApiType], client.proxy[ComplexApiType], client.proxy[InvalidApiType]),
-      Functions(f => client.call[OpenApi](f)(), (f, a0) => client.call[String](f)(a0), (f, a0) => client.tell(f)(a0)),
+      Functions(
+        f => client.call(f)(),
+        f => client.call(f)(),
+        (f, a0) => client.call[String](f)(a0),
+        (f, a0) => client.tell(f)(a0),
+      ),
     )
   }
 

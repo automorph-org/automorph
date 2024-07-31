@@ -34,6 +34,6 @@ final class HttpClientWebSocketFutureTest extends ClientServerTest {
   private def url(fixtureId: String): URI =
     new URI(s"ws://localhost:${port(fixtureId)}")
 
-  override def basic: Boolean =
+  override def mandatory: Boolean =
     true
 }

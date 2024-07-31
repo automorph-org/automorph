@@ -12,7 +12,7 @@ trait PlatformSpecificTest extends ProtocolCodecTest {
 
   override def fixtures: Seq[TestFixture] = {
     implicit val context: Context = arbitraryContext.arbitrary.sample.get
-    super.fixtures ++ Option.when(basic || TestLevel.all)(Seq(
+    super.fixtures ++ Option.when(mandatory || TestLevel.all)(Seq(
       playJsonJsonRpcFixture,
       json4sNativeJsonRpcFixture,
     )).getOrElse(Seq())
@@ -40,7 +40,12 @@ trait PlatformSpecificTest extends ProtocolCodecTest {
       client,
       server,
       Apis(client.proxy[SimpleApiType], client.proxy[ComplexApiType], client.proxy[InvalidApiType]),
-      Functions(f => client.call(f)(), (f, a0) => client.call(f)(a0), (f, a0) => client.tell(f)(a0)),
+      Functions(
+        f => client.call(f)(),
+        f => client.call(f)(),
+        (f, a0) => client.call(f)(a0),
+        (f, a0) => client.tell(f)(a0),
+      ),
     )
   }
 
@@ -66,7 +71,12 @@ trait PlatformSpecificTest extends ProtocolCodecTest {
       client,
       server,
       Apis(client.proxy[SimpleApiType], client.proxy[ComplexApiType], client.proxy[InvalidApiType]),
-      Functions(f => client.call(f)(), (f, a0) => client.call(f)(a0), (f, a0) => client.tell(f)(a0)),
+      Functions(
+        f => client.call(f)(),
+        f => client.call(f)(),
+        (f, a0) => client.call(f)(a0),
+        (f, a0) => client.tell(f)(a0),
+      ),
     )
   }
 }

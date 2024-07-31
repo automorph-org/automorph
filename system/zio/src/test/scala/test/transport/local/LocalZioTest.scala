@@ -17,6 +17,6 @@ final class LocalZioTest extends LocalTest {
       system.runtime.unsafe.run(effect).toEither.swap.map(_.getCause).swap.toTry.get
     }
 
-  override def basic: Boolean =
+  override def mandatory: Boolean =
     true
 }

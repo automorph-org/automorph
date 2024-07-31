@@ -14,6 +14,6 @@ final class LocalTryTest extends LocalTest {
   override def run[T](effect: Effect[T]): T =
     effect.get
 
-  override def basic: Boolean =
+  override def mandatory: Boolean =
     true
 }

@@ -46,7 +46,7 @@ trait CoreTest extends BaseTest {
   def reverseInit: Boolean =
     false
 
-  def basic: Boolean =
+  def mandatory: Boolean =
     false
 
   "" - {
@@ -54,7 +54,7 @@ trait CoreTest extends BaseTest {
       fixture.id - {
         // Simple tests
         "Standard" - {
-          if (basic || TestLevel.simple) {
+          if (mandatory || TestLevel.simple) {
             "Simple API" - {
               val apis = (fixture.apis.simpleApi, simpleApi)
               "method" in {
@@ -63,7 +63,7 @@ trait CoreTest extends BaseTest {
             }
           }
 
-          if ((basic && !TestLevel.simple) || TestLevel.complex) {
+          if ((mandatory && !TestLevel.simple) || TestLevel.complex) {
             "Discover" - {
               if (!fixture.server.rpcProtocol.isInstanceOf[WebRpcProtocol[?, ?, ?]]) {
                 "OpenRPC" in {
@@ -85,7 +85,7 @@ trait CoreTest extends BaseTest {
         }
 
         // Complex tests
-        if ((basic && !TestLevel.simple) || TestLevel.complex) {
+        if ((mandatory && !TestLevel.simple) || TestLevel.complex) {
           "Static" - {
             "Simple API" - {
               val apis = (fixture.apis.simpleApi, simpleApi)

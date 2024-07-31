@@ -3,22 +3,27 @@ package automorph.transport.client
 import automorph.log.{Logger, Logging, MessageLog}
 import automorph.spi.EffectSystem.Completable
 import automorph.spi.{ClientTransport, EffectSystem, RpcHandler}
-import automorph.transport.HttpClientBase.{completableEffect, overrideUrl, webSocketCloseReason, webSocketCloseStatusCode, webSocketConnectionClosed, webSocketSchemePrefix, webSocketUnexpectedMessage}
+import automorph.transport.HttpClientBase.{
+  completableEffect, overrideUrl, webSocketCloseReason, webSocketCloseStatusCode, webSocketConnectionClosed,
+  webSocketFailedClose, webSocketSchemePrefix, webSocketUnexpectedMessage,
+}
 import automorph.transport.HttpContext.headerRpcListen
 import automorph.transport.ServerHttpHandler.valueRpcListen
-import automorph.transport.client.JettyClient.{Context, FrameListener, ResponseListener, SentCallback, Transport}
+import automorph.transport.client.JettyClient.{
+  ClosedCallback, Context, FrameListener, ResponseListener, SentCallback, Transport,
+}
 import automorph.transport.{ClientServerHttpSender, ConnectionPool, HttpContext, HttpListen, HttpMethod, Protocol}
-import automorph.util.Extensions.{ByteArrayOps, EffectOps}
-import org.eclipse.jetty.client.HttpClient
-import org.eclipse.jetty.client.api.{Request, Response, Result}
-import org.eclipse.jetty.client.util.{BufferingResponseListener, BytesRequestContent}
+import automorph.util.Extensions.{ByteArrayOps, ByteBufferOps, EffectOps, StringOps}
+import org.eclipse.jetty.client.{BufferingResponseListener, BytesRequestContent, HttpClient, Request, Response, Result}
 import org.eclipse.jetty.http
 import org.eclipse.jetty.http.HttpHeader
-import org.eclipse.jetty.websocket.api.{Session, WebSocketListener, WriteCallback}
+import org.eclipse.jetty.websocket.api.annotations.{OnWebSocketClose, OnWebSocketError, OnWebSocketMessage, WebSocket}
+import org.eclipse.jetty.websocket.api.{Callback, Session}
 import org.eclipse.jetty.websocket.client.{ClientUpgradeRequest, WebSocketClient}
 import java.net.URI
-import java.util
+import java.nio.ByteBuffer
 import java.util.concurrent.TimeUnit
+import scala.annotation.unused
 import scala.jdk.CollectionConverters.{IterableHasAsScala, SeqHasAsJava}
 
 /**
@@ -172,7 +177,7 @@ final case class JettyClient[Effect[_]](
                } else {
                  effectSystem.completable[Unit].flatMap { expectedRequestSent =>
                    val sentCallback = SentCallback(expectedRequestSent, effectSystem)
-                   session.getRemote.sendBytes(requestBody.toByteBuffer, sentCallback)
+                   session.sendBinary(requestBody.toByteBuffer, sentCallback)
                    expectedRequestSent.effect.flatMap(_ => expectedResponse.effect)
                  }
                }).map(_ -> requestContext.headers(Seq.empty[(String, String)]*))
@@ -224,8 +229,7 @@ final case class JettyClient[Effect[_]](
       .transportContext.map(_.request)
       .getOrElse(httpClient.newRequest(requestUrl))
     val transportHeaders = transportRequest.getHeaders.asScala.map(field => field.getName -> field.getValue)
-    val headers = transportHeaders ++ httpContext.headers
-      ++ Seq(HttpHeader.CONTENT_TYPE.asString -> contentType, HttpHeader.CONTENT_TYPE.asString -> contentType)
+    val headers = transportHeaders ++ httpContext.headers ++ Seq(HttpHeader.CONTENT_TYPE.asString -> contentType)
     val request = new ClientUpgradeRequest
     headers.toSeq.groupBy(_._1).view.mapValues(_.map(_._2)).toSeq.foreach { case (name, values) =>
       request.setHeader(name, values.asJava)
@@ -243,6 +247,7 @@ final case class JettyClient[Effect[_]](
   ): Effect[(Session, FrameListener[Effect])] = {
     val (clientUpgradeRequest, requestUrl) = endpoint
     val removeConnection = () => callWebSocketConnections.remove(requestUrl.toString, connectionId)
+//    val frameListener = new WebSocketListener(FrameListener(requestUrl, removeConnection, effectSystem, logger))
     val frameListener = FrameListener(requestUrl, removeConnection, effectSystem, logger)
     completableEffect(webSocketClient.connect(frameListener, requestUrl, clientUpgradeRequest), effectSystem)
       .map(_ -> frameListener)
@@ -250,7 +255,12 @@ final case class JettyClient[Effect[_]](
 
   private def closeWebSocket(connection: (Session, FrameListener[Effect])): Effect[Unit] =
     effectSystem.evaluate {
-      connection._1.close(webSocketCloseStatusCode, webSocketCloseReason)
+      val (session, _) = connection
+      session.close(
+        webSocketCloseStatusCode,
+        webSocketCloseReason,
+        ClosedCallback(session.getUpgradeRequest.getRequestURI, logger),
+      )
     }
 }
 
@@ -261,6 +271,51 @@ object JettyClient {
 
   /** Transport-specific context. */
   final case class Transport(request: Request)
+
+  @WebSocket(autoDemand = true)
+  final case class FrameListener[Effect[_]](
+    url: URI,
+    removeConnection: () => Unit,
+    effectSystem: EffectSystem[Effect],
+    logger: Logger,
+    var expectedResponse: Option[Completable[Effect, Array[Byte]]] = None,
+  ) {
+    implicit val system: EffectSystem[Effect] = effectSystem
+
+    @OnWebSocketMessage
+    def onWebSocketBinary(payload: ByteBuffer, callback: Callback): Unit = {
+      expectedResponse.map { response =>
+        expectedResponse = None
+        response.succeed(payload.toByteArray).runAsync
+      }.getOrElse(logger.error(webSocketUnexpectedMessage, Map(MessageLog.url -> url)))
+      callback.succeed()
+    }
+
+    @OnWebSocketMessage
+    def onWebSocketText(message: String): Unit =
+      expectedResponse.map { response =>
+        expectedResponse = None
+        response.succeed(message.toByteArray).runAsync
+      }.getOrElse(logger.error(webSocketUnexpectedMessage, Map(MessageLog.url -> url)))
+
+    @OnWebSocketError
+    def onWebSocketError(error: Throwable): Unit = {
+      removeConnection()
+      expectedResponse.map { response =>
+        expectedResponse = None
+        response.fail(error).runAsync
+      }.getOrElse(logger.error(webSocketUnexpectedMessage, Map(MessageLog.url -> url)))
+    }
+
+    @OnWebSocketClose
+    def onWebSocketClose(@unused statusCode: Int, reason: String): Unit = {
+      removeConnection()
+      expectedResponse.foreach { response =>
+        expectedResponse = None
+        response.fail(new IllegalStateException(s"$webSocketConnectionClosed: $reason")).runAsync
+      }
+    }
+  }
 
   final private case class ResponseListener[Effect[_]](
     expectedResponse: Completable[Effect, (Array[Byte], Response)],
@@ -277,48 +332,23 @@ object JettyClient {
   final private case class SentCallback[Effect[_]](
     expectedRequestSent: Completable[Effect, Unit],
     effectSystem: EffectSystem[Effect],
-  ) extends WriteCallback {
+  ) extends Callback {
     implicit private val system: EffectSystem[Effect] = effectSystem
 
-    override def writeSuccess(): Unit =
+    override def succeed(): Unit =
       expectedRequestSent.succeed {}.runAsync
 
-    override def writeFailed(error: Throwable): Unit =
+    override def fail(error: Throwable): Unit =
       expectedRequestSent.fail(error).runAsync
   }
 
-  final private case class FrameListener[Effect[_]](
-    url: URI,
-    removeConnection: () => Unit,
-    effectSystem: EffectSystem[Effect],
-    logger: Logger,
-    var expectedResponse: Option[Completable[Effect, Array[Byte]]] = None,
-  ) extends WebSocketListener {
-    implicit val system: EffectSystem[Effect] = effectSystem
+  final private case class ClosedCallback(url: URI, logger: Logger) extends Callback {
 
-    override def onWebSocketBinary(payload: Array[Byte], offset: Int, length: Int): Unit = {
-      val responseBody = util.Arrays.copyOfRange(payload, offset, offset + length)
-      expectedResponse.map { response =>
-        expectedResponse = None
-        response.succeed(responseBody).runAsync
-      }.getOrElse(logger.error(webSocketUnexpectedMessage, Map(MessageLog.url -> url)))
-    }
+    override def succeed(): Unit =
+      logger.debug(webSocketConnectionClosed, Map(MessageLog.url -> url))
 
-    override def onWebSocketError(error: Throwable): Unit = {
-      removeConnection()
-      expectedResponse.map { response =>
-        expectedResponse = None
-        response.fail(error).runAsync
-      }.getOrElse(logger.error(webSocketUnexpectedMessage, Map(MessageLog.url -> url)))
-    }
-
-    override def onWebSocketClose(statusCode: Int, reason: String): Unit = {
-      removeConnection()
-      expectedResponse.foreach { response =>
-        expectedResponse = None
-        response.fail(new IllegalStateException(webSocketConnectionClosed)).runAsync
-      }
-    }
+    override def fail(error: Throwable): Unit =
+      logger.error(webSocketFailedClose, Map(MessageLog.url -> url))
   }
 
   object Transport {

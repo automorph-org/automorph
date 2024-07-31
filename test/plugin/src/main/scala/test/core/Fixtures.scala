@@ -1,7 +1,7 @@
 package test.core
 
 import automorph.{RpcClient, RpcServer}
-import automorph.schema.OpenApi
+import automorph.schema.{OpenApi, OpenRpc}
 import automorph.spi.MessageCodec
 import test.api.{ComplexApi, InvalidApi, SimpleApi}
 
@@ -14,6 +14,7 @@ object Fixtures {
   )
 
   final case class Functions[Effect[_]](
+    callOpenRpc: String => Effect[OpenRpc],
     callOpenApi: String => Effect[OpenApi],
     callString: (String, (String, String)) => Effect[String],
     tell: (String, (String, String)) => Effect[Unit],
