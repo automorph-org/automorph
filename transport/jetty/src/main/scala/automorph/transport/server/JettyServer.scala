@@ -72,12 +72,12 @@ final case class JettyServer[Effect[_]](
     private val endpointTransport = JettyHttpEndpoint(effectSystem, mapException, handler)
 
     override def handle(request: Request, response: Response, callback: Callback): Boolean =
-      // Validate HTTP request method
       if (!allowedMethods.contains(request.getMethod.toUpperCase)) {
+        // Validate HTTP request method
         Response.writeError(request, response, callback, HttpStatus.METHOD_NOT_ALLOWED_405)
         true
-        // Validate URL path
       } else if (!request.getHttpURI.getPath.startsWith(pathPrefix)) {
+        // Validate URL path
         Response.writeError(request, response, callback, HttpStatus.NOT_FOUND_404)
         true
       } else {
