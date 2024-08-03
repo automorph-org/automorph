@@ -3,7 +3,7 @@ package automorph.transport.server
 import automorph.spi.{EffectSystem, RpcHandler, ServerTransport}
 import automorph.transport.HttpClientBase.completableEffect
 import automorph.transport.HttpContext.headerRpcNodeId
-import automorph.transport.server.JettyHttpEndpoint.Context
+import automorph.transport.server.JettyHttpEndpoint.{Context, getRequestContext}
 import automorph.transport.{ClientServerHttpHandler, HttpContext, HttpMetadata, HttpMethod, Protocol, ServerHttpHandler}
 import automorph.util.Extensions.{ByteArrayOps, ByteBufferOps, EffectOps}
 import org.eclipse.jetty.http.HttpHeader
@@ -96,8 +96,14 @@ final case class JettyHttpEndpoint[Effect[_]](
     val responseHeaders = response.getHeaders
     context.headers.foreach { case (name, value) => responseHeaders.add(name, value) }
   }
+}
 
-  private def getRequestContext(request: Request): Context = {
+object JettyHttpEndpoint {
+
+  /** Request context type. */
+  type Context = HttpContext[Request]
+
+  private[automorph] def getRequestContext(request: Request): Context = {
     val requestHeaders = request.getHeaders
     val headers = requestHeaders.getFieldNamesCollection.asScala.flatMap { name =>
       requestHeaders.getValues(name).asScala.map(value => name -> value)
@@ -117,10 +123,4 @@ final case class JettyHttpEndpoint[Effect[_]](
     val nodeId = request.getHeaders.getValues(headerRpcNodeId).asScala.nextOption()
     ServerHttpHandler.client(address, forwardedFor, nodeId)
   }
-}
-
-object JettyHttpEndpoint {
-
-  /** Request context type. */
-  type Context = HttpContext[Request]
 }

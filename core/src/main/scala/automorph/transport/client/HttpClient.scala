@@ -155,12 +155,14 @@ final case class HttpClient[Effect[_]](
             (webSocketBuilder, requestUrl),
             { case (webSocket, frameListener) =>
               frameListener.expectedResponse = Some(expectedResponse)
-              (if (listen) {
-                 expectedResponse.effect
-               } else {
-                 completableEffect(webSocket.sendBinary(requestBody.toByteBuffer, true), effectSystem)
-                   .flatMap(_ => expectedResponse.effect)
-               }).map(_ -> requestContext.headers(Seq.empty[(String, String)]*))
+              val response = if (listen) {
+                // No request sent since WebSocket handshake headers already established a listening connection
+                expectedResponse.effect
+              } else {
+                completableEffect(webSocket.sendBinary(requestBody.toByteBuffer, true), effectSystem)
+                  .flatMap(_ => expectedResponse.effect)
+              }
+              response.map(_ -> requestContext.headers(Seq.empty[(String, String)]*))
             },
           )
         }
@@ -220,8 +222,7 @@ final case class HttpClient[Effect[_]](
     connectionId: Int,
   ): Effect[(WebSocket, FrameListener[Effect])] = {
     val (webSocketBuilder, requestUrl) = endpoint
-    val removeConnection = () => callWebSocketConnections.remove(requestUrl.toString, connectionId)
-    val frameListener = FrameListener(requestUrl, removeConnection, effectSystem, logger)
+    val frameListener = FrameListener(requestUrl, connectionId, callWebSocketConnections, effectSystem, logger)
     completableEffect(webSocketBuilder.buildAsync(requestUrl, frameListener), effectSystem).map(_ -> frameListener)
   }
 
@@ -243,10 +244,11 @@ object HttpClient {
   /** Transport-specific context. */
   final case class Transport(request: HttpRequest.Builder)
 
-  //noinspection DuplicatedCode
+  // noinspection DuplicatedCode
   final private case class FrameListener[Effect[_]](
     url: URI,
-    removeConnection: () => Unit,
+    connectionId: Int,
+    callWebSocketConnections: ConnectionPool[Effect, (WebSocket.Builder, URI), (WebSocket, FrameListener[Effect])],
     effectSystem: EffectSystem[Effect],
     logger: Logger,
     var expectedResponse: Option[Completable[Effect, Array[Byte]]] = None,
@@ -277,7 +279,7 @@ object HttpClient {
       onBinary(webSocket, data.toString.toByteArray.toByteBuffer, last)
 
     override def onError(webSocket: WebSocket, error: Throwable): Unit = {
-      removeConnection()
+      callWebSocketConnections.remove(url.toString, connectionId)
       expectedResponse.map { response =>
         expectedResponse = None
         response.fail(error).runAsync
@@ -286,7 +288,7 @@ object HttpClient {
     }
 
     override def onClose(webSocket: WebSocket, statusCode: Int, reason: String): CompletionStage[?] = {
-      removeConnection()
+      callWebSocketConnections.remove(url.toString, connectionId)
       expectedResponse.foreach { response =>
         expectedResponse = None
         response.fail(new IllegalStateException(webSocketConnectionClosed)).runAsync

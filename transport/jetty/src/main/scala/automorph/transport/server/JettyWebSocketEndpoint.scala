@@ -1,16 +1,23 @@
 //package automorph.transport.server
 //
+//import automorph.log.{Logger, MessageLog}
 //import automorph.spi.EffectSystem.Completable
 //import automorph.spi.{EffectSystem, RpcHandler, ServerTransport}
 //import automorph.transport.ClientServerHttpHandler.RpcCallId
+//import automorph.transport.HttpClientBase.{completableEffect, webSocketConnectionClosed, webSocketUnexpectedMessage}
 //import automorph.transport.HttpContext.headerRpcNodeId
-//import automorph.transport.server.JettyHttpEndpoint.{Context, requestQuery}
-//import automorph.transport.server.JettyWebSocketEndpoint.{ResponseCallback, WebSocketListener, WebSocketRequest}
+//import automorph.transport.server.JettyHttpEndpoint.{Context, getRequestContext}
+//import automorph.transport.server.JettyWebSocketEndpoint.WebSocketRequest
 //import automorph.transport.{ClientServerHttpHandler, HttpContext, HttpMetadata, HttpMethod, Protocol, ServerHttpHandler}
-//import automorph.util.Extensions.{ByteArrayOps, EffectOps, StringOps}
+//import automorph.util.Extensions.{ByteArrayOps, ByteBufferOps, EffectOps, StringOps}
 //import org.eclipse.jetty.http.HttpHeader
-//import org.eclipse.jetty.websocket.api.{Session, WebSocketAdapter, WriteCallback}
-//import org.eclipse.jetty.websocket.server.{JettyServerUpgradeRequest, JettyServerUpgradeResponse, JettyWebSocketCreator}
+//import org.eclipse.jetty.io.Content
+//import org.eclipse.jetty.server.{Handler, Request, Response}
+//import org.eclipse.jetty.util
+//import org.eclipse.jetty.websocket.api.annotations.{OnWebSocketError, OnWebSocketMessage, WebSocket}
+//import org.eclipse.jetty.websocket.api.{Callback, Session}
+//import java.net.URI
+//import java.nio.ByteBuffer
 //import java.util.concurrent.atomic.AtomicReference
 //import scala.annotation.unused
 //import scala.jdk.CollectionConverters.{ListHasAsScala, MapHasAsScala}
@@ -42,23 +49,21 @@
 //  effectSystem: EffectSystem[Effect],
 //  mapException: Throwable => Int = HttpContext.toStatusCode,
 //  rpcHandler: RpcHandler[Effect, Context] = RpcHandler.dummy[Effect, Context],
-//) extends ServerTransport[Effect, Context, WebSocketAdapter] {
-//  private lazy val webSocketAdapter = WebSocketListener(effectSystem, handler)
-//  private lazy val jettyWebSocketCreator = new JettyWebSocketCreator {
+//) extends ServerTransport[Effect, Context, Handler] {
+//  private lazy val webSocketHandler = new Handler.Abstract() {
+//    implicit private val system: EffectSystem[Effect] = effectSystem
 //
-//    override def createWebSocket(request: JettyServerUpgradeRequest, response: JettyServerUpgradeResponse): AnyRef =
-//      adapter
+//    override def handle(request: Request, response: Response, callback: util.Callback): Boolean = {
+//      handler.processRequest(request, response).fold(callback.failed, _ => callback.succeeded()).runAsync
+//      true
+//    }
 //  }
 //  private val handler =
 //    ClientServerHttpHandler(receiveRequest, sendResponse, Protocol.WebSocket, effectSystem, mapException, rpcHandler)
 //  implicit private val system: EffectSystem[Effect] = effectSystem
 //
-//  /** Jetty WebSocket creator. */
-//  def creator: JettyWebSocketCreator =
-//    jettyWebSocketCreator
-//
-//  override def adapter: WebSocketAdapter =
-//    webSocketAdapter
+//  override def adapter: Handler =
+//    webSocketHandler
 //
 //  override def init(): Effect[Unit] =
 //    effectSystem.successful {}
@@ -69,9 +74,9 @@
 //  override def rpcHandler(handler: RpcHandler[Effect, Context]): JettyWebSocketEndpoint[Effect] =
 //    copy(rpcHandler = handler)
 //
-//  private def receiveRequest(incomingRequest: WebSocketRequest): (Effect[Array[Byte]], Context) = {
-//    val (body, session) = incomingRequest
-//    effectSystem.successful(body) -> getRequestContext(session)
+//  private def receiveRequest(request: Request): (Effect[Array[Byte]], Context) = {
+//    val requestBody = completableEffect(Content.Source.asByteBufferAsync(request), system).map(_.toByteArray)
+//    requestBody -> getRequestContext(request)
 //  }
 //
 //  private def sendResponse(
@@ -86,27 +91,6 @@
 //      expectedResponseSent.effect
 //    }
 //  }
-//
-//  private def getRequestContext(session: Session): Context = {
-//    val request = session.getUpgradeRequest
-//    val headers = request.getHeaders.asScala.flatMap { case (name, values) =>
-//      values.asScala.map(name -> _)
-//    }.toSeq
-//    val query = requestQuery(request.getQueryString)
-//    HttpContext(
-//      transportContext = None,
-//      method = Some(HttpMethod.valueOf(request.getMethod)),
-//      headers = headers,
-//      peer = Some(client(session)),
-//    ).url(s"${request.getRequestURI.toString}$query")
-//  }
-//
-//  private def client(session: Session): String = {
-//    val address = session.getRemoteAddress.toString
-//    val forwardedFor = Option(session.getUpgradeRequest.getHeader(HttpHeader.X_FORWARDED_FOR.name))
-//    val nodeId = Option(session.getUpgradeRequest.getHeader(headerRpcNodeId))
-//    ServerHttpHandler.client(address, forwardedFor, nodeId)
-//  }
 //}
 //
 //object JettyWebSocketEndpoint {
@@ -116,40 +100,67 @@
 //
 //  private type WebSocketRequest = (Array[Byte], Session)
 //
-//  final private case class WebSocketListener[Effect[_]](
+//  @WebSocket(autoDemand = true)
+//  final case class FrameListener[Effect[_]](
+//    url: URI,
+//    removeConnection: () => Unit,
 //    effectSystem: EffectSystem[Effect],
 //    handler: ClientServerHttpHandler[Effect, Context, WebSocketRequest, (Session, RpcCallId)],
 //    rpcCallId: RpcCallId = new AtomicReference(None),
-//  ) extends WebSocketAdapter {
-//    implicit private val system: EffectSystem[Effect] = effectSystem
+//  ) {
+//    implicit val system: EffectSystem[Effect] = effectSystem
 //
-//    override def onWebSocketBinary(payload: Array[Byte], offset: Int, length: Int): Unit = {
-//      val session = getSession
-//      handler.processRequest(payload -> session, session -> rpcCallId).runAsync
+//    @OnWebSocketMessage
+//    def onWebSocketBinary(payload: ByteBuffer, callback: Callback): Unit = {
+//      val requestBody = payload.toByteArray
+//      callback.succeed()
+//      handler.processRequest(requestBody -> session, session -> rpcCallId).runAsync
 //    }
 //
-//    override def onWebSocketText(message: String): Unit = {
-//      val session = getSession
+//    @OnWebSocketMessage
+//    def onWebSocketText(message: String): Unit =
 //      handler.processRequest(message.toByteArray -> session, session -> rpcCallId).runAsync
-//    }
 //
-//    override def onWebSocketError(cause: Throwable): Unit = {
-//      handler.failedReceiveWebSocketRequest(cause)
-//      super.onWebSocketError(cause)
+//    @OnWebSocketError
+//    def onWebSocketError(error: Throwable): Unit =
+//      handler.failedReceiveWebSocketRequest(error)
 //    }
 //  }
 //
-//  final private case class ResponseCallback[Effect[_]](
-//    expectedResponseSent: Completable[Effect, Unit],
-//    effectSystem: EffectSystem[Effect],
-//    handler: ClientServerHttpHandler[Effect, Context, WebSocketRequest, (Session, RpcCallId)],
-//  ) extends WriteCallback {
-//    implicit private val system: EffectSystem[Effect] = effectSystem
-//
-//    override def writeSuccess(): Unit =
-//      expectedResponseSent.succeed(()).runAsync
-//
-//    override def writeFailed(error: Throwable): Unit =
-//      expectedResponseSent.fail(error).runAsync
-//  }
+////  final private case class WebSocketListener[Effect[_]](
+////    effectSystem: EffectSystem[Effect],
+////    handler: ClientServerHttpHandler[Effect, Context, WebSocketRequest, (Session, RpcCallId)],
+////    rpcCallId: RpcCallId = new AtomicReference(None),
+////  ) extends Session.Listener {
+////    implicit private val system: EffectSystem[Effect] = effectSystem
+////
+////    override def onWebSocketBinary(payload: Array[Byte], offset: Int, length: Int): Unit = {
+////      val session = getSession
+////      handler.processRequest(payload -> session, session -> rpcCallId).runAsync
+////    }
+////
+////    override def onWebSocketText(message: String): Unit = {
+////      val session = getSession
+////      handler.processRequest(message.toByteArray -> session, session -> rpcCallId).runAsync
+////    }
+////
+////    override def onWebSocketError(cause: Throwable): Unit = {
+////      handler.failedReceiveWebSocketRequest(cause)
+////      super.onWebSocketError(cause)
+////    }
+////  }
+////
+////  final private case class ResponseCallback[Effect[_]](
+////    expectedResponseSent: Completable[Effect, Unit],
+////    effectSystem: EffectSystem[Effect],
+////    handler: ClientServerHttpHandler[Effect, Context, WebSocketRequest, (Session, RpcCallId)],
+////  ) extends WriteCallback {
+////    implicit private val system: EffectSystem[Effect] = effectSystem
+////
+////    override def writeSuccess(): Unit =
+////      expectedResponseSent.succeed(()).runAsync
+////
+////    override def writeFailed(error: Throwable): Unit =
+////      expectedResponseSent.fail(error).runAsync
+////  }
 //}

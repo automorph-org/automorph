@@ -172,15 +172,17 @@ final case class JettyClient[Effect[_]](
             (clientUpgradeRequest, requestUrl),
             { case (session, frameListener) =>
               frameListener.expectedResponse = Some(expectedResponse)
-              (if (listen) {
-                 expectedResponse.effect
-               } else {
-                 effectSystem.completable[Unit].flatMap { expectedRequestSent =>
-                   val sentCallback = SentCallback(expectedRequestSent, effectSystem)
-                   session.sendBinary(requestBody.toByteBuffer, sentCallback)
-                   expectedRequestSent.effect.flatMap(_ => expectedResponse.effect)
-                 }
-               }).map(_ -> requestContext.headers(Seq.empty[(String, String)]*))
+              val response = if (listen) {
+                // No request sent since WebSocket handshake headers already established a listening connection
+                expectedResponse.effect
+              } else {
+                effectSystem.completable[Unit].flatMap { expectedRequestSent =>
+                  val sentCallback = SentCallback(expectedRequestSent, effectSystem)
+                  session.sendBinary(requestBody.toByteBuffer, sentCallback)
+                  expectedRequestSent.effect.flatMap(_ => expectedResponse.effect)
+                }
+              }
+              response.map(_ -> requestContext.headers(Seq.empty[(String, String)]*))
             },
           )
         }
@@ -246,8 +248,7 @@ final case class JettyClient[Effect[_]](
     connectionId: Int,
   ): Effect[(Session, FrameListener[Effect])] = {
     val (clientUpgradeRequest, requestUrl) = endpoint
-    val removeConnection = () => callWebSocketConnections.remove(requestUrl.toString, connectionId)
-    val frameListener = FrameListener(requestUrl, removeConnection, effectSystem, logger)
+    val frameListener = FrameListener(requestUrl, connectionId, callWebSocketConnections, effectSystem, logger)
     completableEffect(webSocketClient.connect(frameListener, requestUrl, clientUpgradeRequest), effectSystem)
       .map(_ -> frameListener)
   }
@@ -274,7 +275,8 @@ object JettyClient {
   @WebSocket(autoDemand = true)
   final case class FrameListener[Effect[_]](
     url: URI,
-    removeConnection: () => Unit,
+    connectionId: Int,
+    callWebSocketConnections: ConnectionPool[Effect, (ClientUpgradeRequest, URI), (Session, FrameListener[Effect])],
     effectSystem: EffectSystem[Effect],
     logger: Logger,
     var expectedResponse: Option[Completable[Effect, Array[Byte]]] = None,
@@ -299,7 +301,7 @@ object JettyClient {
 
     @OnWebSocketError
     def onWebSocketError(error: Throwable): Unit = {
-      removeConnection()
+      callWebSocketConnections.remove(url.toString, connectionId)
       expectedResponse.map { response =>
         expectedResponse = None
         response.fail(error).runAsync
@@ -308,7 +310,7 @@ object JettyClient {
 
     @OnWebSocketClose
     def onWebSocketClose(@unused statusCode: Int, reason: String): Unit = {
-      removeConnection()
+      callWebSocketConnections.remove(url.toString, connectionId)
       expectedResponse.foreach { response =>
         expectedResponse = None
         response.fail(new IllegalStateException(s"$webSocketConnectionClosed: $reason")).runAsync

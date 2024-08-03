@@ -117,32 +117,31 @@ final private[automorph] case class ClientServerHttpSender[Effect[_], Context <:
 
   private def listen(): Effect[Unit] =
     if (listening.get) {
-        system.evaluate {
-          val requestContext = nodeId.map(HttpContext().header(headerRpcNodeId, _)).getOrElse(HttpContext())
-            .header(headerRpcListen, valueRpcListen).asInstanceOf[Context]
-          createRequest(Array.emptyByteArray, requestContext, contentTypeText)
-        }.flatMap { case (request, context, protocol) =>
-            val requestMetadata =
-              HttpMetadata(context.contentType(contentTypeText).asInstanceOf[Context], protocol, Random.id)
-            sendReceive(request, Array.emptyByteArray, requestMetadata).fold(
-              { _ =>
-                // Retry the listen request
-                system.runAsync(system.sleep(httpListen.retryInterval).flatMap(_ => listen()))
-              },
-              { case (responseBody, responseContext) =>
-                // Process the request
-                system.runAsync(listen())
-                handleRequest(responseBody, requestMetadata.copy(context = responseContext), protocol)
-              },
-            )
-          }
+      // Create listen request
+      system.evaluate {
+        val requestContext = nodeId.map(HttpContext().header(headerRpcNodeId, _)).getOrElse(HttpContext())
+          .header(headerRpcListen, valueRpcListen).asInstanceOf[Context]
+        createRequest(Array.emptyByteArray, requestContext, contentTypeText)
+      }.flatMap { case (request, context, protocol) =>
+        val requestMetadata =
+          HttpMetadata(context.contentType(contentTypeText).asInstanceOf[Context], protocol, Random.id)
+        sendReceive(request, Array.emptyByteArray, requestMetadata).fold(
+          _ =>
+            // Retry the listen request
+            system.runAsync(system.sleep(httpListen.retryInterval).flatMap(_ => listen())),
+          { case (responseBody, responseContext) =>
+            // Process the request
+            system.runAsync(listen())
+            handleRequest(responseBody, requestMetadata.copy(context = responseContext), protocol)
+          },
+        )
+      }
     } else {
       effectSystem.successful {}
     }
 
-  private def handleRequest(body: Array[Byte], metadata: HttpMetadata[Context], protocol: Protocol): Unit = {
+  private def handleRequest(body: Array[Byte], metadata: HttpMetadata[Context], protocol: Protocol): Unit =
     // FIXME - implement
 //    system.successful {}
     ()
-  }
 }
