@@ -1,6 +1,6 @@
-//> using scala 3.3.1
+//> using scala 3.4.2
 //> using dep org.automorph::automorph-default:0.2.5
-//> using dep ch.qos.logback:logback-classic:1.4.14
+//> using dep ch.qos.logback:logback-classic:1.5.6
 package examples
 
 import automorph.Default
