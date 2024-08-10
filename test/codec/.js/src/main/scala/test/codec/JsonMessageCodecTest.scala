@@ -3,6 +3,7 @@ package test.codec
 import automorph.spi.MessageCodec
 import org.scalacheck.Arbitrary
 import test.base.BaseTest
+import scalajs.js.JSON
 
 /**
  * JSON message codec test.
@@ -23,13 +24,13 @@ trait JsonMessageCodecTest extends BaseTest {
       "Serialize" in {
         forAll { (node: Value) =>
           val serialized = codec.serialize(node)
-          throw new NotImplementedError("json codecs testing not implemented in js yet")
+          JSON.parse(new String(serialized))
         }
       }
       "Text" in {
         forAll { (node: Value) =>
           val text = codec.text(node)
-          throw new NotImplementedError("json codecs testing not implemented in js yet")
+          JSON.parse(text)
         }
       }
     }

@@ -1,4 +1,4 @@
-import sbtcrossproject.{CrossClasspathDependency, CrossProject}
+import sbtcrossproject.CrossProject
 
 // Project
 val projectRoot = "org"
@@ -41,6 +41,10 @@ onLoadMessage := {
   System.setProperty("project.target", s"${target.value}")
   ""
 }
+
+val jsTestSettings = Seq(
+//  Test / jsEnv := new JSDOMNodeJSEnv()
+)
 
 // Structure
 lazy val root = project.in(file(".")).settings(
@@ -137,20 +141,23 @@ lazy val meta = source(crossProject(JVMPlatform, JSPlatform), "meta").settings(
   )
 ).jvmSettings(
   libraryDependencies ++= Seq("org.slf4j" % "slf4j-api" % slf4jVersion)
-)
-lazy val core = source(crossProject(JVMPlatform, JSPlatform), "core").dependsOn(meta, testBase % Test)
+).jsSettings(jsTestSettings)
+lazy val core =
+  source(crossProject(JVMPlatform, JSPlatform), "core").dependsOn(meta, testBase % Test).jsSettings(jsTestSettings)
 
 // Effect system
 lazy val zio = source(crossProject(JVMPlatform, JSPlatform), "system/zio").dependsOn(core, testPlugin % Test).settings(
   libraryDependencies += "dev.zio" %%% "zio" % "2.1.4"
-)
+).jsSettings(
+  libraryDependencies += "io.github.cquiroz" %%% "scala-java-time" % "2.6.0" % Test
+).jsSettings(jsTestSettings)
 lazy val monix = source(crossProject(JVMPlatform), "system/monix").dependsOn(core, testPlugin % Test).settings(
   libraryDependencies += "io.monix" %%% "monix-eval" % "3.4.1"
 )
 lazy val catsEffect =
   source(crossProject(JVMPlatform, JSPlatform), "system/cats-effect").dependsOn(core, testPlugin % Test).settings(
     libraryDependencies += "org.typelevel" %%% "cats-effect" % "3.5.4"
-  )
+  ).jsSettings(jsTestSettings)
 
 // Message codec
 val circeVersion = "0.14.8"
@@ -160,7 +167,7 @@ lazy val circe =
       "io.circe" %%% "circe-parser" % circeVersion,
       "io.circe" %%% "circe-generic" % circeVersion,
     )
-  )
+  ).jsSettings(jsTestSettings)
 val jacksonVersion = "2.17.1"
 lazy val jackson =
   source(crossProject(JVMPlatform), "codec/jackson").dependsOn(core, testCodec % Test).settings(
@@ -190,7 +197,7 @@ lazy val weepickle = source(crossProject(JVMPlatform), "codec/weepickle").depend
 lazy val upickle =
   source(crossProject(JVMPlatform, JSPlatform), "codec/upickle").dependsOn(core, testCodec % Test).settings(
     libraryDependencies += "com.lihaoyi" %%% "upickle" % "3.3.1"
-  )
+  ).jsSettings(jsTestSettings)
 
 // Client transport
 val sttpVersion = "3.9.7"
@@ -216,7 +223,7 @@ lazy val sttp =
       "com.softwaremill.sttp.client3" %%% "httpclient-backend" % sttpHttpClientVersion % Test,
       "com.softwaremill.sttp.client3" %%% "okhttp-backend" % sttpVersion % Test,
     )
-  )
+  ).jsSettings(jsTestSettings)
 lazy val rabbitmq = source(crossProject(JVMPlatform), "transport/rabbitmq").dependsOn(core, testPlugin % Test).settings(
   libraryDependencies += "com.rabbitmq" % "amqp-client" % "5.21.0"
 )
@@ -385,16 +392,19 @@ scalastyleFailOnError := true
 
 // Test
 val logbackVersion = "1.5.6"
+val scribeVersion = "3.15.0"
 lazy val testBase = source(crossProject(JVMPlatform, JSPlatform), "test/base").settings(
   libraryDependencies ++= Seq(
     "org.scalatest" %%% "scalatest" % "3.2.18",
     "org.scalatestplus" %%% "scalacheck-1-17" % "3.2.18.0",
     "com.lihaoyi" %%% "pprint" % "0.9.0",
+    "com.outr" %%% "scribe" % scribeVersion,
   )
 ).jvmSettings(
   libraryDependencies ++= Seq(
     "org.slf4j" % "jul-to-slf4j" % slf4jVersion,
     "ch.qos.logback" % "logback-classic" % logbackVersion,
+    "com.outr" %%% "scribe-slf4j" % scribeVersion,
   )
 )
 lazy val testCodec = source(crossProject(JVMPlatform, JSPlatform), "test/codec").dependsOn(testBase, meta).jvmSettings(

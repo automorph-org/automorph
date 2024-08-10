@@ -199,8 +199,8 @@ final private[automorph] case class Logger(name: String) {
   private def addDiagnosticContext(properties: Iterable[(String, Any)]): Unit = {}
 //    properties.foreach { case (key, value) => MDC.put(key, codec(value)) }
 
-  private def codec(value: Any): String =
-    value.toString
+//  private def codec(value: Any): String =
+//    value.toString
 
   private def removeDiagnosticContext(properties: Iterable[(String, Any)]): Unit = {}
 //    properties.foreach { case (key, _) => MDC.remove(key) }
