@@ -64,8 +64,11 @@ client.call[String]("hello")("n" -> 1)
 --
 
 TODO:
+- Replace reflection-based client proxy by a macro-based one
 - Upgrade Jetty client to version 12
 - Upgrade Jetty server to verson 12
+- Add Http4s server support
+- Add Http4s client support
 - Test reverse call logic
 - Merge RPC client and server
 - Create standard TypeScript example using Mole RPC
