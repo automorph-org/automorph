@@ -67,14 +67,14 @@ lazy val root = project.in(file(".")).settings(
 
   // Effect system
   zio.jvm,
-//  zio.js,
+  zio.js,
   monix.jvm,
   catsEffect.jvm,
-//  catsEffect.js,
+  catsEffect.js,
 
   // Client transport
   sttp.jvm,
-  //  sttp.js,
+  sttp.js,
   rabbitmq.jvm,
 
   // Server transport
@@ -141,14 +141,14 @@ lazy val meta = source(crossProject(JVMPlatform, JSPlatform), "meta").settings(
 lazy val core = source(crossProject(JVMPlatform, JSPlatform), "core").dependsOn(meta, testBase % Test)
 
 // Effect system
-lazy val zio = source(crossProject(JVMPlatform), "system/zio").dependsOn(core, testPlugin % Test).settings(
+lazy val zio = source(crossProject(JVMPlatform, JSPlatform), "system/zio").dependsOn(core, testPlugin % Test).settings(
   libraryDependencies += "dev.zio" %%% "zio" % "2.1.4"
 )
 lazy val monix = source(crossProject(JVMPlatform), "system/monix").dependsOn(core, testPlugin % Test).settings(
   libraryDependencies += "io.monix" %%% "monix-eval" % "3.4.1"
 )
 lazy val catsEffect =
-  source(crossProject(JVMPlatform), "system/cats-effect").dependsOn(core, testPlugin % Test).settings(
+  source(crossProject(JVMPlatform, JSPlatform), "system/cats-effect").dependsOn(core, testPlugin % Test).settings(
     libraryDependencies += "org.typelevel" %%% "cats-effect" % "3.5.4"
   )
 
@@ -197,7 +197,7 @@ val sttpVersion = "3.9.7"
 val sttpHttpClientVersion = "3.5.2"
 lazy val sttp =
   source(
-    crossProject(JVMPlatform),
+    crossProject(JVMPlatform, JSPlatform),
     "transport/sttp",
   ).dependsOn(
     core,
@@ -206,7 +206,10 @@ lazy val sttp =
     testPlugin % Test,
   ).settings(
     libraryDependencies ++= Seq(
-      "com.softwaremill.sttp.client3" %%% "core" % sttpVersion,
+      "com.softwaremill.sttp.client3" %%% "core" % sttpVersion
+    )
+  ).jvmSettings(
+    libraryDependencies ++= Seq(
       "com.softwaremill.sttp.client3" %%% "async-http-client-backend-future" % sttpVersion % Test,
       "com.softwaremill.sttp.client3" %%% "async-http-client-backend-zio" % sttpVersion % Test,
       "com.softwaremill.sttp.client3" %%% "armeria-backend" % sttpVersion % Test,
@@ -399,18 +402,20 @@ lazy val testCodec = source(crossProject(JVMPlatform, JSPlatform), "test/codec")
 )
 lazy val testPlugin =
   source(
-    crossProject(JVMPlatform),
+    crossProject(JVMPlatform, JSPlatform),
     "test/plugin",
   ).dependsOn(
     testBase,
-//    testCodec,
     core,
     circe,
-    jackson,
-    playJson,
-    json4s,
-    weepickle,
     upickle,
+  ).jvmConfigure(
+    _.dependsOn(
+      jackson.jvm,
+      playJson.jvm,
+      json4s.jvm,
+      weepickle.jvm,
+    )
   )
 lazy val standard = source(crossProject(JVMPlatform), "test/standard").dependsOn(testPlugin, core, testPlugin % Test)
 
