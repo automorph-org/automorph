@@ -65,7 +65,6 @@ client.call[String]("hello")("n" -> 1)
 
 TODO:
 - Replace reflection-based client proxy with a macro-based one
-- Upgrade Jetty client to version 12
 - Upgrade Jetty server to verson 12
 - Add Http4s server support
 - Add Http4s client support
