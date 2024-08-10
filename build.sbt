@@ -53,16 +53,16 @@ lazy val root = project.in(file(".")).settings(
   meta.jvm,
   meta.js,
   core.jvm,
-//  core.js,
+  core.js,
 
   // Message codec
   circe.jvm,
-//  circe.js,
+  circe.js,
   jackson.jvm,
   playJson.jvm,
   weepickle.jvm,
   upickle.jvm,
-  //  upickle.js,
+  upickle.js,
   json4s.jvm,
 
   // Effect system
@@ -100,12 +100,13 @@ lazy val root = project.in(file(".")).settings(
 def source(project: CrossProject.Builder, path: String): CrossProject = {
   val shortName = path.replaceAll(Path.sep.toString, "-")
   val subProject = project.crossType(CrossType.Pure).in(file(path)).settings(
-    Compile / doc / scalacOptions := (if (scala3.value) docScalac3Options else docScalac2Options),
+    Compile / doc / scalacOptions := (if (scala3.value) docScalac3Options else docScalac2Options)
+  ).jvmSettings(
     Test / testOptions += Tests.Argument(
       TestFrameworks.ScalaTest,
       "-fDSTW",
       s"${System.getProperty("project.target")}/test-$shortName-scala-${scalaVersion.value.substring(0, 1)}.log",
-    ),
+    )
   )
   val directories = path.split(Path.sep).toSeq
   directories.headOption.map(Set("examples", "test").contains) match {
@@ -137,7 +138,7 @@ lazy val meta = source(crossProject(JVMPlatform, JSPlatform), "meta").settings(
 ).jvmSettings(
   libraryDependencies ++= Seq("org.slf4j" % "slf4j-api" % slf4jVersion)
 )
-lazy val core = source(crossProject(JVMPlatform), "core").dependsOn(meta, testBase % Test)
+lazy val core = source(crossProject(JVMPlatform, JSPlatform), "core").dependsOn(meta, testBase % Test)
 
 // Effect system
 lazy val zio = source(crossProject(JVMPlatform), "system/zio").dependsOn(core, testPlugin % Test).settings(
@@ -154,7 +155,7 @@ lazy val catsEffect =
 // Message codec
 val circeVersion = "0.14.8"
 lazy val circe =
-  source(crossProject(JVMPlatform), s"codec/circe").dependsOn(core, testCodec % Test).settings(
+  source(crossProject(JVMPlatform, JSPlatform), s"codec/circe").dependsOn(core, testCodec % Test).settings(
     libraryDependencies ++= Seq(
       "io.circe" %%% "circe-parser" % circeVersion,
       "io.circe" %%% "circe-generic" % circeVersion,
@@ -186,9 +187,10 @@ lazy val weepickle = source(crossProject(JVMPlatform), "codec/weepickle").depend
     "com.fasterxml.jackson.dataformat" % "jackson-dataformat-ion" % jacksonVersion,
   )
 )
-lazy val upickle = source(crossProject(JVMPlatform), "codec/upickle").dependsOn(core, testCodec % Test).settings(
-  libraryDependencies += "com.lihaoyi" %%% "upickle" % "3.3.1"
-)
+lazy val upickle =
+  source(crossProject(JVMPlatform, JSPlatform), "codec/upickle").dependsOn(core, testCodec % Test).settings(
+    libraryDependencies += "com.lihaoyi" %%% "upickle" % "3.3.1"
+  )
 
 // Client transport
 val sttpVersion = "3.9.7"
@@ -380,7 +382,7 @@ scalastyleFailOnError := true
 
 // Test
 val logbackVersion = "1.5.6"
-lazy val testBase = source(crossProject(JVMPlatform), "test/base").settings(
+lazy val testBase = source(crossProject(JVMPlatform, JSPlatform), "test/base").settings(
   libraryDependencies ++= Seq(
     "org.scalatest" %%% "scalatest" % "3.2.18",
     "org.scalatestplus" %%% "scalacheck-1-17" % "3.2.18.0",
@@ -392,7 +394,7 @@ lazy val testBase = source(crossProject(JVMPlatform), "test/base").settings(
     "ch.qos.logback" % "logback-classic" % logbackVersion,
   )
 )
-lazy val testCodec = source(crossProject(JVMPlatform), "test/codec").dependsOn(testBase, meta).jvmSettings(
+lazy val testCodec = source(crossProject(JVMPlatform, JSPlatform), "test/codec").dependsOn(testBase, meta).jvmSettings(
   libraryDependencies += "com.fasterxml.jackson.core" % "jackson-databind" % jacksonVersion
 )
 lazy val testPlugin =
@@ -400,7 +402,8 @@ lazy val testPlugin =
     crossProject(JVMPlatform),
     "test/plugin",
   ).dependsOn(
-    testCodec,
+    testBase,
+//    testCodec,
     core,
     circe,
     jackson,
