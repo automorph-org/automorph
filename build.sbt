@@ -51,13 +51,13 @@ lazy val root = project.in(file(".")).settings(
 ).aggregate(
   // Core
   meta.jvm,
-  //  meta.js,
+  meta.js,
   core.jvm,
-  //  core.js,
+  core.js,
 
   // Message codec
   circe.jvm,
-  //  circe.js,
+  circe.js,
   jackson.jvm,
   playJson.jvm,
   weepickle.jvm,
@@ -67,10 +67,10 @@ lazy val root = project.in(file(".")).settings(
 
   // Effect system
   zio.jvm,
-  //  zio.js,
+  zio.js,
   monix.jvm,
   catsEffect.jvm,
-  //  catsEffect.js,
+  catsEffect.js,
 
   // Client transport
   sttp.jvm,
@@ -130,52 +130,55 @@ def source(project: CrossProject.Builder, path: String): CrossProject = {
 
 // Core
 val slf4jVersion = "2.0.13"
-lazy val meta = source(crossProject(JVMPlatform), "meta").settings(
+lazy val meta = source(crossProject(JVMPlatform, JSPlatform), "meta").settings(
   libraryDependencies ++= (
     if (scala3.value) Seq() else Seq("org.scala-lang" % "scala-reflect" % scalaVersion.value)
   )
 ).jvmSettings(
   libraryDependencies ++= Seq("org.slf4j" % "slf4j-api" % slf4jVersion)
 )
-lazy val core = source(crossProject(JVMPlatform), "core").dependsOn(meta, testBase % Test)
+lazy val core = source(crossProject(JVMPlatform, JSPlatform), "core").dependsOn(meta, testBase % Test)
 
 // Effect system
-lazy val zio = source(crossProject(JVMPlatform), "system/zio").dependsOn(core, testPlugin % Test).settings(
+lazy val zio = source(crossProject(JVMPlatform, JSPlatform), "system/zio").dependsOn(core, testPlugin % Test).settings(
   libraryDependencies += "dev.zio" %%% "zio" % "2.1.4"
 )
 lazy val monix = source(crossProject(JVMPlatform), "system/monix").dependsOn(core, testPlugin % Test).settings(
   libraryDependencies += "io.monix" %%% "monix-eval" % "3.4.1"
 )
 lazy val catsEffect =
-  source(crossProject(JVMPlatform), "system/cats-effect").dependsOn(core, testPlugin % Test).settings(
+  source(crossProject(JVMPlatform, JSPlatform), "system/cats-effect").dependsOn(core, testPlugin % Test).settings(
     libraryDependencies += "org.typelevel" %%% "cats-effect" % "3.5.4"
   )
 
 // Message codec
 val circeVersion = "0.14.8"
-lazy val circe = source(crossProject(JVMPlatform), s"codec/circe").dependsOn(core, testCodec % Test).settings(
-  libraryDependencies ++= Seq(
-    "io.circe" %%% "circe-parser" % circeVersion,
-    "io.circe" %%% "circe-generic" % circeVersion,
+lazy val circe =
+  source(crossProject(JVMPlatform, JSPlatform), s"codec/circe").dependsOn(core, testCodec % Test).settings(
+    libraryDependencies ++= Seq(
+      "io.circe" %%% "circe-parser" % circeVersion,
+      "io.circe" %%% "circe-generic" % circeVersion,
+    )
   )
-)
 val jacksonVersion = "2.17.1"
-lazy val jackson = source(crossProject(JVMPlatform), "codec/jackson").dependsOn(core, testCodec % Test).settings(
-  libraryDependencies ++= Seq(
-    "com.fasterxml.jackson.module" %%% "jackson-module-scala" % jacksonVersion,
-    "com.fasterxml.jackson.dataformat" % "jackson-dataformat-smile" % jacksonVersion,
-    "com.fasterxml.jackson.dataformat" % "jackson-dataformat-cbor" % jacksonVersion,
+lazy val jackson =
+  source(crossProject(JVMPlatform, JSPlatform), "codec/jackson").dependsOn(core, testCodec % Test).settings(
+    libraryDependencies ++= Seq(
+      "com.fasterxml.jackson.module" %%% "jackson-module-scala" % jacksonVersion,
+      "com.fasterxml.jackson.dataformat" % "jackson-dataformat-smile" % jacksonVersion,
+      "com.fasterxml.jackson.dataformat" % "jackson-dataformat-cbor" % jacksonVersion,
+    )
   )
-)
-lazy val json4s = source(crossProject(JVMPlatform), "codec/json4s").dependsOn(core, testCodec % Test).settings(
+lazy val json4s = source(crossProject(JVMPlatform, JSPlatform), "codec/json4s").dependsOn(core, testCodec % Test).settings(
   publish / skip := scala3.value,
   libraryDependencies += "org.json4s" %%% "json4s-native" % "4.1.0-M5",
 )
-lazy val playJson = source(crossProject(JVMPlatform), "codec/play-json").dependsOn(core, testCodec % Test).settings(
-  publish / skip := scala3.value,
-  libraryDependencies += "org.playframework" %%% "play-json" % "3.0.4",
-)
-lazy val weepickle = source(crossProject(JVMPlatform), "codec/weepickle").dependsOn(core, testCodec % Test).settings(
+lazy val playJson =
+  source(crossProject(JVMPlatform, JSPlatform), "codec/play-json").dependsOn(core, testCodec % Test).settings(
+    publish / skip := scala3.value,
+    libraryDependencies += "org.playframework" %%% "play-json" % "3.0.4",
+  )
+lazy val weepickle = source(crossProject(JVMPlatform, JSPlatform), "codec/weepickle").dependsOn(core, testCodec % Test).settings(
   libraryDependencies ++= Seq(
     "com.rallyhealth" %%% "weepack-v1" % "1.9.1",
     "com.fasterxml.jackson.dataformat" % "jackson-dataformat-smile" % jacksonVersion,
@@ -183,7 +186,7 @@ lazy val weepickle = source(crossProject(JVMPlatform), "codec/weepickle").depend
     "com.fasterxml.jackson.dataformat" % "jackson-dataformat-ion" % jacksonVersion,
   )
 )
-lazy val upickle = source(crossProject(JVMPlatform), "codec/upickle").dependsOn(core, testCodec % Test).settings(
+lazy val upickle = source(crossProject(JVMPlatform, JSPlatform), "codec/upickle").dependsOn(core, testCodec % Test).settings(
   libraryDependencies += "com.lihaoyi" %%% "upickle" % "3.3.1"
 )
 
@@ -377,21 +380,24 @@ scalastyleFailOnError := true
 
 // Test
 val logbackVersion = "1.5.6"
-lazy val testBase = source(crossProject(JVMPlatform), "test/base").settings(
+lazy val testBase = source(crossProject(JVMPlatform, JSPlatform), "test/base").settings(
   libraryDependencies ++= Seq(
     "org.scalatest" %%% "scalatest" % "3.2.18",
     "org.scalatestplus" %%% "scalacheck-1-17" % "3.2.18.0",
-    "org.slf4j" % "jul-to-slf4j" % slf4jVersion,
-    "ch.qos.logback" % "logback-classic" % logbackVersion,
     "com.lihaoyi" %%% "pprint" % "0.9.0",
   )
+).jvmSettings(
+  libraryDependencies ++= Seq(
+    "org.slf4j" % "jul-to-slf4j" % slf4jVersion,
+    "ch.qos.logback" % "logback-classic" % logbackVersion,
+  )
 )
-lazy val testCodec = source(crossProject(JVMPlatform), "test/codec").dependsOn(testBase, meta).settings(
+lazy val testCodec = source(crossProject(JVMPlatform, JSPlatform), "test/codec").dependsOn(testBase, meta).jvmSettings(
   libraryDependencies += "com.fasterxml.jackson.core" % "jackson-databind" % jacksonVersion
 )
 lazy val testPlugin =
   source(
-    crossProject(JVMPlatform),
+    crossProject(JVMPlatform, JSPlatform),
     "test/plugin",
   ).dependsOn(
     testCodec,
