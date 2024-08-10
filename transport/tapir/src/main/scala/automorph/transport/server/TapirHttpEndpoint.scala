@@ -3,18 +3,15 @@ package automorph.transport.server
 import automorph.spi.{EffectSystem, RpcHandler, ServerTransport}
 import automorph.transport.HttpContext.headerRpcNodeId
 import automorph.transport.HttpMetadata.headerXForwardedFor
-import automorph.transport.server.TapirHttpEndpoint.{
-  Adapter, Context, MessageFormat, createResponse, pathComponents, pathEndpointInput, receiveRequest,
-}
+import automorph.transport.server.TapirHttpEndpoint.{Adapter, Context, MessageFormat, createResponse, pathComponents, pathEndpointInput, receiveRequest}
 import automorph.transport.{HttpContext, HttpMetadata, HttpMethod, Protocol, ServerHttpHandler}
 import automorph.util.Extensions.EffectOps
 import sttp.model.{Header, MediaType, Method, QueryParams, StatusCode}
 import sttp.tapir
 import sttp.tapir.Codec.id
 import sttp.tapir.server.ServerEndpoint
-import sttp.tapir.{
-  CodecFormat, EndpointIO, EndpointInput, RawBodyType, Schema, headers, paths, queryParams, statusCode, stringToPath,
-}
+import sttp.tapir.{CodecFormat, EndpointIO, EndpointInput, RawBodyType, Schema, extractFromRequest, headers, paths, queryParams, statusCode, stringToPath}
+import java.net.InetSocketAddress
 import scala.annotation.unused
 
 /**
@@ -83,7 +80,8 @@ final case class TapirHttpEndpoint[Effect[_]](
     val endpointMethod = allowedMethod.map(tapir.endpoint.method).getOrElse(tapir.endpoint)
     val endpointPath = pathEndpointInput(prefixPaths).map(path => endpointMethod.in(path)).getOrElse(endpointMethod)
     val endpointInput = endpointPath.in(body).in(paths).in(queryParams).in(headers)
-    val endpointOutput = endpointInput.out(body).out(statusCode).out(headers)
+    val endpointRemote = endpointInput.in(extractFromRequest(_.connectionInfo.remote))
+    val endpointOutput = endpointRemote.out(body).out(statusCode).out(headers)
 
     // Define server endpoint request processing logic
     endpointOutput.serverLogic { request =>
@@ -110,7 +108,7 @@ object TapirHttpEndpoint {
   /** Adapter type. */
   type Adapter[Effect[_]] = ServerEndpoint.Full[Unit, Unit, Request, Unit, Response, Any, Effect]
 
-  private type Request = (Array[Byte], List[String], QueryParams, List[Header])
+  private type Request = (Array[Byte], List[String], QueryParams, List[Header], Option[InetSocketAddress])
 
   private type Response = (Array[Byte], StatusCode, List[Header])
 
@@ -139,12 +137,12 @@ object TapirHttpEndpoint {
     method: Option[HttpMethod],
     baseContext: HttpContext[Unit],
   ): Context = {
-    val (_, paths, queryParams, headers) = request
+    val (_, paths, queryParams, headers, remoteAddress) = request
     val context = baseContext
       .path(urlPath(paths))
       .parameters(queryParams.toSeq*)
       .headers(headers.map(header => header.name -> header.value)*)
-      .peerId(client(request))
+      .peerId(client(headers, remoteAddress))
     method.map(context.method(_)).getOrElse(context)
   }
 
@@ -153,11 +151,10 @@ object TapirHttpEndpoint {
       Header(name, value)
     }.toList
 
-  private def client(request: Request): String = {
-    val (_, _, _, headers) = request
+  private def client(headers: List[Header], remoteAddress: Option[InetSocketAddress]): String = {
     val forwardedFor = headers.find(_.name == headerXForwardedFor).map(_.value)
     val nodeId = headers.find(_.name == headerRpcNodeId).map(_.value)
-    ServerHttpHandler.client("", forwardedFor, nodeId)
+    ServerHttpHandler.client(remoteAddress.map(_.toString).getOrElse(""), forwardedFor, nodeId)
   }
 
   private def urlPath(paths: List[String]): String =
