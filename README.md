@@ -65,9 +65,13 @@ client.call[String]("hello")("n" -> 1)
 
 TODO:
 - Replace reflection-based client proxy with a macro-based one
+ - https://github.com/cornerman/sloth/blob/master/sloth/src/main/scala-2/internal/Macros.scala
+ - https://github.com/cornerman/sloth/blob/master/sloth/src/main/scala-3/internal/Macros.scala
 - Upgrade Jetty server to verson 12
-- Add Http4s server support
 - Add Http4s client support
+  - https://github.com/cornerman/sloth/blob/master/http4sClient/src/main/scala/HttpRpcTransport.scala
+- Add Http4s server support
+  - https://github.com/cornerman/sloth/blob/master/http4sServer/src/main/scala/HttpRpcRoutes.scala
 - Test reverse call logic
 - Merge RPC client and server
 - Create standard TypeScript example using Mole RPC
