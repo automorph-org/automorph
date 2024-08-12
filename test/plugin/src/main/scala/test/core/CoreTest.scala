@@ -5,7 +5,6 @@ import automorph.protocol.JsonRpcProtocol.{openApiFunction, openRpcFunction}
 import automorph.protocol.WebRpcProtocol
 import automorph.spi.EffectSystem
 import org.scalacheck.Arbitrary
-import org.slf4j.{Logger, LoggerFactory}
 import scala.util.{Failure, Try}
 import test.api.Generators.arbitraryRecord
 import test.api.{ComplexApi, ComplexApiImpl, InvalidApi, Record, SimpleApi, SimpleApiImpl, TestLevel}
@@ -31,7 +30,7 @@ trait CoreTest extends BaseTest {
   type InvalidApiType = InvalidApi[Effect]
   type TestFixture = Fixture[Effect, Context]
   private lazy val testFixtures: Seq[TestFixture] = fixtures
-  val logger: Logger = LoggerFactory.getLogger(getClass)
+  val logger: scribe.Logger = scribe.Logger(getClass.getSimpleName)
   val simpleApi: SimpleApiType = SimpleApiImpl(system)
   val complexApi: ComplexApiType = ComplexApiImpl(system, arbitraryContext.arbitrary.sample.get)
   val apiMethodNames: Set[String] =

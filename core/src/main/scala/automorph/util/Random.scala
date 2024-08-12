@@ -4,9 +4,9 @@ package automorph.util
 private[automorph] object Random {
 
   private lazy val random = new scala.util.Random(
-    (System.nanoTime()
-      ^ (new Object().hashCode().toLong << 32) + new Object().hashCode().toLong)
-      ^ Runtime.getRuntime.totalMemory()
+    System.nanoTime()
+      ^ (new Object().hashCode().toLong << 32) + new Object().hashCode().toLong
+//      ^ Runtime.getRuntime.totalMemory()
   )
 
   /**

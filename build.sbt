@@ -1,3 +1,5 @@
+import sbtcrossproject.CrossProject
+
 // Project
 val projectRoot = "org"
 val projectName = "automorph"
@@ -20,7 +22,7 @@ ThisBuild / developers := List(Developer(
 ))
 val releaseVersion = settingKey[String]("Release version.")
 
-ThisBuild / releaseVersion := IO.readLines((examples / Compile / scalaSource).value / "examples/Quickstart.scala")
+ThisBuild / releaseVersion := IO.readLines((examples.jvm / Compile / scalaSource).value / "examples/Quickstart.scala")
   .filter(_.startsWith(s"//> using dep $projectRoot.$projectName::"))
   .flatMap(_.split(":").lastOption)
   .lastOption.getOrElse("")
@@ -40,6 +42,10 @@ onLoadMessage := {
   ""
 }
 
+val jsTestSettings = Seq(
+//  Test / jsEnv := new JSDOMNodeJSEnv()
+)
+
 // Structure
 lazy val root = project.in(file(".")).settings(
   name := projectName,
@@ -48,53 +54,62 @@ lazy val root = project.in(file(".")).settings(
   tastyMiMaReportIssues := {},
 ).aggregate(
   // Core
-  meta,
-  core,
+  meta.jvm,
+  meta.js,
+  core.jvm,
+  core.js,
 
   // Message codec
-  circe,
-  jackson,
-  playJson,
-  weepickle,
-  upickle,
-  json4s,
+  circe.jvm,
+  circe.js,
+  jackson.jvm,
+  playJson.jvm,
+  weepickle.jvm,
+  upickle.jvm,
+  upickle.js,
+  json4s.jvm,
 
   // Effect system
-  zio,
-  monix,
-  catsEffect,
+  zio.jvm,
+  zio.js,
+  monix.jvm,
+  catsEffect.jvm,
+  catsEffect.js,
 
   // Client transport
-  sttp,
-  rabbitmq,
+  sttp.jvm,
+  sttp.js,
+  rabbitmq.jvm,
 
   // Server transport
-  tapir,
-  undertow,
-  vertx,
-  jetty,
-  zioHttp,
-  akkaHttp,
-  pekkoHttp,
-  play,
+  tapir.jvm,
+  undertow.jvm,
+  vertx.jvm,
+  jetty.jvm,
+  zioHttp.jvm,
+  akkaHttp.jvm,
+  pekkoHttp.jvm,
+  play.jvm,
 
   // Endpoint transport
-  finagle,
+  finagle.jvm,
 
   // Misc
-  default,
-  standard,
-  examples,
+  default.jvm,
+  standard.jvm,
+  examples.jvm,
 )
 
 // Dependencies
-def source(project: Project, path: String, dependsOn: ClasspathDep[ProjectReference]*): Project = {
+def source(project: CrossProject.Builder, path: String): CrossProject = {
   val shortName = path.replaceAll(Path.sep.toString, "-")
-  val subProject = project.in(file(path)).dependsOn(dependsOn: _*).settings(
-    Compile / doc / scalacOptions := (if (scala3.value) docScalac3Options else docScalac2Options),
+  val subProject = project.crossType(CrossType.Pure).in(file(path)).settings(
+    Compile / doc / scalacOptions := (if (scala3.value) docScalac3Options else docScalac2Options)
+  ).jvmSettings(
     Test / testOptions += Tests.Argument(
-      TestFrameworks.ScalaTest, "-fDSTW",
-      s"${System.getProperty("project.target")}/test-$shortName-scala-${scalaVersion.value.substring(0, 1)}.log"
+      TestFrameworks.ScalaTest,
+      "-fDSTW",
+      s"${System.getProperty("project.target")}/test-$shortName-scala-${scalaVersion.value.substring(0, 1)}.log",
     )
   )
   val directories = path.split(Path.sep).toSeq
@@ -112,7 +127,7 @@ def source(project: Project, path: String, dependsOn: ClasspathDep[ProjectRefere
       }
       subProject.settings(
         name := s"$projectName-${nameDirectories.mkString("-")}",
-        mimaPreviousArtifacts := Set(organization.value %% name.value % version.value.split("\\+").head),
+        mimaPreviousArtifacts := Set(organization.value %%% name.value % version.value.split("\\+").head),
         tastyMiMaPreviousArtifacts := mimaPreviousArtifacts.value,
       )
   }
@@ -120,158 +135,184 @@ def source(project: Project, path: String, dependsOn: ClasspathDep[ProjectRefere
 
 // Core
 val slf4jVersion = "2.0.13"
-lazy val meta = source(project, "meta").settings(
+lazy val meta = source(crossProject(JVMPlatform, JSPlatform), "meta").settings(
   libraryDependencies ++= (
     if (scala3.value) Seq() else Seq("org.scala-lang" % "scala-reflect" % scalaVersion.value)
-  ) ++ Seq("org.slf4j" % "slf4j-api" % slf4jVersion)
-)
-lazy val core = source(project, "core", meta, testBase % Test)
+  )
+).jvmSettings(
+  libraryDependencies ++= Seq("org.slf4j" % "slf4j-api" % slf4jVersion)
+).jsSettings(jsTestSettings)
+lazy val core =
+  source(crossProject(JVMPlatform, JSPlatform), "core").dependsOn(meta, testBase % Test).jsSettings(jsTestSettings)
 
 // Effect system
-lazy val zio = source(project, "system/zio", core, testPlugin % Test).settings(
-  libraryDependencies += "dev.zio" %% "zio" % "2.1.4"
+lazy val zio = source(crossProject(JVMPlatform, JSPlatform), "system/zio").dependsOn(core, testPlugin % Test).settings(
+  libraryDependencies += "dev.zio" %%% "zio" % "2.1.4"
+).jsSettings(
+  libraryDependencies += "io.github.cquiroz" %%% "scala-java-time" % "2.6.0" % Test
+).jsSettings(jsTestSettings)
+lazy val monix = source(crossProject(JVMPlatform), "system/monix").dependsOn(core, testPlugin % Test).settings(
+  libraryDependencies += "io.monix" %%% "monix-eval" % "3.4.1"
 )
-lazy val monix = source(project, "system/monix", core, testPlugin % Test).settings(
-  libraryDependencies += "io.monix" %% "monix-eval" % "3.4.1"
-)
-lazy val catsEffect = source(project, "system/cats-effect", core, testPlugin % Test).settings(
-  libraryDependencies += "org.typelevel" %% "cats-effect" % "3.5.4"
-)
+lazy val catsEffect =
+  source(crossProject(JVMPlatform, JSPlatform), "system/cats-effect").dependsOn(core, testPlugin % Test).settings(
+    libraryDependencies += "org.typelevel" %%% "cats-effect" % "3.5.4"
+  ).jsSettings(jsTestSettings)
 
 // Message codec
 val circeVersion = "0.14.8"
-lazy val circe = source(project, s"codec/circe", core, testCodec % Test).settings(
-  libraryDependencies ++= Seq(
-    "io.circe" %% "circe-parser" % circeVersion,
-    "io.circe" %% "circe-generic" % circeVersion,
-  )
-)
+lazy val circe =
+  source(crossProject(JVMPlatform, JSPlatform), s"codec/circe").dependsOn(core, testCodec % Test).settings(
+    libraryDependencies ++= Seq(
+      "io.circe" %%% "circe-parser" % circeVersion,
+      "io.circe" %%% "circe-generic" % circeVersion,
+    )
+  ).jsSettings(jsTestSettings)
 val jacksonVersion = "2.17.1"
-lazy val jackson = source(project, "codec/jackson", core, testCodec % Test).settings(
-  libraryDependencies ++= Seq(
-    "com.fasterxml.jackson.module" %% "jackson-module-scala" % jacksonVersion,
-    "com.fasterxml.jackson.dataformat" % "jackson-dataformat-smile" % jacksonVersion,
-    "com.fasterxml.jackson.dataformat" % "jackson-dataformat-cbor" % jacksonVersion,
+lazy val jackson =
+  source(crossProject(JVMPlatform), "codec/jackson").dependsOn(core, testCodec % Test).settings(
+    libraryDependencies ++= Seq(
+      "com.fasterxml.jackson.module" %%% "jackson-module-scala" % jacksonVersion,
+      "com.fasterxml.jackson.dataformat" % "jackson-dataformat-smile" % jacksonVersion,
+      "com.fasterxml.jackson.dataformat" % "jackson-dataformat-cbor" % jacksonVersion,
+    )
   )
-)
-lazy val json4s = source(project, "codec/json4s", core, testCodec % Test).settings(
+lazy val json4s = source(crossProject(JVMPlatform), "codec/json4s").dependsOn(core, testCodec % Test).settings(
   publish / skip := scala3.value,
-  libraryDependencies += "org.json4s" %% "json4s-native" % "4.1.0-M5",
+  libraryDependencies += "org.json4s" %%% "json4s-native" % "4.1.0-M5",
 )
-lazy val playJson = source(project, "codec/play-json", core, testCodec % Test).settings(
-  publish / skip := scala3.value,
-  libraryDependencies += "org.playframework" %% "play-json" % "3.0.4",
-)
-lazy val weepickle = source(project, "codec/weepickle", core, testCodec % Test).settings(
+lazy val playJson =
+  source(crossProject(JVMPlatform), "codec/play-json").dependsOn(core, testCodec % Test).settings(
+    publish / skip := scala3.value,
+    libraryDependencies += "org.playframework" %%% "play-json" % "3.0.4",
+  )
+lazy val weepickle = source(crossProject(JVMPlatform), "codec/weepickle").dependsOn(core, testCodec % Test).settings(
   libraryDependencies ++= Seq(
-    "com.rallyhealth" %% "weepack-v1" % "1.9.1",
+    "com.rallyhealth" %%% "weepack-v1" % "1.9.1",
     "com.fasterxml.jackson.dataformat" % "jackson-dataformat-smile" % jacksonVersion,
     "com.fasterxml.jackson.dataformat" % "jackson-dataformat-cbor" % jacksonVersion,
     "com.fasterxml.jackson.dataformat" % "jackson-dataformat-ion" % jacksonVersion,
   )
 )
-lazy val upickle = source(project, "codec/upickle", core, testCodec % Test).settings(
-  libraryDependencies += "com.lihaoyi" %% "upickle" % "3.3.1"
-)
+lazy val upickle =
+  source(crossProject(JVMPlatform, JSPlatform), "codec/upickle").dependsOn(core, testCodec % Test).settings(
+    libraryDependencies += "com.lihaoyi" %%% "upickle" % "3.3.1"
+  ).jsSettings(jsTestSettings)
 
 // Client transport
 val sttpVersion = "3.9.7"
 val sttpHttpClientVersion = "3.5.2"
 lazy val sttp =
-  source(project, "transport/sttp", core, catsEffect % Test, zio % Test, testPlugin % Test).settings(
+  source(
+    crossProject(JVMPlatform, JSPlatform),
+    "transport/sttp",
+  ).dependsOn(
+    core,
+    catsEffect % Test,
+    zio % Test,
+    testPlugin % Test,
+  ).settings(
     libraryDependencies ++= Seq(
-      "com.softwaremill.sttp.client3" %% "core" % sttpVersion,
-      "com.softwaremill.sttp.client3" %% "async-http-client-backend-future" % sttpVersion % Test,
-      "com.softwaremill.sttp.client3" %% "async-http-client-backend-zio" % sttpVersion % Test,
-      "com.softwaremill.sttp.client3" %% "armeria-backend" % sttpVersion % Test,
-      "com.softwaremill.sttp.client3" %% "httpclient-backend" % sttpHttpClientVersion % Test,
-      "com.softwaremill.sttp.client3" %% "okhttp-backend" % sttpVersion % Test,
+      "com.softwaremill.sttp.client3" %%% "core" % sttpVersion
     )
-  )
-lazy val rabbitmq = source(project, "transport/rabbitmq", core, testPlugin % Test).settings(
+  ).jvmSettings(
+    libraryDependencies ++= Seq(
+      "com.softwaremill.sttp.client3" %%% "async-http-client-backend-future" % sttpVersion % Test,
+      "com.softwaremill.sttp.client3" %%% "async-http-client-backend-zio" % sttpVersion % Test,
+      "com.softwaremill.sttp.client3" %%% "armeria-backend" % sttpVersion % Test,
+      "com.softwaremill.sttp.client3" %%% "httpclient-backend" % sttpHttpClientVersion % Test,
+      "com.softwaremill.sttp.client3" %%% "okhttp-backend" % sttpVersion % Test,
+    )
+  ).jsSettings(jsTestSettings)
+lazy val rabbitmq = source(crossProject(JVMPlatform), "transport/rabbitmq").dependsOn(core, testPlugin % Test).settings(
   libraryDependencies += "com.rabbitmq" % "amqp-client" % "5.21.0"
 )
 
 // Server transport
 val tapirVersion = "1.10.10"
-lazy val tapir = source(project, "transport/tapir", core, catsEffect % Test, testPlugin % Test).settings(
-  libraryDependencies ++= Seq(
-    "com.softwaremill.sttp.tapir" %% "tapir-server" % tapirVersion,
-    "com.softwaremill.sttp.tapir" %% "tapir-armeria-server" % tapirVersion % Test,
-    "com.softwaremill.sttp.tapir" %% "tapir-http4s-server" % tapirVersion % Test,
-    "org.http4s" %% "http4s-ember-server" % "0.23.27" % Test,
-    "com.softwaremill.sttp.tapir" %% "tapir-netty-server" % tapirVersion % Test,
-    "com.softwaremill.sttp.tapir" %% "tapir-vertx-server" % tapirVersion % Test,
+lazy val tapir =
+  source(crossProject(JVMPlatform), "transport/tapir").dependsOn(core, catsEffect % Test, testPlugin % Test).settings(
+    libraryDependencies ++= Seq(
+      "com.softwaremill.sttp.tapir" %%% "tapir-server" % tapirVersion,
+      "com.softwaremill.sttp.tapir" %%% "tapir-armeria-server" % tapirVersion % Test,
+      "com.softwaremill.sttp.tapir" %%% "tapir-http4s-server" % tapirVersion % Test,
+      "org.http4s" %%% "http4s-ember-server" % "0.23.27" % Test,
+      "com.softwaremill.sttp.tapir" %%% "tapir-netty-server" % tapirVersion % Test,
+      "com.softwaremill.sttp.tapir" %%% "tapir-vertx-server" % tapirVersion % Test,
+    )
   )
-)
-lazy val undertow = source(project, "transport/undertow", core, testPlugin % Test).settings(
+lazy val undertow = source(crossProject(JVMPlatform), "transport/undertow").dependsOn(core, testPlugin % Test).settings(
   libraryDependencies += "io.undertow" % "undertow-core" % "2.3.14.Final"
 )
-lazy val vertx = source(project, "transport/vertx", core, testPlugin % Test).settings(
+lazy val vertx = source(crossProject(JVMPlatform), "transport/vertx").dependsOn(core, testPlugin % Test).settings(
   libraryDependencies += "io.vertx" % "vertx-core" % "4.5.8"
 )
 val jettyVersion = "12.0.11"
-lazy val jetty = source(project, "transport/jetty", core, testPlugin % Test).settings(
+lazy val jetty = source(crossProject(JVMPlatform), "transport/jetty").dependsOn(core, testPlugin % Test).settings(
   libraryDependencies ++= Seq(
     "org.eclipse.jetty.websocket" % "jetty-websocket-jetty-client" % jettyVersion,
     "org.eclipse.jetty.websocket" % "jetty-websocket-jetty-server" % jettyVersion,
   )
 )
-lazy val zioHttp = source(project, "transport/zio-http", core, testPlugin % Test, zio % Test).settings(
-  publish / skip := true,
-  libraryDependencies += "dev.zio" %% "zio-http" % "3.0.0-RC8"
-)
+lazy val zioHttp =
+  source(crossProject(JVMPlatform), "transport/zio-http").dependsOn(core, testPlugin % Test, zio % Test).settings(
+    publish / skip := true,
+    libraryDependencies += "dev.zio" %%% "zio-http" % "3.0.0-RC8",
+  )
 val akkaVersion = "2.8.5"
-lazy val akkaHttp = source(project, "transport/akka-http", core, testPlugin % Test).settings(
-  Test / fork := true,
-  Test / testForkedParallel := true,
-  Test / javaOptions ++= testJavaOptions,
-  libraryDependencies ++= Seq(
-    "com.typesafe.akka" %% "akka-http" % "10.5.3",
-    "com.typesafe.akka" %% "akka-actor-typed" % akkaVersion,
-    "com.typesafe.akka" %% "akka-stream" % akkaVersion,
-    "com.typesafe.akka" %% "akka-slf4j" % akkaVersion % Test,
-  ),
-)
+lazy val akkaHttp =
+  source(crossProject(JVMPlatform), "transport/akka-http").dependsOn(core, testPlugin % Test).settings(
+    Test / fork := true,
+    Test / testForkedParallel := true,
+    Test / javaOptions ++= testJavaOptions,
+    libraryDependencies ++= Seq(
+      "com.typesafe.akka" %%% "akka-http" % "10.5.3",
+      "com.typesafe.akka" %%% "akka-actor-typed" % akkaVersion,
+      "com.typesafe.akka" %%% "akka-stream" % akkaVersion,
+      "com.typesafe.akka" %%% "akka-slf4j" % akkaVersion % Test,
+    ),
+  )
 val pekkoVersion = "1.0.3"
-lazy val pekkoHttp = source(project, "transport/pekko-http", core, testPlugin % Test).settings(
-  Test / fork := true,
-  Test / testForkedParallel := true,
-  Test / javaOptions ++= testJavaOptions,
-  libraryDependencies ++= Seq(
-    "org.apache.pekko" %% "pekko-http" % "1.0.1",
-    "org.apache.pekko" %% "pekko-actor-typed" % pekkoVersion,
-    "org.apache.pekko" %% "pekko-stream" % pekkoVersion,
-    "org.apache.pekko" %% "pekko-slf4j" % pekkoVersion % Test,
-  ),
-)
+lazy val pekkoHttp =
+  source(crossProject(JVMPlatform), "transport/pekko-http").dependsOn(core, testPlugin % Test).settings(
+    Test / fork := true,
+    Test / testForkedParallel := true,
+    Test / javaOptions ++= testJavaOptions,
+    libraryDependencies ++= Seq(
+      "org.apache.pekko" %%% "pekko-http" % "1.0.1",
+      "org.apache.pekko" %%% "pekko-actor-typed" % pekkoVersion,
+      "org.apache.pekko" %%% "pekko-stream" % pekkoVersion,
+      "org.apache.pekko" %%% "pekko-slf4j" % pekkoVersion % Test,
+    ),
+  )
 val playVersion = "3.0.4"
-lazy val play = source(project, "transport/play", core, testPlugin % Test).settings(
+lazy val play = source(crossProject(JVMPlatform), "transport/play").dependsOn(core, testPlugin % Test).settings(
   Test / fork := true,
   Test / testForkedParallel := true,
   Test / javaOptions ++= testJavaOptions,
   libraryDependencies ++= Seq(
-    "org.playframework" %% "play-server" % playVersion,
-    "org.playframework" %% "play-pekko-http-server" % playVersion % Test,
+    "org.playframework" %%% "play-server" % playVersion,
+    "org.playframework" %%% "play-pekko-http-server" % playVersion % Test,
   ),
 )
 
 // Endpoint transport
-lazy val finagle = source(project, "transport/finagle", core, testPlugin % Test).settings(
+lazy val finagle = source(crossProject(JVMPlatform), "transport/finagle").dependsOn(core, testPlugin % Test).settings(
   libraryDependencies ++= Seq(
     ("com.twitter" % "finagle-http" % "24.2.0")
       .exclude("org.scala-lang.modules", "scala-collection-compat_2.13")
       .exclude("com.fasterxml.jackson.module", "jackson-module-scala_2.13")
       .cross(CrossVersion.for3Use2_13),
-    "com.fasterxml.jackson.module" %% "jackson-module-scala" % jacksonVersion,
+    "com.fasterxml.jackson.module" %%% "jackson-module-scala" % jacksonVersion,
   )
 )
 
 // Miscellaneous
-lazy val default = source(project, "default", circe, undertow, testPlugin % Test)
+lazy val default = source(crossProject(JVMPlatform), "default").dependsOn(circe, undertow, testPlugin % Test)
 lazy val examples = source(
-  project,
+  crossProject(JVMPlatform),
   "examples",
+).dependsOn(
   default,
   upickle,
   zio,
@@ -283,11 +324,11 @@ lazy val examples = source(
   Test / fork := true,
   Test / javaOptions ++= testJavaOptions,
   libraryDependencies ++= Seq(
-    "com.softwaremill.sttp.client3" %% "async-http-client-backend-future" % sttpVersion,
-    "com.softwaremill.sttp.client3" %% "async-http-client-backend-zio" % sttpVersion,
+    "com.softwaremill.sttp.client3" %%% "async-http-client-backend-future" % sttpVersion,
+    "com.softwaremill.sttp.client3" %%% "async-http-client-backend-zio" % sttpVersion,
   ),
-  Compile / scalaSource := baseDirectory.value / "project/src/main/scala",
-  Test / scalaSource := baseDirectory.value / "project/src/test/scala",
+  Compile / scalaSource := baseDirectory.value / "../project/src/main/scala",
+  Test / scalaSource := baseDirectory.value / "../project/src/test/scala",
 )
 
 // Compile
@@ -351,21 +392,42 @@ scalastyleFailOnError := true
 
 // Test
 val logbackVersion = "1.5.6"
-lazy val testBase = source(project, "test/base").settings(
+val scribeVersion = "3.15.0"
+lazy val testBase = source(crossProject(JVMPlatform, JSPlatform), "test/base").settings(
   libraryDependencies ++= Seq(
-    "org.scalatest" %% "scalatest" % "3.2.18",
-    "org.scalatestplus" %% "scalacheck-1-17" % "3.2.18.0",
+    "org.scalatest" %%% "scalatest" % "3.2.18",
+    "org.scalatestplus" %%% "scalacheck-1-17" % "3.2.18.0",
+    "com.lihaoyi" %%% "pprint" % "0.9.0",
+    "com.outr" %%% "scribe" % scribeVersion,
+  )
+).jvmSettings(
+  libraryDependencies ++= Seq(
     "org.slf4j" % "jul-to-slf4j" % slf4jVersion,
     "ch.qos.logback" % "logback-classic" % logbackVersion,
-    "com.lihaoyi" %% "pprint" % "0.9.0",
+    "com.outr" %%% "scribe-slf4j" % scribeVersion,
   )
 )
-lazy val testCodec = source(project, "test/codec", testBase, meta).settings(
+lazy val testCodec = source(crossProject(JVMPlatform, JSPlatform), "test/codec").dependsOn(testBase, meta).jvmSettings(
   libraryDependencies += "com.fasterxml.jackson.core" % "jackson-databind" % jacksonVersion
 )
 lazy val testPlugin =
-  source(project, "test/plugin", testCodec, core, circe, jackson, playJson, json4s, weepickle, upickle)
-lazy val standard = source(project, "test/standard", testPlugin, core, testPlugin % Test)
+  source(
+    crossProject(JVMPlatform, JSPlatform),
+    "test/plugin",
+  ).dependsOn(
+    testBase,
+    core,
+    circe,
+    upickle,
+  ).jvmConfigure(
+    _.dependsOn(
+      jackson.jvm,
+      playJson.jvm,
+      json4s.jvm,
+      weepickle.jvm,
+    )
+  )
+lazy val standard = source(crossProject(JVMPlatform), "test/standard").dependsOn(testPlugin, core, testPlugin % Test)
 
 def testJavaOptions: Seq[String] =
   Seq(s"-Dproject.target=${System.getProperty("project.target")}")
@@ -374,6 +436,7 @@ lazy val testScalastyle = taskKey[Unit]("testScalastyle")
 testScalastyle := (Test / scalastyle).toTask("").value
 val testEnvironment = taskKey[Unit]("Prepares testing environment.")
 testEnvironment := IO.delete(target.value / "lock")
+
 ThisBuild / Test / testOptions ++= Seq(
   Tests.Argument(TestFrameworks.ScalaTest, "-oDST"),
   Tests.Argument(TestFrameworks.ScalaCheck, "-minSuccessfulTests", "7"),
@@ -440,7 +503,7 @@ site := {
 
   // Insert examples sources into the examples page
   val docsDirectory = (docs / baseDirectory).value
-  val examplesDirectory = (examples / baseDirectory).value / "project"
+  val examplesDirectory = (examples.jvm / baseDirectory).value / "project"
   insertDocExampleSources(docsDirectory, examplesDirectory, releaseVersion.value, logbackVersion)
 
   // Generate website
@@ -453,7 +516,7 @@ site := {
     IO.write(apiDirectory / path, relativizeScaladocLinks(IO.read(file), path))
   }
   val systemDirectory = s"$projectName/system"
-  val monixApiDirectory = (monix / Compile / doc / target).value / systemDirectory
+  val monixApiDirectory = (monix.jvm / Compile / doc / target).value / systemDirectory
   Path.allSubpaths(monixApiDirectory).filter(_._1.isFile).foreach { case (file, path) =>
     IO.write(apiDirectory / systemDirectory / path, relativizeScaladocLinks(IO.read(file), path))
   }
