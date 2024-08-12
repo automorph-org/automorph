@@ -1,5 +1,5 @@
 // Project
-scalaVersion := "3.4.2"
+scalaVersion := "3.5.0"
 name := "automorph-example"
 organization := "example"
 
