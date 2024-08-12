@@ -1,5 +1,5 @@
 // Project
-scalaVersion := "3.3.1"
+scalaVersion := "3.5.0"
 name := "automorph-example"
 organization := "example"
 
@@ -11,7 +11,7 @@ libraryDependencies ++= {
   Seq(
     // Default
     "org.automorph" %% "automorph-default" % automorphVersion,
-    "ch.qos.logback" % "logback-classic" % "1.4.14",
+    "ch.qos.logback" % "logback-classic" % "1.5.6",
 
     // Plugins
     "org.automorph" %% "automorph-rabbitmq" % automorphVersion,
