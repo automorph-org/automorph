@@ -1,7 +1,7 @@
-//> using dep org.automorph::automorph-default:@PROJECT_VERSION@
-//> using dep org.automorph::automorph-zio:@PROJECT_VERSION@
+//> using dep org.automorph::automorph-default:@AUTOMORPH_VERSION@
+//> using dep org.automorph::automorph-zio:@AUTOMORPH_VERSION@
 //> using dep com.softwaremill.sttp.client3::async-http-client-backend-zio:3.3.9
-//> using dep ch.qos.logback:logback-classic:@LOGGER_VERSION@
+//> using dep ch.qos.logback:logback-classic:@LOGBACK_VERSION@
 package examples.integration
 
 import automorph.Default
