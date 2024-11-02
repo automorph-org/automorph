@@ -9,13 +9,13 @@ Please feel free to open an [issue](https://github.com/automorph-org/automorph/i
 with questions, ideas, features, improvements or fixes.
 
 
-## Potential improvements
+## Suggested improvements
 
-- Better documentation
-- More transport layer integrations
-- Additional RPC protocol implementations
 - Stricter type checking in API method invocation macros
-- [ScalaJS](https://www.scala-js.org/) support
+- Additional RPC protocol implementations
+- More transport layer integrations
+- Context-based request filtering
+- Better documentation
 
 
 ## Build requirements

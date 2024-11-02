@@ -164,6 +164,31 @@ The following technical standards are supported by freely combining appropriate
 - [OpenAPI](https://www.openapis.org)
 
 
+## Upcoming features
+
+### Core
+
+- Server to client (reversed direction) RPC requests for HTTP, WebSocket and AMQP transport protocols
+
+### Platform
+
+- [Native Image](https://www.graalvm.org/latest/reference-manual/native-image) support
+- [ScalaJS](https://www.scala-js.org) support
+
+### Transport
+
+- [Rapidoid](https://www.rapidoid.org) integration
+- [ZIO HTTP](https://zio.dev/zio-http) integration
+- [Play](https://www.playframework.com) integration
+
+### Codec
+
+- [weePickle](https://github.com/rallyhealth/weePickle) integration
+- [Smile](https://github.com/FasterXML/smile-format-specification) message format
+- [CBOR](https://cbor.io) message format
+- [Ion](https://amazon-ion.github.io/ion-docs) message format
+
+
 ## Author
 
 - Martin Ockajak
