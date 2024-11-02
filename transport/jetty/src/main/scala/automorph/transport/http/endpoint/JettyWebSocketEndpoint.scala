@@ -27,7 +27,7 @@ import scala.util.Try
  * @see
  *   [[https://www.eclipse.org/jetty/javadoc/jetty-11/index.html API]]
  * @constructor
- *   Creates an Jetty HTTP endpoint message transport plugin with specified effect system and request handler.
+ *   Creates a Jetty HTTP endpoint message transport plugin with specified effect system and request handler.
  * @param effectSystem
  *   effect system plugin
  * @param mapException

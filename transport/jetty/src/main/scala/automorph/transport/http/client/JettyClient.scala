@@ -34,7 +34,7 @@ import scala.util.Try
  * @see
  *   [[https://www.javadoc.io/doc/io.jetty/jetty-core/latest/index.html API]]
  * @constructor
- *   Creates an Jetty HTTP & WebSocket message client transport plugin.
+ *   Creates a Jetty HTTP & WebSocket message client transport plugin.
  * @param effectSystem
  *   effect system plugin
  * @param url
