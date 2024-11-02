@@ -219,7 +219,7 @@ lazy val jetty = source(project, "transport/jetty", core, testPlugin % Test).set
 )
 lazy val zioHttp = source(project, "transport/zio-http", core, testPlugin % Test, zio % Test).settings(
   publish / skip := true,
-  libraryDependencies += "dev.zio" %% "zio-http" % "3.0.0-RC8"
+  libraryDependencies += "dev.zio" %% "zio-http" % "3.0.1"
 )
 val akkaVersion = "2.8.7"
 lazy val akkaHttp = source(project, "transport/akka-http", core, testPlugin % Test).settings(
@@ -233,19 +233,19 @@ lazy val akkaHttp = source(project, "transport/akka-http", core, testPlugin % Te
     "com.typesafe.akka" %% "akka-slf4j" % akkaVersion % Test,
   ),
 )
-val pekkoVersion = "1.0.3"
+val pekkoVersion = "1.1.2"
 lazy val pekkoHttp = source(project, "transport/pekko-http", core, testPlugin % Test).settings(
   Test / fork := true,
   Test / testForkedParallel := true,
   Test / javaOptions ++= testJavaOptions,
   libraryDependencies ++= Seq(
-    "org.apache.pekko" %% "pekko-http" % "1.0.1",
+    "org.apache.pekko" %% "pekko-http" % "1.1.0",
     "org.apache.pekko" %% "pekko-actor-typed" % pekkoVersion,
     "org.apache.pekko" %% "pekko-stream" % pekkoVersion,
     "org.apache.pekko" %% "pekko-slf4j" % pekkoVersion % Test,
   ),
 )
-val playVersion = "3.0.4"
+val playVersion = "3.0.5"
 lazy val play = source(project, "transport/play", core, testPlugin % Test).settings(
   Test / fork := true,
   Test / testForkedParallel := true,
