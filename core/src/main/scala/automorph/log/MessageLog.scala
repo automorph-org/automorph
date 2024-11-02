@@ -59,6 +59,13 @@ final private[automorph] case class MessageLog(logger: Logger, defaultProtocol: 
   ): Unit =
     logger.error(s"Failed to process $protocol request", error, properties)
 
+  def failedProcessResponse(
+    error: Throwable,
+    properties: => Map[String, String],
+    protocol: String = defaultProtocol,
+  ): Unit =
+    logger.error(s"Failed to process $protocol response", error, properties)
+
   def sendingResponse(
     properties: => Map[String, String],
     messageText: Option[String],

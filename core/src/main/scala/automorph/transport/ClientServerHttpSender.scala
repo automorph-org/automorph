@@ -1,11 +1,12 @@
 package automorph.transport
 
+import automorph.RpcException.InvalidRequest
 import automorph.log.MessageLog.messageText
 import automorph.log.{Logging, MessageLog}
-import automorph.spi.EffectSystem
-import automorph.transport.HttpContext.{headerRpcListen, headerRpcNodeId}
-import automorph.transport.ServerHttpHandler.{contentTypeText, valueRpcListen}
-import automorph.util.Extensions.EffectOps
+import automorph.spi.{EffectSystem, RpcHandler}
+import automorph.transport.HttpContext.{headerRpcCallId, headerRpcListen, headerRpcNodeId}
+import automorph.transport.ServerHttpHandler.{contentTypeText, statusInternalServerError, statusOk, valueRpcListen}
+import automorph.util.Extensions.{EffectOps, StringOps, ThrowableOps}
 import automorph.util.Random
 import java.net.URI
 import java.util.concurrent.atomic.AtomicBoolean
@@ -39,6 +40,7 @@ final private[automorph] case class ClientServerHttpSender[Effect[_], Context <:
   httpListen: HttpListen,
   nodeId: Option[String],
   effectSystem: EffectSystem[Effect],
+  rpcHandler: RpcHandler[Effect, Context],
 ) extends Logging {
   private val listening = new AtomicBoolean(false)
   private val log = MessageLog(logger)
@@ -117,31 +119,77 @@ final private[automorph] case class ClientServerHttpSender[Effect[_], Context <:
 
   private def listen(): Effect[Unit] =
     if (listening.get) {
-      // Create listen request
-      system.evaluate {
+      Try {
+        // Create listen request
         val requestContext = nodeId.map(HttpContext().header(headerRpcNodeId, _)).getOrElse(HttpContext())
           .header(headerRpcListen, valueRpcListen).asInstanceOf[Context]
         createRequest(Array.emptyByteArray, requestContext, contentTypeText)
-      }.flatMap { case (request, context, protocol) =>
-        val requestMetadata =
-          HttpMetadata(context.contentType(contentTypeText).asInstanceOf[Context], protocol, Random.id)
-        sendReceive(request, Array.emptyByteArray, requestMetadata).fold(
-          _ =>
-            // Retry the listen request
-            system.runAsync(system.sleep(httpListen.retryInterval).flatMap(_ => listen())),
-          { case (responseBody, responseContext) =>
-            // Process the request
-            system.runAsync(listen())
-            handleRequest(responseBody, requestMetadata.copy(context = responseContext), protocol)
-          },
-        )
-      }
+      }.fold(
+        system.failed,
+        { case (request, context, protocol) =>
+          val requestMetadata =
+            HttpMetadata(context.contentType(contentTypeText).asInstanceOf[Context], protocol, Random.id)
+          sendReceive(request, Array.emptyByteArray, requestMetadata).fold(
+            _ =>
+              // Retry the listen request
+              system.runAsync(system.sleep(httpListen.retryInterval).flatMap(_ => listen())),
+            { case (responseBody, responseContext) =>
+              // Process the request
+              system.runAsync(listen())
+              handleRequest(responseBody, requestMetadata.copy(context = responseContext))
+            },
+          )
+        },
+      )
     } else {
       effectSystem.successful {}
     }
 
-  private def handleRequest(body: Array[Byte], metadata: HttpMetadata[Context], protocol: Protocol): Unit =
-    // FIXME - implement
-//    system.successful {}
-    ()
+  private def handleRequest(body: Array[Byte], metadata: HttpMetadata[Context]): Unit =
+    metadata.context.contentType.map { contentType =>
+      // FIXME
+      // getRpcCallId.flatMap(_(connection)).orElse(context.header(headerRpcCallId))
+      if (contentType == rpcHandler.mediaType) {
+        // Process the request
+        rpcHandler.processRequest(body, metadata.context, metadata.id).flatFold(
+          error => respondError(error, metadata),
+          { result =>
+            // Send the response
+            val responseBody = result.map(_.responseBody).getOrElse(Array.emptyByteArray)
+            val responseContext = result.flatMap(_.context)
+            respond(responseBody, rpcHandler.mediaType, responseContext, metadata)
+          },
+        )
+      } else {
+        respondError(InvalidRequest(s"Invalid content type: $contentType"), metadata)
+      }
+    }.getOrElse {
+      respondError(InvalidRequest("Missing content type"), metadata)
+    }
+
+  def respond(
+    body: Array[Byte],
+    contentType: String,
+    context: Option[Context],
+    metadata: HttpMetadata[Context],
+  ): Effect[Unit] = {
+    Try {
+      val responseContext = context.getOrElse(HttpContext())
+      val validResponseContext = nodeId.map(responseContext.header(headerRpcNodeId, _)).getOrElse(responseContext)
+        .header(headerRpcCallId, "FIXME").asInstanceOf[Context]
+      createRequest(Array.emptyByteArray, validResponseContext, contentTypeText)
+    }.fold(
+      system.failed,
+      { case (response, responseContext, protocol) =>
+        val responseMetadata = metadata.copy(context = responseContext.contentType(contentType).asInstanceOf[Context])
+        send(response, body, responseMetadata)
+      }
+    )
+  }
+
+  private def respondError(error: Throwable, metadata: HttpMetadata[Context]): Effect[Unit] = {
+    log.failedProcessResponse(error, metadata.properties, metadata.protocol.name)
+    val responseBody = error.description.toByteArray
+    respond(responseBody, contentTypeText, None, metadata)
+  }
 }

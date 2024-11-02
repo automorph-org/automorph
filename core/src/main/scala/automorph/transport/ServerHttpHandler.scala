@@ -160,8 +160,7 @@ final private[automorph] case class ServerHttpHandler[
     } else {
       context.getOrElse(HttpContext())
     }
-    val responseMetadata =
-      metadata.copy(context = responseContext.contentType(contentType).asInstanceOf[Context])
+    val responseMetadata = metadata.copy(context = responseContext.contentType(contentType).asInstanceOf[Context])
     val protocolName = metadata.protocol.name
     log.sendingResponse(
       responseMetadata.properties,
