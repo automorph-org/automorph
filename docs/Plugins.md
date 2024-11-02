@@ -45,13 +45,13 @@ which provides a convenient way to create default plugin instances or combine de
 
 | Class | Artifact | Library | Effect type |
 | --- | --- | --- | --- |
-| [IdentitySystem](https://automorph.org/api/automorph/system/IdentitySystem.html) (Default) | [automorph-core](https://central.sonatype.com/artifact/org.automorph/automorph-core_3) | [Standard](https://docs.scala-lang.org/scala3/book/taste-functions.html) | [Identity](https://scala-lang.org/api/3.x/scala/Predef$.html#identity-957) |
+| [IdentitySystem](https://automorph.org/api/automorph/system/IdentitySystem.html) (*Default*) | [automorph-core](https://central.sonatype.com/artifact/org.automorph/automorph-core_3) | [Standard](https://docs.scala-lang.org/scala3/book/taste-functions.html) | [Identity](https://scala-lang.org/api/3.x/scala/Predef$.html#identity-957) |
 | [TrySystem](https://automorph.org/api/automorph/system/TrySystem.html) | [automorph-core](https://central.sonatype.com/artifact/org.automorph/automorph-core_3) | [Standard](https://docs.scala-lang.org/scala3/book/fp-functional-error-handling.html) | [Try](https://www.scala-lang.org/files/archive/api/3.x/scala/util/Try.html) |
 | [FutureSystem](https://automorph.org/api/automorph/system/FutureSystem.html) (*Default*) | [automorph-core](https://central.sonatype.com/artifact/org.automorph/automorph-core_3) | [Standard](https://docs.scala-lang.org/overviews/core/futures.html) | [Future](https://scala-lang.org/api/3.x/scala/concurrent/Future.html) |
 | [ZioSystem](https://automorph.org/api/automorph/system/ZioSystem.html) | [automorph-zio](https://central.sonatype.com/artifact/org.automorph/automorph-zio_3) | [ZIO](https://zio.dev/) | [RIO](https://javadoc.io/doc/dev.zio/zio_3/latest/zio.html#RIO-0) |
 | [MonixSystem](https://automorph.org/api/automorph/system/MonixSystem.html) | [automorph-monix](https://central.sonatype.com/artifact/org.automorph/automorph-monix_3) | [Monix](https://monix.io/) | [Task](https://monix.io/api/current/monix/eval/Task.html) |
 | [CatsEffectSystem](https://automorph.org/api/automorph/system/CatsEffectSystem.html) | [automorph-cats-effect](https://central.sonatype.com/artifact/org.automorph/automorph-cats-effect_3) | [Cats Effect](https://typelevel.org/cats-effect/) | [IO](https://typelevel.org/cats-effect/api/3.x/cats/effect/IO.html) |
-| [ScalazEffectSystem](https://automorph.org/api/automorph/system/ScalazEffectSystem.html) | [automorph-scalaz-effect](https://central.sonatype.com/artifact/org.automorph/automorph-scalaz-effect_3) | [Scalaz Effect](https://github.com/scalaz) | [IO](https://www.javadoc.io/doc/org.scalaz/scalaz_3/latest/scalaz/effect/IO.html) |
+| [ScalazEffectSystem](https://automorph.org/api/automorph/system/ScalazEffectSystem.html) (**Deprecated**) | [automorph-scalaz-effect](https://central.sonatype.com/artifact/org.automorph/automorph-scalaz-effect_3) | [Scalaz Effect](https://github.com/scalaz) | [IO](https://www.javadoc.io/doc/org.scalaz/scalaz_3/latest/scalaz/effect/IO.html) |
 
 
 ## [Message codec](https://automorph.org/api/automorph/spi/MessageCodec.html)

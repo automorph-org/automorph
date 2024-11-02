@@ -125,35 +125,35 @@ lazy val core = source(project, "core", meta, testBase % Test)
 
 // Effect system
 lazy val zio = source(project, "system/zio", core, testSystem % Test).settings(
-  libraryDependencies += "dev.zio" %% "zio" % "2.0.21"
+  libraryDependencies += "dev.zio" %% "zio" % "2.1.11"
 )
 lazy val monix = source(project, "system/monix", core, testSystem % Test).settings(
   libraryDependencies += "io.monix" %% "monix-eval" % "3.4.1"
 )
 lazy val catsEffect = source(project, "system/cats-effect", core, testSystem % Test).settings(
-  libraryDependencies += "org.typelevel" %% "cats-effect" % "3.5.3"
+  libraryDependencies += "org.typelevel" %% "cats-effect" % "3.5.5"
 )
 lazy val scalazEffect = source(project, "system/scalaz-effect", core, testSystem % Test).settings(
-  libraryDependencies += "org.scalaz" %% "scalaz-effect" % "7.4.0-M14"
+  libraryDependencies += "org.scalaz" %% "scalaz-effect" % "7.4.0-M15"
 )
 
 // Message codec
-val circeVersion = "0.14.6"
+val circeVersion = "0.14.10"
 lazy val circe = source(project, s"codec/circe", core, testCodec % Test).settings(
   libraryDependencies ++= Seq(
     "io.circe" %% "circe-parser" % circeVersion,
     "io.circe" %% "circe-generic" % circeVersion,
   )
 )
-val jacksonVersion = "2.16.1"
+val jacksonVersion = "2.18.1"
 lazy val jackson = source(project, "codec/jackson", core, testCodec % Test).settings(
   libraryDependencies += "com.fasterxml.jackson.module" %% "jackson-module-scala" % jacksonVersion
 )
 lazy val upickle = source(project, "codec/upickle", core, testCodec % Test).settings(
-  libraryDependencies += "com.lihaoyi" %% "upickle" % "3.1.4"
+  libraryDependencies += "com.lihaoyi" %% "upickle" % "4.0.2"
 )
 lazy val argonaut = source(project, "codec/argonaut", core, testCodec % Test).settings(
-  libraryDependencies += "io.argonaut" %% "argonaut" % "6.3.9"
+  libraryDependencies += "io.argonaut" %% "argonaut" % "6.3.10"
 )
 
 // Client transport
