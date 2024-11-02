@@ -49,7 +49,7 @@ remoteApi.hello(1)
 client.call[String]("hello")("n" -> 1)
 ```
 
-*Note*: Mundane parts of the code are omitted and can be found in the [full example](https://automorph.org/docs/Quickstart).
+*Note*: Imports, server setup and client setup are omitted and can be found in the [full example](https://automorph.org/docs/Quickstart).
 
 
 ## Links
