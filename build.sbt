@@ -128,25 +128,25 @@ lazy val meta = source(project, "meta").settings(
 lazy val core = source(project, "core", meta, testBase % Test)
 
 // Effect system
-lazy val zio = source(project, "system/zio", core, testPlugin % Test).settings(
-  libraryDependencies += "dev.zio" %% "zio" % "2.1.4"
+lazy val zio = source(project, "system/zio", core, testSystem % Test).settings(
+  libraryDependencies += "dev.zio" %% "zio" % "2.1.11"
 )
 lazy val monix = source(project, "system/monix", core, testPlugin % Test).settings(
   libraryDependencies += "io.monix" %% "monix-eval" % "3.4.1"
 )
 lazy val catsEffect = source(project, "system/cats-effect", core, testPlugin % Test).settings(
-  libraryDependencies += "org.typelevel" %% "cats-effect" % "3.5.4"
+  libraryDependencies += "org.typelevel" %% "cats-effect" % "3.5.5"
 )
 
 // Message codec
-val circeVersion = "0.14.8"
+val circeVersion = "0.14.10"
 lazy val circe = source(project, s"codec/circe", core, testCodec % Test).settings(
   libraryDependencies ++= Seq(
     "io.circe" %% "circe-parser" % circeVersion,
     "io.circe" %% "circe-generic" % circeVersion,
   )
 )
-val jacksonVersion = "2.17.1"
+val jacksonVersion = "2.18.1"
 lazy val jackson = source(project, "codec/jackson", core, testCodec % Test).settings(
   libraryDependencies ++= Seq(
     "com.fasterxml.jackson.module" %% "jackson-module-scala" % jacksonVersion,
@@ -171,11 +171,11 @@ lazy val weepickle = source(project, "codec/weepickle", core, testCodec % Test).
   )
 )
 lazy val upickle = source(project, "codec/upickle", core, testCodec % Test).settings(
-  libraryDependencies += "com.lihaoyi" %% "upickle" % "3.3.1"
+  libraryDependencies += "com.lihaoyi" %% "upickle" % "4.0.2"
 )
 
 // Client transport
-val sttpVersion = "3.9.7"
+val sttpVersion = "3.10.1"
 val sttpHttpClientVersion = "3.5.2"
 lazy val sttp =
   source(project, "transport/sttp", core, catsEffect % Test, zio % Test, testPlugin % Test).settings(
@@ -189,12 +189,12 @@ lazy val sttp =
     )
   )
 lazy val rabbitmq = source(project, "transport/rabbitmq", core, testPlugin % Test).settings(
-  libraryDependencies += "com.rabbitmq" % "amqp-client" % "5.21.0"
+  libraryDependencies += "com.rabbitmq" % "amqp-client" % "5.22.0"
 )
 
 // Server transport
-val tapirVersion = "1.10.10"
-lazy val tapir = source(project, "transport/tapir", core, catsEffect % Test, testPlugin % Test).settings(
+val tapirVersion = "1.11.7"
+lazy val tapir = source(project, "transport/tapir", core, catsEffect % Test, testTransport % Test).settings(
   libraryDependencies ++= Seq(
     "com.softwaremill.sttp.tapir" %% "tapir-server" % tapirVersion,
     "com.softwaremill.sttp.tapir" %% "tapir-armeria-server" % tapirVersion % Test,
@@ -205,10 +205,10 @@ lazy val tapir = source(project, "transport/tapir", core, catsEffect % Test, tes
   )
 )
 lazy val undertow = source(project, "transport/undertow", core, testPlugin % Test).settings(
-  libraryDependencies += "io.undertow" % "undertow-core" % "2.3.14.Final"
+  libraryDependencies += "io.undertow" % "undertow-core" % "2.3.18.Final"
 )
 lazy val vertx = source(project, "transport/vertx", core, testPlugin % Test).settings(
-  libraryDependencies += "io.vertx" % "vertx-core" % "4.5.8"
+  libraryDependencies += "io.vertx" % "vertx-core" % "4.5.10"
 )
 val jettyVersion = "12.0.11"
 lazy val jetty = source(project, "transport/jetty", core, testPlugin % Test).settings(
@@ -221,7 +221,7 @@ lazy val zioHttp = source(project, "transport/zio-http", core, testPlugin % Test
   publish / skip := true,
   libraryDependencies += "dev.zio" %% "zio-http" % "3.0.0-RC8"
 )
-val akkaVersion = "2.8.5"
+val akkaVersion = "2.8.7"
 lazy val akkaHttp = source(project, "transport/akka-http", core, testPlugin % Test).settings(
   Test / fork := true,
   Test / testForkedParallel := true,
@@ -338,9 +338,9 @@ val docScalac2Options = compileScalac2Options ++ Seq(
   "-skip-packages",
   s"$projectName.client.meta:examples",
 )
-val exampleScalaVersion = "3.4.2"
+val exampleScalaVersion = "3.5.2"
 ThisBuild / scalaVersion := "3.3.3"
-ThisBuild / crossScalaVersions += "2.13.14"
+ThisBuild / crossScalaVersions += "2.13.15"
 ThisBuild / javacOptions ++= Seq("-source", "11", "-target", "11")
 ThisBuild / scalacOptions ++= (if (scala3.value) compileScalac3Options else compileScalac2Options)
 
@@ -350,11 +350,11 @@ Compile / scalastyleSources ++= (Compile / unmanagedSourceDirectories).value
 scalastyleFailOnError := true
 
 // Test
-val logbackVersion = "1.5.6"
+val logbackVersion = "1.5.12"
 lazy val testBase = source(project, "test/base").settings(
   libraryDependencies ++= Seq(
-    "org.scalatest" %% "scalatest" % "3.2.18",
-    "org.scalatestplus" %% "scalacheck-1-17" % "3.2.18.0",
+    "org.scalatest" %% "scalatest" % "3.2.19",
+    "org.scalatestplus" %% "scalacheck-1-18" % "3.2.19.0",
     "org.slf4j" % "jul-to-slf4j" % slf4jVersion,
     "ch.qos.logback" % "logback-classic" % logbackVersion,
     "com.lihaoyi" %% "pprint" % "0.9.0",

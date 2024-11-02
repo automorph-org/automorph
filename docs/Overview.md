@@ -77,7 +77,7 @@ remoteApi.hello(1)
 client.call[String]("hello")("n" -> 1)
 ```
 
-*Note*: Mundane parts of the code are omitted and can be found in the [full example](https://automorph.org/docs/Quickstart).
+*Note*: Imports, server setup and client setup are omitted here and can be found in the [full example](https://automorph.org/docs/Quickstart#server).
 
 ### [API](https://automorph.org/api/automorph.html)
 
@@ -162,6 +162,31 @@ The following technical standards are supported by freely combining appropriate
 
 - [OpenRPC](https://spec.open-rpc.org)
 - [OpenAPI](https://www.openapis.org)
+
+
+## Upcoming features
+
+### Core
+
+- Server to client (reversed direction) RPC requests for HTTP, WebSocket and AMQP transport protocols
+
+### Platform
+
+- [Native Image](https://www.graalvm.org/latest/reference-manual/native-image) support
+- [ScalaJS](https://www.scala-js.org) support
+
+### Transport
+
+- [Rapidoid](https://www.rapidoid.org) integration
+- [ZIO HTTP](https://zio.dev/zio-http) integration
+- [Play](https://www.playframework.com) integration
+
+### Codec
+
+- [weePickle](https://github.com/rallyhealth/weePickle) integration
+- [Smile](https://github.com/FasterXML/smile-format-specification) message format
+- [CBOR](https://cbor.io) message format
+- [Ion](https://amazon-ion.github.io/ion-docs) message format
 
 
 ## Author
