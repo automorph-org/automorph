@@ -157,7 +157,7 @@ lazy val argonaut = source(project, "codec/argonaut", core, testCodec % Test).se
 )
 
 // Client transport
-val sttpVersion = "3.9.2"
+val sttpVersion = "3.10.1"
 val sttpHttpClientVersion = "3.5.2"
 lazy val sttp =
   source(project, "transport/sttp", core, catsEffect % Test, zio % Test, testTransport % Test).settings(
@@ -172,12 +172,12 @@ lazy val sttp =
 )
 lazy val rabbitmq = source(project, "transport/rabbitmq", core, testTransport % Test).settings(
   libraryDependencies ++= Seq(
-    "com.rabbitmq" % "amqp-client" % "5.20.0"
+    "com.rabbitmq" % "amqp-client" % "5.22.0"
   )
 )
 
 // Server transport
-val tapirVersion = "1.9.8"
+val tapirVersion = "1.11.7"
 lazy val tapir = source(project, "transport/tapir", core, catsEffect % Test, testTransport % Test).settings(
   libraryDependencies ++= Seq(
     "com.softwaremill.sttp.tapir" %% "tapir-server" % tapirVersion,
@@ -189,10 +189,10 @@ lazy val tapir = source(project, "transport/tapir", core, catsEffect % Test, tes
   )
 )
 lazy val undertow = source(project, "transport/undertow", core, testTransport % Test).settings(
-  libraryDependencies += "io.undertow" % "undertow-core" % "2.3.10.Final"
+  libraryDependencies += "io.undertow" % "undertow-core" % "2.3.18.Final"
 )
 lazy val vertx = source(project, "transport/vertx", core, testTransport % Test).settings(
-  libraryDependencies += "io.vertx" % "vertx-core" % "4.5.2"
+  libraryDependencies += "io.vertx" % "vertx-core" % "4.5.10"
 )
 val jettyVersion = "11.0.18"
 lazy val jetty = source(project, "transport/jetty", core, testTransport % Test).settings(
@@ -202,7 +202,7 @@ lazy val jetty = source(project, "transport/jetty", core, testTransport % Test).
     "org.eclipse.jetty.websocket" % "websocket-jetty-server" % jettyVersion
   )
 )
-val akkaVersion = "2.8.5"
+val akkaVersion = "2.8.7"
 lazy val akkaHttp = source(project, "transport/akka-http", core, testTransport % Test).settings(
   Test / fork := true,
   Test / testForkedParallel := true,
@@ -218,7 +218,7 @@ lazy val akkaHttp = source(project, "transport/akka-http", core, testTransport %
 // Endpoint transport
 lazy val finagle = source(project, "transport/finagle", core, testTransport % Test).settings(
   libraryDependencies ++= Seq(
-    ("com.twitter" % "finagle-http" % "23.11.0")
+    ("com.twitter" % "finagle-http" % "24.2.0")
       .exclude("org.scala-lang.modules", "scala-collection-compat_2.13")
       .exclude("com.fasterxml.jackson.module", "jackson-module-scala_2.13")
       .cross(CrossVersion.for3Use2_13),
