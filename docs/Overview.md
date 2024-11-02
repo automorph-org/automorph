@@ -78,7 +78,7 @@ remoteApi.hello(1)
 client.call[String]("hello")("n" -> 1)
 ```
 
-*Note*: Imports, server initialization and client initialization are omitted and can be found in the [full example](https://automorph.org/docs/Quickstart).
+*Note*: Imports, server setup and client setup are omitted here and can be found in the [full example](https://automorph.org/docs/Quickstart).
 
 ### [API](https://automorph.org/api/automorph.html)
 
