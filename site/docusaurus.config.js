@@ -2,7 +2,7 @@
 
 const config = {
   title: 'Automorph',
-  tagline: 'Simple but powerful RPC for Scala',
+  tagline: 'Simple and powerful RPC for Scala',
   url: 'https://automorph.org',
   baseUrl: '/',
   favicon: 'icon.jpg',
