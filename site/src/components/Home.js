@@ -44,7 +44,7 @@ const features = [
         <>
           Choose plugins for <a href='docs/Plugins#rpc-protocol'>RPC protocol</a>, <a
             href='docs/Plugins#effect-system'>effect handling</a>, <a
-            href='docs/Plugins#client-transport'>transport protocol</a> and <a
+            href='docs/Plugins#client-transport'>transport layer</a> and <a
             href='docs/Plugins#message-codec'>message format</a>.
         </>
     ),
