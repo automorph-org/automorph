@@ -1,13 +1,17 @@
 //> using dep org.automorph::automorph-default:@AUTOMORPH_VERSION@
+//> using dep org.automorph::automorph-sttp:@AUTOMORPH_VERSION@
+//> using dep com.softwaremill.sttp.client3:async-http-client-backend-future:3.10.1
 //> using dep ch.qos.logback:logback-classic:@LOGBACK_VERSION@
 package examples.transport
 
 import automorph.{Default, RpcClient}
-import automorph.transport.http.client.UrlClient
+import automorph.transport.http.HttpMethod
+import automorph.transport.http.client.SttpClient
 import java.net.URI
 import scala.concurrent.ExecutionContext.Implicits.global
 import scala.concurrent.duration.Duration
 import scala.concurrent.{Await, Future}
+import sttp.client3.asynchttpclient.future.AsyncHttpClientFutureBackend
 
 private[examples] object ClientTransport {
 
@@ -25,8 +29,11 @@ private[examples] object ClientTransport {
         Future(s"Hello world $n")
     }
 
-    // Create standard JRE HTTP client transport sending POST requests to 'http://localhost:9000/api'
-    val clientTransport = UrlClient(Default.effectSystem, new URI("http://localhost:9000/api"))
+    // Create STTP HTTP client transport sending POST requests to 'http://localhost:9000/api'
+    val backend = AsyncHttpClientFutureBackend()
+    val clientTransport = SttpClient(
+      Default.effectSystem, backend, new URI("http://localhost:9000/api"), HttpMethod.Post
+    )
 
     Await.ready(for {
       // Initialize JSON-RPC HTTP & WebSocket server listening on port 80 for requests to '/api'
