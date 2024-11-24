@@ -29,7 +29,7 @@ for calling and serving remote APIs in a few lines of code.
 
 ### Server
 
-- Transparently generates optimized [RPC server](https://automorph.org/docs/Quickstart#server) bindings at compile time from public API implementation methods.
+- Transparently generates optimized [RPC server](https://automorph.org/docs/Quickstart#server) bindings at compile time from public API class methods.
 - Serves remote APIs using a standalone server by selecting a [server transport](https://automorph.org/docs/Plugins#server-transport) layer.
 - Embeds remote API into an existing server via a suitable [endpoint transport](https://automorph.org/docs/Plugins#endpoint-transport).
 - Automatically generates RPC API discovery functions providing [OpenRPC](https://spec.open-rpc.org) 1.3+ and [OpenAPI](https://www.openapis.org) 3.1+ schemas.
