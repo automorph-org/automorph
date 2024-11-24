@@ -1,3 +1,5 @@
+//> using dep org.automorph::automorph-core:@AUTOMORPH_VERSION@
+//> using dep ch.qos.logback:logback-classic:@LOGBACK_VERSION@
 package examples.integration
 
 import automorph.transport.generic.endpoint.GenericEndpoint

@@ -1,3 +1,5 @@
+//> using dep org.automorph::automorph-default:@AUTOMORPH_VERSION@
+//> using dep ch.qos.logback:logback-classic:@LOGBACK_VERSION@
 package examples.special
 
 import automorph.{RpcClient, Default}
