@@ -9,11 +9,13 @@ for calling and serving remote APIs in a few lines of code.
 
 ## Goals
 
-- Provide efficient **calling** and **serving** of **remote APIs**
-- Ensure there is **no boilerplate** API code and **minimal dependencies** are required
-- Support manipulation of **transport protocol metadata** and **dynamic message payload**
-- Facilitate **smooth integration** by supporting wide range of **existing technology**
-- Allow for easy **customization** and **extension** of library features
+- Focus on **usability**, **type-safety** and **performance**
+- Ensure there is **no boilerplate** code
+- Require **minimal dependencies**
+- Allow use of **dynamic message payload**
+- Support manipulation of **transport protocol metadata**
+- Facilitate **broad customization** of library features
+- Enable **easy integration** with existing technology
 
 
 ## Features
