@@ -5,7 +5,7 @@ import examples.basic.{AsynchronousCall, MultipleApis, OptionalParameters, Synch
 import examples.special.{ApiDiscovery, DynamicPayload, LocalCall, OneWayMessage, PositionalArguments}
 import examples.customization.{ClientFunctionNames, DataTypeSerialization, ServerFunctionNames}
 import examples.errorhandling.{ClientErrorMapping, HttpStatusCode, ServerErrorMapping}
-import examples.integration.{UnsupportedServer, EffectSystem, MessageCodec, RpcProtocol}
+import examples.integration.{ArbitraryServer, EffectSystem, MessageCodec, RpcProtocol}
 import examples.transport.{AmqpTransport, ClientTransport, EndpointTransport, ServerTransport, WebSocketTransport}
 import test.base.{BaseTest, Mutex}
 
@@ -29,7 +29,7 @@ class ExamplesTest extends BaseTest with Mutex {
     }
     "Integration" - {
       Seq[Any](
-        UnsupportedServer,
+        ArbitraryServer,
         EffectSystem,
         MessageCodec,
         RpcProtocol,
