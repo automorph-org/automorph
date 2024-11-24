@@ -33,7 +33,7 @@ private[examples] object HttpStatusCode {
     }
 
     Await.ready(for {
-      // Initialize custom JSON-RPC HTTP & WebSocket server listening on port 9000 for requests to '/api'
+      // Initialize JSON-RPC HTTP & WebSocket server listening on port 9000 for requests to '/api'
       server <- Default.rpcServer(9000, "/api", mapException = mapException).bind(service).init()
 
       // Initialize JSON-RPC HTTP client for sending POST requests to 'http://localhost:9000/api'
