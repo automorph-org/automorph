@@ -13,7 +13,7 @@ for calling and serving remote APIs in a few lines of code.
 - Ensure there is **no boilerplate** code
 - Require **minimal dependencies**
 - Allow use of **dynamic message payload**
-- Support manipulation of **transport protocol metadata**
+- Support manipulation of **transport layer metadata**
 - Facilitate **customization** based on **sensible defaults**
 - Enable **easy integration** with existing technology
 

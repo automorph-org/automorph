@@ -56,7 +56,7 @@ const features = [
         <>
           Consume or create <a
             href='docs/Examples#dynamic-payload'>dynamic message payload</a> and access or modify <a
-            href='docs/Examples#metadata'>transport protocol metadata</a>.
+            href='docs/Examples#metadata'>transport layer metadata</a>.
         </>
     ),
   },
