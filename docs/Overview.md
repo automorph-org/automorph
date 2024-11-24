@@ -65,7 +65,8 @@ trait Api:
 
 // Create server implementation of the remote API
 val service = new Api:
-  def hello(n: Int): Future[String] = Future(s"Hello world $n")
+  def hello(n: Int): Future[String] =
+    Future(s"Hello world $n")
 
 // Expose a server API implementation to be called remotely
 val apiServer = server.bind(service)
