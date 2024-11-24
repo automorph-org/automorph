@@ -349,6 +349,7 @@ lazy val docs = project.in(file("site")).settings(
     "AUTOMORPH_VERSION" -> releaseVersion.value,
     "LOGBACK_VERSION" -> logbackVersion,
     "SCALADOC_VERSION" -> scalaVersion.value,
+    "STTP_VERSION" -> sttpVersion.value,
     "REPOSITORY_URL" -> repositoryUrl
   ),
   mdocOut := baseDirectory.value / "docs",

@@ -1,6 +1,6 @@
 //> using dep org.automorph::automorph-default:@AUTOMORPH_VERSION@
 //> using dep org.automorph::automorph-sttp:@AUTOMORPH_VERSION@
-//> using dep com.softwaremill.sttp.client3:async-http-client-backend-future:3.10.1
+//> using dep com.softwaremill.sttp.client3:async-http-client-backend-future:@STTP_VERSION@
 //> using dep ch.qos.logback:logback-classic:@LOGBACK_VERSION@
 package examples.transport
 
