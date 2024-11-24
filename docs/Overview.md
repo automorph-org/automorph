@@ -14,7 +14,7 @@ for calling and serving remote APIs in a few lines of code.
 - Require **minimal dependencies**
 - Allow use of **dynamic message payload**
 - Support manipulation of **transport protocol metadata**
-- Facilitate **broad customization** of library features
+- Facilitate **customization** with **sensible defaults**
 - Enable **easy integration** with existing technology
 
 
