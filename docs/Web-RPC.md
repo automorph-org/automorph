@@ -13,18 +13,16 @@ boilerplate while allowing reuse of the existing REST API tools.
 ### Motivation
 
 [REST](https://en.wikipedia.org/wiki/Representational_state_transfer) as a theoretical concept is deemed to be
-independent of specific data formats, transport protocols or even calling conventions. However, the vast majority of
-REST APIs created for web applications and online services involve translating HTTP requests and responses carrying
-JSON payload into function calls on the remote site.
+independent of specific data formats, transport protocols or even calling conventions. In reality, virtually all
+REST APIs simply translate HTTP requests and responses carrying JSON payload into function calls on the remote server.
 
-Such translation requires deciding how to represent REST API call data and metadata using the underlying transport
-protocol. This includes determining the message format, its structure, transport protocol meta-data such as various
-headers and so on. There are many ways how to do this ultimately achieving exactly the same result using slightly
-differrent means. And while some good practices can be discussed, there does not seem to be an agreed upon standard.
+Such translation requires deciding how to represent and where to store REST API call data and metadata within HTTP and JSON structures. There are many ways to do that which achieve exactly the same result via slightly
+differrent and thus incompatible means. While some good practices are sometimes discussed, a significant widely used
+standard does not seem to exist.
 
-These are virtually the same concerns which various [RPC](https://en.wikipedia.org/wiki/Remote_procedure_call) or
-messaging protocols need to solve. Consequently, creation of a typical REST API requires additional effort largely
-equivalent to designing and implementing an unique custom RPC protocol.
+These are the same concerns which various [RPC](https://en.wikipedia.org/wiki/Remote_procedure_call) or
+protocols already solved. Consequently, creation of a typical REST API requires additional effort largely
+equivalent to designing and partially implementing a new custom RPC protocol.
 
 
 ### Goals
@@ -33,8 +31,8 @@ Web-RPC is an attempt to demonstrate that the REST-compatible remote API functio
 and online services can be achieved without effectivelly ending up designing a RPC protocol for each API.
 
 Web-RPC can be understood to be any of the following:
-- Minimalistic sibling of [JSON-RPC](https://www.jsonrpc.org/specification) using HTTP as transport protocol
-- RPC protocol supporting various practical mechanisms often provided by typical REST APIs
+- Minimalistic sibling of [JSON-RPC](https://www.jsonrpc.org/specification) storing metadata in THTTP requests
+- RPC protocol supporting various practical features often provided by REST APIs
 - REST-style protocol prescribing a standard way to represent data and meta-data in REST API requests and responses
 
 
