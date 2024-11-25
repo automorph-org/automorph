@@ -38,10 +38,8 @@ Web-RPC can be understood to be any of the following:
 
 ### Features
 
-- HTTP as transport protocol
-- Structured messages in JSON format
-- API function name as a last URL path element
-- API function arguments in request body or as URL query parameters
+- Messages in JSON format over HTTP
+- HTTP method freely selected by the client
 - Additional metadata in HTTP headers
 
 
@@ -51,8 +49,8 @@ Web-RPC can be understood to be any of the following:
 
 HTTP methods are not specified by the API but chosen by the client from the following options depending on the desired
 call semantics:
-- POST - standard non-cached call with arguments either in the request body
-- GET - cacheable call with arguments as URL query parameters only
+- POST - standard non-cached call with arguments in the request body
+- GET - cacheable call with arguments as URL query parameters
 
 ### URL format
 
@@ -72,7 +70,7 @@ http://example.org/api/hello?some=world&n=1
 Identically named invoked function arguments must not be supplied both in the request body and as URL query parameter.
 Such an ambiguous call must cause an error.
 
-### Structured request body
+### POST request
 
 All invoked function arguments must be supplied in the request body consisting of a JSON object with its field names
 representing the remote function parameter names and field values their respective argument values. Invoked function
@@ -104,7 +102,7 @@ Content-Type: application/json
 }
 ```
 
-### Empty request body
+### GET request
 
 All invoked function arguments must be supplied as URL query parameters with query parameter names representing the
 remote function parameter names and query parameter values their respective argument values. Multiple instances of
@@ -131,7 +129,7 @@ GET http://example.org/api/hello?some=world&n=1
 
 ## Response
 
-### Structured response body
+### Success response body
 
 Response body is interpreted as a successful invocation result if it consists of a JSON object containing a `result`
 field. The `result` field value represents the return value of the invoked remote function.
