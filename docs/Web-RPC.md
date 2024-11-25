@@ -41,8 +41,8 @@ Web-RPC can be understood to be any of the following:
 - HTTP as transport protocol
 - Structured messages in JSON format
 - API function name as a last URL path element
-- API function arguments can be supplied either in the request body or as URL query parameters
-- Meta-data in HTTP headers
+- API function arguments in request body or as URL query parameters
+- Additional metadata in HTTP headers
 
 
 ## Request
