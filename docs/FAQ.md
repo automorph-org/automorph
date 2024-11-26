@@ -4,6 +4,40 @@ sidebar_position: 8
 
 # FAQ
 
+## Features
+
+### What is the Context type parameter for ?
+
+Context represents any metadata which a message transport layer provides to the API implementation layer.
+
+Since a message transport layer can be anything the context is a generic type parameter which is then defined
+by specific message transport implementations. For example:
+- HTTP transport provides request headers and query parameters
+- AMQP transport provides correlation identifier and delivery mode
+- Homing pigeon transport provides name and color of the bird
+
+
+### Is it possible to bind individual functions as opposed to classes/trait methods ?
+
+Not at the moment.
+
+This feature was considered since it would fit well with overall functional style of the library.
+However, this would introduce the following additional complexity which did not seem worth it:
+- Function parameter names would have to be extracted via additional compile-time introspection since function values
+in Scala do not preserve them
+- Bind method variants for all function parameter numbers would have to be created for all entry point classes
+
+
+### How is Automorh different from a gRPC library ?
+
+It has similar goals but achieves them in a different way.
+- External API definition using special interface definition language is not needed since API bindings are generated from the code
+- Additional code generation build step is not needed since API bindings are generated as part of the standard compilation step
+- Supports manipulation of transport layer metadata
+- It is effect system agnostic and thus allows combining any effect type with any transport layer
+- Implements multiple RPC protocols instead of just one, in fact implementing gRPC for Automorph is also possible
+
+
 ## Integration
 
 ### Can I use Automorph with my existing effect system ?
@@ -47,30 +81,6 @@ Integrating with unsupported server of any kind involves the following steps as 
 Most likely.
 
 Many Scala and Java HTTP client libraries are supported. Please see the relevant [examples](https://automorph.org/docs/Examples#client-transport).
-
-
-## Features
-
-### What is the Context type parameter for ?
-
-Context represents any metadata which a message transport layer provides to the API implementation layer.
-
-Since a message transport layer can be anything the context is a generic type parameter which is then defined
-by specific message transport implementations. For example:
-- HTTP transport provides request headers and query parameters
-- AMQP transport provides correlation identifier and delivery mode
-- Homing pigeon transport provides name and color of the bird
-
-
-### Is it possible to bind individual functions as opposed to classes/trait methods ?
-
-Not at the moment.
-
-This feature was considered since it would fit well with overall functional style of the library.
-However, this would introduce the following additional complexity which did not seem worth it:
-- Function parameter names would have to be extracted via additional compile-time introspection since function values
-in Scala do not preserve them
-- Bind method variants for all function parameter numbers would have to be created for all entry point classes
 
 
 ## Web-RPC
