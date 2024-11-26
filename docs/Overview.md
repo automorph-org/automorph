@@ -178,15 +178,19 @@ The following technical standards are supported by freely combining appropriate
 - [Native Image](https://www.graalvm.org/latest/reference-manual/native-image) support
 - [ScalaJS](https://www.scala-js.org) support
 
-### Transport
+### Transport Layer
 
-- [Rapidoid](https://www.rapidoid.org) integration
 - [ZIO HTTP](https://zio.dev/zio-http) integration
 - [Play](https://www.playframework.com) integration
+- [Pekko](https://pekko.apache.org) integration
+- [Helidon](https://helidon.io) integration
+- [Micronaut](https://micronaut.io) integration
 
-### Codec
+### Message Codec
 
 - [weePickle](https://github.com/rallyhealth/weePickle) integration
+- [Play JSON](https://github.com/playframework/play-json) integration
+- [JSON4S](https://github.com/json4s/json4s) integration
 - [Smile](https://github.com/FasterXML/smile-format-specification) message format
 - [CBOR](https://cbor.io) message format
 - [Ion](https://amazon-ion.github.io/ion-docs) message format
