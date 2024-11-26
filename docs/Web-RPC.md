@@ -58,11 +58,11 @@ call semantics:
 - Remote API endpoint: http://example.org/api
 - Remote API function: hello
 - Remote API function arguments:
-  * some = world
+  * who = world
   * n = 1
 
 ```http
-http://example.org/api/hello?some=world&n=1
+http://example.org/api/hello?who=world&n=1
 ```
 
 - URL path components following an API-dependent prefix must specify the invoked function
@@ -84,7 +84,7 @@ arguments must not be specified as URL query parameters
 **Remote call**
 
 ```scala
-hello(some = "world", n = 1)
+hello(who = "world", n = 1)
 ```
 
 **Request headers**
@@ -98,7 +98,7 @@ Content-Type: application/json
 
 ```json
 {
-  "some": "world",
+  "who": "world",
   "n": 1
 }
 ```
@@ -114,13 +114,13 @@ identically named query parameters must not be used.
 **Remote call**
 
 ```scala
-remoteApi.hello(some = "world", n = 1)
+remoteApi.hello(who = "world", n = 1)
 ```
 
 **Request headers**
 
 ```http
-GET http://example.org/api/hello?some=world&n=1
+GET http://example.org/api/hello?who=world&n=1
 ```
 
 **Request body**
