@@ -485,7 +485,10 @@ credentials ++= Seq(
     "GnuPG Key ID", "gpg", environment("ARTIFACT_GPG_KEY_ID"), ""
   ),
   Credentials(
-    "Sonatype Nexus Repository Manager", "s01.oss.sonatype.org", projectDomain, environment("SONATYPE_PASSWORD")
+    "Sonatype Nexus Repository Manager",
+    "s01.oss.sonatype.org",
+    environment("SONATYPE_TOKEN_USERNAME"),
+    environment("SONATYPE_TOKEN_PASSWORD")
   )
 )
 ThisBuild / publishTo := sonatypePublishToBundle.value
