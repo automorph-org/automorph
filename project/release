@@ -14,7 +14,7 @@ fi
 # Configure settings
 version="$1"
 tag="v${version}"
-release_notes="release-notes.md"
+release_notes="/tmp/release-notes.md"
 
 # Check binary compatibility
 if [ -z "${force}" ]; then
@@ -33,7 +33,7 @@ git push --follow-tags
 sbt '+ publishSigned ; sonatypeBundleRelease'
 
 # Create a release
-gh release create "${tag}" -T "${version}" -f "${release_notes}"
+gh release create "${tag}" -t "${version}" -F "${release_notes}"
 rm -f "${release_notes}"
 
 # Update examples
