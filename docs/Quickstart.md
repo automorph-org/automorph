@@ -57,12 +57,12 @@ import scala.concurrent.{Await, Future}
 
 // Define a remote API
 trait Api {
-  def test(some: String, n: Int): Future[String]
+  def hello(n: Int): Future[String]
 }
 
 // Create server implementation of the remote API
 class ApiImpl {
-  def test(n: Int): Future[String] =
+  def hello(n: Int): Future[String] =
     Future(s"Hello world $n")
 }
 val api = new ApiImpl
