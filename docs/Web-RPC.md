@@ -14,7 +14,8 @@ boilerplate while allowing reuse of the existing REST API tools.
 
 [REST](https://en.wikipedia.org/wiki/Representational_state_transfer) as a theoretical concept is deemed to be
 independent of specific data formats, transport protocols or even calling conventions. In reality, virtually all
-REST APIs simply translate HTTP requests and responses carrying JSON payload into function calls on the remote server.
+most REST APIs simply model CRUD operations by translating HTTP requests and responses carrying JSON payload into
+function calls on the remote server.
 
 Such translation requires deciding how to represent and where to store REST API call data and metadata within HTTP and JSON structures. There are many ways to do that which achieve exactly the same result via slightly
 differrent and thus incompatible means. While some good practices are sometimes discussed, a significant widely used
