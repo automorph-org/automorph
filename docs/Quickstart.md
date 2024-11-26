@@ -96,7 +96,7 @@ import scala.concurrent.{Await, Future}
 
 // Define a remote API
 trait Api {
-  def test(n: Int): Future[String] =
+  def hello(n: Int): Future[String]
 }
 
 // Configure JSON-RPC HTTP client to send POST requests to 'http://localhost:9000/api'
@@ -110,7 +110,7 @@ Await.ready(for {
   activeClient <- client.init()
 
   // Call the remote API function via the local proxy
-  result <- remoteApi.test(1)
+  result <- remoteApi.hello(1)
   _ = println(result)
 
   // Close the JSON-RPC client
@@ -138,7 +138,7 @@ Await.ready(for {
   activeClient <- client.init()
 
   // Call the remote API function dynamically without using an API trait
-  result <- activeClient.call[String]("test")("n" -> 1)
+  result <- activeClient.call[String]("hello")("n" -> 1)
   _ = println(result)
 
   // Close the JSON-RPC client
