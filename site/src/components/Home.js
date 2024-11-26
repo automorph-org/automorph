@@ -51,7 +51,7 @@ const features = [
   },
   {
     title: 'Permissive',
-    link: 'docs/Examples#metadata',
+    link: 'docs/Examples#transport-metadata',
     description: (
         <>
           Consume or create <a

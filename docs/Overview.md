@@ -43,7 +43,7 @@ for calling and serving remote APIs in a few lines of code.
 - Supports all [effect systems](https://automorph.org/docs/Plugins#effect-system) to call or implement remote APIs.
 - Serializes arbitrary data types via the selected [message codec](https://automorph.org/docs/Examples#data-type-serialization).
 - Defines an easily composable set of [default plugins](https://automorph.org/docs/Plugins#default-plugins) and configuration values.
-- Provides optional remote API extensions to access or modify [transport protocol metadata](https://automorph.org/docs/Examples#metadata).
+- Provides optional remote API extensions to access or modify [transport protocol metadata](https://automorph.org/docs/Examples#transport-metadata).
 - Provides RPC protocol message model to create and consume [dynamic message payload](https://automorph.org/docs/Examples#dynamic-payload).
 
 
