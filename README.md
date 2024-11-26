@@ -22,7 +22,7 @@ for invoking and exposing remote APIs in a few lines of code.
 - **Compatible** - Use with [Scala](https://www.scala-lang.org) 3.3+ or 2.13+ on [JRE](https://openjdk.java.net/) 11+ and easily integrate with various popular [libraries](https://automorph.org/docs/Plugins).
 - **RPC protocols** - [JSON-RPC](https://www.jsonrpc.org/specification), [Web-RPC](https://automorph.org/docs/Web-RPC).
 - **Transport layers** - [HTTP](https://automorph.org/docs/Examples#http-authentication), [WebSocket](https://automorph.org/docs/Examples#websocket-transport), [AMQP](https://automorph.org/docs/Examples#amqp-transport).
-- **Effect handling** - [Synchronous](https://automorph.org/docs/Examples#synchronous-call), [Asynchronous](https://automorph.org/docs/Examples#asynchronous-call), [Monadic](https://automorph.org/docs/Examples#effect-system).
+- **Effect handling** - [Asynchronous](https://automorph.org/docs/Examples#asynchronous-call), [Synchronous](https://automorph.org/docs/Examples#synchronous-call), [Monadic](https://automorph.org/docs/Examples#effect-system).
 
 
 ## Example
