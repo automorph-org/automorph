@@ -192,7 +192,7 @@ function DocumentationRow() {
 export function Home() {
   const config = useDocusaurusContext().siteConfig
   return (
-      <Layout title='Home' description={config.tagline}>
+      <Layout title='Automorph' description={config.tagline}>
         <div style={{
           backgroundColor: 'var(--sidebar-background-color)',
         }}>
