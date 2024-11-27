@@ -49,6 +49,9 @@ but will work with any other plugins or feature combinations.
 ### [WebSocket transport](https://automorph.org/examples/src/main/scala/examples/transport/WebSocketTransport.scala)
 
 
+### [AMQP transport](https://automorph.org/examples/src/main/scala/examples/transport/AmqpTransport.scala)
+
+
 ### [Arbitrary server](https://automorph.org/examples/src/main/scala/examples/integration/ArbitraryServer.scala)
 
 **Test**
@@ -71,9 +74,6 @@ responseBody.foreach { response =>
   println(new String(response, UTF_8))
 }
 ```
-
-
-### [AMQP transport](https://automorph.org/examples/src/main/scala/examples/transport/AmqpTransport.scala)
 
 
 ## Customization
