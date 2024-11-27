@@ -56,7 +56,7 @@ const config = {
         title: '',
         logo: {
           alt: 'Automorph',
-          src: 'icon.jpg',
+          src: 'logo.png',
         },
         items: [
           {
