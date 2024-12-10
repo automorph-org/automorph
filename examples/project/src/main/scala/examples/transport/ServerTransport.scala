@@ -30,24 +30,22 @@ private[examples] object ServerTransport {
     // Create Vert.x HTTP & WebSocket server transport plugin listening on port 9000 for requests to '/api'
     val serverTransport = VertxServer(Default.effectSystem, 9000, "/api")
 
-    Await.result(
-      for {
-        // Initialize custom JSON-RPC HTTP & WebSocket server
-        server <- RpcServer.transport(serverTransport).rpcProtocol(Default.rpcProtocol).service(service).init()
+    val run = for {
+      // Initialize custom JSON-RPC HTTP & WebSocket server
+      server <- RpcServer.transport(serverTransport).rpcProtocol(Default.rpcProtocol).service(service).init()
 
-        // Initialize JSON-RPC HTTP client for sending POST requests to 'http://localhost:9000/api'
-        client <- Default.rpcClient(new URI("http://localhost:9000/api")).init()
-        remoteApi = client.proxy[Api]
+      // Initialize JSON-RPC HTTP client for sending POST requests to 'http://localhost:9000/api'
+      client <- Default.rpcClient(new URI("http://localhost:9000/api")).init()
+      remoteApi = client.proxy[Api]
 
-        // Call the remote API function via a local proxy
-        result <- remoteApi.hello(1)
-        _ = println(result)
+      // Call the remote API function via a local proxy
+      result <- remoteApi.hello(1)
+      _ = println(result)
 
-        // Close the RPC client and server
-        _ <- client.close()
-        _ <- server.close()
-      } yield (),
-      Duration.Inf,
-    )
+      // Close the RPC client and server
+      _ <- client.close()
+      _ <- server.close()
+    } yield ()
+    Await.result(run, Duration.Inf)
   }
 }

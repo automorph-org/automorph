@@ -1,4 +1,5 @@
 // Serve a remote API but call it locally by directly accessing the API request handler.
+//> using scala @SCALA_VERSION@
 //> using dep org.automorph::automorph-default:@AUTOMORPH_VERSION@
 //> using dep ch.qos.logback:logback-classic:@LOGBACK_VERSION@
 package examples.special
@@ -34,20 +35,18 @@ private[examples] object LocalCall {
     // Create local client transport which passes requests directly to RPC server request handler
     val clientTransport = LocalClient(Default.effectSystem, context, server)
 
-    Await.result(
-      for {
-        // Initialize local JSON-RPC client
-        client <- RpcClient.transport(clientTransport).rpcProtocol(Default.rpcProtocol).init()
-        remoteApi = client.proxy[Api]
+    val run = for {
+      // Initialize local JSON-RPC client
+      client <- RpcClient.transport(clientTransport).rpcProtocol(Default.rpcProtocol).init()
+      remoteApi = client.proxy[Api]
 
-        // Call the remote API function using the local client
-        result <- remoteApi.hello(1)
-        _ = println(result)
+      // Call the remote API function using the local client
+      result <- remoteApi.hello(1)
+      _ = println(result)
 
-        // Close the RPC client
-        _ <- client.close()
-      } yield (),
-      Duration.Inf,
-    )
+      // Close the RPC client
+      _ <- client.close()
+    } yield ()
+    Await.result(run, Duration.Inf)
   }
 }

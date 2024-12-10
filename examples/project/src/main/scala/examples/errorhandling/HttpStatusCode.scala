@@ -35,7 +35,7 @@ private[examples] object HttpStatusCode {
       }
 
     val run = for {
-      // Initialize custom JSON-RPC HTTP & WebSocket server listening on port 9000 for requests to '/api'
+      // Initialize JSON-RPC HTTP & WebSocket server listening on port 9000 for requests to '/api'
       server <- Default.rpcServer(9000, "/api", mapException = mapException).service(service).init()
 
       // Initialize JSON-RPC HTTP client sending POST requests to 'http://localhost:9000/api'
@@ -51,6 +51,5 @@ private[examples] object HttpStatusCode {
       _ <- server.close()
     } yield ()
     Await.result(run, Duration.Inf)
-
   }
 }

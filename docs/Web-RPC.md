@@ -13,19 +13,17 @@ boilerplate while allowing reuse of the existing REST API tools.
 ### Motivation
 
 [REST](https://en.wikipedia.org/wiki/Representational_state_transfer) as a theoretical concept is deemed to be
-independent of specific data formats, transport protocols or even calling conventions. However, the vast majority of
-REST APIs created for web applications and online services involve translating HTTP requests and responses carrying
-JSON payload into function calls on the remote site.
+independent of specific data formats, transport protocols or even calling conventions. In reality, virtually all
+most REST APIs simply model CRUD operations by translating HTTP requests and responses carrying JSON payload into
+function calls on the remote server.
 
-Such translation requires deciding how to represent REST API call data and metadata using the underlying transport
-protocol. This includes determining the message format, its structure, transport protocol meta-data such as various
-headers and so on. There are many ways how to do this ultimately achieving exactly the same result using slightly
-different means. And while some good practices can be discussed, there does not seem to be an agreed upon standard.
+Such translation requires deciding how to represent and where to store REST API call data and metadata within HTTP and JSON structures. There are many ways to do that which achieve exactly the same result via slightly
+differrent and thus incompatible means. While some good practices are sometimes discussed, a significant widely used
+standard does not seem to exist.
 
-These are virtually the same concerns which various [RPC](https://en.wikipedia.org/wiki/Remote_procedure_call) or
-messaging protocols need to solve. Consequently, creation of a typical REST API requires additional effort largely
-equivalent to designing and implementing a unique custom RPC protocol.
-
+These are the same concerns which various [RPC](https://en.wikipedia.org/wiki/Remote_procedure_call) or
+protocols already solved. Consequently, creation of a typical REST API requires additional effort largely
+equivalent to designing and partially implementing a new custom RPC protocol.
 
 ### Goals
 
@@ -33,28 +31,25 @@ Web-RPC is an attempt to demonstrate that the REST-compatible remote API functio
 and online services can be achieved without effectively ending up designing an RPC protocol for each API.
 
 Web-RPC can be understood to be any of the following:
-- Minimalistic sibling of [JSON-RPC](https://www.jsonrpc.org/specification) using HTTP as transport protocol
-- RPC protocol supporting various practical mechanisms often provided by typical REST APIs
+- Minimalistic sibling of [JSON-RPC](https://www.jsonrpc.org/specification) storing metadata in THTTP requests
+- RPC protocol supporting various practical features often provided by REST APIs
 - REST-style protocol prescribing a standard way to represent data and meta-data in REST API requests and responses
-
 
 ### Features
 
-- HTTP as transport protocol
-- Structured messages in JSON format
-- API function name as a last URL path element
-- API function arguments can be supplied either in the request body or as URL query parameters
-- Call meta-data in HTTP headers
+- Messages in JSON format over HTTP
+- HTTP method freely selected by the client
+- Additional metadata in HTTP headers
 
 
 ## Request
 
 ### HTTP method
 
-HTTP methods are not specified by the API but chosen by the client from the following options
-depending on the desired call semantics:
-- POST - standard function call with arguments either in the request body or as URL query parameters
-- GET - pure function call with cacheable result and arguments as URL query parameters only
+HTTP methods are not specified by the API but chosen by the client from the following options depending on the desired
+call semantics:
+- POST - standard non-cached call with arguments in the request body
+- GET - cacheable call with arguments as URL query parameters
 
 ### URL format
 
@@ -73,18 +68,20 @@ http[s]:://host[:port]/API-ENDPOINT/FUNCTION[?PARAMETER1=VALUE1&PARAMETER2=VALUE
 - Remote API endpoint: http://example.org/api
 - Remote API function: hello
 - Remote API function arguments:
-  * some = world
+  * who = world
   * n = 1
 
 ```http
-http://example.org/api/hello?some=world&n=1
+http://example.org/api/hello?who=world&n=1
 ```
 
 ### Standard request
 
-- All invoked function arguments must be supplied in the request body as a JSON object.
-- Request body field names represent remote function argument names and field values their respective values.
-- Remote function arguments must not be specified as URL query parameters
+### POST request
+
+All invoked function arguments must be supplied in the request body consisting of a JSON object with its field names
+representing the remote function parameter names and field values their respective argument values. Invoked function
+arguments must not be specified as URL query parameters
 
 - Message format: JSON
 - Method: POST
@@ -95,7 +92,7 @@ http://example.org/api/hello?some=world&n=1
 **Remote call**
 
 ```scala
-rpcClient.hello(some = "world", n = 1)
+rpcClient.hello(who = "world", n = 1)
 ```
 
 **Request headers**
@@ -109,12 +106,12 @@ Content-Type: application/json
 
 ```json
 {
-  "some": "world",
+  "who": "world",
   "n": 1
 }
 ```
 
-### Cacheable request
+### GET request
 
 - All invoked function arguments must be supplied as request URL query parameters.
 - Query parameter names represent remote function argument names and query parameter values their respective values.
@@ -128,13 +125,13 @@ Content-Type: application/json
 **Remote call**
 
 ```scala
-rpcClient.hello(some = "world", n = 1)
+rpcClient.hello(who = "world", n = 1)
 ```
 
 **Request headers**
 
 ```http
-GET http://example.org/api/hello?some=world&n=1
+GET http://example.org/api/hello?who=world&n=1
 ```
 
 **Request body**
@@ -144,7 +141,7 @@ GET http://example.org/api/hello?some=world&n=1
 
 ## Response
 
-### Successful response
+### Success response body
 
 Response body is interpreted as a successful invocation result if it consists of a JSON object containing a `result`
 field. The `result` field value represents the return value of the invoked remote function.

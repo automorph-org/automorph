@@ -41,6 +41,5 @@ private[examples] object OneWayMessage {
       _ <- server.close()
     } yield ()
     Await.result(run, Duration.Inf)
-
   }
 }

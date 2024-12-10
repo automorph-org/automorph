@@ -38,24 +38,22 @@ private[examples] object ClientErrorMapping {
     // Create HTTP client transport sending POST requests to 'http://localhost:9000/api'
     val clientTransport = Default.clientTransport(new URI("http://localhost:9000/api"))
 
-    Await.result(
-      for {
-        // Initialize JSON-RPC HTTP & WebSocket server listening on port 9000 for requests to '/api'
-        server <- Default.rpcServer(9000, "/api").service(service).init()
+    val run = for {
+      // Initialize JSON-RPC HTTP & WebSocket server listening on port 9000 for requests to '/api'
+      server <- Default.rpcServer(9000, "/api").service(service).init()
 
-        // Initialize custom JSON-RPC HTTP client
-        client <- RpcClient.transport(clientTransport).rpcProtocol(rpcProtocol).init()
-        remoteApi = client.proxy[Api]
+      // Initialize custom JSON-RPC HTTP client
+      client <- RpcClient.transport(clientTransport).rpcProtocol(rpcProtocol).init()
+      remoteApi = client.proxy[Api]
 
-        // Call the remote API function via a local proxy and fail with SQLException
-        error <- remoteApi.hello(1).failed
-        _ = println(error)
+      // Call the remote API function via a local proxy and fail with SQLException
+      error <- remoteApi.hello(1).failed
+      _ = println(error)
 
-        // Close the RPC client and server
-        _ <- client.close()
-        _ <- server.close()
-      } yield (),
-      Duration.Inf,
-    )
+      // Close the RPC client and server
+      _ <- client.close()
+      _ <- server.close()
+    } yield ()
+    Await.result(run, Duration.Inf)
   }
 }

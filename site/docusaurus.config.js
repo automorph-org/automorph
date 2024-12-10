@@ -5,7 +5,7 @@ const config = {
   tagline: 'Simple and powerful RPC for Scala',
   url: 'https://automorph.org',
   baseUrl: '/',
-  favicon: 'icon.jpg',
+  favicon: 'icon.png',
   onBrokenLinks: 'ignore',
   onBrokenMarkdownLinks: 'warn',
   organizationName: 'automorph',
@@ -56,7 +56,7 @@ const config = {
         title: '',
         logo: {
           alt: 'Automorph',
-          src: 'icon.jpg',
+          src: 'logo.png',
         },
         items: [
           {

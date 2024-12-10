@@ -14,7 +14,7 @@ fi
 # Configure settings
 version="$1"
 tag="v${version}"
-release_notes="release-notes.md"
+release_notes="/tmp/release-notes.md"
 
 # Run tests
 TEST_LEVEL=all sbt '+ test'

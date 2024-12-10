@@ -150,20 +150,20 @@ const features = [
     link: 'docs/Examples#integration',
     description: (
       <>
-        Freely combine <a href='docs/Plugins#rpc-protocol'>RPC protocol</a>, <a
+        Choose preferred <a href='docs/Plugins#rpc-protocol'>RPC protocol</a>, <a
         href='docs/Plugins#message-codec'>message format</a>, <a
-        href='docs/Plugins#client-transport'>transport protocol</a> and <a
+        href='docs/Plugins#client-transport'>transport layer</a> and <a
         href='docs/Plugins#effect-system'>effect handling</a> layers.
       </>
     ),
   }, {
     title: 'Permissive',
-    link: 'docs/Examples#metadata',
+    link: 'docs/Examples#transport-metadata',
     description: (
       <>
         Consume or create <a
         href='docs/Examples#dynamic-payload'>dynamic message payload</a> and access or modify <a
-        href='docs/Examples#metadata'>transport protocol metadata</a>.
+        href='docs/Examples#metadata'>transport layer metadata</a>.
       </>
     ),
   }, {
@@ -181,7 +181,7 @@ const features = [
     description: (
       <>
         Use with <a href='https://www.scala-lang.org/'>Scala</a> 3.3+ or 2.13+ on <a
-        href='https://openjdk.java.net/'>JRE</a> 11+ and easily integrate with various libraries using <a
+        href='https://openjdk.java.net/'>JRE</a> 11+ and easily integrate with other libraries via <a
         href='docs/Plugins'>plugins</a>.
       </>
     ),

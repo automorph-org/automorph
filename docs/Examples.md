@@ -35,7 +35,24 @@ but will work with any other plugins or feature combinations.
 ### [RPC protocol](https://automorph.org/examples/src/main/scala/examples/integration/RpcProtocol.scala)
 
 
-### [Custom server](https://automorph.org/examples/src/main/scala/examples/integration/CustomServer.scala)
+## Transport layer
+
+### [Client transport](https://automorph.org/examples/src/main/scala/examples/transport/ClientTransport.scala)
+
+
+### [Server transport](https://automorph.org/examples/src/main/scala/examples/transport/ServerTransport.scala)
+
+
+### [Endpoint transport](https://automorph.org/examples/src/main/scala/examples/transport/EndpointTransport.scala)
+
+
+### [WebSocket transport](https://automorph.org/examples/src/main/scala/examples/transport/WebSocketTransport.scala)
+
+
+### [AMQP transport](https://automorph.org/examples/src/main/scala/examples/transport/AmqpTransport.scala)
+
+
+### [Arbitrary server](https://automorph.org/examples/src/main/scala/examples/integration/ArbitraryServer.scala)
 
 **Test**
 
@@ -59,23 +76,6 @@ responseBody.foreach { response =>
 ```
 
 
-## Transport
-
-### [Client transport](https://automorph.org/examples/src/main/scala/examples/transport/ClientTransport.scala)
-
-
-### [Server transport](https://automorph.org/examples/src/main/scala/examples/transport/ServerTransport.scala)
-
-
-### [Endpoint transport](https://automorph.org/examples/src/main/scala/examples/transport/EndpointTransport.scala)
-
-
-### [WebSocket transport](https://automorph.org/examples/src/main/scala/examples/transport/WebSocketTransport.scala)
-
-
-### [AMQP transport](https://automorph.org/examples/src/main/scala/examples/transport/AmqpTransport.scala)
-
-
 ## Customization
 
 ### [Data type serialization](https://automorph.org/examples/src/main/scala/examples/customization/DataTypeSerialization.scala)
@@ -87,7 +87,7 @@ responseBody.foreach { response =>
 ### [Server function names](https://automorph.org/examples/src/main/scala/examples/customization/ServerFunctionNames.scala)
 
 
-## Metadata
+## Transport metadata
 
 ### [HTTP authentication](https://automorph.org/examples/src/main/scala/examples/metadata/HttpAuthentication.scala)
 

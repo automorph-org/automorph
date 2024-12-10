@@ -9,25 +9,27 @@ for type-safely calling and serving remote APIs in a few lines of code.
 
 ## Goals
 
-- Provide efficient **calling** and **serving** of **remote APIs**
-- Ensure there is **no boilerplate** API code and **minimal dependencies** are required
-- Support manipulation of **transport protocol metadata** and **dynamic message payload**
-- Facilitate smooth **integration** with various **existing technologies** using **plugins**
-- Allow for easy **configuration** and **customization** of library features
+- Focus on **flexibility**, **type-safety** and **performance**
+- Ensure there is **no boilerplate** code
+- Require **minimal dependencies**
+- Allow use of **dynamic message payload**
+- Support manipulation of **transport layer metadata**
+- Facilitate **customization** based on **sensible defaults**
+- Enable **easy integration** with existing technology
 
 
 ## Features
 
 ### Client
 
-- Transparently generates optimized type-safe [RPC client](https://automorph.org/docs/Quickstart#static-client) bindings at compile time.
+- Transparently generates optimized [RPC client](https://automorph.org/docs/Quickstart#static-client) bindings at compile time from public API trait methods.
 - Calls remote APIs using a supported transport protocol by selecting a [client transport](https://automorph.org/docs/Plugins#client-transport) layer.
 - Allows changing the [local to remote RPC function names mapping](https://automorph.org/docs/Examples#client-function-names).
 - Allows changing the [RPC errors to exceptions mapping](https://automorph.org/docs/Examples#client-error-mapping).
 
 ### Server
 
-- Transparently generates optimized type-safe [RPC server](https://automorph.org/docs/Quickstart#server) bindings at compile time.
+- Transparently generates optimized [RPC server](https://automorph.org/docs/Quickstart#server) bindings at compile time from public API instance methods.
 - Serves remote APIs using a standalone server by selecting a [server transport](https://automorph.org/docs/Plugins#server-transport) layer.
 - Embeds remote API into an existing server layer via a suitable [endpoint transport](https://automorph.org/docs/Plugins#endpoint-transport).
 - Automatically generates RPC API discovery functions providing [OpenRPC](https://spec.open-rpc.org) 1.3+ and [OpenAPI](https://www.openapis.org) 3.1+ schemas.
@@ -41,7 +43,7 @@ for type-safely calling and serving remote APIs in a few lines of code.
 - Supports all [effect systems](https://automorph.org/docs/Plugins#effect-system) to call or implement remote APIs.
 - Serializes arbitrary data types via the selected [message codec](https://automorph.org/docs/Examples#data-type-serialization).
 - Defines an easily composable set of [default plugins](https://automorph.org/docs/Plugins#default-plugins) and configuration values.
-- Provides optional remote API extensions to access or modify [transport protocol metadata](https://automorph.org/docs/Examples#metadata).
+- Provides optional remote API extensions to access or modify [transport protocol metadata](https://automorph.org/docs/Examples#transport-metadata).
 - Provides RPC protocol message model to create and consume [dynamic message payload](https://automorph.org/docs/Examples#dynamic-payload).
 
 
@@ -62,7 +64,8 @@ trait Api:
 
 // Create server implementation of the remote API
 val service = new Api:
-  def hello(n: Int): Future[String] = Future(s"Hello world $n")
+  def hello(n: Int): Future[String] =
+    Future(s"Hello world $n")
 
 // Register the API implementation to be available as a remote service
 val apiServer = server.service(service)
@@ -175,15 +178,19 @@ The following technical standards are supported by freely combining appropriate
 - [Native Image](https://www.graalvm.org/latest/reference-manual/native-image) support
 - [ScalaJS](https://www.scala-js.org) support
 
-### Transport
+### Transport Layer
 
-- [Rapidoid](https://www.rapidoid.org) integration
 - [ZIO HTTP](https://zio.dev/zio-http) integration
 - [Play](https://www.playframework.com) integration
+- [Pekko](https://pekko.apache.org) integration
+- [Helidon](https://helidon.io) integration
+- [Micronaut](https://micronaut.io) integration
 
-### Codec
+### Message Codec
 
 - [weePickle](https://github.com/rallyhealth/weePickle) integration
+- [Play JSON](https://github.com/playframework/play-json) integration
+- [JSON4S](https://github.com/json4s/json4s) integration
 - [Smile](https://github.com/FasterXML/smile-format-specification) message format
 - [CBOR](https://cbor.io) message format
 - [Ion](https://amazon-ion.github.io/ion-docs) message format

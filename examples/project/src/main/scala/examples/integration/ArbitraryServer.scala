@@ -1,18 +1,18 @@
-// Process incoming RPC requests into remote API calls from any custom server.
+// Process incoming RPC requests into remote API calls using any server.
 //> using scala @SCALA_VERSION@
-//> using dep org.automorph::automorph-default:@AUTOMORPH_VERSION@
+//> using dep org.automorph::automorph-core:@AUTOMORPH_VERSION@
 //> using dep ch.qos.logback:logback-classic:@LOGBACK_VERSION@
 package examples.integration
 
-import automorph.transport.server.GenericEndpoint
 import automorph.{Default, RpcServer}
+import automorph.transport.server.GenericEndpoint
 import java.nio.charset.StandardCharsets.UTF_8
 import scala.concurrent.ExecutionContext.Implicits.global
-import scala.concurrent.duration.Duration
-import scala.concurrent.{Await, Future}
+import scala.concurrent.Future
 
-private[examples] object CustomServer {
+private[examples] object ArbitraryServer {
 
+  @scala.annotation.nowarn
   def main(arguments: Array[String]): Unit = {
 
     // Define a remote API
@@ -47,6 +47,7 @@ private[examples] object CustomServer {
       server <- RpcServer.transport(serverTransport).rpcProtocol(Default.rpcProtocol).service(service).init()
 
       // Call the remote API function by passing the request body directly to the RPC server
+      // This method should be called from request handling logic of an arbitrary server
       rpcResult <- server.processRequest(requestBody, ())
 
       // Extract the response body containing a JSON-RPC response from the RPC result

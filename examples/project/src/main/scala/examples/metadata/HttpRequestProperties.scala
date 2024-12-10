@@ -37,7 +37,7 @@ private[examples] object HttpRequestProperties {
     // Initialize JSON-RPC HTTP client for sending POST requests to 'http://localhost:9000/api'
     val client = Default.rpcClientCustom(IdentitySystem(), new URI("http://localhost:9000/api")).init()
 
-    // Create client request context specifying HTTP request metadata
+    // Create HTTP request context consumed by the client transport plugin
     implicit val httpRequest: ClientContext = client.context
       .parameters("test" -> "value")
       .headers("X-Test" -> "value", "Cache-Control" -> "no-cache")

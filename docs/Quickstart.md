@@ -57,7 +57,7 @@ import scala.concurrent.{Await, Future}
 
 // Define a remote API
 trait Api {
-  def hello(some: String, n: Int): Future[String]
+  def hello(n: Int): Future[String]
 }
 
 // Create server implementation of the remote API
@@ -97,7 +97,7 @@ import scala.concurrent.{Await, Future}
 
 // Define a remote API
 trait Api {
-  def hello(n: Int): Future[String] =
+  def hello(n: Int): Future[String]
 }
 
 // Configure JSON-RPC HTTP client to send POST requests to 'http://localhost:9000/api'

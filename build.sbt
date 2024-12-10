@@ -395,7 +395,9 @@ lazy val docs = project.in(file("site")).settings(
     "AUTOMORPH_VERSION" -> releaseVersion.value,
     "SCALA_VERSION" -> exampleScalaVersion,
     "LOGBACK_VERSION" -> logbackVersion,
-    "REPOSITORY_URL" -> repositoryUrl,
+    "SCALADOC_VERSION" -> scalaVersion.value,
+    "STTP_VERSION" -> sttpVersion,
+    "REPOSITORY_URL" -> repositoryUrl
   ),
   mdocOut := baseDirectory.value / "docs",
   mdocExtraArguments := Seq("--no-link-hygiene"),
@@ -546,9 +548,9 @@ credentials ++= Seq(
   Credentials(
     "Sonatype Nexus Repository Manager",
     "s01.oss.sonatype.org",
-    projectDomain,
-    environment("SONATYPE_PASSWORD"),
-  ),
+    environment("SONATYPE_TOKEN_USERNAME"),
+    environment("SONATYPE_TOKEN_PASSWORD")
+  )
 )
 ThisBuild / publishTo := sonatypePublishToBundle.value
 ThisBuild / versionScheme := Some("early-semver")

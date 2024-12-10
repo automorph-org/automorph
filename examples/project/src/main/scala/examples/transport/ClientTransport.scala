@@ -8,6 +8,7 @@ package examples.transport
 
 import automorph.{Default, RpcClient}
 import automorph.transport.client.SttpClient
+import automorph.transport.HttpMethod
 import sttp.client3.asynchttpclient.future.AsyncHttpClientFutureBackend
 import java.net.URI
 import scala.concurrent.ExecutionContext.Implicits.global
@@ -29,31 +30,28 @@ private[examples] object ClientTransport {
         Future(s"Hello world $n")
     }
 
-    // Create STTP client transport with asynchronous HTTP backend sending POST requests to 'http://localhost:9000/api'
+    // Create STTP HTTP client transport sending POST requests to 'http://localhost:9000/api'
+    val backend = AsyncHttpClientFutureBackend()
     val clientTransport = SttpClient(
-      Default.effectSystem,
-      AsyncHttpClientFutureBackend(),
-      new URI("http://localhost:9000/api"),
+      Default.effectSystem, backend, new URI("http://localhost:9000/api"), HttpMethod.Post
     )
 
-    Await.result(
-      for {
-        // Initialize JSON-RPC HTTP & WebSocket server listening on port 80 for requests to '/api'
-        server <- Default.rpcServer(9000, "/api").service(service).init()
+    val run = for {
+      // Initialize JSON-RPC HTTP & WebSocket server listening on port 80 for requests to '/api'
+      server <- Default.rpcServer(9000, "/api").service(service).init()
 
-        // Initialize custom JSON-RPC HTTP client
-        client <- RpcClient.transport(clientTransport).rpcProtocol(Default.rpcProtocol).init()
-        remoteApi = client.proxy[Api]
+      // Initialize custom JSON-RPC HTTP client
+      client <- RpcClient.transport(clientTransport).rpcProtocol(Default.rpcProtocol).init()
+      remoteApi = client.proxy[Api]
 
-        // Call the remote API function via a local proxy
-        result <- remoteApi.hello(1)
-        _ = println(result)
+      // Call the remote API function via a local proxy
+      result <- remoteApi.hello(1)
+      _ = println(result)
 
-        // Close the RPC client and server
-        _ <- client.close()
-        _ <- server.close()
-      } yield (),
-      Duration.Inf,
-    )
+      // Close the RPC client and server
+      _ <- client.close()
+      _ <- server.close()
+    } yield ()
+    Await.result(run, Duration.Inf)
   }
 }

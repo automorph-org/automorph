@@ -36,29 +36,27 @@ private[examples] object MultipleApis {
         Future("Hola!")
     }
 
-    Await.result(
-      for {
-        // Initialize JSON-RPC HTTP & WebSocket server listening on port 9000 for POST requests to '/api'
-        server <- Default.rpcServer(9000, "/api").service(service1).service(service2).init()
+    val run = for {
+      // Initialize JSON-RPC HTTP & WebSocket server listening on port 9000 for POST requests to '/api'
+      server <- Default.rpcServer(9000, "/api").service(service1).service(service2).init()
 
-        // Initialize JSON-RPC HTTP client for sending POST requests to 'http://localhost:9000/api'
-        client <- Default.rpcClient(new URI("http://localhost:9000/api")).init()
-        remoteApi1 = client.proxy[Api1]
-        remoteApi2 = client.proxy[Api2]
+      // Initialize JSON-RPC HTTP client for sending POST requests to 'http://localhost:9000/api'
+      client <- Default.rpcClient(new URI("http://localhost:9000/api")).init()
+      remoteApi1 = client.proxy[Api1]
+      remoteApi2 = client.proxy[Api2]
 
-        // Call the first remote API function
-        result <- remoteApi1.hello(1)
-        _ = println(result)
+      // Call the first remote API function
+      result <- remoteApi1.hello(1)
+      _ = println(result)
 
-        // Call the second remote API function
-        result <- remoteApi2.hi()
-        _ = println(result)
+      // Call the second remote API function
+      result <- remoteApi2.hi()
+      _ = println(result)
 
-        // Close the RPC client and server
-        _ <- client.close()
-        _ <- server.close()
-      } yield (),
-      Duration.Inf,
-    )
+      // Close the RPC client and server
+      _ <- client.close()
+      _ <- server.close()
+    } yield ()
+    Await.result(run, Duration.Inf)
   }
 }

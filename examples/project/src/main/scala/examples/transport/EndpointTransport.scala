@@ -30,19 +30,19 @@ private[examples] object EndpointTransport {
     // Create HTTP server transport plugin with Undertow endpoint adapter
     val serverTransport = UndertowHttpEndpoint(Default.effectSystem)
 
-    // Create Undertow HTTP server listening on port 9000
-    val undertowServer = Undertow.builder().addHttpListener(9000, "0.0.0.0")
+    // Configure Undertow HTTP server listening on port 9000
+    val serverBuilder = Undertow.builder().addHttpListener(9000, "0.0.0.0")
 
     val run = for {
       // Initialize JSON-RPC HTTP server using the custom transport layer
-      server <- RpcServer.transport(serverTransport).rpcProtocol(Default.rpcProtocol).service(service).init()
+      rpcServer <- RpcServer.transport(serverTransport).rpcProtocol(Default.rpcProtocol).service(service).init()
 
       // Use the JSON-RPC HTTP endpoint adapter as an Undertow handler for requests to '/api'
-      pathHandler = Handlers.path().addPrefixPath("/api", server.adapter)
-      apiServer = undertowServer.setHandler(pathHandler).build()
+      pathHandler = Handlers.path().addPrefixPath("/api", rpcServer.adapter)
+      server = serverBuilder.setHandler(pathHandler).build()
 
       // Start the Undertow server
-      _ = apiServer.start()
+      _ = server.start()
 
       // Initialize JSON-RPC HTTP client sending POST requests to 'http://localhost:9000/api'
       client <- Default.rpcClient(new URI("http://localhost:9000/api")).init()
@@ -56,10 +56,10 @@ private[examples] object EndpointTransport {
       _ <- client.close()
 
       // Close the RPC server
-      _ <- server.close()
+      _ <- rpcServer.close()
 
       // Stop the Undertow server
-      _ = apiServer.stop()
+      _ = server.stop()
     } yield ()
     Await.result(run, Duration.Inf)
   }
