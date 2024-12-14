@@ -53,7 +53,7 @@ trait ProtocolCodecTest extends CoreTest {
   def mapName(name: String): Seq[String] =
     name match {
       case "method" => Seq("method", "function")
-      case value => Seq(value)
+      case function => Seq(function)
     }
 
   def fixtureId(rpcProtocol: RpcProtocol[?, ?, ?]): String = {
