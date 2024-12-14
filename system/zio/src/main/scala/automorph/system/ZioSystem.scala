@@ -20,6 +20,7 @@ import zio.{Queue, RIO, Runtime, Trace, Unsafe, ZIO}
  */
 final case class ZioSystem[Environment]()(implicit val runtime: Runtime[Environment])
   extends AsyncEffectSystem[({ type Effect[A] = RIO[Environment, A] })#Effect] {
+  private val runtimeUnsafe = runtime.unsafe
 
   override def evaluate[T](value: => T): RIO[Environment, T] =
     ZIO.attempt(value)
@@ -39,7 +40,7 @@ final case class ZioSystem[Environment]()(implicit val runtime: Runtime[Environm
   override def runAsync[T](effect: RIO[Environment, T]): Unit = {
     implicit val trace: Trace = Trace.empty
     Unsafe.unsafe { implicit unsafe =>
-      runtime.unsafe.fork(effect)
+      runtimeUnsafe.fork(effect)
       ()
     }
   }
