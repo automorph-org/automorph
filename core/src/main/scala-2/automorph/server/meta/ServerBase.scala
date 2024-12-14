@@ -139,6 +139,7 @@ object ServerBind {
         server.rpcProtocol,
         apiBindings ++ newApiBindings,
         server.handler.discovery,
+        server.handler.filterCall,
       )
       automorph.RpcServer(server.transport, server.rpcProtocol, handler, handler.functions)
     """)

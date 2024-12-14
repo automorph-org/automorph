@@ -13,7 +13,7 @@ import scala.collection.immutable.ListMap
  * Automatically derives remote API bindings for existing API instances.
  *
  * @constructor
- *   Creates a RPC server with specified protocol and transport plugins supporting corresponding message context type.
+ *   Creates an RPC server with specified protocol and transport plugins supporting corresponding message context type.
  * @param rpcProtocol
  *   RPC protocol plugin
  * @param transport
@@ -48,6 +48,17 @@ final case class RpcServer[Node, Codec <: MessageCodec[Node], Effect[_], Context
    */
   def discovery(discovery: Boolean): RpcServer[Node, Codec, Effect, Context] =
     copy(handler = handler.discovery(discovery))
+
+  /**
+   * Register filtering function to reject RPC requests based on specified criteria.
+   *
+   * @param filter
+   *   filters RPC requests and raises arbitrary errors for non-matching requests
+   * @return
+   *   RPC server
+   */
+  def callFilter(filter: RpcCall[Context] => Option[Throwable]): RpcServer[Node, Codec, Effect, Context] =
+    copy(handler = handler.callFilter(filter))
 
   /**
    * Starts this server to process incoming requests.
@@ -113,7 +124,7 @@ object RpcServer {
   }
 
   /**
-   * Creates a RPC server with specified protocol and transport plugins supporting corresponding message context type.
+   * Creates an RPC server with specified protocol and transport plugins supporting corresponding message context type.
    *
    * @param transport
    *   server transport protocol plugin

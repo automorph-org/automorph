@@ -13,7 +13,7 @@ import scala.collection.immutable.ListMap
  * Automatically derives remote API bindings for existing API instances.
  *
  * @constructor
- *   Creates a RPC endpoint with specified protocol and transport plugins supporting corresponding message context type.
+ *   Creates an RPC endpoint with specified protocol and transport plugins supporting corresponding message context type.
  * @param transport
  *   transport layer transport plugin
  * @param rpcProtocol
@@ -33,7 +33,7 @@ import scala.collection.immutable.ListMap
  * @tparam Adapter
  *   transport layer adapter type
  */
-final case class RpcEndpoint[Node, Codec <: MessageCodec[Node], Effect[_], Context, Adapter] (
+final case class RpcEndpoint[Node, Codec <: MessageCodec[Node], Effect[_], Context, Adapter](
   transport: EndpointTransport[Effect, Context, Adapter],
   rpcProtocol: RpcProtocol[Node, Codec, Context],
   handler: RequestHandler[Effect, Context],
@@ -49,11 +49,26 @@ final case class RpcEndpoint[Node, Codec <: MessageCodec[Node], Effect[_], Conte
   /**
    * Enable or disable automatic provision of service discovery via RPC functions returning bound API schema.
    *
-   * @param discovery service discovery enabled
-   * @return RPC server
+   * @param discovery
+   *   service discovery enabled
+   * @return
+   *   RPC endpoint
    */
   def discovery(discovery: Boolean): RpcEndpoint[Node, Codec, Effect, Context, Adapter] =
     copy(handler = handler.discovery(discovery))
+
+  /**
+   * Register filtering function to reject RPC requests based on specified criteria.
+   *
+   * @param filter
+   *   filters RPC requests and raises arbitrary errors for non-matching requests
+   * @return
+   *   RPC endpoint
+   */
+  def requestFilter(
+    filter: RpcCall[Context] => Option[Throwable]
+  ): RpcEndpoint[Node, Codec, Effect, Context, Adapter] =
+    copy(handler = handler.callFilter(filter))
 
   override def toString: String = {
     val plugins = Map[String, Any](
@@ -105,7 +120,7 @@ object RpcEndpoint {
   }
 
   /**
-   * Creates a RPC server with specified protocol and transport plugins supporting corresponding message context type.
+   * Creates an RPC server with specified protocol and transport plugins supporting corresponding message context type.
    *
    * @param transport
    *   endpoint transport layer plugin
@@ -121,7 +136,8 @@ object RpcEndpoint {
    *   RPC message context type
    * @tparam Adapter
    *   transport layer transport type
-   * @return RPC server
+   * @return
+   *   RPC server
    */
   def apply[Node, Codec <: MessageCodec[Node], Effect[_], Context, Adapter](
     transport: EndpointTransport[Effect, Context, Adapter],

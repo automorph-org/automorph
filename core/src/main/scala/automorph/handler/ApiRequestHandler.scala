@@ -1,6 +1,6 @@
 package automorph.handler
 
-import automorph.RpcFunction
+import automorph.{RpcFunction, RpcCall}
 import automorph.RpcException.{FunctionNotFound, InvalidArguments}
 import automorph.log.{LogProperties, Logging}
 import automorph.spi.RequestHandler.Result
@@ -18,8 +18,8 @@ import scala.util.{Failure, Success, Try}
  * Note: Consider this class to be private and do not use it. It remains public only due to Scala 2 macro limitations.
  *
  * @constructor
- *   Creates a new RPC request handler using specified effect system and RPC protocol plugins
- *   with corresponding message context type.
+ *   Creates a new RPC request handler using specified effect system and RPC protocol plugins with corresponding message
+ *   context type.
  * @param rpcProtocol
  *   RPC protocol plugin
  * @param effectSystem
@@ -27,7 +27,9 @@ import scala.util.{Failure, Success, Try}
  * @param apiBindings
  *   API method bindings
  * @param discovery
- *   enable automatic provision of service discovery via RPC functions returning bound API schema
+ *   automatic provision of service discovery via RPC functions returning bound API schema enabled
+ * @param filterCall
+ *   filters RPC requests and raises arbitrary errors for non-matching requests
  * @tparam Node
  *   message node type
  * @tparam Codec
@@ -43,10 +45,11 @@ final case class ApiRequestHandler[Node, Codec <: MessageCodec[Node], Effect[_],
   apiBindings: ListMap[String, HandlerBinding[Node, Effect, Context]] =
     ListMap[String, HandlerBinding[Node, Effect, Context]](),
   discovery: Boolean = false,
+  filterCall: RpcCall[Context] => Option[Throwable] = (_: RpcCall[Context]) => None,
 ) extends RequestHandler[Effect, Context] with Logging {
 
   private val bindings = Option.when(discovery)(apiSchemaBindings).getOrElse(ListMap.empty) ++ apiBindings
-  private implicit val system: EffectSystem[Effect] = effectSystem
+  implicit private val system: EffectSystem[Effect] = effectSystem
 
   /** Bound RPC functions. */
   lazy val functions: Seq[RpcFunction] = bindings.map { case (name, binding) =>
@@ -74,6 +77,9 @@ final case class ApiRequestHandler[Node, Codec <: MessageCodec[Node], Effect[_],
 
   override def discovery(discovery: Boolean): RequestHandler[Effect, Context] =
     copy(discovery = discovery)
+
+  override def callFilter(filter: RpcCall[Context] => Option[Throwable]): RequestHandler[Effect, Context] =
+    copy(filterCall = filter)
 
   override def mediaType: String =
     rpcProtocol.messageCodec.mediaType
@@ -105,6 +111,12 @@ final case class ApiRequestHandler[Node, Codec <: MessageCodec[Node], Effect[_],
       extractArguments(rpcRequest, binding).map { argumentNodes =>
         // Decode bound function arguments
         decodeArguments(argumentNodes, binding)
+      }.flatMap { arguments =>
+        // Filter the RPC request
+        filterCall(RpcCall(binding.function.name, arguments, context)) match {
+          case Some(error) => Failure(error)
+          case _ => Success(arguments)
+        }
       }.map { arguments =>
         // Call bound API method
         binding.call(arguments, context)

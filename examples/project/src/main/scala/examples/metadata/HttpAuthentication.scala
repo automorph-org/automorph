@@ -2,7 +2,7 @@
 //> using dep ch.qos.logback:logback-classic:@LOGBACK_VERSION@
 package examples.metadata
 
-import automorph.Default
+import automorph.{Default, RpcCall}
 import automorph.Default.{ClientContext, ServerContext}
 import automorph.system.IdentitySystem
 import java.net.URI
@@ -17,32 +17,40 @@ private[examples] object HttpAuthentication {
     trait Api {
       // Accept HTTP request context consumed by the client transport plugin
       def hello(message: String)(implicit http: ClientContext): String
+
+      def public(): String
     }
 
     // Create server implementation of the remote API
     class Service {
-      // Accept HTTP request context provided by the server message transport plugin
-      def hello(message: String)(implicit httpRequest: ServerContext): String =
-        httpRequest.authorization("Bearer") match {
-          case Some("valid") => s"Note: $message!"
-          case _ => throw new IllegalAccessException("Authentication failed")
-        }
+      def hello(message: String): String =
+        s"Hello world $message"
+
+      def public(): String =
+        "OK"
     }
     val service = new Service
 
-    // Initialize JSON-RPC HTTP & WebSocket server listening on port 9000 for requests to '/api'
-    val server = Default.rpcServerCustom(IdentitySystem(), 9000, "/api").bind(service).init()
+    // Customize RPC request filtering to reject unauthenticated calls to non-public functions
+    val filterCall = (call: RpcCall[ServerContext]) => call.context.authorization("Bearer") match {
+      case Some("valid") => None
+      case _ if call.function == "public" => None
+      case _ => Some(new IllegalAccessException("Authentication failed"))
+    }
+
+    // Initialize JSON-RPC HTTP & WebSocket server with API with custom request filter
+    val server = Default.rpcServerCustom(IdentitySystem(), 9000, "/api").bind(service).callFilter(filterCall).init()
 
     // Initialize JSON-RPC HTTP client for sending POST requests to 'http://localhost:9000/api'
     val client = Default.rpcClientCustom(IdentitySystem(), new URI("http://localhost:9000/api")).init()
     val remoteApi = client.bind[Api]
 
     {
-      // Create client request context containing invalid HTTP authentication
+      // Create request context containing valid HTTP authentication used by the client transport plugin
       implicit val validAuthentication: ClientContext = client.context
         .authorization("Bearer", "valid")
 
-      // Call the remote API function via a local proxy using valid authentication
+      // Call the authenticated remote API function via a local proxy using implicitly given valid authentication
       println(
         remoteApi.hello("test")
       )
@@ -54,18 +62,14 @@ private[examples] object HttpAuthentication {
     }
 
     {
-      // Create client request context containing invalid HTTP authentication
-      implicit val invalidAuthentication: ClientContext = client.context
-        .headers("X-Authentication" -> "unsupported")
+      // Call the public remote API function via a local proxy without authentication
+      println(
+        remoteApi.public()
+      )
 
-      // Call the remote API function statically using invalid authentication
+      // Call the authenticated remote API function via a local proxy without authentication and fail
       println(Try(
         remoteApi.hello("test")
-      ).failed.get)
-
-      // Call the remote API function dynamically using invalid authentication
-      println(Try(
-        client.call[String]("hello")("message" -> "test")
       ).failed.get)
     }
 

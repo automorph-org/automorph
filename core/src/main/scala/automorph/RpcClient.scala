@@ -20,7 +20,7 @@ import scala.util.Try
  * or without an API trait by supplying the required type information on invocation.
  *
  * @constructor
- *   Creates a RPC client with specified protocol and transport plugins providing corresponding message context type.
+ *   Creates an RPC client with specified protocol and transport plugins providing corresponding message context type.
  * @param transport
  *   client transport protocol plugin
  * @param rpcProtocol

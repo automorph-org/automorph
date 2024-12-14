@@ -148,6 +148,7 @@ object EndpointBind {
         endpoint.rpcProtocol,
         apiBindings ++ newApiBindings,
         endpoint.handler.discovery,
+        endpoint.handler.filterCall,
       )
       automorph.RpcEndpoint(endpoint.transport, endpoint.rpcProtocol, handler, handler.functions)
     """)

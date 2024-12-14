@@ -1,5 +1,6 @@
 package automorph.spi
 
+import automorph.RpcCall
 import automorph.spi.RequestHandler.Result
 
 /**
@@ -15,8 +16,8 @@ import automorph.spi.RequestHandler.Result
 trait RequestHandler[Effect[_], Context] {
 
   /**
-   * Processes an RPC request by invoking a bound remote function based on the specified RPC request
-   * along with request context and return an RPC response.
+   * Processes an RPC request by invoking a bound remote function based on the specified RPC request along with request
+   * context and return an RPC response.
    *
    * @param requestBody
    *   request message body
@@ -32,13 +33,32 @@ trait RequestHandler[Effect[_], Context] {
   /**
    * Enable or disable automatic provision of service discovery via RPC functions returning bound API schema.
    *
-   * @param discovery service discovery enabled
-   * @return RPC request handler
+   * @param discovery
+   *   service discovery enabled
+   * @return
+   *   RPC request handler
    */
   def discovery(discovery: Boolean): RequestHandler[Effect, Context]
 
-  /** * Automatic provision of service discovery via RPC functions returning bound API schema. */
+  /**
+   * Register filtering function to reject RPC requests based on specified criteria.
+   *
+   * @param filter
+   *   filters RPC calls and raises arbitrary errors for non-matching requests
+   * @return
+   *   RPC request handler
+   */
+  def callFilter(filter: RpcCall[Context] => Option[Throwable]): RequestHandler[Effect, Context]
+
+  /**
+   * Automatic provision of service discovery via RPC functions returning bound API schema enabled.
+   */
   def discovery: Boolean
+
+  /**
+   * Filters RPC calls and raises arbitrary errors for non-matching requests
+   */
+  def filterCall: RpcCall[Context] => Option[Throwable]
 
   /** Message format media (MIME) type. */
   def mediaType: String
@@ -64,18 +84,23 @@ object RequestHandler {
     context: Option[Context],
   )
 
-  private final case class DummyRequestHandler[Effect[_], Context]() extends RequestHandler[Effect, Context] {
+  final private case class DummyRequestHandler[Effect[_], Context]() extends RequestHandler[Effect, Context] {
+
     def processRequest(requestBody: Array[Byte], context: Context, id: String): Effect[Option[Result[Context]]] =
       error
 
     override def discovery(enabled: Boolean): RequestHandler[Effect, Context] =
       error
 
-    /** Automatic provision of service discovery via RPC functions returning bound API schema. */
+    override def callFilter(filter: RpcCall[Context] => Option[Throwable]): RequestHandler[Effect, Context] =
+      error
+
     override def discovery: Boolean =
       error
 
-    /** Message format media (MIME) type. */
+    override def filterCall: RpcCall[Context] => Option[Throwable] =
+      error
+
     override def mediaType: String =
       error
 
