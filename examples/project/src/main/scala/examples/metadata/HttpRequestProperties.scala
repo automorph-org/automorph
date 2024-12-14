@@ -20,7 +20,7 @@ private[examples] object HttpRequestProperties {
 
     // Create server implementation of the remote API
     class Service {
-      // Accept HTTP request context provided by the server message transport plugin
+      // Accept request context containing HTTP metadata provided by the server transport plugin
       def hello(message: String)(implicit httpRequest: ServerContext): String =
         Seq(
           Some(message),
@@ -36,7 +36,7 @@ private[examples] object HttpRequestProperties {
     // Initialize JSON-RPC HTTP client for sending POST requests to 'http://localhost:9000/api'
     val client = Default.rpcClientCustom(IdentitySystem(), new URI("http://localhost:9000/api")).init()
 
-    // Create HTTP request context consumed by the client transport plugin
+    // Create request context containing HTTP metadata used by the client transport plugin
     implicit val httpRequest: ClientContext = client.context
       .parameters("test" -> "value")
       .headers("X-Test" -> "value", "Cache-Control" -> "no-cache")

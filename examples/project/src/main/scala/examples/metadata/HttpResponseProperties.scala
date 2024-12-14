@@ -15,14 +15,14 @@ private[examples] object HttpResponseProperties {
 
     // Define client view of a remote API
     trait Api {
-      // Return HTTP response context provided by the client transport plugin
+      // Return response context containing HTTP metadata provided by the client transport plugin
       def hello(message: String): RpcResult[String, ClientContext]
     }
 
     // Create server implementation of the remote API
     class Service {
 
-      // Return HTTP response context consumed by the server message transport plugin
+      // Return response context containing HTTP metadata used by the server transport plugin
       def hello(message: String): RpcResult[String, ServerContext] =
         RpcResult(
           message,
