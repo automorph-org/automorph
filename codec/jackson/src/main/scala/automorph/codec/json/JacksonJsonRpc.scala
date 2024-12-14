@@ -35,7 +35,7 @@ private[automorph] object JacksonJsonRpc {
             field(Message.code, value => Option.when(value.isInt)(value.asInt), node, parser),
             field(Message.data, Some(_), node, parser),
           )
-          case _ => throw new JsonParseException(parser, "Invalid message error", parser.getCurrentLocation)
+          case _ => throw new JsonParseException(parser, "Invalid message error", parser.currentLocation)
         }
     }
 
@@ -83,7 +83,7 @@ private[automorph] object JacksonJsonRpc {
               parser
             ),
           )
-          case _ => throw new JsonParseException(parser, "Invalid message", parser.getCurrentLocation)
+          case _ => throw new JsonParseException(parser, "Invalid message", parser.currentLocation)
         }
     }
 }

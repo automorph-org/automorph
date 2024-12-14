@@ -26,6 +26,6 @@ object JacksonRpcProtocol {
     parser: JsonParser
   ): Option[T] =
     Option(node.get(name)).filter(!_.isNull).map(extract).map(_.getOrElse {
-      throw new JsonParseException(parser, s"Invalid $name", parser.getCurrentLocation)
+      throw new JsonParseException(parser, s"Invalid $name", parser.currentLocation)
     })
 }
