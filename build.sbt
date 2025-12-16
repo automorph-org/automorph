@@ -264,7 +264,7 @@ lazy val standard = source(project, "test/standard", core, testSystem % Test)
 
 // Compile
 ThisBuild / scalaVersion := "3.3.0"
-ThisBuild / crossScalaVersions += "2.13.15"
+ThisBuild / crossScalaVersions += "2.13.17"
 ThisBuild / javacOptions ++= Seq("-source", "11", "-target", "11")
 val commonScalacOptions = Seq(
   "-language:higherKinds",
