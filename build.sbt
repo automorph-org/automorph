@@ -138,19 +138,19 @@ lazy val scalazEffect = source(project, "system/scalaz-effect", core, testSystem
 )
 
 // Message codec
-val circeVersion = "0.14.10"
+val circeVersion = "0.14.15"
 lazy val circe = source(project, s"codec/circe", core, testCodec % Test).settings(
   libraryDependencies ++= Seq(
     "io.circe" %% "circe-parser" % circeVersion,
     "io.circe" %% "circe-generic" % circeVersion,
   )
 )
-val jacksonVersion = "2.18.2"
+val jacksonVersion = "2.20.1"
 lazy val jackson = source(project, "codec/jackson", core, testCodec % Test).settings(
   libraryDependencies += "com.fasterxml.jackson.module" %% "jackson-module-scala" % jacksonVersion
 )
 lazy val upickle = source(project, "codec/upickle", core, testCodec % Test).settings(
-  libraryDependencies += "com.lihaoyi" %% "upickle" % "4.0.2"
+  libraryDependencies += "com.lihaoyi" %% "upickle" % "4.4.1"
 )
 lazy val argonaut = source(project, "codec/argonaut", core, testCodec % Test).settings(
   libraryDependencies += "io.argonaut" %% "argonaut" % "6.3.10"
