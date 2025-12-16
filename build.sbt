@@ -172,24 +172,24 @@ lazy val sttp =
 )
 lazy val rabbitmq = source(project, "transport/rabbitmq", core, testTransport % Test).settings(
   libraryDependencies ++= Seq(
-    "com.rabbitmq" % "amqp-client" % "5.24.0"
+    "com.rabbitmq" % "amqp-client" % "5.28.0"
   )
 )
 
 // Server transport
-val tapirVersion = "1.11.10"
+val tapirVersion = "1.13.2"
 lazy val tapir = source(project, "transport/tapir", core, catsEffect % Test, testTransport % Test).settings(
   libraryDependencies ++= Seq(
     "com.softwaremill.sttp.tapir" %% "tapir-server" % tapirVersion,
     "com.softwaremill.sttp.tapir" %% "tapir-armeria-server" % tapirVersion % Test,
     "com.softwaremill.sttp.tapir" %% "tapir-http4s-server" % tapirVersion % Test,
-    "org.http4s" %% "http4s-ember-server" % "0.23.30" % Test,
+    "org.http4s" %% "http4s-ember-server" % "0.23.33" % Test,
     "com.softwaremill.sttp.tapir" %% "tapir-netty-server" % tapirVersion % Test,
     "com.softwaremill.sttp.tapir" %% "tapir-vertx-server" % tapirVersion % Test
   )
 )
 lazy val undertow = source(project, "transport/undertow", core, testTransport % Test).settings(
-  libraryDependencies += "io.undertow" % "undertow-core" % "2.3.18.Final"
+  libraryDependencies += "io.undertow" % "undertow-core" % "2.3.20.Final"
 )
 lazy val vertx = source(project, "transport/vertx", core, testTransport % Test).settings(
   libraryDependencies += "io.vertx" % "vertx-core" % "4.5.11"
