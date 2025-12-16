@@ -125,13 +125,13 @@ lazy val core = source(project, "core", meta, testBase % Test)
 
 // Effect system
 lazy val zio = source(project, "system/zio", core, testSystem % Test).settings(
-  libraryDependencies += "dev.zio" %% "zio" % "2.1.13"
+  libraryDependencies += "dev.zio" %% "zio" % "2.1.23"
 )
 lazy val monix = source(project, "system/monix", core, testSystem % Test).settings(
   libraryDependencies += "io.monix" %% "monix-eval" % "3.4.1"
 )
 lazy val catsEffect = source(project, "system/cats-effect", core, testSystem % Test).settings(
-  libraryDependencies += "org.typelevel" %% "cats-effect" % "3.5.7"
+  libraryDependencies += "org.typelevel" %% "cats-effect" % "3.6.3"
 )
 lazy val scalazEffect = source(project, "system/scalaz-effect", core, testSystem % Test).settings(
   libraryDependencies += "org.scalaz" %% "scalaz-effect" % "7.4.0-M15"
@@ -157,7 +157,7 @@ lazy val argonaut = source(project, "codec/argonaut", core, testCodec % Test).se
 )
 
 // Client transport
-val sttpVersion = "3.10.1"
+val sttpVersion = "3.11.0"
 val sttpHttpClientVersion = "3.5.2"
 lazy val sttp =
   source(project, "transport/sttp", core, catsEffect % Test, zio % Test, testTransport % Test).settings(
