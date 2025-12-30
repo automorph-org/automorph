@@ -23,7 +23,7 @@ if [ -z "${force}" ]; then
 fi
 
 # EXtract a changelog since the last tag
-git log $(git describe --tags --abbrev=0)..HEAD --format='%s' | grep '^-' > "${release_notes}"
+git log $(git describe --tags --abbrev=0)..HEAD --format='%B' | grep '^-' > "${release_notes}"
 
 # Create a new tag
 git tag -a -m "Version: ${version}" "${tag}"
