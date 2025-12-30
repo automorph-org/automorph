@@ -30,7 +30,7 @@ git tag -a -m "Version: ${version}" "${tag}"
 git push --follow-tags
 
 # Publish artifacts
-sbt '+ publishSigned ; sonatypeBundleRelease'
+sbt '+ publishSigned ; sonatypeCentralRelease'
 
 # Create a release
 gh release create "${tag}" -t "${version}" -F "${release_notes}"
