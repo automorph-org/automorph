@@ -1,5 +1,5 @@
 // Serve an API implementation and call it remotely using JSON-RPC over HTTP(S).
-//> using scala 3.6.2
+//> using scala 3.7.4
 //> using dep org.automorph::automorph-default:0.2.9
 //> using dep ch.qos.logback:logback-classic:1.5.12
 package examples
