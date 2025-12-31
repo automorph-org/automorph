@@ -19,7 +19,7 @@ scala-cli "https://automorph.org/examples/src/main/scala/examples/Quickstart.sca
 ```
 
 
-## Existing project
+## Project
 
 ### Build
 
@@ -147,23 +147,7 @@ Await.ready(for {
 ```
 
 
-## New project
-
-Create an [SBT](https://www.scala-sbt.org/) project containing a quickstart example from a
-[Giter8](http://www.foundweekends.org/giter8/) template:
-
-```shell
-sbt new automorph-org/automorph.g8 --name=automorph-example
-cd automorph-example
-sbt run
-```
-
-Customize the example by editing `src/main/scala/examples/Quickstart.scala` and `build.sbt`.
-
-Application logs are saved to `target/main.log` using the `LOG_LEVEL` environment variable to set a log level (`ERROR`, `WARN`, `INFO`, `DEBUG`, `TRACE`).
-
-
-## Example project
+## Examples
 
 Clone the [example project](@REPOSITORY_URL@/tree/main/examples/project) and run any of the examples:
 
@@ -177,3 +161,4 @@ Customize the [examples](@REPOSITORY_URL@/blob/main/examples/project/src/main/sc
 - Integrating with preferred platforms by including additional plugins
 - Configuring RPC client, server or endpoint properties
 - Removing unused examples and build dependencies
+
